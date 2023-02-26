@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "gen:init": "elm-codegen init"
+    "gen:init": "elm-codegen init",
+    "gen:install": "elm-codegen install",
+    "gen:run": "ts-node ./cli/generate.ts"
   },
   "repository": {
     "type": "git",
@@ -18,6 +20,7 @@
   },
   "homepage": "https://github.com/mdgriffith/elm-press#readme",
   "devDependencies": {
-    "elm-codegen": "^0.3.0"
+    "elm-codegen": "^0.3.0",
+    "ts-node": "^10.9.1"
   }
 }

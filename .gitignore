@@ -6,3 +6,4 @@ node_modules
 
 # Elm codegen stuff
 codegen/Gen
+generated
