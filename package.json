@@ -1,0 +1,23 @@
+{
+  "name": "elm-press",
+  "version": "1.0.0",
+  "description": "A simple markdown -> Elm code generator",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gen:init": "elm-codegen init"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdgriffith/elm-press.git"
+  },
+  "author": "",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/mdgriffith/elm-press/issues"
+  },
+  "homepage": "https://github.com/mdgriffith/elm-press#readme",
+  "devDependencies": {
+    "elm-codegen": "^0.3.0"
+  }
+}
