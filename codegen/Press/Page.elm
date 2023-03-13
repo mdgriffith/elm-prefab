@@ -18,9 +18,9 @@ markdown :
     , layout : List block -> view
     , onError : String -> view
     }
-    -> Page flags common msg model view
+    -> Page flags common {} {} {} view 
 markdown options =
-    { init = \{} -> ( {}, {} )
+    { init = \_ -> ( {}, {} )
     , update = \common msg model -> ( model, {} )
     , view =
         \_ _ ->
