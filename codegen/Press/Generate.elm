@@ -41,11 +41,43 @@ import Gen.Tuple
 import Gen.Url
 import Gen.Url.Parser
 import Json.Decode
+import Parser exposing ((|.), (|=))
 import Path
+import Set exposing (Set)
 
 
 
 {- Decode source data -}
+
+
+type alias Options =
+    { assets : SourceDirectory
+    , elmPages : List ElmPage
+    }
+
+
+type alias ElmPage =
+    { urls : List UrlPattern
+    , source : String
+    }
+
+
+type UrlPattern
+    = UrlPattern
+        { path : List UrlPiece
+        , queryParams : QueryParams
+        }
+
+
+type alias QueryParams =
+    { includeCatchAll : Bool
+    , specificFields : Set String
+    }
+
+
+type UrlPiece
+    = Token String
+    | Variable String
 
 
 type alias SourceDirectory =
@@ -60,8 +92,129 @@ type alias Source =
     }
 
 
-decode : Json.Decode.Decoder SourceDirectory
+decode : Json.Decode.Decoder Options
 decode =
+    Json.Decode.map2 Options
+        (Json.Decode.field "assets" decodeDirectory)
+        (Json.Decode.field "elmFiles" (Json.Decode.list decodeElmPage))
+
+
+decodeElmPage : Json.Decode.Decoder ElmPage
+decodeElmPage =
+    Json.Decode.map2 ElmPage
+        (Json.Decode.field "urls" (Json.Decode.list decodeUrlPattern))
+        (Json.Decode.field "source" Json.Decode.string)
+
+
+decodeUrlPattern : Json.Decode.Decoder UrlPattern
+decodeUrlPattern =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\string ->
+                case Parser.run parseUrlPattern string of
+                    Ok urlPattern ->
+                        Json.Decode.succeed <|
+                            -- UrlPattern
+                            --     { path = []
+                            --     , queryParams =
+                            -- { includeCatchAll = False
+                            -- , specificFields = []
+                            -- }
+                            --     }
+                            urlPattern
+
+                    Err err ->
+                        Json.Decode.fail ("I don't understand this route:" ++ string)
+            )
+
+
+parseUrlPattern : Parser.Parser UrlPattern
+parseUrlPattern =
+    Parser.succeed
+        (\path queryParams ->
+            UrlPattern
+                { path = path
+                , queryParams = queryParams
+                }
+        )
+        |= parsePath
+        |= parseQueryParams
+
+
+parseQueryParams : Parser.Parser QueryParams
+parseQueryParams =
+    Parser.oneOf
+        [ Parser.succeed
+            { includeCatchAll = False
+            , specificFields = Set.empty
+            }
+            |. Parser.end
+        , Parser.succeed (\params -> params)
+            |. Parser.symbol "?"
+            |. Parser.symbol "{"
+            |= Parser.loop
+                { includeCatchAll = False
+                , specificFields = Set.empty
+                }
+                (\params ->
+                    Parser.oneOf
+                        [ Parser.succeed
+                            (Parser.Loop { params | includeCatchAll = True })
+                            |. Parser.symbol "**"
+                            |. Parser.chompWhile (\c -> c == ',')
+                        , Parser.succeed
+                            (\fieldName ->
+                                Parser.Loop { params | specificFields = Set.insert fieldName params.specificFields }
+                            )
+                            |= Parser.getChompedString
+                                (Parser.succeed ()
+                                    |. Parser.chompIf Char.isAlpha
+                                    |. Parser.chompWhile Char.isAlpha
+                                )
+                            |. Parser.chompWhile (\c -> c == ',')
+                        , Parser.succeed (Parser.Done params)
+                        ]
+                )
+            |. Parser.symbol "}"
+        ]
+
+
+parsePath : Parser.Parser (List UrlPiece)
+parsePath =
+    Parser.loop []
+        (\pieces ->
+            Parser.oneOf
+                [ Parser.succeed
+                    (\isVariable label ->
+                        Parser.Loop <|
+                            if isVariable then
+                                Variable label :: pieces
+
+                            else
+                                Token label :: pieces
+                    )
+                    |. Parser.symbol "/"
+                    |= Parser.oneOf
+                        [ Parser.succeed True
+                            |. Parser.chompIf (\c -> c == ':')
+                        , Parser.succeed False
+                        ]
+                    |= Parser.getChompedString
+                        (Parser.chompWhile
+                            (\c ->
+                                not (List.member c [ '/', ':', '?' ])
+                            )
+                        )
+                , Parser.succeed
+                    (Parser.Done
+                        (List.reverse pieces)
+                    )
+                ]
+        )
+
+
+decodeDirectory : Json.Decode.Decoder SourceDirectory
+decodeDirectory =
     Json.Decode.map2 SourceDirectory
         (Json.Decode.field "base" Json.Decode.string)
         (Json.Decode.field "files" (Json.Decode.list decodeSource))
@@ -78,11 +231,15 @@ decodeSource =
 {- GENERATES -}
 
 
-generate : SourceDirectory -> List Elm.File
-generate source =
-    generateAppEngine source
-        :: generateDirectory source
-        :: generatePages source
+generate : Options -> List Elm.File
+generate options =
+    let
+        _ =
+            Debug.log "OPTIONS" options.elmPages
+    in
+    generateAppEngine options.assets
+        :: generateDirectory options.assets
+        :: generatePages options.assets
 
 
 generateDirectory : SourceDirectory -> Elm.File

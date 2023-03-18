@@ -1,33 +1,23 @@
-// @ts-ignore
-import * as CodeGen from "elm-codegen";
-import * as fs from "fs";
 import * as path from "path";
+import * as ElmPress from "./press";
 
-const directoryPath = path.join(__dirname, "../examples/elm-gql/guide");
-
-const found: { path: string; contents: string }[] = [];
-
-function readFilesRecursively(dir: string) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
-    if (stat.isFile()) {
-      const content = fs.readFileSync(filePath, "utf-8");
-      found.push({ path: filePath, contents: content });
-    } else if (stat.isDirectory()) {
-      readFilesRecursively(filePath);
-    }
-  }
-}
-
-readFilesRecursively(directoryPath);
-
-const dir = { base: directoryPath, files: found };
-
-CodeGen.run("Generate.elm", {
-  debug: true,
+ElmPress.generate({
   output: "generated",
-  flags: dir,
-  cwd: "./codegen",
+  generators: [
+    ElmPress.app({
+      markdown: path.join(__dirname, "../examples/elm-gql/guide"),
+      elm: {
+        dir: path.join(__dirname, "../examples/elm-gql/src/Page"),
+        urls: [
+          {
+            page: "Home.elm",
+            url: "/test/:id?{search,tags,**}",
+          },
+        ],
+      },
+    }),
+    // ElmPress.ui({ colors: [] }),
+    // ElmPress.figma({ apiKey: "string" }),
+    // ElmPress.notion({ apiKey: "string" }),
+  ],
 });
