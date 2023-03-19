@@ -529,10 +529,31 @@ urlParser routes =
                     )
                     url
             )
+            |> Elm.withType (Type.function [ Gen.Url.annotation_.url ] (Type.maybe (Type.named [] "Route")))
         )
         |> Elm.expose
+    , Elm.declaration "queryDictToString"
+        (Elm.fn ( "dict", Just (Gen.Dict.annotation_.dict Type.string Type.string) )
+            (\dict ->
+                Elm.ifThen (Gen.Dict.isEmpty dict)
+                    (Elm.string "")
+                    (Gen.Dict.call_.foldl
+                        (Elm.val "gatherString")
+                        (Elm.string "?")
+                        dict
+                    )
+            )
+        )
     , Elm.unsafe """
 
+gatherString : String -> String -> String -> String
+gatherString key val rendered =
+    case rendered of
+        "?" ->
+            rendered ++ key ++ "=" ++ val 
+
+        _ ->
+            rendered ++ "&" ++ key ++ "=" ++ val 
 
 paramToString : (String, Maybe String) -> Maybe String
 paramToString (key, maybeVal) =
@@ -554,28 +575,10 @@ paramsToString fields =
             "?" ++ String.join "&" params
 
 
-queryDictToString : Dict String String -> String
-queryDictToString dict =
-    if Dict.isEmpty dict then
-        ""
-    else 
-        Dict.foldl 
-            (\\key val rendered ->
-                case rendered of
-                    "?" ->
-                        rendered ++ key ++ "=" ++ val 
 
-                    _ ->
-                        rendered ++ "&" ++ key ++ "=" ++ val 
-            
-            
-            )
-            "?"
-            dict
-
-queryParams : Url -> Dict String String
+queryParams : Url.Url -> Dict.Dict String String
 queryParams url =
-    case Url.query url of
+    case url.query of
         Nothing ->
             Dict.empty
 

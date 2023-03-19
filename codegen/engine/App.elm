@@ -1,6 +1,25 @@
-module App exposing (..)
+port module App exposing
+    ( none, pushUrl, replaceUrl, load, reload, forward, back
+    , get
+    , Effect, toCmd
+    , Page, page, init, update, view, subscriptions
+    , Frame, frame, frameInit, frameUpdate, frameView, frameSubscriptions
+    , Subscription(..), noFrame
+    )
 
-{-| -}
+{-|
+
+@docs none, pushUrl, replaceUrl, load, reload, forward, back
+
+@docs get
+
+@docs Effect, toCmd
+
+@docs Page, page, init, update, view, subscriptions
+
+@docs Frame, frame, frameInit, frameUpdate, frameView, frameSubscriptions
+
+-}
 
 import Browser
 import Browser.Navigation
@@ -9,24 +28,48 @@ import Http
 import Json.Encode
 
 
-type Page params shared model msg view
-    = Page
-        { init : params -> shared -> ( model, Effect msg )
-        , update : shared -> msg -> model -> ( model, Effect msg )
-        , subscriptions : shared -> model -> Subscription msg
-        , view : shared -> model -> view
-        }
+none : Effect msg
+none =
+    None
 
 
-page :
-    { init : params -> shared -> ( model, Effect msg )
-    , update : shared -> msg -> model -> ( model, Effect msg )
-    , subscriptions : shared -> model -> Subscription msg
-    , view : shared -> model -> view
+pushUrl : String -> Effect msg
+pushUrl =
+    PushUrl
+
+
+replaceUrl : String -> Effect msg
+replaceUrl =
+    ReplaceUrl
+
+
+load : String -> Effect msg
+load =
+    Load
+
+
+reload : Effect msg
+reload =
+    Reload
+
+
+forward : Int -> Effect msg
+forward =
+    Forward
+
+
+back : Int -> Effect msg
+back =
+    Back
+
+
+get :
+    { url : String
+    , expect : Http.Expect msg
     }
-    -> Page params shared model msg view
-page =
-    Page
+    -> Effect msg
+get =
+    Get
 
 
 type Effect msg
@@ -41,6 +84,13 @@ type Effect msg
         { url : String
         , expect : Http.Expect msg
         }
+    | Send { tag : String, details : Maybe Json.Encode.Value }
+
+
+port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
+
+
+port incoming : ({ tag : String, details : Maybe Json.Encode.Value } -> msg) -> Sub msg
 
 
 toCmd : Browser.Navigation.Key -> Effect msg -> Cmd msg
@@ -70,6 +120,9 @@ toCmd key effect =
         Get options ->
             Http.get options
 
+        Send outgoingMsg ->
+            outgoing outgoingMsg
+
 
 type Subscription msg
     = Subscription (Sub msg)
@@ -84,6 +137,26 @@ toSub subscription =
 
 
 {- Page machinery -}
+
+
+type Page params shared model msg view
+    = Page
+        { init : params -> shared -> ( model, Effect msg )
+        , update : shared -> msg -> model -> ( model, Effect msg )
+        , subscriptions : shared -> model -> Subscription msg
+        , view : shared -> model -> view
+        }
+
+
+page :
+    { init : params -> shared -> ( model, Effect msg )
+    , update : shared -> msg -> model -> ( model, Effect msg )
+    , subscriptions : shared -> model -> Subscription msg
+    , view : shared -> model -> view
+    }
+    -> Page params shared model msg view
+page =
+    Page
 
 
 init :

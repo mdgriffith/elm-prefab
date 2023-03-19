@@ -20,19 +20,19 @@ type alias Msg =
 
 
 type alias Page shared =
-    App.Page shared Model Msg (Browser.Document Msg)
+    App.Page {} shared Model Msg (Browser.Document Msg)
 
 
 page : String -> Page shared
 page markdown =
     App.page
         { init =
-            \shared ->
+            \params shared ->
                 ( Markdown.Parser.parse markdown
                     |> Result.mapError (List.map Markdown.Parser.deadEndToString)
-                , App.None
+                , App.none
                 )
-        , update = \shared msg model -> ( model, App.None )
+        , update = \shared msg model -> ( model, App.none )
         , subscriptions = \pageUnpack -> \unpack -> App.Subscription Sub.none
         , view =
             \shared model ->
