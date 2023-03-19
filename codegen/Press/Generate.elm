@@ -40,6 +40,7 @@ import Gen.String
 import Gen.Tuple
 import Gen.Url
 import Gen.Url.Parser
+import Gen.Url.Parser.Query
 import Json.Decode
 import Parser exposing ((|.), (|=))
 import Path
@@ -58,6 +59,7 @@ type alias Options =
 
 type alias ElmPage =
     { urls : List UrlPattern
+    , id : List String
     , source : String
     }
 
@@ -101,8 +103,9 @@ decode =
 
 decodeElmPage : Json.Decode.Decoder ElmPage
 decodeElmPage =
-    Json.Decode.map2 ElmPage
+    Json.Decode.map3 ElmPage
         (Json.Decode.field "urls" (Json.Decode.list decodeUrlPattern))
+        (Json.Decode.field "id" (Json.Decode.list Json.Decode.string))
         (Json.Decode.field "source" Json.Decode.string)
 
 
@@ -113,15 +116,7 @@ decodeUrlPattern =
             (\string ->
                 case Parser.run parseUrlPattern string of
                     Ok urlPattern ->
-                        Json.Decode.succeed <|
-                            -- UrlPattern
-                            --     { path = []
-                            --     , queryParams =
-                            -- { includeCatchAll = False
-                            -- , specificFields = []
-                            -- }
-                            --     }
-                            urlPattern
+                        Json.Decode.succeed urlPattern
 
                     Err err ->
                         Json.Decode.fail ("I don't understand this route:" ++ string)
@@ -152,29 +147,32 @@ parseQueryParams =
         , Parser.succeed (\params -> params)
             |. Parser.symbol "?"
             |. Parser.symbol "{"
-            |= Parser.loop
-                { includeCatchAll = False
-                , specificFields = Set.empty
-                }
-                (\params ->
-                    Parser.oneOf
-                        [ Parser.succeed
-                            (Parser.Loop { params | includeCatchAll = True })
-                            |. Parser.symbol "**"
-                            |. Parser.chompWhile (\c -> c == ',')
-                        , Parser.succeed
-                            (\fieldName ->
-                                Parser.Loop { params | specificFields = Set.insert fieldName params.specificFields }
-                            )
-                            |= Parser.getChompedString
-                                (Parser.succeed ()
-                                    |. Parser.chompIf Char.isAlpha
-                                    |. Parser.chompWhile Char.isAlpha
+            |= Parser.oneOf
+                [ Parser.succeed
+                    { includeCatchAll = True
+                    , specificFields = Set.empty
+                    }
+                    |. Parser.symbol "**"
+                , Parser.loop
+                    { includeCatchAll = False
+                    , specificFields = Set.empty
+                    }
+                    (\params ->
+                        Parser.oneOf
+                            [ Parser.succeed
+                                (\fieldName ->
+                                    Parser.Loop { params | specificFields = Set.insert fieldName params.specificFields }
                                 )
-                            |. Parser.chompWhile (\c -> c == ',')
-                        , Parser.succeed (Parser.Done params)
-                        ]
-                )
+                                |= Parser.getChompedString
+                                    (Parser.succeed ()
+                                        |. Parser.chompIf Char.isAlpha
+                                        |. Parser.chompWhile Char.isAlpha
+                                    )
+                                |. Parser.chompWhile (\c -> c == ',')
+                            , Parser.succeed (Parser.Done params)
+                            ]
+                    )
+                ]
             |. Parser.symbol "}"
         ]
 
@@ -234,27 +232,180 @@ decodeSource =
 generate : Options -> List Elm.File
 generate options =
     let
-        _ =
-            Debug.log "OPTIONS" options.elmPages
+        routes =
+            toRouteInfo options
     in
-    generateAppEngine options.assets
-        :: generateDirectory options.assets
-        :: generatePages options.assets
+    generateAppEngine routes
+        :: generateRoutes routes
+        :: generatePages routes
 
 
-generateDirectory : SourceDirectory -> Elm.File
-generateDirectory ({ base, files } as source) =
-    Elm.file [ "Directory" ]
+generateRoutes : List RouteInfo -> Elm.File
+generateRoutes routes =
+    Elm.file [ "Route" ]
         (List.concat
-            [ routeType source
-            , urlEncoder source
-            , urlParser source
+            [ [ Elm.customType "Route"
+                    (List.map
+                        (\route ->
+                            Elm.variantWith
+                                route.name
+                                [ paramType route.pattern
+                                ]
+                        )
+                        routes
+                    )
+                    |> Elm.exposeWith
+                        { exposeConstructor = True
+                        , group = Nothing
+                        }
+              ]
+            , urlEncoder routes
+            , urlParser routes
             ]
         )
 
 
-toRoutePieces : String -> String -> Maybe (List String)
-toRoutePieces base filepath =
+hasNoParams : QueryParams -> Bool
+hasNoParams params =
+    Set.isEmpty params.specificFields
+        && not params.includeCatchAll
+
+
+paramType : UrlPattern -> Type.Annotation
+paramType (UrlPattern { path, queryParams }) =
+    if hasNoParams queryParams then
+        Type.record []
+
+    else
+        let
+            addCatchall fields =
+                if queryParams.includeCatchAll then
+                    ( "params", Type.dict Type.string Type.string )
+                        :: fields
+
+                else
+                    fields
+        in
+        Type.record
+            (List.concat
+                [ List.filterMap
+                    (\piece ->
+                        case piece of
+                            Token _ ->
+                                Nothing
+
+                            Variable name ->
+                                Just ( name, Type.string )
+                    )
+                    path
+                , queryParams.specificFields
+                    |> Set.toList
+                    |> List.map
+                        (\field ->
+                            ( field, Type.maybe Type.string )
+                        )
+                    |> addCatchall
+                ]
+            )
+
+
+type alias RouteInfo =
+    { name : String
+    , moduleName : List String
+    , pattern : UrlPattern
+    , type_ : RouteType
+    }
+
+
+type RouteType
+    = Elm
+    | Markdown
+        { path : String
+        , source : String
+        }
+
+
+toRouteInfo : Options -> List RouteInfo
+toRouteInfo options =
+    let
+        assetFileRouteInfo : List RouteInfo
+        assetFileRouteInfo =
+            List.filterMap
+                (\file ->
+                    let
+                        ( relativePath, ext ) =
+                            Path.relative options.assets.base file.path
+                                |> Path.extension
+                    in
+                    if ext == "md" || ext == "markdown" then
+                        let
+                            path =
+                                relativePath
+                                    |> String.split "/"
+                                    |> List.map camelToKebab
+                                    |> List.filter (not << String.isEmpty)
+                                    |> List.map Token
+
+                            modulePath =
+                                relativePath
+                                    |> String.split "/"
+                                    |> List.map toElmTypeName
+                                    |> List.filter (not << String.isEmpty)
+
+                            name =
+                                modulePath
+                                    |> String.join ""
+                        in
+                        Just
+                            { name = name
+                            , moduleName = "Page" :: modulePath
+                            , type_ =
+                                Markdown
+                                    { source = file.contents
+                                    , path = relativePath
+                                    }
+                            , pattern =
+                                UrlPattern
+                                    { path = path
+                                    , queryParams =
+                                        { includeCatchAll = False
+                                        , specificFields = Set.empty
+                                        }
+                                    }
+                            }
+
+                    else
+                        Nothing
+                )
+                options.assets.files
+
+        elmFileRouteInfo =
+            options.elmPages
+                |> List.filterMap
+                    (\elmPage ->
+                        Just
+                            { name = String.join "" elmPage.id
+                            , moduleName = "Page" :: elmPage.id
+                            , type_ = Elm
+                            , pattern =
+                                List.head elmPage.urls
+                                    |> Maybe.withDefault
+                                        (UrlPattern
+                                            { path = List.map (Token << camelToKebab) elmPage.id
+                                            , queryParams =
+                                                { includeCatchAll = False
+                                                , specificFields = Set.empty
+                                                }
+                                            }
+                                        )
+                            }
+                    )
+    in
+    elmFileRouteInfo ++ assetFileRouteInfo
+
+
+pathToUrlPieces : String -> String -> Maybe ( String, List UrlPiece )
+pathToUrlPieces base filepath =
     let
         ( relativePath, ext ) =
             Path.relative base filepath
@@ -262,116 +413,289 @@ toRoutePieces base filepath =
     in
     if ext == "md" || ext == "markdown" then
         let
-            pieces =
+            tokens =
+                relativePath
+                    |> String.split "/"
+                    |> List.map camelToKebab
+                    |> List.filter (not << String.isEmpty)
+                    |> List.map Token
+
+            name =
                 relativePath
                     |> String.split "/"
                     |> List.map toElmTypeName
                     |> List.filter (not << String.isEmpty)
+                    |> String.join ""
         in
-        Just pieces
+        Just ( name, tokens )
 
     else
         Nothing
 
 
-routeType : SourceDirectory -> List Elm.Declaration
-routeType { base, files } =
-    [ Elm.customType "Route"
-        (List.filterMap
-            (\file ->
-                case toRoutePieces base file.path of
-                    Nothing ->
-                        Nothing
-
-                    Just [] ->
-                        Nothing
-
-                    Just pieces ->
-                        Just
-                            (Elm.variantWith
-                                (String.join "" pieces)
-                                []
-                            )
-            )
-            files
-        )
-        |> Elm.exposeWith
-            { exposeConstructor = True
-            , group = Nothing
-            }
-    ]
-
-
-urlEncoder : SourceDirectory -> List Elm.Declaration
-urlEncoder { base, files } =
-    let
-        variants =
-            files
-                |> List.filterMap
-                    (\file ->
-                        case toRoutePieces base file.path of
-                            Nothing ->
-                                Nothing
-
-                            Just pieces ->
-                                Just ( file, pieces )
-                    )
-    in
+urlEncoder : List RouteInfo -> List Elm.Declaration
+urlEncoder routes =
     [ Elm.declaration "toUrl"
         (Elm.fn ( "route", Just (Type.named [] "Route") )
             (\route ->
                 Elm.Case.custom route
                     (Type.named [] "Route")
-                    (variants
+                    (routes
                         |> List.map
-                            (\( file, pieces ) ->
-                                Elm.Case.branch0 (String.join "" pieces)
-                                    (Elm.string (String.join "/" pieces))
+                            (\{ name, pattern } ->
+                                Elm.Case.branch1 name
+                                    ( "params", paramType pattern )
+                                    (\params ->
+                                        let
+                                            (UrlPattern { path, queryParams }) =
+                                                pattern
+                                        in
+                                        renderPath path queryParams params
+                                    )
                             )
                     )
             )
+            |> Elm.withType
+                (Type.function [ Type.named [] "Route" ] Type.string)
         )
         |> Elm.expose
     ]
 
 
-urlParser : SourceDirectory -> List Elm.Declaration
-urlParser { base, files } =
-    [ Elm.declaration "parser"
-        (Gen.Url.Parser.oneOf
-            (files
+renderPath : List UrlPiece -> QueryParams -> Elm.Expression -> Elm.Expression
+renderPath path queryParams paramValues =
+    let
+        addParamString base =
+            if hasNoParams queryParams then
+                base
+
+            else if queryParams.includeCatchAll then
+                Gen.String.call_.concat
+                    (Elm.list
+                        [ base
+                        , Elm.apply (Elm.val "queryDictToString")
+                            [ Elm.get "params" paramValues ]
+                        ]
+                    )
+
+            else
+                Gen.String.call_.concat
+                    (Elm.list
+                        [ base
+                        , Elm.apply
+                            (Elm.val "paramsToString")
+                            [ Set.foldl
+                                (\field rendered ->
+                                    Elm.tuple
+                                        (Elm.string field)
+                                        (Elm.get field paramValues)
+                                        :: rendered
+                                )
+                                []
+                                queryParams.specificFields
+                                |> Elm.list
+                            ]
+                        ]
+                    )
+    in
+    path
+        |> List.map
+            (\piece ->
+                case piece of
+                    Token token ->
+                        Elm.string token
+
+                    Variable var ->
+                        Elm.get var paramValues
+            )
+        |> Elm.list
+        |> Gen.String.call_.join (Elm.string "/")
+        |> addParamString
+
+
+urlParser : List RouteInfo -> List Elm.Declaration
+urlParser routes =
+    [ Elm.declaration "parse"
+        (Elm.fn ( "url", Just Gen.Url.annotation_.url )
+            (\url ->
+                let
+                    paramDict =
+                        parseParamDict url
+                in
+                Gen.Url.Parser.parse
+                    (Elm.apply
+                        (Elm.val "parser")
+                        [ paramDict ]
+                    )
+                    url
+            )
+        )
+        |> Elm.expose
+    , Elm.unsafe """
+
+
+paramToString : (String, Maybe String) -> Maybe String
+paramToString (key, maybeVal) =
+    case maybeVal of
+        Nothing ->
+            Nothing
+
+        Just val ->
+            Just (key ++ "=" ++ val)
+
+
+paramsToString : List ( String, Maybe String ) -> String
+paramsToString fields =
+    case List.filterMap paramToString fields of
+        [] ->
+            ""
+
+        params ->
+            "?" ++ String.join "&" params
+
+
+queryDictToString : Dict String String -> String
+queryDictToString dict =
+    if Dict.isEmpty dict then
+        ""
+    else 
+        Dict.foldl 
+            (\\key val rendered ->
+                case rendered of
+                    "?" ->
+                        rendered ++ key ++ "=" ++ val 
+
+                    _ ->
+                        rendered ++ "&" ++ key ++ "=" ++ val 
+            
+            
+            )
+            "?"
+            dict
+
+queryParams : Url -> Dict String String
+queryParams url =
+    case Url.query url of
+        Nothing ->
+            Dict.empty
+
+        Just queryString ->
+            String.split "&" queryString
                 |> List.filterMap
-                    (\file ->
-                        case toRoutePieces base file.path of
-                            Nothing ->
+                    (\\str ->
+                        case String.split "=" str of
+                            [] ->
                                 Nothing
 
-                            Just pieces ->
-                                Just ( file, pieces )
+                            key :: value ->
+                                Just
+                                    ( decodeUrlParam key
+                                    , decodeUrlParam (String.join "=" value)
+                                    )
                     )
-                |> List.map
-                    (\( file, pieces ) ->
-                        let
-                            typename =
-                                String.join "" pieces
-                                    |> Elm.val
-                        in
-                        Gen.Url.Parser.map typename
-                            (toUrlParser pieces)
+                |> Dict.fromList
+
+
+decodeUrlParam : String -> String
+decodeUrlParam val =
+    Url.percentDecode val
+        |> Maybe.withDefault val
+"""
+    , Elm.declaration "parser"
+        (Elm.fn ( "paramDict", Just (Type.dict Type.string Type.string) )
+            (\paramDict ->
+                Gen.Url.Parser.oneOf
+                    (routes
+                        |> List.map (generateUrlPatternParser paramDict)
                     )
             )
-            |> Elm.withType
-                (Gen.Url.Parser.annotation_.parser
-                    (Type.function
-                        [ Type.named [] "Route"
-                        ]
-                        (Type.var "a")
-                    )
-                    (Type.var "a")
-                )
         )
-        |> Elm.expose
     ]
+
+
+parseParamDict : Elm.Expression -> Elm.Expression
+parseParamDict url =
+    Elm.apply (Elm.val "queryParams") [ url ]
+
+
+generateUrlPatternParser : Elm.Expression -> RouteInfo -> Elm.Expression
+generateUrlPatternParser paramDict route =
+    Gen.Url.Parser.map (Elm.val route.name)
+        (patternToUrlParser paramDict route.pattern)
+
+
+patternToUrlParser : Elm.Expression -> UrlPattern -> Elm.Expression
+patternToUrlParser paramDict (UrlPattern { path, queryParams }) =
+    let
+        ( pathParser, pathFields ) =
+            List.foldl pathToUrlParser ( Nothing, [] ) path
+                |> Tuple.mapFirst (Maybe.withDefault Gen.Url.Parser.top)
+
+        queryFields =
+            Set.toList queryParams.specificFields
+                |> List.map
+                    (\name ->
+                        ( name, Gen.Dict.get (Elm.string name) paramDict )
+                    )
+    in
+    Gen.Url.Parser.map
+        (Elm.function pathFields
+            (\args ->
+                Elm.record
+                    (List.concat
+                        [ List.map2
+                            (\( fieldName, _ ) value ->
+                                Tuple.pair fieldName value
+                            )
+                            pathFields
+                            args
+                        , queryFields
+                        , if queryParams.includeCatchAll then
+                            [ ( "params", paramDict ) ]
+
+                          else
+                            []
+                        ]
+                    )
+            )
+        )
+        pathParser
+
+
+specificQueryParamParser field maybeParser =
+    case maybeParser of
+        Nothing ->
+            Just (Gen.Url.Parser.Query.string field)
+
+        Just currentQueryParser ->
+            Just (Gen.Url.Parser.Query.string field)
+
+
+pathToUrlParser piece ( maybeParser, fields ) =
+    case maybeParser of
+        Nothing ->
+            case piece of
+                Token token ->
+                    ( Just (Gen.Url.Parser.s token)
+                    , fields
+                    )
+
+                Variable variable ->
+                    ( Just Gen.Url.Parser.string
+                    , ( variable, Just Type.string ) :: fields
+                    )
+
+        Just urlPieceParser ->
+            case piece of
+                Token token ->
+                    ( Just (Elm.Op.slash urlPieceParser (Gen.Url.Parser.s token))
+                    , fields
+                    )
+
+                Variable variable ->
+                    ( Just (Elm.Op.slash urlPieceParser Gen.Url.Parser.string)
+                    , ( variable, Just Type.string ) :: fields
+                    )
 
 
 toUrlParser pieces =
@@ -386,6 +710,30 @@ toUrlParser pieces =
             Elm.Op.slash
                 (Gen.Url.Parser.s top)
                 (toUrlParser remaining)
+
+
+camelToKebab : String -> String
+camelToKebab str =
+    str
+        |> String.foldl
+            (\char ( isFirstChar, string ) ->
+                Tuple.pair False <|
+                    if isFirstChar then
+                        string ++ String.fromChar (Char.toLower char)
+
+                    else
+                        let
+                            isUpperCase =
+                                Char.isUpper char
+                        in
+                        if isUpperCase then
+                            string ++ "-" ++ String.fromChar (Char.toLower char)
+
+                        else
+                            string ++ String.fromChar char
+            )
+            ( True, "" )
+        |> Tuple.second
 
 
 toElmTypeName : String -> String
@@ -410,31 +758,23 @@ capitalize str =
 {- GENERATE PAGES -}
 
 
-generatePages : SourceDirectory -> List Elm.File
-generatePages { base, files } =
+generatePages : List RouteInfo -> List Elm.File
+generatePages routes =
     List.filterMap
-        (generatePage base)
-        files
+        generatePage
+        routes
 
 
-generatePage : String -> Source -> Maybe Elm.File
-generatePage base file =
-    case toRoutePieces base file.path of
-        Nothing ->
+generatePage : RouteInfo -> Maybe Elm.File
+generatePage route =
+    case route.type_ of
+        Elm ->
             Nothing
 
-        Just pieces ->
-            Just
-                (Elm.file ("Page" :: pieces)
-                    [ Elm.declaration "route"
-                        (Elm.value
-                            { importFrom = [ "Directory" ]
-                            , name = String.join "" pieces
-                            , annotation = Just (Type.named [ "Directory" ] "Route")
-                            }
-                        )
-                        |> Elm.expose
-                    , Elm.declaration "page"
+        Markdown { source } ->
+            Just <|
+                Elm.file route.moduleName
+                    [ Elm.declaration "page"
                         (Gen.App.Markdown.call_.page
                             (Elm.val "source")
                             |> Elm.withType (Gen.App.Markdown.annotation_.page (Type.var "frame"))
@@ -445,9 +785,8 @@ generatePage base file =
                     , Elm.alias "Msg" Gen.App.Markdown.annotation_.msg
                         |> Elm.expose
                     , Elm.declaration "source"
-                        (Elm.string file.contents)
+                        (Elm.string source)
                     ]
-                )
 
 
 
@@ -478,8 +817,8 @@ types =
             ]
     , cache = Type.named [] "Cache"
     , toPageMsg =
-        \pieces ->
-            "To" ++ String.join "" pieces
+        \string ->
+            "To" ++ string
     }
 
 
@@ -491,8 +830,8 @@ setState key val model =
     Gen.App.State.call_.insert key val (Elm.get "states" model)
 
 
-generateAppEngine : SourceDirectory -> Elm.File
-generateAppEngine dir =
+generateAppEngine : List RouteInfo -> Elm.File
+generateAppEngine routes =
     Elm.file [ "App", "Engine" ]
         [ Elm.declaration "app"
             (Elm.apply
@@ -530,7 +869,7 @@ generateAppEngine dir =
                                                 Gen.App.frameInit key frame flags
 
                                             parsedUrl =
-                                                Gen.Url.Parser.parse parser url
+                                                parseUrl url
                                         in
                                         Elm.Let.letIn
                                             (\( frameModel, frameCmd ) ->
@@ -621,24 +960,13 @@ generateAppEngine dir =
                 ]
             )
         , Elm.customType "State"
-            (dir.files
-                |> List.filterMap
-                    (\file ->
-                        case toRoutePieces dir.base file.path of
-                            Nothing ->
-                                Nothing
-
-                            Just pieces ->
-                                let
-                                    pageNameType =
-                                        String.join "" pieces
-                                in
-                                Just
-                                    (Elm.variantWith
-                                        pageNameType
-                                        [ Type.named ("Page" :: pieces) "Model"
-                                        ]
-                                    )
+            (routes
+                |> List.map
+                    (\route ->
+                        Elm.variantWith
+                            route.name
+                            [ Type.named route.moduleName "Model"
+                            ]
                     )
             )
         , Elm.customType "Msg"
@@ -648,20 +976,13 @@ generateAppEngine dir =
             , Elm.variantWith "ToFrame" [ Type.var "frameMsg" ]
             ]
         , Elm.customType "PageMsg"
-            (dir.files
-                |> List.filterMap
-                    (\file ->
-                        case toRoutePieces dir.base file.path of
-                            Nothing ->
-                                Nothing
-
-                            Just pieces ->
-                                Just
-                                    (Elm.variantWith
-                                        (types.toPageMsg pieces)
-                                        [ Type.named ("Page" :: pieces) "Msg"
-                                        ]
-                                    )
+            (routes
+                |> List.map
+                    (\route ->
+                        Elm.variantWith
+                            (types.toPageMsg route.name)
+                            [ Type.named route.moduleName "Msg"
+                            ]
                     )
             )
         , Elm.declaration "update"
@@ -703,7 +1024,7 @@ generateAppEngine dir =
                             (\url ->
                                 let
                                     parsed =
-                                        Gen.Url.Parser.parse parser url
+                                        parseUrl url
                                 in
                                 Elm.Case.maybe parsed
                                     { just =
@@ -776,61 +1097,58 @@ generateAppEngine dir =
                 ( "frame", Just (Type.var "frame") )
                 (\route key frame ->
                     Elm.Case.custom route
-                        (Type.named [ "Directory" ] "Route")
-                        (dir.files
-                            |> List.filterMap
-                                (\file ->
-                                    case toRoutePieces dir.base file.path of
-                                        Nothing ->
-                                            Nothing
+                        (Type.named [ "Route" ] "Route")
+                        (routes
+                            |> List.map
+                                (\routeInfo ->
+                                    let
+                                        stateKey =
+                                            routeInfo.name
 
-                                        Just pieces ->
+                                        pageModule =
+                                            routeInfo.moduleName
+
+                                        pageMsgTypeName =
+                                            types.toPageMsg routeInfo.name
+
+                                        page =
+                                            Elm.value
+                                                { importFrom = pageModule
+                                                , name = "page"
+                                                , annotation = Nothing
+                                                }
+                                    in
+                                    Elm.Case.branch1 routeInfo.name
+                                        ( "params", Type.unit )
+                                        (\params ->
                                             let
-                                                stateKey =
-                                                    String.join "" pieces
-
-                                                pageModule =
-                                                    "Page" :: pieces
-
-                                                pageMsgTypeName =
-                                                    types.toPageMsg pieces
-
-                                                page =
-                                                    Elm.value
-                                                        { importFrom = pageModule
-                                                        , name = "page"
-                                                        , annotation = Nothing
-                                                        }
+                                                initialized =
+                                                    Gen.App.init key
+                                                        page
+                                                        params
+                                                        frame
                                             in
-                                            Just <|
-                                                Elm.Case.branch0 (String.join "" pieces)
-                                                    (let
-                                                        initialized =
-                                                            Gen.App.init key
-                                                                page
-                                                                frame
-                                                     in
-                                                     Elm.Let.letIn
-                                                        (\( newPage, pageCmd ) ->
-                                                            Elm.tuple
-                                                                (Elm.record
-                                                                    [ ( "new"
-                                                                      , Elm.apply
-                                                                            (Elm.val stateKey)
-                                                                            [ newPage ]
-                                                                      )
-                                                                    , ( "cmd"
-                                                                      , pageCmd
-                                                                            |> Gen.Platform.Cmd.call_.map (Elm.val pageMsgTypeName)
-                                                                            |> Gen.Platform.Cmd.call_.map (Elm.val "Page")
-                                                                      )
-                                                                    ]
-                                                                )
-                                                                (Elm.string (String.join "" pieces))
+                                            Elm.Let.letIn
+                                                (\( newPage, pageCmd ) ->
+                                                    Elm.tuple
+                                                        (Elm.record
+                                                            [ ( "new"
+                                                              , Elm.apply
+                                                                    (Elm.val stateKey)
+                                                                    [ newPage ]
+                                                              )
+                                                            , ( "cmd"
+                                                              , pageCmd
+                                                                    |> Gen.Platform.Cmd.call_.map (Elm.val pageMsgTypeName)
+                                                                    |> Gen.Platform.Cmd.call_.map (Elm.val "Page")
+                                                              )
+                                                            ]
                                                         )
-                                                        |> Elm.Let.tuple "newPage" "pageCmd" initialized
-                                                        |> Elm.Let.toExpression
-                                                    )
+                                                        (Elm.string stateKey)
+                                                )
+                                                |> Elm.Let.tuple "newPage" "pageCmd" initialized
+                                                |> Elm.Let.toExpression
+                                        )
                                 )
                         )
                         |> Elm.withType
@@ -851,82 +1169,75 @@ generateAppEngine dir =
                 (\msg model ->
                     Elm.Case.custom msg
                         types.msg
-                        (dir.files
-                            |> List.filterMap
-                                (\file ->
-                                    case toRoutePieces dir.base file.path of
-                                        Nothing ->
-                                            Nothing
+                        (routes
+                            |> List.map
+                                (\route ->
+                                    let
+                                        stateKey =
+                                            route.name
 
-                                        Just pieces ->
-                                            let
-                                                stateKey =
-                                                    String.join "" pieces
+                                        pageModule =
+                                            route.moduleName
 
-                                                pageModule =
-                                                    "Page" :: pieces
-
-                                                pageMsgTypeName =
-                                                    types.toPageMsg pieces
-                                            in
-                                            Just
-                                                (Elm.Case.branch1 pageMsgTypeName
-                                                    ( "pageMsg", Type.named pageModule "Msg" )
-                                                    (\pageMsg ->
-                                                        Elm.Case.maybe (getState (Elm.string stateKey) model)
-                                                            { nothing = Elm.tuple model Gen.Platform.Cmd.none
-                                                            , just =
-                                                                Tuple.pair "foundPage" <|
-                                                                    \foundPage ->
-                                                                        Elm.Case.custom foundPage
-                                                                            types.pageModel
-                                                                            [ Elm.Case.branch1 stateKey
-                                                                                ( "page", types.pageModel )
-                                                                                (\pageState ->
-                                                                                    let
-                                                                                        updated =
-                                                                                            Gen.App.update
-                                                                                                (Elm.get "key" model)
-                                                                                                (Elm.value
-                                                                                                    { importFrom = pageModule
-                                                                                                    , name = "page"
-                                                                                                    , annotation = Nothing
-                                                                                                    }
-                                                                                                )
-                                                                                                (Elm.get "frame" model)
-                                                                                                pageMsg
-                                                                                                pageState
-                                                                                    in
-                                                                                    Elm.Let.letIn
-                                                                                        (\( innerPageModel, pageCommand ) ->
-                                                                                            let
-                                                                                                pageModel =
-                                                                                                    Elm.apply
-                                                                                                        (Elm.val stateKey)
-                                                                                                        [ innerPageModel ]
-                                                                                            in
-                                                                                            Elm.tuple
-                                                                                                (model
-                                                                                                    |> Elm.updateRecord
-                                                                                                        [ ( "states", setState (Elm.string stateKey) pageModel model )
-                                                                                                        ]
-                                                                                                )
-                                                                                                (pageCommand
-                                                                                                    |> Gen.Platform.Cmd.call_.map (Elm.val pageMsgTypeName)
-                                                                                                    |> Gen.Platform.Cmd.call_.map (Elm.val "Page")
-                                                                                                )
-                                                                                        )
-                                                                                        |> Elm.Let.tuple "updatedPage" "cmd" updated
-                                                                                        |> Elm.Let.toExpression
-                                                                                )
-                                                                            , Elm.Case.otherwise
-                                                                                (\_ ->
-                                                                                    Elm.tuple model Gen.Platform.Cmd.none
-                                                                                )
-                                                                            ]
-                                                            }
-                                                    )
-                                                )
+                                        pageMsgTypeName =
+                                            types.toPageMsg route.name
+                                    in
+                                    Elm.Case.branch1 pageMsgTypeName
+                                        ( "pageMsg", Type.named pageModule "Msg" )
+                                        (\pageMsg ->
+                                            Elm.Case.maybe (getState (Elm.string stateKey) model)
+                                                { nothing = Elm.tuple model Gen.Platform.Cmd.none
+                                                , just =
+                                                    Tuple.pair "foundPage" <|
+                                                        \foundPage ->
+                                                            Elm.Case.custom foundPage
+                                                                types.pageModel
+                                                                [ Elm.Case.branch1 stateKey
+                                                                    ( "page", types.pageModel )
+                                                                    (\pageState ->
+                                                                        let
+                                                                            updated =
+                                                                                Gen.App.update
+                                                                                    (Elm.get "key" model)
+                                                                                    (Elm.value
+                                                                                        { importFrom = pageModule
+                                                                                        , name = "page"
+                                                                                        , annotation = Nothing
+                                                                                        }
+                                                                                    )
+                                                                                    (Elm.get "frame" model)
+                                                                                    pageMsg
+                                                                                    pageState
+                                                                        in
+                                                                        Elm.Let.letIn
+                                                                            (\( innerPageModel, pageCommand ) ->
+                                                                                let
+                                                                                    pageModel =
+                                                                                        Elm.apply
+                                                                                            (Elm.val stateKey)
+                                                                                            [ innerPageModel ]
+                                                                                in
+                                                                                Elm.tuple
+                                                                                    (model
+                                                                                        |> Elm.updateRecord
+                                                                                            [ ( "states", setState (Elm.string stateKey) pageModel model )
+                                                                                            ]
+                                                                                    )
+                                                                                    (pageCommand
+                                                                                        |> Gen.Platform.Cmd.call_.map (Elm.val pageMsgTypeName)
+                                                                                        |> Gen.Platform.Cmd.call_.map (Elm.val "Page")
+                                                                                    )
+                                                                            )
+                                                                            |> Elm.Let.tuple "updatedPage" "cmd" updated
+                                                                            |> Elm.Let.toExpression
+                                                                    )
+                                                                , Elm.Case.otherwise
+                                                                    (\_ ->
+                                                                        Elm.tuple model Gen.Platform.Cmd.none
+                                                                    )
+                                                                ]
+                                                }
+                                        )
                                 )
                         )
                         |> Elm.withType (Type.tuple types.model (Type.cmd types.msg))
@@ -953,46 +1264,40 @@ generateAppEngine dir =
                                     (Elm.get "frame" model)
                                     (Elm.Case.custom current
                                         types.pageModel
-                                        (dir.files
-                                            |> List.filterMap
-                                                (\file ->
-                                                    case toRoutePieces dir.base file.path of
-                                                        Nothing ->
-                                                            Nothing
+                                        (routes
+                                            |> List.map
+                                                (\route ->
+                                                    let
+                                                        stateKey =
+                                                            route.name
 
-                                                        Just pieces ->
+                                                        pageModule =
+                                                            route.moduleName
+
+                                                        pageMsgTypeName =
+                                                            types.toPageMsg route.name
+                                                    in
+                                                    Elm.Case.branch1 stateKey
+                                                        ( "pageModel", Type.named pageModule "Model" )
+                                                        (\pageState ->
                                                             let
-                                                                stateKey =
-                                                                    String.join "" pieces
-
-                                                                pageModule =
-                                                                    "Page" :: pieces
-
-                                                                pageMsgTypeName =
-                                                                    types.toPageMsg pieces
+                                                                renderedPage =
+                                                                    Elm.apply
+                                                                        (Elm.val "mapDocumentToPage")
+                                                                        [ Elm.val pageMsgTypeName
+                                                                        , Gen.App.view
+                                                                            (Elm.value
+                                                                                { importFrom = pageModule
+                                                                                , name = "page"
+                                                                                , annotation = Nothing
+                                                                                }
+                                                                            )
+                                                                            (Elm.get "frame" model)
+                                                                            pageState
+                                                                        ]
                                                             in
-                                                            Just <|
-                                                                Elm.Case.branch1 stateKey
-                                                                    ( "pageModel", Type.named pageModule "Model" )
-                                                                    (\pageState ->
-                                                                        let
-                                                                            renderedPage =
-                                                                                Elm.apply
-                                                                                    (Elm.val "mapDocumentToPage")
-                                                                                    [ Elm.val pageMsgTypeName
-                                                                                    , Gen.App.view
-                                                                                        (Elm.value
-                                                                                            { importFrom = pageModule
-                                                                                            , name = "page"
-                                                                                            , annotation = Nothing
-                                                                                            }
-                                                                                        )
-                                                                                        (Elm.get "frame" model)
-                                                                                        pageState
-                                                                                    ]
-                                                                        in
-                                                                        renderedPage
-                                                                    )
+                                                            renderedPage
+                                                        )
                                                 )
                                         )
                                     )
@@ -1028,39 +1333,33 @@ mapDocumentToPage toPageMsg doc =
                                     Gen.Platform.Sub.call_.map (Elm.val "Page")
                                         (Elm.Case.custom current
                                             types.pageModel
-                                            (dir.files
-                                                |> List.filterMap
-                                                    (\file ->
-                                                        case toRoutePieces dir.base file.path of
-                                                            Nothing ->
-                                                                Nothing
+                                            (routes
+                                                |> List.map
+                                                    (\route ->
+                                                        let
+                                                            stateKey =
+                                                                route.name
 
-                                                            Just pieces ->
-                                                                let
-                                                                    stateKey =
-                                                                        String.join "" pieces
+                                                            pageModule =
+                                                                route.moduleName
 
-                                                                    pageModule =
-                                                                        "Page" :: pieces
-
-                                                                    pageMsgTypeName =
-                                                                        types.toPageMsg pieces
-                                                                in
-                                                                Just <|
-                                                                    Elm.Case.branch1 stateKey
-                                                                        ( "pageModel", Type.named pageModule "Model" )
-                                                                        (\pageState ->
-                                                                            Gen.App.subscriptions
-                                                                                (Elm.value
-                                                                                    { importFrom = pageModule
-                                                                                    , name = "page"
-                                                                                    , annotation = Nothing
-                                                                                    }
-                                                                                )
-                                                                                (Elm.get "frame" model)
-                                                                                pageState
-                                                                                |> Gen.Platform.Sub.call_.map (Elm.val pageMsgTypeName)
-                                                                        )
+                                                            pageMsgTypeName =
+                                                                types.toPageMsg route.name
+                                                        in
+                                                        Elm.Case.branch1 stateKey
+                                                            ( "pageModel", Type.named pageModule "Model" )
+                                                            (\pageState ->
+                                                                Gen.App.subscriptions
+                                                                    (Elm.value
+                                                                        { importFrom = pageModule
+                                                                        , name = "page"
+                                                                        , annotation = Nothing
+                                                                        }
+                                                                    )
+                                                                    (Elm.get "frame" model)
+                                                                    pageState
+                                                                    |> Gen.Platform.Sub.call_.map (Elm.val pageMsgTypeName)
+                                                            )
                                                     )
                                             )
                                         )
@@ -1072,9 +1371,12 @@ mapDocumentToPage toPageMsg doc =
         ]
 
 
-parser =
-    Elm.value
-        { importFrom = [ "Directory" ]
-        , name = "parser"
-        , annotation = Nothing
-        }
+parseUrl url =
+    Elm.apply
+        (Elm.value
+            { importFrom = [ "Route" ]
+            , name = "parse"
+            , annotation = Nothing
+            }
+        )
+        [ url ]

@@ -11,7 +11,11 @@ ElmPress.generate({
         urls: [
           {
             page: "Home.elm",
-            url: "/test/:id?{search,tags,**}",
+            url: "/test/:id?{**}",
+          },
+          {
+            page: "About.elm",
+            url: "/about?{search,tags}",
           },
         ],
       },

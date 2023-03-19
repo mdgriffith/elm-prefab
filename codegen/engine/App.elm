@@ -9,9 +9,9 @@ import Http
 import Json.Encode
 
 
-type Page shared model msg view
+type Page params shared model msg view
     = Page
-        { init : shared -> ( model, Effect msg )
+        { init : params -> shared -> ( model, Effect msg )
         , update : shared -> msg -> model -> ( model, Effect msg )
         , subscriptions : shared -> model -> Subscription msg
         , view : shared -> model -> view
@@ -19,12 +19,12 @@ type Page shared model msg view
 
 
 page :
-    { init : shared -> ( model, Effect msg )
+    { init : params -> shared -> ( model, Effect msg )
     , update : shared -> msg -> model -> ( model, Effect msg )
     , subscriptions : shared -> model -> Subscription msg
     , view : shared -> model -> view
     }
-    -> Page shared model msg view
+    -> Page params shared model msg view
 page =
     Page
 
@@ -88,22 +88,25 @@ toSub subscription =
 
 init :
     Browser.Navigation.Key
-    -> Page shared model msg view
+    -> Page params shared model msg view
+    -> params
     -> shared
     -> ( model, Cmd msg )
-init navKey pageConfig shared =
+init navKey pageConfig params shared =
     case pageConfig of
         Page inner ->
             let
                 ( initializedPage, cmd ) =
-                    inner.init shared
+                    inner.init params shared
             in
-            ( initializedPage, toCmd navKey cmd )
+            ( initializedPage
+            , toCmd navKey cmd
+            )
 
 
 update :
     Browser.Navigation.Key
-    -> Page shared model msg view
+    -> Page params shared model msg view
     -> shared
     -> msg
     -> model
@@ -118,14 +121,14 @@ update navKey pageConfig shared msg model =
             ( updatedPage, toCmd navKey cmd )
 
 
-view : Page shared model msg view -> shared -> model -> view
+view : Page params shared model msg view -> shared -> model -> view
 view pageConfig shared model =
     case pageConfig of
         Page inner ->
             inner.view shared model
 
 
-subscriptions : Page shared model msg view -> shared -> model -> Sub msg
+subscriptions : Page params shared model msg view -> shared -> model -> Sub msg
 subscriptions pageConfig shared model =
     case pageConfig of
         Page inner ->

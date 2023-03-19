@@ -39,6 +39,7 @@ type AppOptions = { markdown: string; elm?: Pages };
 
 type ElmFile = {
   source: string;
+  id: string[];
   urls: string[];
 };
 
@@ -71,8 +72,16 @@ export const app = (options: AppOptions) => {
             }
           }
 
+          options.elm.dir;
+
+          const id: string[] = path
+            .relative(options.elm.dir, elmFile.path)
+            .replace(".elm", "")
+            .split(path.sep);
+
           elmFiles.push({
             source: elmFile.contents,
+            id: id,
             urls: urls,
           });
         }
