@@ -161,6 +161,11 @@ parseQueryParams =
         ]
 
 
+isBlank : String -> Bool
+isBlank str =
+    String.isEmpty (String.trim str)
+
+
 parsePath : Parser.Parser (List UrlPiece)
 parsePath =
     Parser.loop []
@@ -168,12 +173,16 @@ parsePath =
             Parser.oneOf
                 [ Parser.succeed
                     (\isVariable label ->
-                        Parser.Loop <|
-                            if isVariable then
-                                Variable label :: pieces
+                        if isBlank label then
+                            Parser.Loop pieces
 
-                            else
-                                Token label :: pieces
+                        else
+                            Parser.Loop <|
+                                if isVariable then
+                                    Variable label :: pieces
+
+                                else
+                                    Token label :: pieces
                     )
                     |. Parser.symbol "/"
                     |= Parser.oneOf
