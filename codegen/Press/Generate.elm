@@ -235,7 +235,31 @@ generate options =
 
 generateRoutes : List RouteInfo -> Elm.File
 generateRoutes routes =
-    Elm.file [ "Route" ]
+    Elm.fileWith [ "Route" ]
+        { docs =
+            \groups ->
+                groups
+                    |> List.sortBy
+                        (\doc ->
+                            case doc.group of
+                                Nothing ->
+                                    0
+
+                                Just "Route" ->
+                                    1
+
+                                Just "Params" ->
+                                    2
+
+                                Just "Encodings" ->
+                                    3
+
+                                _ ->
+                                    4
+                        )
+                    |> List.map Elm.docs
+        , aliases = []
+        }
         (List.concat
             [ [ Elm.customType "Route"
                     (List.map
@@ -249,9 +273,19 @@ generateRoutes routes =
                     )
                     |> Elm.exposeWith
                         { exposeConstructor = True
-                        , group = Nothing
+                        , group = Just "Route"
                         }
               ]
+            , List.map
+                (\route ->
+                    Elm.alias (route.name ++ "_Params")
+                        (paramType route.pattern)
+                        |> Elm.exposeWith
+                            { exposeConstructor = False
+                            , group = Just "Params"
+                            }
+                )
+                routes
             , urlEncoder routes
             , urlParser routes
             ]
@@ -435,7 +469,10 @@ urlEncoder routes =
             |> Elm.withType
                 (Type.function [ Type.named [] "Route" ] Type.string)
         )
-        |> Elm.expose
+        |> Elm.exposeWith
+            { exposeConstructor = True
+            , group = Just "Encodings"
+            }
     ]
 
 
@@ -508,7 +545,10 @@ urlParser routes =
             )
             |> Elm.withType (Type.function [ Gen.Url.annotation_.url ] (Type.maybe (Type.named [] "Route")))
         )
-        |> Elm.expose
+        |> Elm.exposeWith
+            { exposeConstructor = True
+            , group = Just "Encodings"
+            }
     , Elm.declaration "queryDictToString"
         (Elm.fn ( "dict", Just (Gen.Dict.annotation_.dict Type.string Type.string) )
             (\dict ->
