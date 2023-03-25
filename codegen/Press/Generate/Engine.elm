@@ -112,7 +112,7 @@ generate routes =
                                     (\flags url key ->
                                         let
                                             frameInitialized =
-                                                Gen.App.Engine.Page.frameInit key frame (Gen.App.toCmd key) flags
+                                                Gen.App.Engine.Page.frameInit frame (Gen.App.toCmd key) flags
 
                                             parsedUrl =
                                                 parseUrl url
@@ -310,7 +310,7 @@ generate routes =
                             (\frameMsg ->
                                 let
                                     updatedFrame =
-                                        Gen.App.Engine.Page.frameUpdate (Elm.get "key" model)
+                                        Gen.App.Engine.Page.frameUpdate
                                             frame
                                             (Gen.App.toCmd (Elm.get "key" model))
                                             frameMsg
@@ -373,7 +373,7 @@ generate routes =
                                         (\params ->
                                             let
                                                 initialized =
-                                                    Gen.App.Engine.Page.init key
+                                                    Gen.App.Engine.Page.init
                                                         page
                                                         (Gen.App.toCmd key)
                                                         params
@@ -449,7 +449,6 @@ generate routes =
                                                                         let
                                                                             updated =
                                                                                 Gen.App.Engine.Page.update
-                                                                                    (Elm.get "key" model)
                                                                                     (Elm.value
                                                                                         { importFrom = pageModule
                                                                                         , name = "page"

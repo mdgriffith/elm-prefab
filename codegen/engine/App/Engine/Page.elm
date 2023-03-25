@@ -1,18 +1,17 @@
 module App.Engine.Page exposing
-    ( Page, init, subscriptions, update, view
-    , Frame, frameInit, frameSubscriptions, frameUpdate, frameView
+    ( Page, page, init, subscriptions, update, view
+    , Frame, frame, frameInit, frameSubscriptions, frameUpdate, frameView
     )
 
 {-|
 
-@docs Page, init, subscriptions, update, view
+@docs Page, page, init, subscriptions, update, view
 
-@docs Frame, frameInit, frameSubscriptions, frameUpdate, frameView
+@docs Frame, frame, frameInit, frameSubscriptions, frameUpdate, frameView
 
 -}
 
 import Browser
-import Browser.Navigation
 import Json.Encode
 
 
@@ -37,13 +36,12 @@ page =
 
 
 init :
-    Browser.Navigation.Key
-    -> Page params shared model effect msg subscription view
+    Page params shared model effect msg subscription view
     -> (effect -> Cmd msg)
     -> params
     -> shared
     -> ( model, Cmd msg )
-init navKey pageConfig toCmd params shared =
+init pageConfig toCmd params shared =
     case pageConfig of
         Page inner ->
             let
@@ -51,19 +49,18 @@ init navKey pageConfig toCmd params shared =
                     inner.init params shared
             in
             ( initializedPage
-            , toCmd navKey cmd
+            , toCmd cmd
             )
 
 
 update :
-    Browser.Navigation.Key
-    -> Page params shared model effect msg subscription view
+    Page params shared model effect msg subscription view
     -> (effect -> Cmd msg)
     -> shared
     -> msg
     -> model
     -> ( model, Cmd msg )
-update navKey pageConfig toCmd shared msg model =
+update pageConfig toCmd shared msg model =
     case pageConfig of
         Page inner ->
             let
@@ -71,7 +68,7 @@ update navKey pageConfig toCmd shared msg model =
                     inner.update shared msg model
             in
             ( updatedPage
-            , toCmd navKey cmd
+            , toCmd cmd
             )
 
 
@@ -87,8 +84,8 @@ view pageConfig shared model =
 
 
 subscriptions :
-    Page params shared model effect msg subscription view
-    -> (subscriptions -> Sub msg)
+    Page params shared model effect msg sub view
+    -> (sub -> Sub msg)
     -> shared
     -> model
     -> Sub msg
@@ -114,7 +111,7 @@ type Frame model msg appMsg effect sub view
 frame :
     { init : Json.Encode.Value -> ( model, effect )
     , update : msg -> model -> ( model, effect )
-    , subscriptions : model -> subscription
+    , subscriptions : model -> sub
     , view : (msg -> appMsg) -> model -> view -> Browser.Document appMsg
     }
     -> Frame model msg appMsg effect sub view
@@ -123,35 +120,33 @@ frame =
 
 
 frameInit :
-    Browser.Navigation.Key
-    -> Frame model msg appMsg effect sub view
+    Frame model msg appMsg effect sub view
     -> (effect -> Cmd msg)
     -> Json.Encode.Value
     -> ( model, Cmd msg )
-frameInit navKey (Frame inner) toCmd flags =
+frameInit (Frame inner) toCmd flags =
     let
         ( initializedPage, cmd ) =
             inner.init flags
     in
     ( initializedPage
-    , toCmd navKey cmd
+    , toCmd cmd
     )
 
 
 frameUpdate :
-    Browser.Navigation.Key
-    -> Frame model msg appMsg effect sub view
+    Frame model msg appMsg effect sub view
     -> (effect -> Cmd msg)
     -> msg
     -> model
     -> ( model, Cmd msg )
-frameUpdate navKey (Frame inner) toCmd msg model =
+frameUpdate (Frame inner) toCmd msg model =
     let
         ( updatedPage, cmd ) =
             inner.update msg model
     in
     ( updatedPage
-    , toCmd navKey cmd
+    , toCmd cmd
     )
 
 
@@ -167,8 +162,8 @@ frameView (Frame inner) toAppMsg model innerView =
 
 frameSubscriptions :
     Frame model msg appMsg effect sub view
-    -> (subscription -> Sub msg)
+    -> (sub -> Sub msg)
     -> model
     -> Sub msg
-frameSubscriptions (Frame inner) model =
+frameSubscriptions (Frame inner) toSub model =
     toSub (inner.subscriptions model)

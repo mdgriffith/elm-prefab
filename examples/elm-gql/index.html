@@ -4970,181 +4970,6 @@ function _Browser_load(url)
 
 
 
-// SEND REQUEST
-
-var _Http_toTask = F3(function(router, toTask, request)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		function done(response) {
-			callback(toTask(request.expect.a(response)));
-		}
-
-		var xhr = new XMLHttpRequest();
-		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
-		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
-		xhr.addEventListener('load', function() { done(_Http_toResponse(request.expect.b, xhr)); });
-		$elm$core$Maybe$isJust(request.tracker) && _Http_track(router, xhr, request.tracker.a);
-
-		try {
-			xhr.open(request.method, request.url, true);
-		} catch (e) {
-			return done($elm$http$Http$BadUrl_(request.url));
-		}
-
-		_Http_configureRequest(xhr, request);
-
-		request.body.a && xhr.setRequestHeader('Content-Type', request.body.a);
-		xhr.send(request.body.b);
-
-		return function() { xhr.c = true; xhr.abort(); };
-	});
-});
-
-
-// CONFIGURE
-
-function _Http_configureRequest(xhr, request)
-{
-	for (var headers = request.headers; headers.b; headers = headers.b) // WHILE_CONS
-	{
-		xhr.setRequestHeader(headers.a.a, headers.a.b);
-	}
-	xhr.timeout = request.timeout.a || 0;
-	xhr.responseType = request.expect.d;
-	xhr.withCredentials = request.allowCookiesFromOtherDomains;
-}
-
-
-// RESPONSES
-
-function _Http_toResponse(toBody, xhr)
-{
-	return A2(
-		200 <= xhr.status && xhr.status < 300 ? $elm$http$Http$GoodStatus_ : $elm$http$Http$BadStatus_,
-		_Http_toMetadata(xhr),
-		toBody(xhr.response)
-	);
-}
-
-
-// METADATA
-
-function _Http_toMetadata(xhr)
-{
-	return {
-		url: xhr.responseURL,
-		statusCode: xhr.status,
-		statusText: xhr.statusText,
-		headers: _Http_parseHeaders(xhr.getAllResponseHeaders())
-	};
-}
-
-
-// HEADERS
-
-function _Http_parseHeaders(rawHeaders)
-{
-	if (!rawHeaders)
-	{
-		return $elm$core$Dict$empty;
-	}
-
-	var headers = $elm$core$Dict$empty;
-	var headerPairs = rawHeaders.split('\r\n');
-	for (var i = headerPairs.length; i--; )
-	{
-		var headerPair = headerPairs[i];
-		var index = headerPair.indexOf(': ');
-		if (index > 0)
-		{
-			var key = headerPair.substring(0, index);
-			var value = headerPair.substring(index + 2);
-
-			headers = A3($elm$core$Dict$update, key, function(oldValue) {
-				return $elm$core$Maybe$Just($elm$core$Maybe$isJust(oldValue)
-					? value + ', ' + oldValue.a
-					: value
-				);
-			}, headers);
-		}
-	}
-	return headers;
-}
-
-
-// EXPECT
-
-var _Http_expect = F3(function(type, toBody, toValue)
-{
-	return {
-		$: 0,
-		d: type,
-		b: toBody,
-		a: toValue
-	};
-});
-
-var _Http_mapExpect = F2(function(func, expect)
-{
-	return {
-		$: 0,
-		d: expect.d,
-		b: expect.b,
-		a: function(x) { return func(expect.a(x)); }
-	};
-});
-
-function _Http_toDataView(arrayBuffer)
-{
-	return new DataView(arrayBuffer);
-}
-
-
-// BODY and PARTS
-
-var _Http_emptyBody = { $: 0 };
-var _Http_pair = F2(function(a, b) { return { $: 0, a: a, b: b }; });
-
-function _Http_toFormData(parts)
-{
-	for (var formData = new FormData(); parts.b; parts = parts.b) // WHILE_CONS
-	{
-		var part = parts.a;
-		formData.append(part.a, part.b);
-	}
-	return formData;
-}
-
-var _Http_bytesToBlob = F2(function(mime, bytes)
-{
-	return new Blob([bytes], { type: mime });
-});
-
-
-// PROGRESS
-
-function _Http_track(router, xhr, tracker)
-{
-	// TODO check out lengthComputable on loadstart event
-
-	xhr.upload.addEventListener('progress', function(event) {
-		if (xhr.c) { return; }
-		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
-			sent: event.loaded,
-			size: event.total
-		}))));
-	});
-	xhr.addEventListener('progress', function(event) {
-		if (xhr.c) { return; }
-		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
-			received: event.loaded,
-			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
-		}))));
-	});
-}
-
-
 
 // STRINGS
 
@@ -5390,6 +5215,181 @@ function _Url_percentDecode(string)
 	{
 		return $elm$core$Maybe$Nothing;
 	}
+}
+
+
+// SEND REQUEST
+
+var _Http_toTask = F3(function(router, toTask, request)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		function done(response) {
+			callback(toTask(request.expect.a(response)));
+		}
+
+		var xhr = new XMLHttpRequest();
+		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
+		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
+		xhr.addEventListener('load', function() { done(_Http_toResponse(request.expect.b, xhr)); });
+		$elm$core$Maybe$isJust(request.tracker) && _Http_track(router, xhr, request.tracker.a);
+
+		try {
+			xhr.open(request.method, request.url, true);
+		} catch (e) {
+			return done($elm$http$Http$BadUrl_(request.url));
+		}
+
+		_Http_configureRequest(xhr, request);
+
+		request.body.a && xhr.setRequestHeader('Content-Type', request.body.a);
+		xhr.send(request.body.b);
+
+		return function() { xhr.c = true; xhr.abort(); };
+	});
+});
+
+
+// CONFIGURE
+
+function _Http_configureRequest(xhr, request)
+{
+	for (var headers = request.headers; headers.b; headers = headers.b) // WHILE_CONS
+	{
+		xhr.setRequestHeader(headers.a.a, headers.a.b);
+	}
+	xhr.timeout = request.timeout.a || 0;
+	xhr.responseType = request.expect.d;
+	xhr.withCredentials = request.allowCookiesFromOtherDomains;
+}
+
+
+// RESPONSES
+
+function _Http_toResponse(toBody, xhr)
+{
+	return A2(
+		200 <= xhr.status && xhr.status < 300 ? $elm$http$Http$GoodStatus_ : $elm$http$Http$BadStatus_,
+		_Http_toMetadata(xhr),
+		toBody(xhr.response)
+	);
+}
+
+
+// METADATA
+
+function _Http_toMetadata(xhr)
+{
+	return {
+		url: xhr.responseURL,
+		statusCode: xhr.status,
+		statusText: xhr.statusText,
+		headers: _Http_parseHeaders(xhr.getAllResponseHeaders())
+	};
+}
+
+
+// HEADERS
+
+function _Http_parseHeaders(rawHeaders)
+{
+	if (!rawHeaders)
+	{
+		return $elm$core$Dict$empty;
+	}
+
+	var headers = $elm$core$Dict$empty;
+	var headerPairs = rawHeaders.split('\r\n');
+	for (var i = headerPairs.length; i--; )
+	{
+		var headerPair = headerPairs[i];
+		var index = headerPair.indexOf(': ');
+		if (index > 0)
+		{
+			var key = headerPair.substring(0, index);
+			var value = headerPair.substring(index + 2);
+
+			headers = A3($elm$core$Dict$update, key, function(oldValue) {
+				return $elm$core$Maybe$Just($elm$core$Maybe$isJust(oldValue)
+					? value + ', ' + oldValue.a
+					: value
+				);
+			}, headers);
+		}
+	}
+	return headers;
+}
+
+
+// EXPECT
+
+var _Http_expect = F3(function(type, toBody, toValue)
+{
+	return {
+		$: 0,
+		d: type,
+		b: toBody,
+		a: toValue
+	};
+});
+
+var _Http_mapExpect = F2(function(func, expect)
+{
+	return {
+		$: 0,
+		d: expect.d,
+		b: expect.b,
+		a: function(x) { return func(expect.a(x)); }
+	};
+});
+
+function _Http_toDataView(arrayBuffer)
+{
+	return new DataView(arrayBuffer);
+}
+
+
+// BODY and PARTS
+
+var _Http_emptyBody = { $: 0 };
+var _Http_pair = F2(function(a, b) { return { $: 0, a: a, b: b }; });
+
+function _Http_toFormData(parts)
+{
+	for (var formData = new FormData(); parts.b; parts = parts.b) // WHILE_CONS
+	{
+		var part = parts.a;
+		formData.append(part.a, part.b);
+	}
+	return formData;
+}
+
+var _Http_bytesToBlob = F2(function(mime, bytes)
+{
+	return new Blob([bytes], { type: mime });
+});
+
+
+// PROGRESS
+
+function _Http_track(router, xhr, tracker)
+{
+	// TODO check out lengthComputable on loadstart event
+
+	xhr.upload.addEventListener('progress', function(event) {
+		if (xhr.c) { return; }
+		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
+			sent: event.loaded,
+			size: event.total
+		}))));
+	});
+	xhr.addEventListener('progress', function(event) {
+		if (xhr.c) { return; }
+		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
+			received: event.loaded,
+			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
+		}))));
+	});
 }var $elm$core$List$cons = _List_cons;
 var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
 var $elm$core$Array$foldr = F3(
@@ -11000,233 +11000,15 @@ var $elm$core$Basics$never = function (_v0) {
 	}
 };
 var $elm$browser$Browser$application = _Browser_application;
-var $elm$browser$Browser$Navigation$back = F2(
-	function (key, n) {
-		return A2(_Browser_go, key, -n);
-	});
-var $elm$browser$Browser$Navigation$forward = _Browser_go;
-var $elm$http$Http$BadStatus_ = F2(
-	function (a, b) {
-		return {$: 'BadStatus_', a: a, b: b};
-	});
-var $elm$http$Http$BadUrl_ = function (a) {
-	return {$: 'BadUrl_', a: a};
-};
-var $elm$http$Http$GoodStatus_ = F2(
-	function (a, b) {
-		return {$: 'GoodStatus_', a: a, b: b};
-	});
-var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
-var $elm$http$Http$Receiving = function (a) {
-	return {$: 'Receiving', a: a};
-};
-var $elm$http$Http$Sending = function (a) {
-	return {$: 'Sending', a: a};
-};
-var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
-var $elm$core$Maybe$isJust = function (maybe) {
-	if (maybe.$ === 'Just') {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
-var $elm$http$Http$emptyBody = _Http_emptyBody;
-var $elm$http$Http$Request = function (a) {
-	return {$: 'Request', a: a};
-};
-var $elm$http$Http$State = F2(
-	function (reqs, subs) {
-		return {reqs: reqs, subs: subs};
-	});
-var $elm$http$Http$init = $elm$core$Task$succeed(
-	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
-var $elm$core$Process$kill = _Scheduler_kill;
-var $elm$core$Process$spawn = _Scheduler_spawn;
-var $elm$http$Http$updateReqs = F3(
-	function (router, cmds, reqs) {
-		updateReqs:
-		while (true) {
-			if (!cmds.b) {
-				return $elm$core$Task$succeed(reqs);
-			} else {
-				var cmd = cmds.a;
-				var otherCmds = cmds.b;
-				if (cmd.$ === 'Cancel') {
-					var tracker = cmd.a;
-					var _v2 = A2($elm$core$Dict$get, tracker, reqs);
-					if (_v2.$ === 'Nothing') {
-						var $temp$router = router,
-							$temp$cmds = otherCmds,
-							$temp$reqs = reqs;
-						router = $temp$router;
-						cmds = $temp$cmds;
-						reqs = $temp$reqs;
-						continue updateReqs;
-					} else {
-						var pid = _v2.a;
-						return A2(
-							$elm$core$Task$andThen,
-							function (_v3) {
-								return A3(
-									$elm$http$Http$updateReqs,
-									router,
-									otherCmds,
-									A2($elm$core$Dict$remove, tracker, reqs));
-							},
-							$elm$core$Process$kill(pid));
-					}
-				} else {
-					var req = cmd.a;
-					return A2(
-						$elm$core$Task$andThen,
-						function (pid) {
-							var _v4 = req.tracker;
-							if (_v4.$ === 'Nothing') {
-								return A3($elm$http$Http$updateReqs, router, otherCmds, reqs);
-							} else {
-								var tracker = _v4.a;
-								return A3(
-									$elm$http$Http$updateReqs,
-									router,
-									otherCmds,
-									A3($elm$core$Dict$insert, tracker, pid, reqs));
-							}
-						},
-						$elm$core$Process$spawn(
-							A3(
-								_Http_toTask,
-								router,
-								$elm$core$Platform$sendToApp(router),
-								req)));
-				}
-			}
-		}
-	});
-var $elm$http$Http$onEffects = F4(
-	function (router, cmds, subs, state) {
-		return A2(
-			$elm$core$Task$andThen,
-			function (reqs) {
-				return $elm$core$Task$succeed(
-					A2($elm$http$Http$State, reqs, subs));
-			},
-			A3($elm$http$Http$updateReqs, router, cmds, state.reqs));
-	});
-var $elm$http$Http$maybeSend = F4(
-	function (router, desiredTracker, progress, _v0) {
-		var actualTracker = _v0.a;
-		var toMsg = _v0.b;
-		return _Utils_eq(desiredTracker, actualTracker) ? $elm$core$Maybe$Just(
-			A2(
-				$elm$core$Platform$sendToApp,
-				router,
-				toMsg(progress))) : $elm$core$Maybe$Nothing;
-	});
-var $elm$http$Http$onSelfMsg = F3(
-	function (router, _v0, state) {
-		var tracker = _v0.a;
-		var progress = _v0.b;
-		return A2(
-			$elm$core$Task$andThen,
-			function (_v1) {
-				return $elm$core$Task$succeed(state);
-			},
-			$elm$core$Task$sequence(
-				A2(
-					$elm$core$List$filterMap,
-					A3($elm$http$Http$maybeSend, router, tracker, progress),
-					state.subs)));
-	});
-var $elm$http$Http$Cancel = function (a) {
-	return {$: 'Cancel', a: a};
-};
-var $elm$http$Http$cmdMap = F2(
-	function (func, cmd) {
-		if (cmd.$ === 'Cancel') {
-			var tracker = cmd.a;
-			return $elm$http$Http$Cancel(tracker);
-		} else {
-			var r = cmd.a;
-			return $elm$http$Http$Request(
-				{
-					allowCookiesFromOtherDomains: r.allowCookiesFromOtherDomains,
-					body: r.body,
-					expect: A2(_Http_mapExpect, func, r.expect),
-					headers: r.headers,
-					method: r.method,
-					timeout: r.timeout,
-					tracker: r.tracker,
-					url: r.url
-				});
-		}
-	});
-var $elm$http$Http$MySub = F2(
-	function (a, b) {
-		return {$: 'MySub', a: a, b: b};
-	});
-var $elm$http$Http$subMap = F2(
-	function (func, _v0) {
-		var tracker = _v0.a;
-		var toMsg = _v0.b;
-		return A2(
-			$elm$http$Http$MySub,
-			tracker,
-			A2($elm$core$Basics$composeR, toMsg, func));
-	});
-_Platform_effectManagers['Http'] = _Platform_createManager($elm$http$Http$init, $elm$http$Http$onEffects, $elm$http$Http$onSelfMsg, $elm$http$Http$cmdMap, $elm$http$Http$subMap);
-var $elm$http$Http$command = _Platform_leaf('Http');
-var $elm$http$Http$subscription = _Platform_leaf('Http');
-var $elm$http$Http$request = function (r) {
-	return $elm$http$Http$command(
-		$elm$http$Http$Request(
-			{allowCookiesFromOtherDomains: false, body: r.body, expect: r.expect, headers: r.headers, method: r.method, timeout: r.timeout, tracker: r.tracker, url: r.url}));
-};
-var $elm$http$Http$get = function (r) {
-	return $elm$http$Http$request(
-		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
-};
-var $elm$browser$Browser$Navigation$load = _Browser_load;
-var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
-var $elm$browser$Browser$Navigation$reload = _Browser_reload(false);
-var $elm$browser$Browser$Navigation$replaceUrl = _Browser_replaceUrl;
-var $author$project$App$toCmd = F2(
-	function (key, effect) {
-		switch (effect.$) {
-			case 'None':
-				return $elm$core$Platform$Cmd$none;
-			case 'PushUrl':
-				var url = effect.a;
-				return A2($elm$browser$Browser$Navigation$pushUrl, key, url);
-			case 'ReplaceUrl':
-				var url = effect.a;
-				return A2($elm$browser$Browser$Navigation$replaceUrl, key, url);
-			case 'Load':
-				var url = effect.a;
-				return $elm$browser$Browser$Navigation$load(url);
-			case 'Reload':
-				return $elm$browser$Browser$Navigation$reload;
-			case 'Forward':
-				var steps = effect.a;
-				return A2($elm$browser$Browser$Navigation$forward, key, steps);
-			case 'Back':
-				var steps = effect.a;
-				return A2($elm$browser$Browser$Navigation$back, key, steps);
-			default:
-				var options = effect.a;
-				return $elm$http$Http$get(options);
-		}
-	});
-var $author$project$App$frameInit = F3(
-	function (navKey, _v0, flags) {
+var $author$project$App$Engine$Page$frameInit = F3(
+	function (_v0, toCmd, flags) {
 		var inner = _v0.a;
 		var _v1 = inner.init(flags);
 		var initializedPage = _v1.a;
 		var cmd = _v1.b;
 		return _Utils_Tuple2(
 			initializedPage,
-			A2($author$project$App$toCmd, navKey, cmd));
+			toCmd(cmd));
 	});
 var $author$project$App$State$Cache = function (a) {
 	return {$: 'Cache', a: a};
@@ -11235,6 +11017,9 @@ var $author$project$App$State$init = $author$project$App$State$Cache(
 	{cache: $elm$core$Dict$empty, current: $elm$core$Maybe$Nothing});
 var $author$project$App$Engine$CodePatterns = function (a) {
 	return {$: 'CodePatterns', a: a};
+};
+var $author$project$App$Engine$Home = function (a) {
+	return {$: 'Home', a: a};
 };
 var $author$project$App$Engine$LifeOfAQuery = function (a) {
 	return {$: 'LifeOfAQuery', a: a};
@@ -11248,23 +11033,25 @@ var $author$project$App$Engine$Page = function (a) {
 var $author$project$App$Engine$ToCodePatterns = function (a) {
 	return {$: 'ToCodePatterns', a: a};
 };
+var $author$project$App$Engine$ToHome = function (a) {
+	return {$: 'ToHome', a: a};
+};
 var $author$project$App$Engine$ToLifeOfAQuery = function (a) {
 	return {$: 'ToLifeOfAQuery', a: a};
 };
 var $author$project$App$Engine$ToNestedCodePatterns = function (a) {
 	return {$: 'ToNestedCodePatterns', a: a};
 };
-var $author$project$App$init = F3(
-	function (navKey, pageConfig, shared) {
+var $author$project$App$Engine$Page$init = F4(
+	function (pageConfig, toCmd, params, shared) {
 		var inner = pageConfig.a;
-		var _v1 = inner.init(shared);
+		var _v1 = A2(inner.init, params, shared);
 		var initializedPage = _v1.a;
 		var cmd = _v1.b;
 		return _Utils_Tuple2(
 			initializedPage,
-			A2($author$project$App$toCmd, navKey, cmd));
+			toCmd(cmd));
 	});
-var $author$project$App$None = {$: 'None'};
 var $author$project$App$Subscription = function (a) {
 	return {$: 'Subscription', a: a};
 };
@@ -11709,12 +11496,15 @@ var $dillonkearns$elm_markdown$Markdown$Renderer$defaultHtmlRenderer = {
 				items));
 	}
 };
+var $author$project$App$None = {$: 'None'};
+var $author$project$App$none = $author$project$App$None;
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$App$Page = function (a) {
+var $author$project$App$Engine$Page$Page = function (a) {
 	return {$: 'Page', a: a};
 };
-var $author$project$App$page = $author$project$App$Page;
+var $author$project$App$Engine$Page$page = $author$project$App$Engine$Page$Page;
+var $author$project$App$page = $author$project$App$Engine$Page$page;
 var $dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine = {$: 'BlankLine'};
 var $dillonkearns$elm_markdown$Markdown$Block$BlockQuote = function (a) {
 	return {$: 'BlockQuote', a: a};
@@ -20209,14 +19999,15 @@ var $dillonkearns$elm_markdown$Markdown$Renderer$render = F2(
 var $author$project$App$Markdown$page = function (markdown) {
 	return $author$project$App$page(
 		{
-			init: function (shared) {
-				return _Utils_Tuple2(
-					A2(
-						$elm$core$Result$mapError,
-						$elm$core$List$map($dillonkearns$elm_markdown$Markdown$Parser$deadEndToString),
-						$dillonkearns$elm_markdown$Markdown$Parser$parse(markdown)),
-					$author$project$App$None);
-			},
+			init: F2(
+				function (params, shared) {
+					return _Utils_Tuple2(
+						A2(
+							$elm$core$Result$mapError,
+							$elm$core$List$map($dillonkearns$elm_markdown$Markdown$Parser$deadEndToString),
+							$dillonkearns$elm_markdown$Markdown$Parser$parse(markdown)),
+						$author$project$App$none);
+				}),
 			subscriptions: function (pageUnpack) {
 				return function (unpack) {
 					return $author$project$App$Subscription($elm$core$Platform$Sub$none);
@@ -20224,7 +20015,7 @@ var $author$project$App$Markdown$page = function (markdown) {
 			},
 			update: F3(
 				function (shared, msg, model) {
-					return _Utils_Tuple2(model, $author$project$App$None);
+					return _Utils_Tuple2(model, $author$project$App$none);
 				}),
 			view: F2(
 				function (shared, model) {
@@ -20258,17 +20049,315 @@ var $author$project$App$Markdown$page = function (markdown) {
 };
 var $author$project$Page$CodePatterns$source = '# Code Reuse and Patterns\n\n# How do I reuse code?\n\nOne of the ideas behind GraphQL is to only ask for the exact data that you need. I\'d recommend just writing a new query/mutation for most cases!\n\nEven in the case that they\'re very similar, if they\'re not literally the exact same usecase, then it\'s likely they have slightly different needs and may grow in different directions.\n\nIf you do need to share some bits of GraphQL queries, use a graphQL fragment!\n\n# Where do I store UI stuff?\n\nOne of the interesting aspects of this approach to GraphQL is around where you put other pieces of state you need to track to make your UI interactive.\n\nSo first, keep a copy of the data returned by a query in your model, largely unmodified.\n\nIf you need to handle additional UI state, put that at the top level of you model and reference things in the query data by ID if you need to.\n\nThis turns out to be a really nice way to handle things.\n\n1. You avoid writing a _ton_ of code that is largely concerned with mapping into and out of large nested structures.\n2. It\'s very easy to understand where everything is.\n\nPotentially a nice way to think about this is to approach about your model as a mini relational database. Organizing things like a collection of tables can be really beneficial.\n\nIt generally looks something like this:\n\nLet\'s say you have:\n\n- `Api.Init` - A main GraphQL query that returns a list of `Things`\n- `Api.ThingDetail` - Another GraphQL query that returns more details for each `Thing`. Maybe this is triggered when you click an item in a list.\n\nYou could organize your model roughly like\n\n```elm\ntype alias Model\n    { data : Api.Init.Response -- the result of the Init query\n\n    -- We store the details for each Thing in a dict, using the ID of the Thing as a key.\n    , details : Dict String Api.ThingDetail.Response\n\n    -- If you need to store any UI state in your model, keep it top level and key it by the id it applies to, it appropriate.\n    , dropdown :\n        Maybe\n            { id : String\n            , state : Ui.Dropdown.Model\n            }\n    }\n\n```\n';
 var $author$project$Page$CodePatterns$page = $author$project$App$Markdown$page($author$project$Page$CodePatterns$source);
+var $author$project$Page$Home$page = $author$project$App$page(
+	{
+		init: F2(
+			function (params, shared) {
+				return _Utils_Tuple2('HEllo!', $author$project$App$none);
+			}),
+		subscriptions: function (pageUnpack) {
+			return function (unpack) {
+				return $author$project$App$Subscription($elm$core$Platform$Sub$none);
+			};
+		},
+		update: F3(
+			function (shared, msg, model) {
+				return _Utils_Tuple2(model, $author$project$App$none);
+			}),
+		view: F2(
+			function (shared, model) {
+				return {
+					body: _List_fromArray(
+						[
+							$elm$html$Html$text(model)
+						]),
+					title: 'test'
+				};
+			})
+	});
 var $author$project$Page$LifeOfAQuery$source = '# The Life of a Query\n\nLet\'s say you write a query called `MyQuery.gql` and inside you have this GraphQL\n\n```GraphQL\nquery AllFilms {\n    films {\n        title\n        director\n        releaseDate\n    }\n}\n```\n\nWhen you run `elm-gql`, a folder called `MyQuery` will be generated next to `MyQuery.gql`, and in that folder will be a file called `AllFiles.elm`.\n\nThe field `films` returns a list of films, so the generated code will look roughly like this.\n\n```elm\ntype alias AllFilms = {\n    films : List Films\n}\n\ntype alias Films =\n    { title : String\n    , director : String\n    , releaseDate : String\n    }\n```\n\nIf you add a graphQL alias to a field, that will inform what code is generated.\n\n```GraphQL\nquery AllFilms {\n    films {\n        filmTitle: title\n        director\n        releaseDate\n    }\n}\n```\n\nWill generate\n\n```elm\ntype alias AllFilms = {\n    films : List Films\n}\n\ntype alias Films =\n    { filmTitle : String\n    , director : String\n    , releaseDate : String\n    }\n```\n\nThough you may also note that `films` is pluralized both for the field name and the record representing a single field. That ain\'t great!\n\nIn this case, we can use a graphQL fragment to both deduplicate our query, but also inform the naming.\n\n```graphQL\nquery AllFilms {\n    films {\n        ... Film\n    }\n}\n\nfragment Film on Film {\n    filmTitle: title\n    director\n    releaseDate\n}\n```\n\nWill generate\n\n```elm\ntype alias AllFilms = {\n    films : List Fragment.Film\n}\n\n\n-- and the following will be in a Fragment.Film.elm file\ntype alias Film =\n    { filmTitle : String\n    , director : String\n    , releaseDate : String\n    }\n```\n\nHuray!\n\nYou can use a fragment in multiple queries within a file and they will all reference the same `Fragment.{YouFragment}.elm` file and the types within.\n';
 var $author$project$Page$LifeOfAQuery$page = $author$project$App$Markdown$page($author$project$Page$LifeOfAQuery$source);
 var $author$project$Page$Nested$CodePatterns$source = '# Code Reuse and Patterns\n\n# How do I reuse code?\n\nOne of the ideas behind GraphQL is to only ask for the exact data that you need. I\'d recommend just writing a new query/mutation for most cases!\n\nEven in the case that they\'re very similar, if they\'re not literally the exact same usecase, then it\'s likely they have slightly different needs and may grow in different directions.\n\nIf you do need to share some bits of GraphQL queries, use a graphQL fragment!\n\n# Where do I store UI stuff?\n\nOne of the interesting aspects of this approach to GraphQL is around where you put other pieces of state you need to track to make your UI interactive.\n\nSo first, keep a copy of the data returned by a query in your model, largely unmodified.\n\nIf you need to handle additional UI state, put that at the top level of you model and reference things in the query data by ID if you need to.\n\nThis turns out to be a really nice way to handle things.\n\n1. You avoid writing a _ton_ of code that is largely concerned with mapping into and out of large nested structures.\n2. It\'s very easy to understand where everything is.\n\nPotentially a nice way to think about this is to approach about your model as a mini relational database. Organizing things like a collection of tables can be really beneficial.\n\nIt generally looks something like this:\n\nLet\'s say you have:\n\n- `Api.Init` - A main GraphQL query that returns a list of `Things`\n- `Api.ThingDetail` - Another GraphQL query that returns more details for each `Thing`. Maybe this is triggered when you click an item in a list.\n\nYou could organize your model roughly like\n\n```elm\ntype alias Model\n    { data : Api.Init.Response -- the result of the Init query\n\n    -- We store the details for each Thing in a dict, using the ID of the Thing as a key.\n    , details : Dict String Api.ThingDetail.Response\n\n    -- If you need to store any UI state in your model, keep it top level and key it by the id it applies to, it appropriate.\n    , dropdown :\n        Maybe\n            { id : String\n            , state : Ui.Dropdown.Model\n            }\n    }\n\n```\n';
 var $author$project$Page$Nested$CodePatterns$page = $author$project$App$Markdown$page($author$project$Page$Nested$CodePatterns$source);
+var $elm$browser$Browser$Navigation$back = F2(
+	function (key, n) {
+		return A2(_Browser_go, key, -n);
+	});
+var $elm$browser$Browser$Navigation$forward = _Browser_go;
+var $elm$http$Http$BadStatus_ = F2(
+	function (a, b) {
+		return {$: 'BadStatus_', a: a, b: b};
+	});
+var $elm$http$Http$BadUrl_ = function (a) {
+	return {$: 'BadUrl_', a: a};
+};
+var $elm$http$Http$GoodStatus_ = F2(
+	function (a, b) {
+		return {$: 'GoodStatus_', a: a, b: b};
+	});
+var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
+var $elm$http$Http$Receiving = function (a) {
+	return {$: 'Receiving', a: a};
+};
+var $elm$http$Http$Sending = function (a) {
+	return {$: 'Sending', a: a};
+};
+var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
+var $elm$core$Maybe$isJust = function (maybe) {
+	if (maybe.$ === 'Just') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$http$Http$emptyBody = _Http_emptyBody;
+var $elm$http$Http$Request = function (a) {
+	return {$: 'Request', a: a};
+};
+var $elm$http$Http$State = F2(
+	function (reqs, subs) {
+		return {reqs: reqs, subs: subs};
+	});
+var $elm$http$Http$init = $elm$core$Task$succeed(
+	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$http$Http$updateReqs = F3(
+	function (router, cmds, reqs) {
+		updateReqs:
+		while (true) {
+			if (!cmds.b) {
+				return $elm$core$Task$succeed(reqs);
+			} else {
+				var cmd = cmds.a;
+				var otherCmds = cmds.b;
+				if (cmd.$ === 'Cancel') {
+					var tracker = cmd.a;
+					var _v2 = A2($elm$core$Dict$get, tracker, reqs);
+					if (_v2.$ === 'Nothing') {
+						var $temp$router = router,
+							$temp$cmds = otherCmds,
+							$temp$reqs = reqs;
+						router = $temp$router;
+						cmds = $temp$cmds;
+						reqs = $temp$reqs;
+						continue updateReqs;
+					} else {
+						var pid = _v2.a;
+						return A2(
+							$elm$core$Task$andThen,
+							function (_v3) {
+								return A3(
+									$elm$http$Http$updateReqs,
+									router,
+									otherCmds,
+									A2($elm$core$Dict$remove, tracker, reqs));
+							},
+							$elm$core$Process$kill(pid));
+					}
+				} else {
+					var req = cmd.a;
+					return A2(
+						$elm$core$Task$andThen,
+						function (pid) {
+							var _v4 = req.tracker;
+							if (_v4.$ === 'Nothing') {
+								return A3($elm$http$Http$updateReqs, router, otherCmds, reqs);
+							} else {
+								var tracker = _v4.a;
+								return A3(
+									$elm$http$Http$updateReqs,
+									router,
+									otherCmds,
+									A3($elm$core$Dict$insert, tracker, pid, reqs));
+							}
+						},
+						$elm$core$Process$spawn(
+							A3(
+								_Http_toTask,
+								router,
+								$elm$core$Platform$sendToApp(router),
+								req)));
+				}
+			}
+		}
+	});
+var $elm$http$Http$onEffects = F4(
+	function (router, cmds, subs, state) {
+		return A2(
+			$elm$core$Task$andThen,
+			function (reqs) {
+				return $elm$core$Task$succeed(
+					A2($elm$http$Http$State, reqs, subs));
+			},
+			A3($elm$http$Http$updateReqs, router, cmds, state.reqs));
+	});
+var $elm$http$Http$maybeSend = F4(
+	function (router, desiredTracker, progress, _v0) {
+		var actualTracker = _v0.a;
+		var toMsg = _v0.b;
+		return _Utils_eq(desiredTracker, actualTracker) ? $elm$core$Maybe$Just(
+			A2(
+				$elm$core$Platform$sendToApp,
+				router,
+				toMsg(progress))) : $elm$core$Maybe$Nothing;
+	});
+var $elm$http$Http$onSelfMsg = F3(
+	function (router, _v0, state) {
+		var tracker = _v0.a;
+		var progress = _v0.b;
+		return A2(
+			$elm$core$Task$andThen,
+			function (_v1) {
+				return $elm$core$Task$succeed(state);
+			},
+			$elm$core$Task$sequence(
+				A2(
+					$elm$core$List$filterMap,
+					A3($elm$http$Http$maybeSend, router, tracker, progress),
+					state.subs)));
+	});
+var $elm$http$Http$Cancel = function (a) {
+	return {$: 'Cancel', a: a};
+};
+var $elm$http$Http$cmdMap = F2(
+	function (func, cmd) {
+		if (cmd.$ === 'Cancel') {
+			var tracker = cmd.a;
+			return $elm$http$Http$Cancel(tracker);
+		} else {
+			var r = cmd.a;
+			return $elm$http$Http$Request(
+				{
+					allowCookiesFromOtherDomains: r.allowCookiesFromOtherDomains,
+					body: r.body,
+					expect: A2(_Http_mapExpect, func, r.expect),
+					headers: r.headers,
+					method: r.method,
+					timeout: r.timeout,
+					tracker: r.tracker,
+					url: r.url
+				});
+		}
+	});
+var $elm$http$Http$MySub = F2(
+	function (a, b) {
+		return {$: 'MySub', a: a, b: b};
+	});
+var $elm$http$Http$subMap = F2(
+	function (func, _v0) {
+		var tracker = _v0.a;
+		var toMsg = _v0.b;
+		return A2(
+			$elm$http$Http$MySub,
+			tracker,
+			A2($elm$core$Basics$composeR, toMsg, func));
+	});
+_Platform_effectManagers['Http'] = _Platform_createManager($elm$http$Http$init, $elm$http$Http$onEffects, $elm$http$Http$onSelfMsg, $elm$http$Http$cmdMap, $elm$http$Http$subMap);
+var $elm$http$Http$command = _Platform_leaf('Http');
+var $elm$http$Http$subscription = _Platform_leaf('Http');
+var $elm$http$Http$request = function (r) {
+	return $elm$http$Http$command(
+		$elm$http$Http$Request(
+			{allowCookiesFromOtherDomains: false, body: r.body, expect: r.expect, headers: r.headers, method: r.method, timeout: r.timeout, tracker: r.tracker, url: r.url}));
+};
+var $elm$http$Http$get = function (r) {
+	return $elm$http$Http$request(
+		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
+};
+var $elm$browser$Browser$Navigation$load = _Browser_load;
+var $elm$core$Maybe$destruct = F3(
+	function (_default, func, maybe) {
+		if (maybe.$ === 'Just') {
+			var a = maybe.a;
+			return func(a);
+		} else {
+			return _default;
+		}
+	});
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$App$outgoing = _Platform_outgoingPort(
+	'outgoing',
+	function ($) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'details',
+					function ($) {
+						return A3($elm$core$Maybe$destruct, $elm$json$Json$Encode$null, $elm$core$Basics$identity, $);
+					}($.details)),
+					_Utils_Tuple2(
+					'tag',
+					$elm$json$Json$Encode$string($.tag))
+				]));
+	});
+var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var $elm$browser$Browser$Navigation$reload = _Browser_reload(false);
+var $elm$browser$Browser$Navigation$replaceUrl = _Browser_replaceUrl;
+var $author$project$App$toCmd = F2(
+	function (key, effect) {
+		switch (effect.$) {
+			case 'None':
+				return $elm$core$Platform$Cmd$none;
+			case 'PushUrl':
+				var url = effect.a;
+				return A2($elm$browser$Browser$Navigation$pushUrl, key, url);
+			case 'ReplaceUrl':
+				var url = effect.a;
+				return A2($elm$browser$Browser$Navigation$replaceUrl, key, url);
+			case 'Load':
+				var url = effect.a;
+				return $elm$browser$Browser$Navigation$load(url);
+			case 'Reload':
+				return $elm$browser$Browser$Navigation$reload;
+			case 'Forward':
+				var steps = effect.a;
+				return A2($elm$browser$Browser$Navigation$forward, key, steps);
+			case 'Back':
+				var steps = effect.a;
+				return A2($elm$browser$Browser$Navigation$back, key, steps);
+			case 'Get':
+				var options = effect.a;
+				return $elm$http$Http$get(options);
+			default:
+				var outgoingMsg = effect.a;
+				return $author$project$App$outgoing(outgoingMsg);
+		}
+	});
 var $author$project$App$Engine$initPage = F3(
 	function (route, key, frame) {
 		switch (route.$) {
-			case 'CodePatterns':
-				var _v1 = A3($author$project$App$init, key, $author$project$Page$CodePatterns$page, frame);
+			case 'Home':
+				var params = route.a;
+				var _v1 = A4(
+					$author$project$App$Engine$Page$init,
+					$author$project$Page$Home$page,
+					$author$project$App$toCmd(key),
+					params,
+					frame);
 				var newPage = _v1.a;
 				var pageCmd = _v1.b;
+				return _Utils_Tuple2(
+					{
+						cmd: A2(
+							$elm$core$Platform$Cmd$map,
+							$author$project$App$Engine$Page,
+							A2($elm$core$Platform$Cmd$map, $author$project$App$Engine$ToHome, pageCmd)),
+						_new: $author$project$App$Engine$Home(newPage)
+					},
+					'Home');
+			case 'CodePatterns':
+				var params = route.a;
+				var _v2 = A4(
+					$author$project$App$Engine$Page$init,
+					$author$project$Page$CodePatterns$page,
+					$author$project$App$toCmd(key),
+					params,
+					frame);
+				var newPage = _v2.a;
+				var pageCmd = _v2.b;
 				return _Utils_Tuple2(
 					{
 						cmd: A2(
@@ -20279,9 +20368,15 @@ var $author$project$App$Engine$initPage = F3(
 					},
 					'CodePatterns');
 			case 'LifeOfAQuery':
-				var _v2 = A3($author$project$App$init, key, $author$project$Page$LifeOfAQuery$page, frame);
-				var newPage = _v2.a;
-				var pageCmd = _v2.b;
+				var params = route.a;
+				var _v3 = A4(
+					$author$project$App$Engine$Page$init,
+					$author$project$Page$LifeOfAQuery$page,
+					$author$project$App$toCmd(key),
+					params,
+					frame);
+				var newPage = _v3.a;
+				var pageCmd = _v3.b;
 				return _Utils_Tuple2(
 					{
 						cmd: A2(
@@ -20292,9 +20387,15 @@ var $author$project$App$Engine$initPage = F3(
 					},
 					'LifeOfAQuery');
 			default:
-				var _v3 = A3($author$project$App$init, key, $author$project$Page$Nested$CodePatterns$page, frame);
-				var newPage = _v3.a;
-				var pageCmd = _v3.b;
+				var params = route.a;
+				var _v4 = A4(
+					$author$project$App$Engine$Page$init,
+					$author$project$Page$Nested$CodePatterns$page,
+					$author$project$App$toCmd(key),
+					params,
+					frame);
+				var newPage = _v4.a;
+				var pageCmd = _v4.b;
 				return _Utils_Tuple2(
 					{
 						cmd: A2(
@@ -20434,9 +20535,18 @@ var $elm$url$Url$Parser$parse = F2(
 					url.fragment,
 					$elm$core$Basics$identity)));
 	});
-var $author$project$Directory$CodePatterns = {$: 'CodePatterns'};
-var $author$project$Directory$LifeOfAQuery = {$: 'LifeOfAQuery'};
-var $author$project$Directory$NestedCodePatterns = {$: 'NestedCodePatterns'};
+var $author$project$Route$CodePatterns = function (a) {
+	return {$: 'CodePatterns', a: a};
+};
+var $author$project$Route$Home = function (a) {
+	return {$: 'Home', a: a};
+};
+var $author$project$Route$LifeOfAQuery = function (a) {
+	return {$: 'LifeOfAQuery', a: a};
+};
+var $author$project$Route$NestedCodePatterns = function (a) {
+	return {$: 'NestedCodePatterns', a: a};
+};
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
 };
@@ -20522,25 +20632,82 @@ var $elm$url$Url$Parser$slash = F2(
 					parseBefore(state));
 			});
 	});
-var $author$project$Directory$parser = $elm$url$Url$Parser$oneOf(
-	_List_fromArray(
-		[
+var $author$project$Route$parser = function (paramDict) {
+	return $elm$url$Url$Parser$oneOf(
+		_List_fromArray(
+			[
+				A2(
+				$elm$url$Url$Parser$map,
+				$author$project$Route$Home,
+				A2(
+					$elm$url$Url$Parser$map,
+					{},
+					$elm$url$Url$Parser$s('home'))),
+				A2(
+				$elm$url$Url$Parser$map,
+				$author$project$Route$CodePatterns,
+				A2(
+					$elm$url$Url$Parser$map,
+					{},
+					$elm$url$Url$Parser$s('code-patterns'))),
+				A2(
+				$elm$url$Url$Parser$map,
+				$author$project$Route$LifeOfAQuery,
+				A2(
+					$elm$url$Url$Parser$map,
+					{},
+					$elm$url$Url$Parser$s('life-of-a-query'))),
+				A2(
+				$elm$url$Url$Parser$map,
+				$author$project$Route$NestedCodePatterns,
+				A2(
+					$elm$url$Url$Parser$map,
+					{},
+					A2(
+						$elm$url$Url$Parser$slash,
+						$elm$url$Url$Parser$s('nested'),
+						$elm$url$Url$Parser$s('code-patterns'))))
+			]));
+};
+var $author$project$Route$decodeUrlParam = function (val) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		val,
+		$elm$url$Url$percentDecode(val));
+};
+var $author$project$Route$queryParams = function (url) {
+	var _v0 = url.query;
+	if (_v0.$ === 'Nothing') {
+		return $elm$core$Dict$empty;
+	} else {
+		var queryString = _v0.a;
+		return $elm$core$Dict$fromList(
 			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Directory$CodePatterns,
-			$elm$url$Url$Parser$s('CodePatterns')),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Directory$LifeOfAQuery,
-			$elm$url$Url$Parser$s('LifeOfAQuery')),
-			A2(
-			$elm$url$Url$Parser$map,
-			$author$project$Directory$NestedCodePatterns,
-			A2(
-				$elm$url$Url$Parser$slash,
-				$elm$url$Url$Parser$s('Nested'),
-				$elm$url$Url$Parser$s('CodePatterns')))
-		]));
+				$elm$core$List$filterMap,
+				function (str) {
+					var _v1 = A2($elm$core$String$split, '=', str);
+					if (!_v1.b) {
+						return $elm$core$Maybe$Nothing;
+					} else {
+						var key = _v1.a;
+						var value = _v1.b;
+						return $elm$core$Maybe$Just(
+							_Utils_Tuple2(
+								$author$project$Route$decodeUrlParam(key),
+								$author$project$Route$decodeUrlParam(
+									A2($elm$core$String$join, '=', value))));
+					}
+				},
+				A2($elm$core$String$split, '&', queryString)));
+	}
+};
+var $author$project$Route$parse = function (url) {
+	return A2(
+		$elm$url$Url$Parser$parse,
+		$author$project$Route$parser(
+			$author$project$Route$queryParams(url)),
+		url);
+};
 var $author$project$App$State$setCurrent = F2(
 	function (key, state) {
 		var details = state.a;
@@ -20561,22 +20728,22 @@ var $author$project$App$State$current = function (cache) {
 		return A2($elm$core$Dict$get, key_1_1_0_0, details.cache);
 	}
 };
+var $author$project$App$Engine$Page$frameSubscriptions = F3(
+	function (_v0, toSub, model) {
+		var inner = _v0.a;
+		return toSub(
+			inner.subscriptions(model));
+	});
+var $author$project$App$Engine$Page$subscriptions = F4(
+	function (pageConfig, toSub, shared, model) {
+		var inner = pageConfig.a;
+		return toSub(
+			A2(inner.subscriptions, shared, model));
+	});
 var $author$project$App$toSub = function (subscription) {
 	var sub0 = subscription.a;
 	return sub0;
 };
-var $author$project$App$frameSubscriptions = F2(
-	function (_v0, model) {
-		var inner = _v0.a;
-		return $author$project$App$toSub(
-			inner.subscriptions(model));
-	});
-var $author$project$App$subscriptions = F3(
-	function (pageConfig, shared, model) {
-		var inner = pageConfig.a;
-		return $author$project$App$toSub(
-			A2(inner.subscriptions, shared, model));
-	});
 var $author$project$App$Engine$subscriptions = F2(
 	function (frame, model) {
 		return $elm$core$Platform$Sub$batch(
@@ -20585,7 +20752,7 @@ var $author$project$App$Engine$subscriptions = F2(
 					A2(
 					$elm$core$Platform$Sub$map,
 					$author$project$App$Engine$ToFrame,
-					A2($author$project$App$frameSubscriptions, frame, model.frame)),
+					A3($author$project$App$Engine$Page$frameSubscriptions, frame, $author$project$App$toSub, model.frame)),
 					function () {
 					var _v0 = $author$project$App$State$current(model.states);
 					if (_v0.$ === 'Nothing') {
@@ -20597,39 +20764,45 @@ var $author$project$App$Engine$subscriptions = F2(
 							$author$project$App$Engine$Page,
 							function () {
 								switch (current_2_1_0_0.$) {
+									case 'Home':
+										var pageModel = current_2_1_0_0.a;
+										return A2(
+											$elm$core$Platform$Sub$map,
+											$author$project$App$Engine$ToHome,
+											A4($author$project$App$Engine$Page$subscriptions, $author$project$Page$Home$page, $author$project$App$toSub, model.frame, pageModel));
 									case 'CodePatterns':
 										var pageModel = current_2_1_0_0.a;
 										return A2(
 											$elm$core$Platform$Sub$map,
 											$author$project$App$Engine$ToCodePatterns,
-											A3($author$project$App$subscriptions, $author$project$Page$CodePatterns$page, model.frame, pageModel));
+											A4($author$project$App$Engine$Page$subscriptions, $author$project$Page$CodePatterns$page, $author$project$App$toSub, model.frame, pageModel));
 									case 'LifeOfAQuery':
 										var pageModel = current_2_1_0_0.a;
 										return A2(
 											$elm$core$Platform$Sub$map,
 											$author$project$App$Engine$ToLifeOfAQuery,
-											A3($author$project$App$subscriptions, $author$project$Page$LifeOfAQuery$page, model.frame, pageModel));
+											A4($author$project$App$Engine$Page$subscriptions, $author$project$Page$LifeOfAQuery$page, $author$project$App$toSub, model.frame, pageModel));
 									default:
 										var pageModel = current_2_1_0_0.a;
 										return A2(
 											$elm$core$Platform$Sub$map,
 											$author$project$App$Engine$ToNestedCodePatterns,
-											A3($author$project$App$subscriptions, $author$project$Page$Nested$CodePatterns$page, model.frame, pageModel));
+											A4($author$project$App$Engine$Page$subscriptions, $author$project$Page$Nested$CodePatterns$page, $author$project$App$toSub, model.frame, pageModel));
 								}
 							}());
 					}
 				}()
 				]));
 	});
-var $author$project$App$frameUpdate = F4(
-	function (navKey, _v0, msg, model) {
+var $author$project$App$Engine$Page$frameUpdate = F4(
+	function (_v0, toCmd, msg, model) {
 		var inner = _v0.a;
 		var _v1 = A2(inner.update, msg, model);
 		var updatedPage = _v1.a;
 		var cmd = _v1.b;
 		return _Utils_Tuple2(
 			updatedPage,
-			A2($author$project$App$toCmd, navKey, cmd));
+			toCmd(cmd));
 	});
 var $elm$url$Url$addPort = F2(
 	function (maybePort, starter) {
@@ -20680,31 +20853,74 @@ var $author$project$App$State$get = F2(
 		var details = state.a;
 		return A2($elm$core$Dict$get, key, details.cache);
 	});
-var $author$project$App$update = F5(
-	function (navKey, pageConfig, shared, msg, model) {
+var $author$project$App$Engine$Page$update = F5(
+	function (pageConfig, toCmd, shared, msg, model) {
 		var inner = pageConfig.a;
 		var _v1 = A3(inner.update, shared, msg, model);
 		var updatedPage = _v1.a;
 		var cmd = _v1.b;
 		return _Utils_Tuple2(
 			updatedPage,
-			A2($author$project$App$toCmd, navKey, cmd));
+			toCmd(cmd));
 	});
 var $author$project$App$Engine$updatePage = F2(
 	function (msg, model) {
 		switch (msg.$) {
-			case 'ToCodePatterns':
+			case 'ToHome':
 				var pageMsg = msg.a;
-				var _v1 = A2($author$project$App$State$get, 'CodePatterns', model.states);
+				var _v1 = A2($author$project$App$State$get, 'Home', model.states);
 				if (_v1.$ === 'Nothing') {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
 					var foundPage_1_1_0_0 = _v1.a;
-					if (foundPage_1_1_0_0.$ === 'CodePatterns') {
+					if (foundPage_1_1_0_0.$ === 'Home') {
 						var page = foundPage_1_1_0_0.a;
-						var _v3 = A5($author$project$App$update, model.key, $author$project$Page$CodePatterns$page, model.frame, pageMsg, page);
+						var _v3 = A5(
+							$author$project$App$Engine$Page$update,
+							$author$project$Page$Home$page,
+							$author$project$App$toCmd(model.key),
+							model.frame,
+							pageMsg,
+							page);
 						var updatedPage = _v3.a;
 						var cmd = _v3.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									states: A3(
+										$author$project$App$State$insert,
+										'Home',
+										$author$project$App$Engine$Home(updatedPage),
+										model.states)
+								}),
+							A2(
+								$elm$core$Platform$Cmd$map,
+								$author$project$App$Engine$Page,
+								A2($elm$core$Platform$Cmd$map, $author$project$App$Engine$ToHome, cmd)));
+					} else {
+						var otherwise_1_1_1_1_0_0 = foundPage_1_1_0_0;
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					}
+				}
+			case 'ToCodePatterns':
+				var pageMsg = msg.a;
+				var _v4 = A2($author$project$App$State$get, 'CodePatterns', model.states);
+				if (_v4.$ === 'Nothing') {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				} else {
+					var foundPage_1_1_0_0 = _v4.a;
+					if (foundPage_1_1_0_0.$ === 'CodePatterns') {
+						var page = foundPage_1_1_0_0.a;
+						var _v6 = A5(
+							$author$project$App$Engine$Page$update,
+							$author$project$Page$CodePatterns$page,
+							$author$project$App$toCmd(model.key),
+							model.frame,
+							pageMsg,
+							page);
+						var updatedPage = _v6.a;
+						var cmd = _v6.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -20726,16 +20942,22 @@ var $author$project$App$Engine$updatePage = F2(
 				}
 			case 'ToLifeOfAQuery':
 				var pageMsg = msg.a;
-				var _v4 = A2($author$project$App$State$get, 'LifeOfAQuery', model.states);
-				if (_v4.$ === 'Nothing') {
+				var _v7 = A2($author$project$App$State$get, 'LifeOfAQuery', model.states);
+				if (_v7.$ === 'Nothing') {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
-					var foundPage_1_1_0_0 = _v4.a;
+					var foundPage_1_1_0_0 = _v7.a;
 					if (foundPage_1_1_0_0.$ === 'LifeOfAQuery') {
 						var page = foundPage_1_1_0_0.a;
-						var _v6 = A5($author$project$App$update, model.key, $author$project$Page$LifeOfAQuery$page, model.frame, pageMsg, page);
-						var updatedPage = _v6.a;
-						var cmd = _v6.b;
+						var _v9 = A5(
+							$author$project$App$Engine$Page$update,
+							$author$project$Page$LifeOfAQuery$page,
+							$author$project$App$toCmd(model.key),
+							model.frame,
+							pageMsg,
+							page);
+						var updatedPage = _v9.a;
+						var cmd = _v9.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -20757,16 +20979,22 @@ var $author$project$App$Engine$updatePage = F2(
 				}
 			default:
 				var pageMsg = msg.a;
-				var _v7 = A2($author$project$App$State$get, 'NestedCodePatterns', model.states);
-				if (_v7.$ === 'Nothing') {
+				var _v10 = A2($author$project$App$State$get, 'NestedCodePatterns', model.states);
+				if (_v10.$ === 'Nothing') {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
-					var foundPage_1_1_0_0 = _v7.a;
+					var foundPage_1_1_0_0 = _v10.a;
 					if (foundPage_1_1_0_0.$ === 'NestedCodePatterns') {
 						var page = foundPage_1_1_0_0.a;
-						var _v9 = A5($author$project$App$update, model.key, $author$project$Page$Nested$CodePatterns$page, model.frame, pageMsg, page);
-						var updatedPage = _v9.a;
-						var cmd = _v9.b;
+						var _v12 = A5(
+							$author$project$App$Engine$Page$update,
+							$author$project$Page$Nested$CodePatterns$page,
+							$author$project$App$toCmd(model.key),
+							model.frame,
+							pageMsg,
+							page);
+						var updatedPage = _v12.a;
+						var cmd = _v12.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -20809,7 +21037,7 @@ var $author$project$App$Engine$update = F3(
 				}
 			case 'UrlChanged':
 				var url = msg.a;
-				var _v2 = A2($elm$url$Url$Parser$parse, $author$project$Directory$parser, url);
+				var _v2 = $author$project$Route$parse(url);
 				if (_v2.$ === 'Nothing') {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -20830,7 +21058,12 @@ var $author$project$App$Engine$update = F3(
 				}
 			case 'ToFrame':
 				var frameMsg = msg.a;
-				var _v4 = A4($author$project$App$frameUpdate, model.key, frame, frameMsg, model.frame);
+				var _v4 = A4(
+					$author$project$App$Engine$Page$frameUpdate,
+					frame,
+					$author$project$App$toCmd(model.key),
+					frameMsg,
+					model.frame);
 				var newFrame = _v4.a;
 				var frameCmd = _v4.b;
 				return _Utils_Tuple2(
@@ -20843,7 +21076,7 @@ var $author$project$App$Engine$update = F3(
 				return A2($author$project$App$Engine$updatePage, pageMsg, model);
 		}
 	});
-var $author$project$App$frameView = F4(
+var $author$project$App$Engine$Page$frameView = F4(
 	function (_v0, toAppMsg, model, innerView) {
 		var inner = _v0.a;
 		return A3(inner.view, toAppMsg, model, innerView);
@@ -20859,7 +21092,7 @@ var $author$project$App$Engine$mapDocumentToPage = F2(
 			title: doc.title
 		};
 	});
-var $author$project$App$view = F3(
+var $author$project$App$Engine$Page$view = F3(
 	function (pageConfig, shared, model) {
 		var inner = pageConfig.a;
 		return A2(inner.view, shared, model);
@@ -20878,30 +21111,36 @@ var $author$project$App$Engine$view = F2(
 		} else {
 			var current_1_0 = _v0.a;
 			return A4(
-				$author$project$App$frameView,
+				$author$project$App$Engine$Page$frameView,
 				frame,
 				$author$project$App$Engine$ToFrame,
 				model.frame,
 				function () {
 					switch (current_1_0.$) {
+						case 'Home':
+							var pageModel = current_1_0.a;
+							return A2(
+								$author$project$App$Engine$mapDocumentToPage,
+								$author$project$App$Engine$ToHome,
+								A3($author$project$App$Engine$Page$view, $author$project$Page$Home$page, model.frame, pageModel));
 						case 'CodePatterns':
 							var pageModel = current_1_0.a;
 							return A2(
 								$author$project$App$Engine$mapDocumentToPage,
 								$author$project$App$Engine$ToCodePatterns,
-								A3($author$project$App$view, $author$project$Page$CodePatterns$page, model.frame, pageModel));
+								A3($author$project$App$Engine$Page$view, $author$project$Page$CodePatterns$page, model.frame, pageModel));
 						case 'LifeOfAQuery':
 							var pageModel = current_1_0.a;
 							return A2(
 								$author$project$App$Engine$mapDocumentToPage,
 								$author$project$App$Engine$ToLifeOfAQuery,
-								A3($author$project$App$view, $author$project$Page$LifeOfAQuery$page, model.frame, pageModel));
+								A3($author$project$App$Engine$Page$view, $author$project$Page$LifeOfAQuery$page, model.frame, pageModel));
 						default:
 							var pageModel = current_1_0.a;
 							return A2(
 								$author$project$App$Engine$mapDocumentToPage,
 								$author$project$App$Engine$ToNestedCodePatterns,
-								A3($author$project$App$view, $author$project$Page$Nested$CodePatterns$page, model.frame, pageModel));
+								A3($author$project$App$Engine$Page$view, $author$project$Page$Nested$CodePatterns$page, model.frame, pageModel));
 					}
 				}());
 		}
@@ -20911,11 +21150,15 @@ var $author$project$App$Engine$advanced = function (frame) {
 		{
 			init: F3(
 				function (flags, url, key) {
-					var _v0 = A3($author$project$App$frameInit, key, frame, flags);
+					var _v0 = A3(
+						$author$project$App$Engine$Page$frameInit,
+						frame,
+						$author$project$App$toCmd(key),
+						flags);
 					var frameModel = _v0.a;
 					var frameCmd = _v0.b;
 					var _v1 = function () {
-						var _v2 = A2($elm$url$Url$Parser$parse, $author$project$Directory$parser, url);
+						var _v2 = $author$project$Route$parse(url);
 						if (_v2.$ === 'Nothing') {
 							return _Utils_Tuple2($author$project$App$State$init, $elm$core$Platform$Cmd$none);
 						} else {
@@ -20949,10 +21192,11 @@ var $author$project$App$Engine$advanced = function (frame) {
 			view: $author$project$App$Engine$view(frame)
 		});
 };
-var $author$project$App$Frame = function (a) {
+var $author$project$App$Engine$Page$Frame = function (a) {
 	return {$: 'Frame', a: a};
 };
-var $author$project$App$noFrame = $author$project$App$Frame(
+var $author$project$App$Engine$Page$frame = $author$project$App$Engine$Page$Frame;
+var $author$project$App$defaultFrame = $author$project$App$Engine$Page$frame(
 	{
 		init: function (_v0) {
 			return _Utils_Tuple2(
@@ -20971,9 +21215,9 @@ var $author$project$App$noFrame = $author$project$App$Frame(
 				return innerView;
 			})
 	});
-var $author$project$App$Engine$app = $author$project$App$Engine$advanced($author$project$App$noFrame);
+var $author$project$App$Engine$app = $author$project$App$Engine$advanced($author$project$App$defaultFrame);
 var $author$project$Main$main = $author$project$App$Engine$app;
-_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$value)({"versions":{"elm":"0.19.1"},"types":{"message":"App.Engine.Msg {}","aliases":{"Url.Url":{"args":[],"type":"{ protocol : Url.Protocol, host : String.String, port_ : Maybe.Maybe Basics.Int, path : String.String, query : Maybe.Maybe String.String, fragment : Maybe.Maybe String.String }"},"App.Markdown.Msg":{"args":[],"type":"{}"},"Page.CodePatterns.Msg":{"args":[],"type":"App.Markdown.Msg"},"Page.LifeOfAQuery.Msg":{"args":[],"type":"App.Markdown.Msg"},"Page.Nested.CodePatterns.Msg":{"args":[],"type":"App.Markdown.Msg"}},"unions":{"App.Engine.Msg":{"args":["frameMsg"],"tags":{"UrlRequested":["Browser.UrlRequest"],"UrlChanged":["Url.Url"],"Page":["App.Engine.PageMsg"],"ToFrame":["frameMsg"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"App.Engine.PageMsg":{"args":[],"tags":{"ToCodePatterns":["Page.CodePatterns.Msg"],"ToLifeOfAQuery":["Page.LifeOfAQuery.Msg"],"ToNestedCodePatterns":["Page.Nested.CodePatterns.Msg"]}},"Url.Protocol":{"args":[],"tags":{"Http":[],"Https":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Browser.UrlRequest":{"args":[],"tags":{"Internal":["Url.Url"],"External":["String.String"]}}}}})}});}(this));
+_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$value)({"versions":{"elm":"0.19.1"},"types":{"message":"App.Engine.Msg {}","aliases":{"Url.Url":{"args":[],"type":"{ protocol : Url.Protocol, host : String.String, port_ : Maybe.Maybe Basics.Int, path : String.String, query : Maybe.Maybe String.String, fragment : Maybe.Maybe String.String }"},"App.Markdown.Msg":{"args":[],"type":"{}"},"Page.CodePatterns.Msg":{"args":[],"type":"App.Markdown.Msg"},"Page.Home.Msg":{"args":[],"type":"{}"},"Page.LifeOfAQuery.Msg":{"args":[],"type":"App.Markdown.Msg"},"Page.Nested.CodePatterns.Msg":{"args":[],"type":"App.Markdown.Msg"}},"unions":{"App.Engine.Msg":{"args":["frameMsg"],"tags":{"UrlRequested":["Browser.UrlRequest"],"UrlChanged":["Url.Url"],"Page":["App.Engine.PageMsg"],"ToFrame":["frameMsg"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"App.Engine.PageMsg":{"args":[],"tags":{"ToHome":["Page.Home.Msg"],"ToCodePatterns":["Page.CodePatterns.Msg"],"ToLifeOfAQuery":["Page.LifeOfAQuery.Msg"],"ToNestedCodePatterns":["Page.Nested.CodePatterns.Msg"]}},"Url.Protocol":{"args":[],"tags":{"Http":[],"Https":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Browser.UrlRequest":{"args":[],"tags":{"Internal":["Url.Url"],"External":["String.String"]}}}}})}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
 }

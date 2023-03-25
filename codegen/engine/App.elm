@@ -2,7 +2,7 @@ port module App exposing
     ( none, pushUrl, replaceUrl, load, reload, forward, back
     , get
     , Effect, toCmd
-    , Subscription, toSub
+    , Subscription(..), toSub
     , Page, page
     , Frame, defaultFrame
     )
@@ -169,7 +169,7 @@ type alias Frame model msg appMsg view =
 
 defaultFrame : Frame {} {} msg (Browser.Document msg)
 defaultFrame =
-    Frame
+    App.Engine.Page.frame
         { init = \_ -> ( {}, None )
         , update = \_ model -> ( model, None )
         , subscriptions = \_ -> Subscription Sub.none
