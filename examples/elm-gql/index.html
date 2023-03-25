@@ -20632,6 +20632,11 @@ var $elm$url$Url$Parser$slash = F2(
 					parseBefore(state));
 			});
 	});
+var $elm$url$Url$Parser$top = $elm$url$Url$Parser$Parser(
+	function (state) {
+		return _List_fromArray(
+			[state]);
+	});
 var $author$project$Route$parser = function (paramDict) {
 	return $elm$url$Url$Parser$oneOf(
 		_List_fromArray(
@@ -20642,7 +20647,7 @@ var $author$project$Route$parser = function (paramDict) {
 				A2(
 					$elm$url$Url$Parser$map,
 					{},
-					$elm$url$Url$Parser$s('home'))),
+					$elm$url$Url$Parser$top)),
 				A2(
 				$elm$url$Url$Parser$map,
 				$author$project$Route$CodePatterns,

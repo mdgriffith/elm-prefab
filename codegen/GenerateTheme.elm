@@ -1,18 +1,16 @@
-module Generate exposing (main)
+module GenerateTheme exposing (main)
 
 {-| -}
 
-import Elm
-import Elm.Annotation as Type
 import Gen.CodeGen.Generate as Generate
 import Json.Decode
 import Path
-import Press.Generate
 import Theme
+import Theme.Generate
 
 
 main : Program Json.Decode.Value () ()
 main =
     Generate.fromJson
-        Press.Generate.decode
-        Press.Generate.generate
+        Theme.decode
+        Theme.Generate.generate

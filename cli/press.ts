@@ -99,11 +99,25 @@ export const app = (options: AppOptions) => {
 
 export type UiOptions = {
   colors: string[];
+  spacing: string[];
+  typography: string[];
+  borders: string[];
+  shadows: string[];
 };
 
 export const ui = (options: UiOptions) => {
   console.log(options.colors);
-  return { generatorType: GeneratorType.Standard, run: () => {} };
+  return {
+    generatorType: GeneratorType.Standard,
+    run: (runOptions: { output: string }) => {
+      return CodeGen.run("GenerateTheme.elm", {
+        debug: true,
+        output: runOptions.output,
+        flags: options,
+        cwd: "./codegen",
+      });
+    },
+  };
 };
 
 export const figma = (options: { apiKey: string }) => {

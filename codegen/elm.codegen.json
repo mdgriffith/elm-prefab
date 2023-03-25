@@ -10,6 +10,9 @@
       "elm/http": "2.0.0",
       "dillonkearns/elm-markdown": "7.0.1"
     },
-    "local": ["./codegen/engine/"]
+    "local": [
+      "./codegen/engine/",
+      "/Users/mattgriffith/projects/mdgriffith/elm-ui/docs.json"
+    ]
   }
 }
