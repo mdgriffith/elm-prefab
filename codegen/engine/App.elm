@@ -2,25 +2,34 @@ port module App exposing
     ( none, pushUrl, replaceUrl, load, reload, forward, back
     , get
     , Effect, toCmd
-    , Page, page, init, update, view, subscriptions
-    , Frame, frame, frameInit, frameUpdate, frameView, frameSubscriptions
-    , Subscription(..), noFrame
+    , Subscription, toSub
+    , Page, page
+    , Frame, defaultFrame
     )
 
 {-|
 
 @docs none, pushUrl, replaceUrl, load, reload, forward, back
 
+
+# Http stuff
+
 @docs get
+
+
+# Effects and Subscriptions
 
 @docs Effect, toCmd
 
-@docs Page, page, init, update, view, subscriptions
+@docs Subscription, toSub
 
-@docs Frame, frame, frameInit, frameUpdate, frameView, frameSubscriptions
+@docs Page, page
+
+@docs Frame, defaultFrame
 
 -}
 
+import App.Engine.Page
 import Browser
 import Browser.Navigation
 import Html
@@ -139,13 +148,8 @@ toSub subscription =
 {- Page machinery -}
 
 
-type Page params shared model msg view
-    = Page
-        { init : params -> shared -> ( model, Effect msg )
-        , update : shared -> msg -> model -> ( model, Effect msg )
-        , subscriptions : shared -> model -> Subscription msg
-        , view : shared -> model -> view
-        }
+type alias Page params shared model msg view =
+    App.Engine.Page.Page params shared model (Effect msg) msg (Subscription msg) view
 
 
 page :
@@ -156,128 +160,18 @@ page :
     }
     -> Page params shared model msg view
 page =
-    Page
+    App.Engine.Page.page
 
 
-init :
-    Browser.Navigation.Key
-    -> Page params shared model msg view
-    -> params
-    -> shared
-    -> ( model, Cmd msg )
-init navKey pageConfig params shared =
-    case pageConfig of
-        Page inner ->
-            let
-                ( initializedPage, cmd ) =
-                    inner.init params shared
-            in
-            ( initializedPage
-            , toCmd navKey cmd
-            )
+type alias Frame model msg appMsg view =
+    App.Engine.Page.Frame model msg appMsg (Effect msg) (Subscription msg) view
 
 
-update :
-    Browser.Navigation.Key
-    -> Page params shared model msg view
-    -> shared
-    -> msg
-    -> model
-    -> ( model, Cmd msg )
-update navKey pageConfig shared msg model =
-    case pageConfig of
-        Page inner ->
-            let
-                ( updatedPage, cmd ) =
-                    inner.update shared msg model
-            in
-            ( updatedPage, toCmd navKey cmd )
-
-
-view : Page params shared model msg view -> shared -> model -> view
-view pageConfig shared model =
-    case pageConfig of
-        Page inner ->
-            inner.view shared model
-
-
-subscriptions : Page params shared model msg view -> shared -> model -> Sub msg
-subscriptions pageConfig shared model =
-    case pageConfig of
-        Page inner ->
-            toSub (inner.subscriptions shared model)
-
-
-
-{- Frame Stuff -}
-
-
-type Frame model msg appMsg view
-    = Frame
-        { init : Json.Encode.Value -> ( model, Effect msg )
-        , update : msg -> model -> ( model, Effect msg )
-        , subscriptions : model -> Subscription msg
-        , view : (msg -> appMsg) -> model -> view -> Browser.Document appMsg
-        }
-
-
-noFrame : Frame {} {} msg (Browser.Document msg)
-noFrame =
+defaultFrame : Frame {} {} msg (Browser.Document msg)
+defaultFrame =
     Frame
         { init = \_ -> ( {}, None )
         , update = \_ model -> ( model, None )
         , subscriptions = \_ -> Subscription Sub.none
         , view = \toMsg model innerView -> innerView
         }
-
-
-frame :
-    { init : Json.Encode.Value -> ( model, Effect msg )
-    , update : msg -> model -> ( model, Effect msg )
-    , subscriptions : model -> Subscription msg
-    , view : (msg -> appMsg) -> model -> view -> Browser.Document appMsg
-    }
-    -> Frame model msg appMsg view
-frame =
-    Frame
-
-
-frameInit :
-    Browser.Navigation.Key
-    -> Frame model msg appMsg view
-    -> Json.Encode.Value
-    -> ( model, Cmd msg )
-frameInit navKey (Frame inner) flags =
-    let
-        ( initializedPage, cmd ) =
-            inner.init flags
-    in
-    ( initializedPage
-    , toCmd navKey cmd
-    )
-
-
-frameUpdate :
-    Browser.Navigation.Key
-    -> Frame model msg appMsg view
-    -> msg
-    -> model
-    -> ( model, Cmd msg )
-frameUpdate navKey (Frame inner) msg model =
-    let
-        ( updatedPage, cmd ) =
-            inner.update msg model
-    in
-    ( updatedPage
-    , toCmd navKey cmd
-    )
-
-
-frameView : Frame model msg appMsg view -> (msg -> appMsg) -> model -> view -> Browser.Document appMsg
-frameView (Frame inner) toAppMsg model innerView =
-    inner.view toAppMsg model innerView
-
-
-frameSubscriptions : Frame model msg appMsg view -> model -> Sub msg
-frameSubscriptions (Frame inner) model =
-    toSub (inner.subscriptions model)

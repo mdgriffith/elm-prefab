@@ -9,14 +9,10 @@ ElmPress.generate({
       elm: {
         dir: path.join(__dirname, "../examples/elm-gql/src/Page"),
         urls: [
-          {
-            page: "Home.elm",
-            url: "/test/:id?{**}",
-          },
-          {
-            page: "About.elm",
-            url: "/about?{search,tags}",
-          },
+          // {
+          //   page: "Home.elm",
+          //   url: "/old-homepage?{search,tag,**}",
+          // },
         ],
       },
     }),
