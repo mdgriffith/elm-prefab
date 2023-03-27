@@ -3,8 +3,7 @@ module Theme.Generate exposing (..)
 import Elm
 import Elm.Annotation
 import Gen.Ui as Ui
-import Gen.Ui.Border as Border
-import Gen.Ui.Font as Font
+import Gen.Ui.Font
 import Theme
 
 
@@ -16,12 +15,48 @@ attr a =
 
 generate : Theme.Theme -> List Elm.File
 generate theme =
-    let
-        _ =
-            Debug.log "THEME" theme
-    in
     [ Elm.file [ "Ui", "Theme" ]
-        [ Elm.declaration "spacing"
+        [ Elm.declaration "font"
+            (toFields
+                (\typeface ->
+                    toFields
+                        (\variant ->
+                            Gen.Ui.Font.font
+                                { name = typeface.face
+                                , fallback = [ Gen.Ui.Font.serif ]
+                                , sizing =
+                                    Gen.Ui.Font.byCapital
+                                        (Gen.Ui.Font.make_.adjustment
+                                            { offset = Elm.float 0.045
+                                            , height = Elm.float 0.73
+                                            }
+                                        )
+                                , variants =
+                                    []
+                                , weight = Gen.Ui.Font.regular
+                                , size = variant.size
+                                }
+                        )
+                        typeface.variants
+                        |> Elm.record
+                )
+                theme.typography
+                |> Elm.record
+            )
+            |> Elm.expose
+        , Elm.declaration "border"
+            (toFields
+                (\border ->
+                    Ui.border
+                        { width = border.width
+                        , color = toColor border.color
+                        }
+                )
+                theme.borders
+                |> Elm.record
+            )
+            |> Elm.expose
+        , Elm.declaration "spacing"
             (Elm.record
                 (toFields (attr << Ui.spacing)
                     theme.spacing
@@ -51,28 +86,13 @@ generate theme =
                 )
             )
             |> Elm.expose
-
-        -- , Elm.declaration "font"
-        --     (record
-        --         (attr << Font.size)
-        --         theme.typography.sizes
-        --     )
-        --     |> Elm.expose
-        , Elm.declaration "border"
-            (Elm.record
-                [ Tuple.pair "size"
-                    (record (attr << Border.width)
-                        theme.borders.sizes
-                    )
-                , Tuple.pair "rouned"
-                    (record (attr << Border.rounded)
-                        theme.borders.rounded
-                    )
-                ]
-            )
-            |> Elm.expose
         ]
     ]
+
+
+toColor : Theme.Color -> Elm.Expression
+toColor (Theme.Color color) =
+    Ui.rgb 0 0 0
 
 
 toFields : (thing -> Elm.Expression) -> List (Theme.Named thing) -> List ( String, Elm.Expression )

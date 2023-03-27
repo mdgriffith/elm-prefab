@@ -98,19 +98,54 @@ export const app = (options: AppOptions) => {
 };
 
 export type UiOptions = {
-  colors: string[];
-  spacing: string[];
-  typography: string[];
-  borders: string[];
-  shadows: string[];
+  backgrounds: {
+    [index: string]: Palette;
+  };
+  spacing: Spacing;
+  typography: Typography;
+  borders?: {
+    [index: string]: BorderVariant;
+  };
+  shadows?: string[];
+};
+
+interface Spacing {
+  [index: string]: number;
+}
+
+interface Palette {
+  [index: string]: string;
+}
+
+interface Typography {
+  [index: string]: Typeface;
+}
+
+type Typeface = {
+  face: string;
+  fallback: string;
+  variants: { [index: string]: TypeVariant };
+};
+
+type TypeVariant = {
+  weight?: number;
+  size: number;
+  lineSpacing?: number;
+  color: Palette | string;
+};
+
+type BorderVariant = {
+  rounded?: number;
+  color: string;
+  width?: number;
 };
 
 export const ui = (options: UiOptions) => {
-  console.log(options.colors);
+  console.log(options);
   return {
     generatorType: GeneratorType.Standard,
     run: (runOptions: { output: string }) => {
-      return CodeGen.run("GenerateTheme.elm", {
+      return CodeGen.run("ThemeGenerate.elm", {
         debug: true,
         output: runOptions.output,
         flags: options,

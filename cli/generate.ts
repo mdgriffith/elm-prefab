@@ -1,6 +1,21 @@
 import * as path from "path";
 import * as ElmPress from "./press";
 
+const colors = {
+  neutral: {
+    "50": "#fafafa",
+    "100": "#f5f5f5",
+    "200": "#e5e5e5",
+    "300": "#d4d4d4",
+    "400": "#a3a3a3",
+    "500": "#737373",
+    "600": "#525252",
+    "700": "#404040",
+    "800": "#262626",
+    "900": "#171717",
+  },
+};
+
 ElmPress.generate({
   output: "generated",
   generators: [
@@ -21,10 +36,36 @@ ElmPress.generate({
     //   },
     // }),
     ElmPress.ui({
-      colors: [],
-      spacing: [],
-      typography: [],
-      borders: [],
+      backgrounds: {
+        neutral: colors.neutral,
+      },
+      spacing: {
+        sm4: 2,
+        sm3: 4,
+        sm2: 8,
+        sm: 12,
+        md: 16,
+        lg: 20,
+        lg1: 24,
+        lg2: 32,
+        lg3: 40,
+        lg4: 80,
+      },
+      typography: {
+        base: {
+          face: "EB Garamond",
+          fallback: "serif",
+          variants: {
+            small: { size: 10, color: colors.neutral["900"] },
+            base: { size: 16, color: colors.neutral["900"] },
+            large: { size: 20, color: colors.neutral["900"] },
+            extraLarge: { size: 24, color: colors.neutral["900"] },
+          },
+        },
+      },
+      borders: {
+        small: { rounded: 2, width: 1, color: colors.neutral["900"] },
+      },
       shadows: [],
     }),
     // ElmPress.figma({ apiKey: "string" }),

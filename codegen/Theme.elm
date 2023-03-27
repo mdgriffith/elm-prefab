@@ -4,6 +4,7 @@ module Theme exposing (..)
 -}
 
 import Elm
+import Gen.CodeGen.Generate as Generate
 import Json.Decode
 
 
@@ -19,46 +20,17 @@ nameToString (Name str) =
 decode : Json.Decode.Decoder Theme
 decode =
     Json.Decode.map5 Theme
-        (Json.Decode.field "colors"
-            (Json.Decode.succeed
-                { palette = []
-                , backgrounds = always True
-                , text = always True
-                , borders = always True
-                }
-            )
-        )
-        (Json.Decode.field "spacing"
-            (Json.Decode.succeed
-                (tshirtSizesInt 15
-                    [ 0
-                    , 3
-                    , 5
-                    , 7
-                    , 10
-                    , 15
-                    , 20
-                    , 25
-                    , 35
-                    , 50
-                    , 80
-                    ]
-                )
-            )
-        )
-        (Json.Decode.field "typography"
+        (Json.Decode.field "backgrounds"
             (Json.Decode.succeed [])
         )
+        (Json.Decode.field "spacing"
+            (decodeNamed Json.Decode.int)
+        )
+        (Json.Decode.field "typography"
+            (decodeNamed decodeTypeface)
+        )
         (Json.Decode.field "borders"
-            (Json.Decode.succeed
-                { sizes =
-                    tshirtSizesInt 2
-                        [ 0, 1, 2, 3 ]
-                , rounded =
-                    tshirtSizesInt 4
-                        [ 2, 4, 10 ]
-                }
-            )
+            (decodeNamed decodeBorderVariant)
         )
         (Json.Decode.field "shadows"
             (Json.Decode.succeed [])
@@ -72,53 +44,108 @@ type alias Named thing =
 
 
 type Color
-    = Color
+    = Color String
+
+
+decodeColor : Json.Decode.Decoder Color
+decodeColor =
+    Json.Decode.map Color Json.Decode.string
+
+
+decodeNamed : Json.Decode.Decoder a -> Json.Decode.Decoder (List (Named a))
+decodeNamed inner =
+    Json.Decode.keyValuePairs inner
+        |> Json.Decode.map
+            (List.map
+                (\( key, value ) ->
+                    { name = Name key
+                    , item = value
+                    }
+                )
+            )
 
 
 type alias Theme =
-    { colors : Colors
+    { backgrounds : List (Named Color)
     , spacing : List (Named Int)
-    , typography : List (Named Typography)
-    , borders : Borders
+    , typography : List (Named Typeface)
+    , borders : List (Named BorderVariant)
     , shadows : List (Named Shadow)
     }
 
 
-type alias Colors =
-    { palette : List (Named Color)
-    , backgrounds : Named Color -> Bool
-    , text : Named Color -> Bool
-    , borders : Named Color -> Bool
+type alias Typeface =
+    { face : String
+    , fallback : String
+    , variants : List (Named TypeVariant)
     }
 
 
-type alias Typography =
-    { face : String
-    , weight : Int
+decodeTypeface : Json.Decode.Decoder Typeface
+decodeTypeface =
+    Json.Decode.map3 Typeface
+        (Json.Decode.field "face" Json.Decode.string)
+        (Json.Decode.field "fallback" Json.Decode.string)
+        (Json.Decode.field "variants" (decodeNamed decodeTypefaceVariant))
+
+
+decodeTypefaceVariant : Json.Decode.Decoder TypeVariant
+decodeTypefaceVariant =
+    Json.Decode.map4 TypeVariant
+        (Json.Decode.maybe (Json.Decode.field "weight" Json.Decode.int)
+            |> Json.Decode.map (Maybe.withDefault 400)
+        )
+        (Json.Decode.field "size" Json.Decode.int)
+        (Json.Decode.maybe (Json.Decode.field "lineSpacing" Json.Decode.int)
+            |> Json.Decode.map (Maybe.withDefault 1)
+        )
+        (Json.Decode.field "color"
+            (decodePalette decodeColor)
+        )
+
+
+decodePalette : Json.Decode.Decoder thing -> Json.Decode.Decoder (Palette thing)
+decodePalette decodeThing =
+    Json.Decode.oneOf
+        [ Json.Decode.map Single decodeThing
+        , Json.Decode.map Palette (decodeNamed decodeThing)
+        ]
+
+
+type alias TypeVariant =
+    { weight : Int
     , size : Int
     , lineSpacing : Int
+    , colors : Palette Color
     }
 
 
-
--- type alias Typography =
---     { sizes : List (Named Int)
---     , fonts : List (Named Font)
---     }
--- type alias Font =
---     { face : String
---     , weights : List Int
---     }
+type Palette thing
+    = Single thing
+    | Palette (List (Named thing))
 
 
-type alias Borders =
-    { sizes : List (Named Int)
-    , rounded : List (Named Int)
+type alias BorderVariant =
+    { rounded : Int
+    , color : Color
+    , width : Int
     }
+
+
+decodeBorderVariant : Json.Decode.Decoder BorderVariant
+decodeBorderVariant =
+    Json.Decode.map3 BorderVariant
+        (Json.Decode.maybe (Json.Decode.field "rounded" Json.Decode.int)
+            |> Json.Decode.map (Maybe.withDefault 0)
+        )
+        (Json.Decode.field "color" decodeColor)
+        (Json.Decode.maybe (Json.Decode.field "width" Json.Decode.int)
+            |> Json.Decode.map (Maybe.withDefault 1)
+        )
 
 
 type alias Shadows =
-    { shadows : List Shadow
+    { shadows : List (Named Shadow)
     }
 
 
