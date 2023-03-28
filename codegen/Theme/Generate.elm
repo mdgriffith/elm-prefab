@@ -91,8 +91,8 @@ generate theme =
 
 
 toColor : Theme.Color -> Elm.Expression
-toColor (Theme.Color color) =
-    Ui.rgb 0 0 0
+toColor (Theme.Color r g b) =
+    Ui.rgb r g b
 
 
 toFields : (thing -> Elm.Expression) -> List (Theme.Named thing) -> List ( String, Elm.Expression )
