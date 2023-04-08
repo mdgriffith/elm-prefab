@@ -35,7 +35,7 @@ type PageUrl = {
   urls?: string[];
 };
 
-type AppOptions = { markdown: string; elm?: Pages };
+type AppOptions = { markdown?: string; elm?: Pages };
 
 type ElmFile = {
   source: string;
@@ -48,8 +48,15 @@ export const app = (options: AppOptions) => {
     generatorType: GeneratorType.Standard,
     run: (runOptions: { output: string }) => {
       const files: File[] = [];
-      readFilesRecursively(options.markdown, files);
-      const assets = { base: options.markdown, files: files };
+
+      let assets: {
+        base: string;
+        files: { path: string; contents: string }[];
+      } | null = null;
+      if (options.markdown) {
+        readFilesRecursively(options.markdown, files);
+        assets = { base: options.markdown, files: files };
+      }
 
       const elmFiles: ElmFile[] = [];
       if (options.elm) {
@@ -86,12 +93,12 @@ export const app = (options: AppOptions) => {
           });
         }
       }
-
+      console.log("Running generator");
       return CodeGen.run("Generate.elm", {
         debug: true,
         output: runOptions.output,
         flags: { assets: assets, elmFiles: elmFiles },
-        cwd: "./codegen",
+        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/codegen",
       });
     },
   };
@@ -149,7 +156,7 @@ export const ui = (options: UiOptions) => {
         debug: true,
         output: runOptions.output,
         flags: options,
-        cwd: "./codegen",
+        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/codegen",
       });
     },
   };
@@ -177,9 +184,11 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
     if (stat.isFile()) {
+      console.log(`Parsing ${filePath}`);
       const content = fs.readFileSync(filePath, "utf-8");
       found.push({ path: filePath, contents: content });
     } else if (stat.isDirectory()) {
+      console.log(`Dir -> ${filePath}`);
       readFilesRecursively(filePath, found);
     }
   }

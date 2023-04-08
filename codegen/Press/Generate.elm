@@ -54,7 +54,7 @@ import Set exposing (Set)
 
 
 type alias Options =
-    { assets : SourceDirectory
+    { assets : Maybe SourceDirectory
     , elmPages : List ElmPage
     }
 
@@ -81,7 +81,7 @@ type alias Source =
 decode : Json.Decode.Decoder Options
 decode =
     Json.Decode.map2 Options
-        (Json.Decode.field "assets" decodeDirectory)
+        (Json.Decode.field "assets" (Json.Decode.maybe decodeDirectory))
         (Json.Decode.field "elmFiles" (Json.Decode.list decodeElmPage))
 
 
@@ -287,7 +287,8 @@ generateRoutes routes =
                 )
                 routes
             , urlEncoder routes
-            , urlParser routes
+
+            -- , urlParser routes
             ]
         )
 
@@ -341,54 +342,59 @@ toRouteInfo options =
     let
         assetFileRouteInfo : List RouteInfo
         assetFileRouteInfo =
-            List.filterMap
-                (\file ->
-                    let
-                        ( relativePath, ext ) =
-                            Path.relative options.assets.base file.path
-                                |> Path.extension
-                    in
-                    if ext == "md" || ext == "markdown" then
-                        let
-                            path =
-                                relativePath
-                                    |> String.split "/"
-                                    |> List.map camelToKebab
-                                    |> List.filter (not << String.isEmpty)
-                                    |> List.map Token
+            case options.assets of
+                Nothing ->
+                    []
 
-                            modulePath =
-                                relativePath
-                                    |> String.split "/"
-                                    |> List.map toElmTypeName
-                                    |> List.filter (not << String.isEmpty)
+                Just assets ->
+                    List.filterMap
+                        (\file ->
+                            let
+                                ( relativePath, ext ) =
+                                    Path.relative assets.base file.path
+                                        |> Path.extension
+                            in
+                            if ext == "md" || ext == "markdown" then
+                                let
+                                    path =
+                                        relativePath
+                                            |> String.split "/"
+                                            |> List.map camelToKebab
+                                            |> List.filter (not << String.isEmpty)
+                                            |> List.map Token
 
-                            name =
-                                modulePath
-                                    |> String.join ""
-                        in
-                        Just
-                            { name = name
-                            , moduleName = "Page" :: modulePath
-                            , type_ =
-                                Markdown
-                                    { source = file.contents
-                                    , path = relativePath
+                                    modulePath =
+                                        relativePath
+                                            |> String.split "/"
+                                            |> List.map toElmTypeName
+                                            |> List.filter (not << String.isEmpty)
+
+                                    name =
+                                        modulePath
+                                            |> String.join ""
+                                in
+                                Just
+                                    { name = name
+                                    , moduleName = "Page" :: modulePath
+                                    , type_ =
+                                        Markdown
+                                            { source = file.contents
+                                            , path = relativePath
+                                            }
+                                    , pattern =
+                                        UrlPattern
+                                            { path = path
+                                            , queryParams =
+                                                { includeCatchAll = False
+                                                , specificFields = Set.empty
+                                                }
+                                            }
                                     }
-                            , pattern =
-                                UrlPattern
-                                    { path = path
-                                    , queryParams =
-                                        { includeCatchAll = False
-                                        , specificFields = Set.empty
-                                        }
-                                    }
-                            }
 
-                    else
-                        Nothing
-                )
-                options.assets.files
+                            else
+                                Nothing
+                        )
+                        assets.files
 
         elmFileRouteInfo =
             options.elmPages
@@ -760,6 +766,7 @@ toElmTypeName : String -> String
 toElmTypeName source =
     source
         |> String.split "-"
+        |> List.concatMap (String.split "_")
         |> List.map capitalize
         |> String.join ""
 
