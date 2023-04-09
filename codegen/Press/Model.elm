@@ -4,7 +4,10 @@ module Press.Model exposing (..)
 
 import Elm.Annotation as Type
 import Gen.App
+import Gen.App.State
 import Gen.Browser
+import Gen.Browser.Navigation
+import Gen.Url
 import Set exposing (Set)
 
 
@@ -19,9 +22,14 @@ type alias RouteInfo =
 type RouteType
     = Elm
     | Markdown
-        { path : String
-        , source : String
+        { files : List Source
         }
+
+
+type alias Source =
+    { path : String
+    , source : String
+    }
 
 
 type UrlPattern
@@ -46,6 +54,13 @@ types =
     { msg = Type.namedWith [] "Msg" [ Type.var "frameMsg" ]
     , pageMsg = Type.named [] "PageMsg"
     , model = Type.namedWith [] "Model" [ Type.var "frame" ]
+    , modelRecord =
+        Type.record
+            [ ( "key", Gen.Browser.Navigation.annotation_.key )
+            , ( "url", Gen.Url.annotation_.url )
+            , ( "states", Gen.App.State.annotation_.cache (Type.named [] "State") )
+            , ( "frame", Type.var "frame" )
+            ]
     , frame =
         Gen.App.annotation_.frame
             (Type.var "frame")

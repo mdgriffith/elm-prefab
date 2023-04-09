@@ -197,14 +197,7 @@ generate routes =
                 ]
             )
             |> Elm.expose
-        , Elm.alias "Model"
-            (Type.record
-                [ ( "key", Gen.Browser.Navigation.annotation_.key )
-                , ( "url", Gen.Url.annotation_.url )
-                , ( "states", Gen.App.State.annotation_.cache (Type.named [] "State") )
-                , ( "frame", Type.var "frame" )
-                ]
-            )
+        , Elm.alias "Model" types.modelRecord
         , Elm.customType "State"
             (routes
                 |> List.map
@@ -235,7 +228,7 @@ generate routes =
             (Elm.fn3
                 ( "frame", Just types.frame )
                 ( "msg", Just types.msg )
-                ( "model", Just types.model )
+                ( "model", Just types.modelRecord )
                 (\frame msg model ->
                     Elm.Case.custom msg
                         types.msg
@@ -416,7 +409,7 @@ generate routes =
         , Elm.declaration "updatePage"
             (Elm.fn2
                 ( "msg", Just types.pageMsg )
-                ( "model", Just types.model )
+                ( "model", Just types.modelRecord )
                 (\msg model ->
                     Elm.Case.custom msg
                         types.msg
@@ -619,6 +612,13 @@ mapDocumentToPage toPageMsg doc =
                             }
                         ]
                 )
+                |> Elm.withType
+                    (Type.function
+                        [ types.frame
+                        , types.model
+                        ]
+                        (Gen.Platform.Sub.annotation_.sub types.msg)
+                    )
             )
         ]
 

@@ -25,6 +25,7 @@ import Elm.Op
 import Gen.App
 import Gen.App.Markdown
 import Gen.App.State
+import Gen.AppUrl
 import Gen.Browser
 import Gen.Browser.Navigation
 import Gen.Dict
@@ -287,8 +288,7 @@ generateRoutes routes =
                 )
                 routes
             , urlEncoder routes
-
-            -- , urlParser routes
+            , urlParser routes
             ]
         )
 
@@ -347,54 +347,58 @@ toRouteInfo options =
                     []
 
                 Just assets ->
-                    List.filterMap
-                        (\file ->
-                            let
-                                ( relativePath, ext ) =
-                                    Path.relative assets.base file.path
-                                        |> Path.extension
-                            in
-                            if ext == "md" || ext == "markdown" then
-                                let
-                                    path =
-                                        relativePath
-                                            |> String.split "/"
-                                            |> List.map camelToKebab
-                                            |> List.filter (not << String.isEmpty)
-                                            |> List.map Token
+                    let
+                        sources =
+                            List.filterMap
+                                (\file ->
+                                    let
+                                        ( relativePath, ext ) =
+                                            Path.relative assets.base file.path
+                                                |> Path.extension
+                                    in
+                                    if ext == "md" || ext == "markdown" then
+                                        let
+                                            path =
+                                                relativePath
+                                                    |> String.split "/"
+                                                    |> List.map camelToKebab
+                                                    |> List.filter (not << String.isEmpty)
+                                                    |> List.map Token
 
-                                    modulePath =
-                                        relativePath
-                                            |> String.split "/"
-                                            |> List.map toElmTypeName
-                                            |> List.filter (not << String.isEmpty)
+                                            modulePath =
+                                                relativePath
+                                                    |> String.split "/"
+                                                    |> List.map toElmTypeName
+                                                    |> List.filter (not << String.isEmpty)
 
-                                    name =
-                                        modulePath
-                                            |> String.join ""
-                                in
-                                Just
-                                    { name = name
-                                    , moduleName = "Page" :: modulePath
-                                    , type_ =
-                                        Markdown
+                                            name =
+                                                modulePath
+                                                    |> String.join ""
+                                        in
+                                        Just
                                             { source = file.contents
                                             , path = relativePath
                                             }
-                                    , pattern =
-                                        UrlPattern
-                                            { path = path
-                                            , queryParams =
-                                                { includeCatchAll = False
-                                                , specificFields = Set.empty
-                                                }
-                                            }
-                                    }
 
-                            else
-                                Nothing
-                        )
-                        assets.files
+                                    else
+                                        Nothing
+                                )
+                                assets.files
+                    in
+                    [ { name = "Markdown"
+                      , moduleName = [ "Page", "Markdown" ]
+                      , type_ =
+                            Markdown { files = sources }
+                      , pattern =
+                            UrlPattern
+                                { path = [ Token "markdown" ]
+                                , queryParams =
+                                    { includeCatchAll = False
+                                    , specificFields = Set.empty
+                                    }
+                                }
+                      }
+                    ]
 
         elmFileRouteInfo =
             options.elmPages
@@ -487,34 +491,43 @@ renderPath path queryParams paramValues =
     let
         addParamString base =
             if hasNoParams queryParams then
-                base
+                Gen.AppUrl.toString
+                    (Elm.record
+                        [ ( "path", base )
+                        , ( "queryParameters", Gen.Dict.empty )
+                        , ( "fragment", Elm.nothing )
+                        ]
+                    )
 
             else if queryParams.includeCatchAll then
-                Gen.String.call_.concat
-                    (Elm.list
-                        [ base
-                        , Elm.apply (Elm.val "queryDictToString")
-                            [ Elm.get "params" paramValues ]
+                Gen.AppUrl.toString
+                    (Elm.record
+                        [ ( "path", base )
+                        , ( "queryParameters", Elm.get "params" paramValues )
+                        , ( "fragment", Elm.nothing )
                         ]
                     )
 
             else
-                Gen.String.call_.concat
-                    (Elm.list
-                        [ base
-                        , Elm.apply
-                            (Elm.val "paramsToString")
-                            [ Set.foldl
-                                (\field rendered ->
-                                    Elm.tuple
-                                        (Elm.string field)
-                                        (Elm.get field paramValues)
-                                        :: rendered
+                Gen.AppUrl.toString
+                    (Elm.record
+                        [ ( "path", base )
+                        , ( "queryParameters"
+                          , Set.foldl
+                                (\field dict ->
+                                    dict
+                                        |> Elm.Op.pipe
+                                            (Elm.apply
+                                                Gen.Dict.values_.insert
+                                                [ Elm.string field
+                                                , Elm.get field paramValues
+                                                ]
+                                            )
                                 )
-                                []
+                                Gen.Dict.empty
                                 queryParams.specificFields
-                                |> Elm.list
-                            ]
+                          )
+                        , ( "fragment", Elm.nothing )
                         ]
                     )
     in
@@ -529,8 +542,119 @@ renderPath path queryParams paramValues =
                         Elm.get var paramValues
             )
         |> Elm.list
-        |> Gen.String.call_.join (Elm.string "/")
         |> addParamString
+
+
+surround first last middle =
+    first ++ middle ++ last
+
+
+wrapRecord fields =
+    case fields of
+        [] ->
+            "{}"
+
+        _ ->
+            surround "\n                { "
+                "\n                }"
+                (fields
+                    |> String.join "\n                , "
+                )
+
+
+wrapList fields =
+    case fields of
+        [] ->
+            "[]"
+
+        _ ->
+            surround "[ "
+                " ]"
+                (fields
+                    |> String.join ", "
+                )
+
+
+parseAppUrl : List RouteInfo -> Elm.Declaration
+parseAppUrl routes =
+    let
+        paths =
+            routes
+                |> List.reverse
+                |> List.concatMap
+                    (\route ->
+                        case route.type_ of
+                            Elm ->
+                                case route.pattern of
+                                    UrlPattern { path, queryParams } ->
+                                        let
+                                            branch =
+                                                path
+                                                    |> List.map
+                                                        (\piece ->
+                                                            case piece of
+                                                                Token token ->
+                                                                    surround "\"" "\"" token
+
+                                                                Variable var ->
+                                                                    var
+                                                        )
+                                                    |> wrapList
+
+                                            fieldsFromPath =
+                                                path
+                                                    |> List.filterMap
+                                                        (\piece ->
+                                                            case piece of
+                                                                Token token ->
+                                                                    Nothing
+
+                                                                Variable var ->
+                                                                    Just (var ++ " = " ++ var)
+                                                        )
+
+                                            queryParamFields =
+                                                if queryParams.includeCatchAll then
+                                                    [ "params = appUrl.queryParameters" ]
+
+                                                else
+                                                    case Set.toList queryParams.specificFields of
+                                                        [] ->
+                                                            []
+
+                                                        specificFields ->
+                                                            List.map
+                                                                (\field ->
+                                                                    field ++ " = getSingle " ++ field ++ " appUrl.queryParameters"
+                                                                )
+                                                                specificFields
+
+                                            constructedRoute =
+                                                route.name
+                                                    ++ " "
+                                                    ++ (fieldsFromPath
+                                                            ++ queryParamFields
+                                                            |> wrapRecord
+                                                       )
+                                        in
+                                        [ "        " ++ branch ++ " ->\n            " ++ constructedRoute
+                                        ]
+
+                            Markdown { files } ->
+                                []
+                    )
+                |> String.join "\n\n"
+    in
+    Elm.unsafe
+        ("""
+
+parseAppUrl : AppUrl.AppUrl -> Route
+parseAppUrl appUrl = 
+    case appUrl.path of
+${paths}
+"""
+            |> String.replace "${paths}" paths
+        )
 
 
 urlParser : List RouteInfo -> List Elm.Declaration
@@ -539,203 +663,39 @@ urlParser routes =
         (Elm.fn ( "url", Just Gen.Url.annotation_.url )
             (\url ->
                 let
-                    paramDict =
-                        parseParamDict url
+                    appUrl =
+                        Gen.AppUrl.fromUrl url
                 in
-                Gen.Url.Parser.parse
-                    (Elm.apply
-                        (Elm.val "parser")
-                        [ paramDict ]
-                    )
-                    url
+                Elm.apply (Elm.val "parseAppUrl") [ appUrl ]
             )
-            |> Elm.withType (Type.function [ Gen.Url.annotation_.url ] (Type.maybe (Type.named [] "Route")))
+            |> Elm.withType
+                (Type.function [ Gen.Url.annotation_.url ] (Type.named [] "Route"))
         )
         |> Elm.exposeWith
             { exposeConstructor = True
             , group = Just "Encodings"
             }
-    , Elm.declaration "queryDictToString"
-        (Elm.fn ( "dict", Just (Gen.Dict.annotation_.dict Type.string Type.string) )
-            (\dict ->
-                Elm.ifThen (Gen.Dict.isEmpty dict)
-                    (Elm.string "")
-                    (Gen.Dict.call_.foldl
-                        (Elm.val "gatherString")
-                        (Elm.string "?")
-                        dict
-                    )
-            )
-        )
+    , parseAppUrl routes
     , Elm.unsafe """
-
-gatherString : String -> String -> String -> String
-gatherString key val rendered =
-    case rendered of
-        "?" ->
-            rendered ++ key ++ "=" ++ val 
-
-        _ ->
-            rendered ++ "&" ++ key ++ "=" ++ val 
-
-paramToString : (String, Maybe String) -> Maybe String
-paramToString (key, maybeVal) =
-    case maybeVal of
+getSingle : String -> AppUrl.QueryParameters -> Maybe String
+getSingle field appUrlParams =
+    case Dict.get field appUrlParams of
         Nothing ->
             Nothing
 
-        Just val ->
-            Just (key ++ "=" ++ val)
+        Just [] ->
+            Nothing
+
+        Just (single :: _) ->
+            Just single
 
 
-paramsToString : List ( String, Maybe String ) -> String
-paramsToString fields =
-    case List.filterMap paramToString fields of
-        [] ->
-            ""
+getList : String -> AppUrl.QueryParameters -> List String
+getList field appUrlParams =
+    Dict.get field appUrlParams
 
-        params ->
-            "?" ++ String.join "&" params
-
-
-
-queryParams : Url.Url -> Dict.Dict String String
-queryParams url =
-    case url.query of
-        Nothing ->
-            Dict.empty
-
-        Just queryString ->
-            String.split "&" queryString
-                |> List.filterMap
-                    (\\str ->
-                        case String.split "=" str of
-                            [] ->
-                                Nothing
-
-                            key :: value ->
-                                Just
-                                    ( decodeUrlParam key
-                                    , decodeUrlParam (String.join "=" value)
-                                    )
-                    )
-                |> Dict.fromList
-
-
-decodeUrlParam : String -> String
-decodeUrlParam val =
-    Url.percentDecode val
-        |> Maybe.withDefault val
 """
-    , Elm.declaration "parser"
-        (Elm.fn ( "paramDict", Just (Type.dict Type.string Type.string) )
-            (\paramDict ->
-                Gen.Url.Parser.oneOf
-                    (routes
-                        |> List.map (generateUrlPatternParser paramDict)
-                    )
-            )
-        )
     ]
-
-
-parseParamDict : Elm.Expression -> Elm.Expression
-parseParamDict url =
-    Elm.apply (Elm.val "queryParams") [ url ]
-
-
-generateUrlPatternParser : Elm.Expression -> RouteInfo -> Elm.Expression
-generateUrlPatternParser paramDict route =
-    Gen.Url.Parser.map (Elm.val route.name)
-        (patternToUrlParser paramDict route.pattern)
-
-
-patternToUrlParser : Elm.Expression -> UrlPattern -> Elm.Expression
-patternToUrlParser paramDict (UrlPattern { path, queryParams }) =
-    let
-        ( pathParser, pathFields ) =
-            List.foldl pathToUrlParser ( Nothing, [] ) path
-                |> Tuple.mapFirst (Maybe.withDefault Gen.Url.Parser.top)
-
-        queryFields =
-            Set.toList queryParams.specificFields
-                |> List.map
-                    (\name ->
-                        ( name, Gen.Dict.get (Elm.string name) paramDict )
-                    )
-    in
-    Gen.Url.Parser.map
-        (Elm.function pathFields
-            (\args ->
-                Elm.record
-                    (List.concat
-                        [ List.map2
-                            (\( fieldName, _ ) value ->
-                                Tuple.pair fieldName value
-                            )
-                            pathFields
-                            args
-                        , queryFields
-                        , if queryParams.includeCatchAll then
-                            [ ( "params", paramDict ) ]
-
-                          else
-                            []
-                        ]
-                    )
-            )
-        )
-        pathParser
-
-
-specificQueryParamParser field maybeParser =
-    case maybeParser of
-        Nothing ->
-            Just (Gen.Url.Parser.Query.string field)
-
-        Just currentQueryParser ->
-            Just (Gen.Url.Parser.Query.string field)
-
-
-pathToUrlParser piece ( maybeParser, fields ) =
-    case maybeParser of
-        Nothing ->
-            case piece of
-                Token token ->
-                    ( Just (Gen.Url.Parser.s token)
-                    , fields
-                    )
-
-                Variable variable ->
-                    ( Just Gen.Url.Parser.string
-                    , ( variable, Just Type.string ) :: fields
-                    )
-
-        Just urlPieceParser ->
-            case piece of
-                Token token ->
-                    ( Just (Elm.Op.slash urlPieceParser (Gen.Url.Parser.s token))
-                    , fields
-                    )
-
-                Variable variable ->
-                    ( Just (Elm.Op.slash urlPieceParser Gen.Url.Parser.string)
-                    , ( variable, Just Type.string ) :: fields
-                    )
-
-
-toUrlParser pieces =
-    case pieces of
-        [] ->
-            Gen.Url.Parser.top
-
-        top :: [] ->
-            Gen.Url.Parser.s top
-
-        top :: remaining ->
-            Elm.Op.slash
-                (Gen.Url.Parser.s top)
-                (toUrlParser remaining)
 
 
 camelToKebab : String -> String
@@ -798,7 +758,7 @@ generatePage route =
         Elm ->
             Nothing
 
-        Markdown { source } ->
+        Markdown { files } ->
             Just <|
                 Elm.file route.moduleName
                     [ Elm.declaration "page"
@@ -811,6 +771,7 @@ generatePage route =
                         |> Elm.expose
                     , Elm.alias "Msg" Gen.App.Markdown.annotation_.msg
                         |> Elm.expose
-                    , Elm.declaration "source"
-                        (Elm.string source)
+
+                    -- , Elm.declaration "source"
+                    --     (Elm.string source)
                     ]
