@@ -228,10 +228,60 @@ generate options =
     let
         routes =
             toRouteInfo options
+
+        pages =
+            case generateSourceReference routes of
+                Nothing ->
+                    generatePages routes
+
+                Just sources ->
+                    sources :: generatePages routes
     in
     Press.Generate.Engine.generate routes
         :: generateRoutes routes
-        :: generatePages routes
+        :: pages
+
+
+generateSourceReference : List RouteInfo -> Maybe Elm.File
+generateSourceReference routes =
+    let
+        sources =
+            routes
+                |> List.concatMap
+                    (\route ->
+                        case route.type_ of
+                            Elm ->
+                                []
+
+                            Markdown { files } ->
+                                files
+                    )
+    in
+    case sources of
+        [] ->
+            Nothing
+
+        _ ->
+            Just <|
+                Elm.fileWith [ "Markdown", "Source" ]
+                    { docs =
+                        \groups ->
+                            groups
+                                |> List.map Elm.docs
+                    , aliases = []
+                    }
+                    (sources
+                        |> List.map
+                            (\source ->
+                                Elm.declaration
+                                    (source.path
+                                        |> String.split "/"
+                                        |> List.filter (not << String.isEmpty)
+                                        |> String.join "_"
+                                    )
+                                    (Elm.string source.source)
+                            )
+                    )
 
 
 generateRoutes : List RouteInfo -> Elm.File
@@ -267,7 +317,7 @@ generateRoutes routes =
                         (\route ->
                             Elm.variantWith
                                 route.name
-                                [ paramType route.pattern
+                                [ paramType route
                                 ]
                         )
                         routes
@@ -280,7 +330,7 @@ generateRoutes routes =
             , List.map
                 (\route ->
                     Elm.alias (route.name ++ "_Params")
-                        (paramType route.pattern)
+                        (paramType route)
                         |> Elm.exposeWith
                             { exposeConstructor = False
                             , group = Just "Params"
@@ -299,42 +349,51 @@ hasNoParams params =
         && not params.includeCatchAll
 
 
-paramType : UrlPattern -> Type.Annotation
-paramType (UrlPattern { path, queryParams }) =
-    if hasNoParams queryParams then
-        Type.record []
+paramType : RouteInfo -> Type.Annotation
+paramType route =
+    case route.type_ of
+        Markdown _ ->
+            Type.record [ ( "sourceUrl", Type.string ) ]
 
-    else
-        let
-            addCatchall fields =
-                if queryParams.includeCatchAll then
-                    ( "params", Type.dict Type.string Type.string )
-                        :: fields
+        Elm ->
+            let
+                (UrlPattern { queryParams, path }) =
+                    route.pattern
+            in
+            if hasNoParams queryParams then
+                Type.record []
 
-                else
-                    fields
-        in
-        Type.record
-            (List.concat
-                [ List.filterMap
-                    (\piece ->
-                        case piece of
-                            Token _ ->
-                                Nothing
+            else
+                let
+                    addCatchall fields =
+                        if queryParams.includeCatchAll then
+                            ( "params", Type.dict Type.string Type.string )
+                                :: fields
 
-                            Variable name ->
-                                Just ( name, Type.string )
+                        else
+                            fields
+                in
+                Type.record
+                    (List.concat
+                        [ List.filterMap
+                            (\piece ->
+                                case piece of
+                                    Token _ ->
+                                        Nothing
+
+                                    Variable name ->
+                                        Just ( name, Type.string )
+                            )
+                            path
+                        , queryParams.specificFields
+                            |> Set.toList
+                            |> List.map
+                                (\field ->
+                                    ( field, Type.maybe Type.string )
+                                )
+                            |> addCatchall
+                        ]
                     )
-                    path
-                , queryParams.specificFields
-                    |> Set.toList
-                    |> List.map
-                        (\field ->
-                            ( field, Type.maybe Type.string )
-                        )
-                    |> addCatchall
-                ]
-            )
 
 
 toRouteInfo : Options -> List RouteInfo
@@ -391,7 +450,7 @@ toRouteInfo options =
                             Markdown { files = sources }
                       , pattern =
                             UrlPattern
-                                { path = [ Token "markdown" ]
+                                { path = [ Token "assets" ]
                                 , queryParams =
                                     { includeCatchAll = False
                                     , specificFields = Set.empty
@@ -463,9 +522,9 @@ urlEncoder routes =
                     (Type.named [] "Route")
                     (routes
                         |> List.map
-                            (\{ name, pattern } ->
+                            (\({ name, pattern } as individualRoute) ->
                                 Elm.Case.branch1 name
-                                    ( "params", paramType pattern )
+                                    ( "params", paramType individualRoute )
                                     (\params ->
                                         let
                                             (UrlPattern { path, queryParams }) =
@@ -637,21 +696,42 @@ parseAppUrl routes =
                                                             |> wrapRecord
                                                        )
                                         in
-                                        [ "        " ++ branch ++ " ->\n            " ++ constructedRoute
+                                        [ "        " ++ branch ++ " ->\n            Just <| " ++ constructedRoute
                                         ]
 
                             Markdown { files } ->
-                                []
+                                List.map
+                                    (\file ->
+                                        let
+                                            constructedRoute =
+                                                route.name
+                                                    ++ " { sourceUrl = \"/assets"
+                                                    ++ file.path
+                                                    ++ ".md\" }"
+
+                                            pieces =
+                                                String.split "/" file.path
+                                                    |> List.filter
+                                                        (not << String.isEmpty)
+                                                    |> List.map (surround "\"" "\"")
+                                                    |> String.join ", "
+                                        in
+                                        "        [ " ++ pieces ++ " ] ->\n            Just <| " ++ constructedRoute
+                                    )
+                                    files
                     )
                 |> String.join "\n\n"
     in
     Elm.unsafe
         ("""
 
-parseAppUrl : AppUrl.AppUrl -> Route
+parseAppUrl : AppUrl.AppUrl -> Maybe Route
 parseAppUrl appUrl = 
     case appUrl.path of
 ${paths}
+
+        _ -> 
+            Nothing
 """
             |> String.replace "${paths}" paths
         )
@@ -669,7 +749,7 @@ urlParser routes =
                 Elm.apply (Elm.val "parseAppUrl") [ appUrl ]
             )
             |> Elm.withType
-                (Type.function [ Gen.Url.annotation_.url ] (Type.named [] "Route"))
+                (Type.function [ Gen.Url.annotation_.url ] (Type.maybe (Type.named [] "Route")))
         )
         |> Elm.exposeWith
             { exposeConstructor = True
@@ -693,6 +773,7 @@ getSingle field appUrlParams =
 getList : String -> AppUrl.QueryParameters -> List String
 getList field appUrlParams =
     Dict.get field appUrlParams
+        |> Maybe.withDefault []
 
 """
     ]
@@ -763,7 +844,7 @@ generatePage route =
                 Elm.file route.moduleName
                     [ Elm.declaration "page"
                         (Gen.App.Markdown.call_.page
-                            (Elm.val "source")
+                            (Elm.string "## Hello")
                             |> Elm.withType (Gen.App.Markdown.annotation_.page (Type.var "frame"))
                         )
                         |> Elm.expose
@@ -771,7 +852,4 @@ generatePage route =
                         |> Elm.expose
                     , Elm.alias "Msg" Gen.App.Markdown.annotation_.msg
                         |> Elm.expose
-
-                    -- , Elm.declaration "source"
-                    --     (Elm.string source)
                     ]

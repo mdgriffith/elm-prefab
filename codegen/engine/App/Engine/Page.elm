@@ -18,17 +18,17 @@ import Json.Encode
 type Page params shared model effect msg subscription view
     = Page
         { init : params -> shared -> ( model, effect )
-        , update : shared -> msg -> model -> ( model, effect )
+        , update : msg -> model -> ( model, effect )
         , subscriptions : shared -> model -> subscription
-        , view : shared -> model -> view
+        , view : model -> view
         }
 
 
 page :
     { init : params -> shared -> ( model, effect )
-    , update : shared -> msg -> model -> ( model, effect )
+    , update : msg -> model -> ( model, effect )
     , subscriptions : shared -> model -> subscription
-    , view : shared -> model -> view
+    , view : model -> view
     }
     -> Page params shared model effect msg subscription view
 page =
@@ -56,16 +56,15 @@ init pageConfig toCmd params shared =
 update :
     Page params shared model effect msg subscription view
     -> (effect -> Cmd msg)
-    -> shared
     -> msg
     -> model
     -> ( model, Cmd msg )
-update pageConfig toCmd shared msg model =
+update pageConfig toCmd msg model =
     case pageConfig of
         Page inner ->
             let
                 ( updatedPage, cmd ) =
-                    inner.update shared msg model
+                    inner.update msg model
             in
             ( updatedPage
             , toCmd cmd
@@ -74,13 +73,12 @@ update pageConfig toCmd shared msg model =
 
 view :
     Page params shared model effect msg subscription view
-    -> shared
     -> model
     -> view
-view pageConfig shared model =
+view pageConfig model =
     case pageConfig of
         Page inner ->
-            inner.view shared model
+            inner.view model
 
 
 subscriptions :

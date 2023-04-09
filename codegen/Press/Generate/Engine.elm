@@ -449,7 +449,6 @@ generate routes =
                                                                                         }
                                                                                     )
                                                                                     (Gen.App.toCmd (Elm.get "key" model))
-                                                                                    (Elm.get "frame" model)
                                                                                     pageMsg
                                                                                     pageState
                                                                         in
@@ -536,7 +535,6 @@ generate routes =
                                                                                 , annotation = Nothing
                                                                                 }
                                                                             )
-                                                                            (Elm.get "frame" model)
                                                                             pageState
                                                                         ]
                                                             in

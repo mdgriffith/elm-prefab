@@ -154,9 +154,9 @@ type alias Page params shared model msg view =
 
 page :
     { init : params -> shared -> ( model, Effect msg )
-    , update : shared -> msg -> model -> ( model, Effect msg )
+    , update : msg -> model -> ( model, Effect msg )
     , subscriptions : shared -> model -> Subscription msg
-    , view : shared -> model -> view
+    , view : model -> view
     }
     -> Page params shared model msg view
 page =
