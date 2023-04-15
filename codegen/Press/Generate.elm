@@ -43,6 +43,8 @@ import Gen.Url
 import Gen.Url.Parser
 import Gen.Url.Parser.Query
 import Json.Decode
+import Markdown.Block as Block
+import Markdown.Parser
 import Parser exposing ((|.), (|=))
 import Path
 import Press.Generate.Engine
@@ -230,19 +232,15 @@ generate options =
             toRouteInfo options
 
         pages =
-            case generateSourceReference routes of
-                Nothing ->
-                    generatePages routes
-
-                Just sources ->
-                    sources :: generatePages routes
+            generateSourceReference routes
+                ++ generatePages routes
     in
     Press.Generate.Engine.generate routes
         :: generateRoutes routes
         :: pages
 
 
-generateSourceReference : List RouteInfo -> Maybe Elm.File
+generateSourceReference : List RouteInfo -> List Elm.File
 generateSourceReference routes =
     let
         sources =
@@ -259,29 +257,71 @@ generateSourceReference routes =
     in
     case sources of
         [] ->
-            Nothing
+            []
 
         _ ->
-            Just <|
-                Elm.fileWith [ "Markdown", "Source" ]
-                    { docs =
-                        \groups ->
-                            groups
-                                |> List.map Elm.docs
-                    , aliases = []
-                    }
-                    (sources
-                        |> List.map
-                            (\source ->
-                                Elm.declaration
-                                    (source.path
-                                        |> String.split "/"
-                                        |> List.filter (not << String.isEmpty)
-                                        |> String.join "_"
-                                    )
-                                    (Elm.string source.source)
+            [ Elm.fileWith [ "Markdown", "Source" ]
+                { docs =
+                    \groups ->
+                        groups
+                            |> List.map Elm.docs
+                , aliases = []
+                }
+                (sources
+                    |> List.map
+                        (\source ->
+                            Elm.declaration
+                                (source.path
+                                    |> String.split "/"
+                                    |> List.filter (not << String.isEmpty)
+                                    |> String.join "_"
+                                )
+                                (Elm.string source.source)
+                        )
+                )
+            , Elm.fileWith [ "Markdown", "Search" ]
+                { docs =
+                    List.map Elm.docs
+                , aliases = []
+                }
+                [ Elm.declaration "items"
+                    (Elm.list
+                        (List.map
+                            (\src ->
+                                let
+                                    headers =
+                                        getHeaders src.source
+                                            |> List.map Elm.string
+                                in
+                                Elm.record
+                                    [ ( "tags", Elm.list headers )
+                                    , ( "sourceUrl", Elm.string src.path )
+                                    ]
                             )
+                            sources
+                        )
                     )
+                ]
+            ]
+
+
+getHeaders src =
+    case Markdown.Parser.parse src of
+        Ok blocks ->
+            List.filterMap
+                (\block ->
+                    case block of
+                        Block.Heading level contents ->
+                            Just
+                                (Block.extractInlineText contents)
+
+                        _ ->
+                            Nothing
+                )
+                blocks
+
+        Err _ ->
+            []
 
 
 generateRoutes : List RouteInfo -> Elm.File
@@ -463,22 +503,26 @@ toRouteInfo options =
             options.elmPages
                 |> List.filterMap
                     (\elmPage ->
-                        Just
-                            { name = String.join "" elmPage.id
-                            , moduleName = "Page" :: elmPage.id
-                            , type_ = Elm
-                            , pattern =
-                                List.head elmPage.urls
-                                    |> Maybe.withDefault
-                                        (UrlPattern
-                                            { path = List.map (Token << camelToKebab) elmPage.id
-                                            , queryParams =
-                                                { includeCatchAll = False
-                                                , specificFields = Set.empty
+                        if elmPage.id == [ "Markdown" ] then
+                            Nothing
+
+                        else
+                            Just
+                                { name = String.join "" elmPage.id
+                                , moduleName = "Page" :: elmPage.id
+                                , type_ = Elm
+                                , pattern =
+                                    List.head elmPage.urls
+                                        |> Maybe.withDefault
+                                            (UrlPattern
+                                                { path = List.map (Token << camelToKebab) elmPage.id
+                                                , queryParams =
+                                                    { includeCatchAll = False
+                                                    , specificFields = Set.empty
+                                                    }
                                                 }
-                                            }
-                                        )
-                            }
+                                            )
+                                }
                     )
     in
     elmFileRouteInfo ++ assetFileRouteInfo
@@ -840,16 +884,17 @@ generatePage route =
             Nothing
 
         Markdown { files } ->
-            Just <|
-                Elm.file route.moduleName
-                    [ Elm.declaration "page"
-                        (Gen.App.Markdown.call_.page
-                            (Elm.string "## Hello")
-                            |> Elm.withType (Gen.App.Markdown.annotation_.page (Type.var "frame"))
-                        )
-                        |> Elm.expose
-                    , Elm.alias "Model" Gen.App.Markdown.annotation_.model
-                        |> Elm.expose
-                    , Elm.alias "Msg" Gen.App.Markdown.annotation_.msg
-                        |> Elm.expose
-                    ]
+            -- Just <|
+            --     Elm.file route.moduleName
+            --         [ Elm.declaration "page"
+            --             (Gen.App.Markdown.call_.page
+            --                 (Elm.string "## Hello")
+            --                 |> Elm.withType (Gen.App.Markdown.annotation_.page (Type.var "frame"))
+            --             )
+            --             |> Elm.expose
+            --         , Elm.alias "Model" Gen.App.Markdown.annotation_.model
+            --             |> Elm.expose
+            --         , Elm.alias "Msg" Gen.App.Markdown.annotation_.msg
+            --             |> Elm.expose
+            --         ]
+            Nothing
