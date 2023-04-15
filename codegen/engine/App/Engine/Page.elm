@@ -97,31 +97,31 @@ subscriptions pageConfig toSub shared model =
 {- FRAME -}
 
 
-type Frame model msg appMsg effect sub view
+type Frame model frameMsg appMsg effect sub view
     = Frame
         { init : Json.Encode.Value -> ( model, effect )
-        , update : msg -> model -> ( model, effect )
+        , update : frameMsg -> model -> ( model, effect )
         , subscriptions : model -> sub
-        , view : (msg -> appMsg) -> model -> view -> Browser.Document appMsg
+        , view : (frameMsg -> appMsg) -> model -> view -> Browser.Document appMsg
         }
 
 
 frame :
     { init : Json.Encode.Value -> ( model, effect )
-    , update : msg -> model -> ( model, effect )
+    , update : frameMsg -> model -> ( model, effect )
     , subscriptions : model -> sub
-    , view : (msg -> appMsg) -> model -> view -> Browser.Document appMsg
+    , view : (frameMsg -> appMsg) -> model -> view -> Browser.Document appMsg
     }
-    -> Frame model msg appMsg effect sub view
+    -> Frame model frameMsg appMsg effect sub view
 frame =
     Frame
 
 
 frameInit :
-    Frame model msg appMsg effect sub view
-    -> (effect -> Cmd msg)
+    Frame model frameMsg appMsg effect sub view
+    -> (effect -> Cmd frameMsg)
     -> Json.Encode.Value
-    -> ( model, Cmd msg )
+    -> ( model, Cmd frameMsg )
 frameInit (Frame inner) toCmd flags =
     let
         ( initializedPage, cmd ) =
@@ -133,11 +133,11 @@ frameInit (Frame inner) toCmd flags =
 
 
 frameUpdate :
-    Frame model msg appMsg effect sub view
-    -> (effect -> Cmd msg)
-    -> msg
+    Frame model frameMsg appMsg effect sub view
+    -> (effect -> Cmd frameMsg)
+    -> frameMsg
     -> model
-    -> ( model, Cmd msg )
+    -> ( model, Cmd frameMsg )
 frameUpdate (Frame inner) toCmd msg model =
     let
         ( updatedPage, cmd ) =
@@ -149,19 +149,19 @@ frameUpdate (Frame inner) toCmd msg model =
 
 
 frameView :
-    Frame model msg appMsg effect sub view
-    -> (msg -> appMsg)
+    Frame model frameMsg appMsg effect sub view
+    -> (frameMsg -> appMsg)
     -> model
     -> view
     -> Browser.Document appMsg
-frameView (Frame inner) toAppMsg model innerView =
-    inner.view toAppMsg model innerView
+frameView (Frame inner) fromFrameMsg model innerView =
+    inner.view fromFrameMsg model innerView
 
 
 frameSubscriptions :
-    Frame model msg appMsg effect sub view
-    -> (sub -> Sub msg)
+    Frame model frameMsg appMsg effect sub view
+    -> (sub -> Sub frameMsg)
     -> model
-    -> Sub msg
+    -> Sub frameMsg
 frameSubscriptions (Frame inner) toSub model =
     toSub (inner.subscriptions model)
