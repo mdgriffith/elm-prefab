@@ -66,9 +66,6 @@ types =
             (Type.var "frame")
             (Type.var "frameMsg")
             (Type.namedWith [] "Msg" [ Type.var "frameMsg" ])
-            (Gen.Browser.annotation_.document
-                (Type.namedWith [] "Msg" [ Type.var "frameMsg" ])
-            )
     , pageModel = Type.named [] "PageModel"
     , effect = Type.namedWith [] "Effect" [ Type.var "msg" ]
     , subscription = Type.namedWith [] "Subscription" [ Type.var "msg" ]
