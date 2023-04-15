@@ -79,24 +79,7 @@ pageRecordType =
 generate : List RouteInfo -> Elm.File
 generate routes =
     Elm.file [ "App", "Engine" ]
-        [ Elm.declaration "app"
-            (Elm.apply
-                (Elm.val "advanced")
-                [ Gen.App.defaultFrame
-                ]
-                |> Elm.withType (Type.named [] "App")
-            )
-            |> Elm.expose
-        , Elm.alias "App"
-            (Type.namedWith []
-                "Program"
-                [ Gen.Json.Encode.annotation_.value
-                , Type.namedWith [] "Model" [ Type.record [] ]
-                , Type.namedWith [] "Msg" [ Type.record [] ]
-                ]
-            )
-            |> Elm.expose
-        , Elm.declaration "advanced"
+        [ Elm.declaration "advanced"
             (Elm.fn
                 ( "frame"
                 , Just types.frame
@@ -494,70 +477,65 @@ generate routes =
                     Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
                         { nothing =
                             Elm.record
-                                [ ( "title", Elm.string "whoops" )
+                                [ ( "title", Elm.string "Not found" )
                                 , ( "body"
-                                  , Elm.list [ Gen.Html.text "WHoops" ]
+                                  , Elm.list [ Gen.Html.text "Not found" ]
                                   )
                                 ]
                         , just =
                             ( "current"
                             , \current ->
-                                Gen.App.Engine.Page.call_.frameView frame
-                                    (Elm.val "ToFrame")
-                                    (Elm.get "frame" model)
-                                    (Elm.Case.custom current
-                                        types.pageModel
-                                        (routes
-                                            |> List.map
-                                                (\route ->
-                                                    let
-                                                        stateKey =
-                                                            route.name
+                                Elm.Case.custom current
+                                    types.pageModel
+                                    (routes
+                                        |> List.map
+                                            (\route ->
+                                                let
+                                                    stateKey =
+                                                        route.name
 
-                                                        pageModule =
-                                                            route.moduleName
+                                                    pageModule =
+                                                        route.moduleName
 
-                                                        pageMsgTypeName =
-                                                            types.toPageMsg route.name
-                                                    in
-                                                    Elm.Case.branch1 stateKey
-                                                        ( "pageModel", Type.named pageModule "Model" )
-                                                        (\pageState ->
-                                                            let
-                                                                renderedPage =
-                                                                    Elm.apply
-                                                                        (Elm.val "mapDocumentToPage")
-                                                                        [ Elm.val pageMsgTypeName
-                                                                        , Gen.App.Engine.Page.view
-                                                                            (Elm.value
-                                                                                { importFrom = pageModule
-                                                                                , name = "page"
-                                                                                , annotation = Nothing
-                                                                                }
-                                                                            )
-                                                                            pageState
-                                                                        ]
-                                                            in
-                                                            renderedPage
-                                                        )
-                                                )
-                                        )
+                                                    pageMsgTypeName =
+                                                        types.toPageMsg route.name
+                                                in
+                                                Elm.Case.branch1 stateKey
+                                                    ( "pageModel", Type.named pageModule "Model" )
+                                                    (\pageState ->
+                                                        Gen.App.Engine.Page.call_.frameView frame
+                                                            (Elm.val "ToFrame")
+                                                            (Elm.get "frame" model)
+                                                            (Gen.App.call_.mapView
+                                                                (Elm.fn
+                                                                    ( "innerMsg", Nothing )
+                                                                    (\innerMsg ->
+                                                                        Elm.apply (Elm.val "Page")
+                                                                            [ Elm.apply
+                                                                                (Elm.val pageMsgTypeName)
+                                                                                [ innerMsg
+                                                                                ]
+                                                                            ]
+                                                                    )
+                                                                )
+                                                                (Gen.App.Engine.Page.view
+                                                                    (Elm.value
+                                                                        { importFrom = pageModule
+                                                                        , name = "page"
+                                                                        , annotation = Nothing
+                                                                        }
+                                                                    )
+                                                                    pageState
+                                                                )
+                                                            )
+                                                    )
+                                            )
                                     )
                             )
                         }
                         |> Elm.withType (Gen.Browser.annotation_.document types.msg)
                 )
             )
-        , Elm.unsafe """
-mapDocumentToPage toPageMsg doc =
-    { title = doc.title
-    , body =
-        List.map 
-            (Html.map (Page << toPageMsg))
-            doc.body
-    }
-
-"""
         , Elm.declaration "subscriptions"
             (Elm.fn2
                 ( "frame", Just types.frame )
