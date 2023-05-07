@@ -1,7 +1,6 @@
 port module App.Effect exposing
     ( none, pushUrl, replaceUrl, load, reload, forward, back
-    , get
-    , Effect, toCmd
+    , Effect, toCmd, map
     )
 
 {-|
@@ -9,24 +8,18 @@ port module App.Effect exposing
 @docs none, pushUrl, replaceUrl, load, reload, forward, back
 
 
-# Http stuff
-
-@docs get
-
-
 # Effects
 
-@docs Effect, toCmd
+@docs Effect, toCmd, map
 
 -}
 
-import App.Engine.Page
 import Browser
+import Browser.Dom
 import Browser.Navigation
 import Html
 import Http
 import Json.Encode
-import Ui
 
 
 none : Effect msg
@@ -64,15 +57,6 @@ back =
     Back
 
 
-get :
-    { url : String
-    , expect : Http.Expect msg
-    }
-    -> Effect msg
-get =
-    Get
-
-
 type Effect msg
     = None
     | PushUrl String
@@ -81,17 +65,38 @@ type Effect msg
     | Reload
     | Forward Int
     | Back Int
-    | Get
-        { url : String
-        , expect : Http.Expect msg
-        }
     | Send { tag : String, details : Maybe Json.Encode.Value }
 
 
+map : (a -> b) -> Effect a -> Effect b
+map f effect =
+    case effect of
+        None ->
+            None
+
+        PushUrl url ->
+            PushUrl url
+
+        ReplaceUrl url ->
+            ReplaceUrl url
+
+        Load url ->
+            Load url
+
+        Reload ->
+            Reload
+
+        Forward n ->
+            Forward n
+
+        Back n ->
+            Back n
+
+        Send { tag, details } ->
+            Send { tag = tag, details = details }
+
+
 port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
-
-
-port incoming : ({ tag : String, details : Maybe Json.Encode.Value } -> msg) -> Sub msg
 
 
 toCmd : Browser.Navigation.Key -> Effect msg -> Cmd msg
@@ -118,68 +123,5 @@ toCmd key effect =
         Back steps ->
             Browser.Navigation.back key steps
 
-        Get options ->
-            Http.get options
-
         Send outgoingMsg ->
             outgoing outgoingMsg
-
-
-type Subscription msg
-    = Subscription (Sub msg)
-
-
-toSub : Subscription msg -> Sub msg
-toSub subscription =
-    case subscription of
-        Subscription sub0 ->
-            sub0
-
-
-
-{- Page machinery -}
-
-
-type alias Page params shared model msg =
-    App.Engine.Page.Page
-        params
-        shared
-        model
-        (Effect msg)
-        msg
-        (Subscription msg)
-        (View msg)
-
-
-type alias View msg =
-    { title : String
-    , body : Ui.Element msg
-    }
-
-
-mapView : (a -> b) -> View a -> View b
-mapView fn myView =
-    { title = myView.title
-    , body = Ui.map fn myView.body
-    }
-
-
-page :
-    { init : params -> shared -> ( model, Effect msg )
-    , update : msg -> model -> ( model, Effect msg )
-    , subscriptions : shared -> model -> Subscription msg
-    , view : model -> View msg
-    }
-    -> Page params shared model msg
-page =
-    App.Engine.Page.page
-
-
-type alias Frame model frameMsg appMsg =
-    App.Engine.Page.Frame
-        model
-        frameMsg
-        appMsg
-        (Effect frameMsg)
-        (Subscription frameMsg)
-        (View appMsg)

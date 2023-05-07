@@ -17,17 +17,13 @@ port module App.Sub exposing
 
 -}
 
-import App.Engine.Page
-import Browser
-import Browser.Navigation
-import Html
-import Http
 import Json.Encode
 import Platform.Sub
 
 
 type Sub msg
     = Sub (Platform.Sub.Sub msg)
+    | Batch (List (Sub msg))
 
 
 {-| -}
@@ -37,15 +33,31 @@ none =
 
 
 {-| -}
-map : (a -> b) -> Sub a -> Sub b
-map func (Sub sub) =
-    Sub (Platform.Sub.map func sub)
+batch : List (Sub msg) -> Sub msg
+batch =
+    Batch
 
 
 {-| -}
-toSubscription : Sub msg -> Sub msg
-toSubscription (Sub sub) =
-    sub
+map : (a -> b) -> Sub a -> Sub b
+map func sub =
+    case sub of
+        Sub subscription ->
+            Sub (Platform.Sub.map func subscription)
+
+        Batch subs ->
+            Batch (List.map (map func) subs)
+
+
+{-| -}
+toSubscription : Sub msg -> Platform.Sub.Sub msg
+toSubscription sub =
+    case sub of
+        Sub subscription ->
+            subscription
+
+        Batch subs ->
+            Platform.Sub.batch (List.map toSubscription subs)
 
 
 port incoming :
@@ -54,4 +66,4 @@ port incoming :
      }
      -> msg
     )
-    -> Sub msg
+    -> Platform.Sub.Sub msg
