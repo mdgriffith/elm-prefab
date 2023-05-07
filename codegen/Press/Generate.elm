@@ -22,7 +22,6 @@ import Elm.Annotation as Type
 import Elm.Case
 import Elm.Let
 import Elm.Op
-import Gen.App
 import Gen.App.Markdown
 import Gen.App.State
 import Gen.AppUrl
@@ -294,8 +293,27 @@ generateSourceReference routes =
                                             |> List.map Elm.string
                                 in
                                 Elm.record
-                                    [ ( "tags", Elm.list headers )
+                                    [ ( "title"
+                                      , List.head headers
+                                            |> Maybe.withDefault (Elm.string src.path)
+                                      )
+                                    , ( "crumbs"
+                                      , String.split "/" src.path
+                                            |> List.filterMap
+                                                (\str ->
+                                                    if String.isEmpty str then
+                                                        Nothing
+
+                                                    else
+                                                        Just (Elm.string str)
+                                                )
+                                            |> List.reverse
+                                            |> List.drop 1
+                                            |> List.reverse
+                                            |> Elm.list
+                                      )
                                     , ( "sourceUrl", Elm.string src.path )
+                                    , ( "tags", Elm.list headers )
                                     ]
                             )
                             sources

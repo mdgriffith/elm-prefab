@@ -2,11 +2,20 @@ module Press.Model exposing (..)
 
 {-| -}
 
+import Elm
 import Elm.Annotation as Type
-import Gen.App
+import Elm.Case
+import Elm.Declare
+import Elm.Let
+import Gen.App.Effect
 import Gen.App.State
+import Gen.App.Sub
+import Gen.App.View
 import Gen.Browser
 import Gen.Browser.Navigation
+import Gen.Json.Encode
+import Gen.Platform.Cmd
+import Gen.Platform.Sub
 import Gen.Url
 import Set exposing (Set)
 
@@ -50,10 +59,14 @@ type UrlPiece
     | Variable String
 
 
+appMsg =
+    Type.namedWith [] "Msg" [ Type.var "msg" ]
+
+
 types =
-    { msg = Type.namedWith [] "Msg" [ Type.var "frameMsg" ]
+    { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
-    , model = Type.namedWith [] "Model" [ Type.var "frame" ]
+    , model = Type.namedWith [] "Model" [ Type.var "model" ]
     , modelRecord =
         Type.record
             [ ( "key", Gen.Browser.Navigation.annotation_.key )
@@ -62,22 +75,257 @@ types =
             , ( "frame", Type.var "frame" )
             ]
     , frame =
-        Gen.App.annotation_.frame
-            (Type.var "frame")
-            (Type.var "frameMsg")
-            (Type.namedWith [] "Msg" [ Type.var "frameMsg" ])
+        Type.record
+            [ ( "init"
+              , Type.function
+                    [ Gen.Browser.Navigation.annotation_.key
+                    , Gen.Json.Encode.annotation_.value
+                    ]
+                    (Type.tuple
+                        (Type.var "model")
+                        (Gen.App.Effect.annotation_.effect (Type.var "msg"))
+                    )
+              )
+            , ( "update"
+              , Type.function
+                    [ Type.var "msg"
+                    , Type.var "model"
+                    ]
+                    (Type.tuple
+                        (Type.var "model")
+                        (Gen.App.Effect.annotation_.effect (Type.var "msg"))
+                    )
+              )
+            , ( "subscriptions"
+              , Type.function
+                    [ Type.var "model"
+                    ]
+                    (Gen.App.Sub.annotation_.sub (Type.var "msg"))
+              )
+            , ( "view"
+              , Type.function
+                    [ Type.function [ Type.var "msg" ] appMsg
+                    , Type.var "model"
+                    , Type.namedWith [] "View" [ appMsg ]
+                    ]
+                    (Gen.Browser.annotation_.document appMsg)
+              )
+            , ( "toCmd"
+              , Type.function
+                    [ Type.var "model"
+                    , Gen.App.Effect.annotation_.effect appMsg
+                    ]
+                    (Gen.Platform.Cmd.annotation_.cmd appMsg)
+              )
+            , ( "toSub"
+              , Type.function
+                    [ Type.var "model"
+                    , Gen.App.Sub.annotation_.sub appMsg
+                    ]
+                    (Gen.Platform.Sub.annotation_.sub appMsg)
+              )
+            ]
     , pageModel = Type.named [] "PageModel"
     , effect = Type.namedWith [] "Effect" [ Type.var "msg" ]
     , subscription = Type.namedWith [] "Subscription" [ Type.var "msg" ]
-    , pageConfig =
-        Type.namedWith []
-            "Page"
-            [ Type.var "frame"
-            , Type.var "model"
-            , Type.var "msg"
-            ]
+
+    -- , pageConfig =
+    --     Type.namedWith []
+    --         "Page"
+    --         [ Type.var "frame"
+    --         , Type.var "model"
+    --         , Type.var "msg"
+    --         ]
     , cache = Type.named [] "Cache"
     , toPageMsg =
         \string ->
             "To" ++ string
     }
+
+
+
+{- 'Frame' helpers -}
+
+
+toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+toCmd config frameModel effect =
+    Elm.apply (Elm.get "toCmd" config) [ frameModel, effect ]
+
+
+toSub : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+toSub config frameModel sub =
+    Elm.apply (Elm.get "toSub" config) [ frameModel, sub ]
+
+
+getState key model =
+    Gen.App.State.call_.get key (Elm.get "states" model)
+
+
+setState key val model =
+    Gen.App.State.call_.insert key val (Elm.get "states" model)
+
+
+initPage :
+    List RouteInfo
+    ->
+        { declaration : Elm.Declaration
+        , call : Elm.Expression -> Elm.Expression -> Elm.Expression
+        , callFrom :
+            List String -> Elm.Expression -> Elm.Expression -> Elm.Expression
+        , value : List String -> Elm.Expression
+        }
+initPage routes =
+    Elm.Declare.fn2 "initPage"
+        ( "route", Just (Type.named [ "Route" ] "Route") )
+        ( "frame", Just (Type.var "frame") )
+        (\route frame ->
+            Elm.Case.custom route
+                (Type.named [ "Route" ] "Route")
+                (routes
+                    |> List.map
+                        (\routeInfo ->
+                            let
+                                stateKey =
+                                    routeInfo.name
+
+                                pageModule =
+                                    routeInfo.moduleName
+
+                                pageMsgTypeName =
+                                    types.toPageMsg routeInfo.name
+
+                                pageConfig =
+                                    Elm.value
+                                        { importFrom = pageModule
+                                        , name = "page"
+                                        , annotation = Nothing
+                                        }
+                            in
+                            Elm.Case.branch1 routeInfo.name
+                                ( "params", Type.unit )
+                                (\params ->
+                                    let
+                                        initialized =
+                                            Elm.apply
+                                                (Elm.get "init" pageConfig)
+                                                [ params
+                                                , frame
+                                                ]
+                                    in
+                                    Elm.Let.letIn
+                                        (\( newPage, pageEffect ) ->
+                                            Elm.tuple
+                                                (Elm.record
+                                                    [ ( "new"
+                                                      , Elm.apply
+                                                            (Elm.val stateKey)
+                                                            [ newPage ]
+                                                      )
+                                                    , ( "effect"
+                                                      , pageEffect
+                                                            |> Gen.App.Effect.call_.map (Elm.val pageMsgTypeName)
+                                                            |> Gen.App.Effect.call_.map (Elm.val "Page")
+                                                      )
+                                                    ]
+                                                )
+                                                (Elm.string stateKey)
+                                        )
+                                        |> Elm.Let.tuple "newPage" "pageEffect" initialized
+                                        |> Elm.Let.toExpression
+                                )
+                        )
+                )
+                |> Elm.withType
+                    (Type.tuple
+                        (Type.record
+                            [ ( "new", Type.named [] "State" )
+                            , ( "effect", Gen.App.Effect.annotation_.effect types.msg )
+                            ]
+                        )
+                        Type.string
+                    )
+        )
+
+
+updatePage routes =
+    Elm.Declare.fn3 "updatePage"
+        ( "config", Just types.frame )
+        ( "msg", Just types.pageMsg )
+        ( "model", Just types.model )
+        (\config msg model ->
+            Elm.Case.custom msg
+                types.msg
+                (routes
+                    |> List.map
+                        (\route ->
+                            let
+                                stateKey =
+                                    route.name
+
+                                pageModule =
+                                    route.moduleName
+
+                                pageMsgTypeName =
+                                    types.toPageMsg route.name
+                            in
+                            Elm.Case.branch1 pageMsgTypeName
+                                ( "pageMsg", Type.named pageModule "Msg" )
+                                (\pageMsg ->
+                                    Elm.Case.maybe (getState (Elm.string stateKey) model)
+                                        { nothing = Elm.tuple model Gen.Platform.Cmd.none
+                                        , just =
+                                            Tuple.pair "foundPage" <|
+                                                \foundPage ->
+                                                    Elm.Case.custom foundPage
+                                                        types.pageModel
+                                                        [ Elm.Case.branch1 stateKey
+                                                            ( "page", types.pageModel )
+                                                            (\pageState ->
+                                                                let
+                                                                    updated =
+                                                                        Elm.apply
+                                                                            (Elm.value
+                                                                                { importFrom = pageModule
+                                                                                , name = "page"
+                                                                                , annotation = Nothing
+                                                                                }
+                                                                                |> Elm.get "update"
+                                                                            )
+                                                                            [ pageMsg
+                                                                            , pageState
+                                                                            ]
+                                                                in
+                                                                Elm.Let.letIn
+                                                                    (\( innerPageModel, pageEffect ) ->
+                                                                        let
+                                                                            pageModel =
+                                                                                Elm.apply
+                                                                                    (Elm.val stateKey)
+                                                                                    [ innerPageModel ]
+                                                                        in
+                                                                        Elm.tuple
+                                                                            (model
+                                                                                |> Elm.updateRecord
+                                                                                    [ ( "states", setState (Elm.string stateKey) pageModel model )
+                                                                                    ]
+                                                                            )
+                                                                            (pageEffect
+                                                                                |> Gen.App.Effect.call_.map (Elm.val pageMsgTypeName)
+                                                                                |> Gen.App.Effect.call_.map (Elm.val "Page")
+                                                                                |> toCmd config (Elm.get "frame" model)
+                                                                            )
+                                                                    )
+                                                                    |> Elm.Let.tuple "updatedPage" "pageEffect" updated
+                                                                    |> Elm.Let.toExpression
+                                                            )
+                                                        , Elm.Case.otherwise
+                                                            (\_ ->
+                                                                Elm.tuple model Gen.Platform.Cmd.none
+                                                            )
+                                                        ]
+                                        }
+                                )
+                        )
+                )
+                |> Elm.withType (Type.tuple types.model (Type.cmd types.msg))
+        )
