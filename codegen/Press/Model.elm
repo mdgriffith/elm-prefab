@@ -128,14 +128,12 @@ types =
     , pageModel = Type.named [] "PageModel"
     , effect = Type.namedWith [] "Effect" [ Type.var "msg" ]
     , subscription = Type.namedWith [] "Subscription" [ Type.var "msg" ]
-
-    -- , pageConfig =
-    --     Type.namedWith []
-    --         "Page"
-    --         [ Type.var "frame"
-    --         , Type.var "model"
-    --         , Type.var "msg"
-    --         ]
+    , route =
+        Elm.value
+            { importFrom = [ "Route" ]
+            , name = "Route"
+            , annotation = Nothing
+            }
     , cache = Type.named [] "Cache"
     , toPageMsg =
         \string ->
