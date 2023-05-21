@@ -93,7 +93,6 @@ export const app = (options: AppOptions) => {
           });
         }
       }
-      console.log("Running generator");
       return CodeGen.run("Generate.elm", {
         debug: true,
         output: runOptions.output,
@@ -130,8 +129,11 @@ interface Typography {
 
 type Typeface = {
   face: string;
-  fallback: string;
-  variants: { [index: string]: TypeVariant };
+  fallback: string[];
+  size: number;
+  color: Palette | string;
+  weight?: number;
+  leadingRatio?: number;
 };
 
 type TypeVariant = {
@@ -184,11 +186,9 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
     if (stat.isFile()) {
-      console.log(`Parsing ${filePath}`);
       const content = fs.readFileSync(filePath, "utf-8");
       found.push({ path: filePath, contents: content });
     } else if (stat.isDirectory()) {
-      console.log(`Dir -> ${filePath}`);
       readFilesRecursively(filePath, found);
     }
   }

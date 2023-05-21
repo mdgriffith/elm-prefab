@@ -1,5 +1,5 @@
 import * as path from "path";
-import * as ElmPress from "./press";
+import * as ElmPress from ".";
 
 const colors = {
   neutral: {
@@ -19,22 +19,22 @@ const colors = {
 ElmPress.generate({
   output: "generated",
   generators: [
-    // ElmPress.app({
-    //   markdown: path.join(__dirname, "../examples/elm-gql/guide"),
-    //   elm: {
-    //     dir: path.join(__dirname, "../examples/elm-gql/src/Page"),
-    //     urls: [
-    //       {
-    //         page: "Home.elm",
-    //         url: "/",
-    //       },
-    //       // {
-    //       //   page: "Home.elm",
-    //       //   url: "/old-homepage?{search,tag,**}",
-    //       // },
-    //     ],
-    //   },
-    // }),
+    ElmPress.app({
+      markdown: path.join(__dirname, "../examples/elm-gql/guide"),
+      elm: {
+        dir: path.join(__dirname, "../examples/elm-gql/src/Page"),
+        urls: [
+          {
+            page: "Home.elm",
+            url: "/",
+          },
+          // {
+          //   page: "Home.elm",
+          //   url: "/old-homepage?{search,tag,**}",
+          // },
+        ],
+      },
+    }),
     ElmPress.ui({
       backgrounds: {
         neutral: colors.neutral,
@@ -52,15 +52,29 @@ ElmPress.generate({
         lg4: 80,
       },
       typography: {
-        base: {
+        h1: {
           face: "EB Garamond",
-          fallback: "serif",
-          variants: {
-            small: { size: 10, color: colors.neutral["900"] },
-            base: { size: 16, color: colors.neutral["900"] },
-            large: { size: 20, color: colors.neutral["900"] },
-            extraLarge: { size: 24, color: colors.neutral["900"] },
-          },
+          fallback: ["serif"],
+          size: 24,
+          color: colors.neutral["900"],
+        },
+        h2: {
+          face: "EB Garamond",
+          fallback: ["serif"],
+          size: 20,
+          color: colors.neutral["900"],
+        },
+        base: {
+          face: "Noto Sans",
+          fallback: ["sans-serif"],
+          size: 16,
+          color: colors.neutral["900"],
+        },
+        small: {
+          face: "Noto Sans",
+          fallback: ["sans-serif"],
+          size: 10,
+          color: colors.neutral["900"],
         },
       },
       borders: {

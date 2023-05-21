@@ -2,8 +2,10 @@
   "name": "elm-press",
   "version": "1.0.0",
   "description": "A simple markdown -> Elm code generator",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "gen:init": "elm-codegen init",
     "gen:install": "elm-codegen install",
@@ -20,7 +22,10 @@
   },
   "homepage": "https://github.com/mdgriffith/elm-press#readme",
   "devDependencies": {
+    "@types/node": "^15.0.3",
+    "@types/node-fetch": "^2.5.10",
     "elm-codegen": "^0.3.0",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "typescript": "^4.2.4"
   }
 }
