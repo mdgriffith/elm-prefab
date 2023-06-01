@@ -5,7 +5,7 @@ repl-temp-*
 node_modules
 
 # Elm codegen stuff
-codegen/Gen
+plugins/**/Gen
 generated
 
 dist

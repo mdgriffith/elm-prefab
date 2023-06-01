@@ -8,7 +8,7 @@
     "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "gen:init": "elm-codegen init",
-    "gen:install": "elm-codegen install",
+    "gen:install": "(cd plugins/app ; elm-codegen install) ; (cd plugins/theme ; elm-codegen install)",
     "gen:run": "ts-node ./cli/generate.ts"
   },
   "repository": {
