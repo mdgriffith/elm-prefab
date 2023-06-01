@@ -1,4 +1,4 @@
-module ThemeGenerate exposing (..)
+module Generate exposing (..)
 
 import Gen.CodeGen.Generate as Generate
 import Json.Decode

@@ -1,6 +1,24 @@
-module Theme.El exposing (Attr, Elem, column, el, row)
+module Theme.El exposing
+    ( Attr, Elem
+    , el, row, column
+    , attrs
+    , text, static
+    )
 
-{-| -}
+{-|
+
+@docs Attr, Elem
+
+@docs el, row, column
+
+@docs attrs
+
+@docs text, static
+
+-}
+
+import Elm
+import Gen.Ui
 
 
 type Elem
@@ -10,7 +28,7 @@ type Elem
 
 
 type Attr
-    = Attrs (List String)
+    = Attrs (List Elm.Expression)
     | Event
     | Variants
         (List
@@ -18,6 +36,21 @@ type Attr
             , attrs : List Attr
             }
         )
+
+
+attrs : List Elm.Expression -> Attr
+attrs =
+    Attrs
+
+
+text : String -> Elem
+text =
+    TextVariable
+
+
+static : String -> Elem
+static =
+    Text
 
 
 el : List Attr -> Elem -> Elem

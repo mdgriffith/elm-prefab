@@ -97,7 +97,7 @@ export const app = (options: AppOptions) => {
         debug: true,
         output: runOptions.output,
         flags: { assets: assets, elmFiles: elmFiles },
-        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/codegen",
+        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/app",
       });
     },
   };
@@ -154,11 +154,11 @@ export const ui = (options: UiOptions) => {
   return {
     generatorType: GeneratorType.Standard,
     run: (runOptions: { output: string }) => {
-      return CodeGen.run("ThemeGenerate.elm", {
+      return CodeGen.run("Generate.elm", {
         debug: true,
         output: runOptions.output,
         flags: options,
-        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/codegen",
+        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/theme",
       });
     },
   };

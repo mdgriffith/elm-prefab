@@ -62,7 +62,7 @@ decodeColor =
                             _ =
                                 Debug.log "ERR" err
                         in
-                        Json.Decode.fail ("I don't recognize this color: " ++ string)
+                        Json.Decode.fail ("I 1don't recognize this color: " ++ string)
             )
 
 
@@ -90,22 +90,19 @@ type alias Theme =
 
 type alias Typeface =
     { face : String
-    , fallback : String
-    , variants : List (Named TypeVariant)
+    , fallback : List String
+    , weight : Int
+    , size : Int
+    , lineSpacing : Int
+    , colors : Palette Color
     }
 
 
 decodeTypeface : Json.Decode.Decoder Typeface
 decodeTypeface =
-    Json.Decode.map3 Typeface
+    Json.Decode.map6 Typeface
         (Json.Decode.field "face" Json.Decode.string)
-        (Json.Decode.field "fallback" Json.Decode.string)
-        (Json.Decode.field "variants" (decodeNamed decodeTypefaceVariant))
-
-
-decodeTypefaceVariant : Json.Decode.Decoder TypeVariant
-decodeTypefaceVariant =
-    Json.Decode.map4 TypeVariant
+        (Json.Decode.field "fallback" (Json.Decode.list Json.Decode.string))
         (Json.Decode.maybe (Json.Decode.field "weight" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 400)
         )
@@ -124,14 +121,6 @@ decodePalette decodeThing =
         [ Json.Decode.map Single decodeThing
         , Json.Decode.map Palette (decodeNamed decodeThing)
         ]
-
-
-type alias TypeVariant =
-    { weight : Int
-    , size : Int
-    , lineSpacing : Int
-    , colors : Palette Color
-    }
 
 
 type Palette thing

@@ -3,11 +3,11 @@ module Theme.Button exposing (..)
 {-| -}
 
 import Theme
-import Themed
+import Theme.El as El
 
 
 button =
-    Theme.el
+    El.el
         [ theme.colors Primary
             [ Secondary
             ]
@@ -15,6 +15,6 @@ button =
             [ Small
             ]
         , Theme.Dynamic.onClick
-        , Theme.attrs []
+        , El.attrs []
         ]
-        (Theme.Dynamic.label "label")
+        (El.text "label")

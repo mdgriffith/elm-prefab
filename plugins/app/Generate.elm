@@ -8,7 +8,6 @@ import Gen.CodeGen.Generate as Generate
 import Json.Decode
 import Path
 import Press.Generate
-import Theme
 
 
 main : Program Json.Decode.Value () ()
