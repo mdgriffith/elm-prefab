@@ -1,4 +1,4 @@
-module Ui.Input exposing
+module Theme.Input exposing
     ( bool, int, string
     , maybeString, maybeBool
     )

@@ -22,9 +22,9 @@ import Elm.Op
 import Elm.Type
 import Example.Interactive
 import Example.Type
-import Gen.Element
 import Gen.Html.Attributes
 import Gen.Parser
+import Gen.Theme
 import Gen.Ui
 import Interactive
 
@@ -124,15 +124,12 @@ element =
                     False
     , view =
         \{ model, onChange } val ->
-            Gen.Element.el
-                [ Gen.Element.padding 32
-                , Gen.Element.height
-                    (Gen.Element.shrink
-                        |> Gen.Element.minimum 200
-                    )
+            Gen.Ui.el
+                [ Gen.Ui.padding 32
+                , Gen.Ui.heightMin 200
                 ]
                 (val
-                    |> Gen.Element.el [ Gen.Element.centerY, Gen.Element.centerX ]
+                    |> Gen.Ui.el [ Gen.Ui.centerY, Gen.Ui.centerX ]
                 )
     , fields = []
     }
@@ -162,11 +159,11 @@ parser =
                                     }
                                 )
                                 [ ok ]
-                                |> Gen.Ui.call_.lightCode
-                                |> Gen.Element.el
-                                    [ Gen.Element.paddingXY 32 0
-                                    , Gen.Element.width Gen.Element.fill
-                                    , Gen.Element.htmlAttribute (Gen.Html.Attributes.style "background" "rgb(36,36,36)")
+                                |> Gen.Theme.call_.lightCode
+                                |> Gen.Ui.el
+                                    [ Gen.Ui.paddingXY 32 0
+                                    , Gen.Ui.width Gen.Ui.fill
+                                    , Gen.Ui.htmlAttribute (Gen.Html.Attributes.style "background" "rgb(36,36,36)")
                                     ]
                 , err =
                     Tuple.pair "err" <|
@@ -179,11 +176,11 @@ parser =
                                     }
                                 )
                                 [ err ]
-                                |> Gen.Ui.call_.lightCode
-                                |> Gen.Element.el
-                                    [ Gen.Element.paddingXY 32 0
-                                    , Gen.Element.width Gen.Element.fill
-                                    , Gen.Element.htmlAttribute (Gen.Html.Attributes.style "background" "rgb(36,36,36)")
+                                |> Gen.Theme.call_.lightCode
+                                |> Gen.Ui.el
+                                    [ Gen.Ui.paddingXY 32 0
+                                    , Gen.Ui.width Gen.Ui.fill
+                                    , Gen.Ui.htmlAttribute (Gen.Html.Attributes.style "background" "rgb(36,36,36)")
                                     ]
                 }
     , fields =

@@ -8,10 +8,10 @@ import Elm.Op
 import Elm.Type
 import Example.CallStack
 import Example.Type
-import Gen.Element
 import Gen.String
+import Gen.Theme
+import Gen.Theme.Input
 import Gen.Ui
-import Gen.Ui.Input
 import Interactive
 
 

@@ -43,13 +43,11 @@ import Example.CallStack
 import Example.Interactive.Build
 import Example.Interactive.CodeSample
 import Example.Type
-import Gen.Element
-import Gen.Element.Background
-import Gen.Element.Border
-import Gen.Element.Font
 import Gen.Html.Attributes
 import Gen.String
+import Gen.Theme.Input
 import Gen.Ui
+import Gen.Ui.Font
 import Gen.Ui.Input
 import Interactive
 
@@ -91,45 +89,43 @@ build modul targeting =
                         , fields = fields
                         , view =
                             \opts ->
-                                Gen.Element.column
-                                    [ Gen.Element.width Gen.Element.fill
-                                    , Gen.Element.height Gen.Element.fill
+                                Gen.Ui.column
+                                    [ Gen.Ui.width Gen.Ui.fill
+                                    , Gen.Ui.height Gen.Ui.fill
                                     ]
-                                    [ --     Gen.Element.el
-                                      --     [ Gen.Element.Font.size 24
-                                      --     , Gen.Element.paddingXY 32 10
-                                      --     , Gen.Element.Font.family
-                                      --         [ Gen.Element.Font.typeface "Fira Code"
-                                      --         , Gen.Element.Font.sansSerif
+                                    [ --     Gen.Ui.el
+                                      --     [ Gen.Ui.Font.size 24
+                                      --     , Gen.Ui.paddingXY 32 10
+                                      --     , Gen.Ui.Font.family
+                                      --         [ Gen.Ui.Font.typeface "Fira Code"
+                                      --         , Gen.Ui.Font.sansSerif
                                       --         ]
                                       --     ]
-                                      --     (Gen.Element.text
+                                      --     (Gen.Ui.text
                                       --         (modul.name ++ "." ++ targeting.start.name)
                                       --     )
                                       -- ,
                                       Elm.ifThen opts.codeOrOutput
                                         (example.rendered.drivenByModel
                                             |> runner.view opts
-                                            |> Gen.Element.el
-                                                [ Gen.Element.width Gen.Element.fill
-                                                , Gen.Element.Font.color (Gen.Element.rgb 0 0 0)
-                                                , Gen.Element.Background.color (Gen.Element.rgb 1 1 1)
+                                            |> Gen.Ui.el
+                                                [ Gen.Ui.width Gen.Ui.fill
+                                                , Gen.Ui.Font.color (Gen.Ui.rgb 0 0 0)
+                                                , Gen.Ui.background (Gen.Ui.rgb 1 1 1)
                                                 ]
                                         )
-                                        (Gen.Ui.call_.code (Elm.string "")
+                                        (Gen.Ui.call_.text
                                             example.example.drivenByModel
-                                            |> Gen.Element.el [ Gen.Element.centerY ]
-                                            |> Gen.Element.el
-                                                [ Gen.Element.padding 32
-                                                , Gen.Element.height
-                                                    (Gen.Element.shrink
-                                                        |> Gen.Element.minimum 200
-                                                    )
+                                            |> Gen.Ui.el [ Gen.Ui.centerY ]
+                                            |> Gen.Ui.el
+                                                [ Gen.Ui.padding 32
+                                                , Gen.Ui.heightMin 200
+                                                , Gen.Ui.Font.exactWhitespace
                                                 ]
                                         )
-                                    , Gen.Element.el
-                                        [ Gen.Element.width Gen.Element.fill
-                                        , Gen.Element.padding 32
+                                    , Gen.Ui.el
+                                        [ Gen.Ui.width Gen.Ui.fill
+                                        , Gen.Ui.padding 32
                                         ]
                                         (viewInput opts fields)
                                     ]
@@ -144,9 +140,9 @@ viewInput :
     -> List Interactive.Field
     -> Elm.Expression
 viewInput viewOptions fields =
-    Gen.Element.column
-        [ Gen.Element.width Gen.Element.fill
-        , Gen.Element.spacing 16
+    Gen.Ui.column
+        [ Gen.Ui.width Gen.Ui.fill
+        , Gen.Ui.spacing 16
         ]
         (List.map (viewFieldInput viewOptions)
             (List.reverse fields)
@@ -184,40 +180,40 @@ viewFieldInput opts field =
     in
     case details.input of
         Interactive.InputString ->
-            Gen.Ui.Input.call_.string
+            Gen.Theme.Input.call_.string
                 (Elm.string details.label)
                 updateValue
                 (Elm.get details.key opts.model)
 
         Interactive.InputBool ->
-            Gen.Ui.Input.call_.bool
+            Gen.Theme.Input.call_.bool
                 (Elm.string details.label)
                 updateValue
                 (Elm.get details.key opts.model)
 
         Interactive.InputInt ->
-            Gen.Ui.Input.call_.int
+            Gen.Theme.Input.call_.int
                 (Elm.string details.label)
                 updateValue
                 (Elm.get details.key opts.model)
 
         Interactive.InputFloat ->
-            Gen.Element.text "Float"
+            Gen.Ui.text "Float"
 
         Interactive.InputMaybe Interactive.InputString ->
             Elm.get details.key opts.model
-                |> Gen.Ui.Input.call_.maybeString
+                |> Gen.Theme.Input.call_.maybeString
                     (Elm.string details.label)
                     updateValue
 
         Interactive.InputMaybe Interactive.InputBool ->
             Elm.get details.key opts.model
-                |> Gen.Ui.Input.call_.maybeBool
+                |> Gen.Theme.Input.call_.maybeBool
                     (Elm.string details.label)
                     updateValue
 
         Interactive.InputMaybe _ ->
-            Gen.Element.text "Float"
+            Gen.Ui.text "Float"
 
 
 runnerEnd : List Runner -> Elm.Type.Type -> Bool
@@ -309,39 +305,39 @@ getRunner runners tipe =
 viewWrapper result exp =
     -- case result of
     --     Elm.Type.Var string ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     --     Elm.Type.Lambda one two ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     --     Elm.Type.Tuple types ->
     --         case types of
     --             [] ->
-    --                 Gen.Element.text "()"
+    --                 Gen.Ui.text "()"
     --             [ one, two ] ->
-    --                 Gen.Element.text ""
+    --                 Gen.Ui.text ""
     --             -- isViewable one && isViewable two
     --             [ one, two, three ] ->
-    --                 Gen.Element.text ""
+    --                 Gen.Ui.text ""
     --             -- isViewable one && isViewable two && isViewable three
     --             _ ->
-    --                 Gen.Element.text ""
+    --                 Gen.Ui.text ""
     --     Elm.Type.Type "List.List" [ inner ] ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     --     Elm.Type.Type "Maybe.Maybe" [ inner ] ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     --     Elm.Type.Type "Basics.Bool" [] ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     --     Elm.Type.Type "Basics.Int" [] ->
-    --         Gen.Element.call_.text (Gen.String.call_.fromInt exp)
+    --         Gen.Ui.call_.text (Gen.String.call_.fromInt exp)
     --     Elm.Type.Type "Basics.Float" [] ->
-    --         Gen.Element.call_.text (Gen.String.call_.fromFloat exp)
+    --         Gen.Ui.call_.text (Gen.String.call_.fromFloat exp)
     --     Elm.Type.Type "String.String" [] ->
-    --         Gen.Element.call_.text exp
+    --         Gen.Ui.call_.text exp
     --     Elm.Type.Type "Html.Html" [] ->
-    --         Gen.Element.html exp
+    --         Gen.Ui.html exp
     --     Elm.Type.Type "Svg.Svg" [] ->
-    --         Gen.Element.html exp
+    --         Gen.Ui.html exp
     --     Elm.Type.Type name types ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     --     Elm.Type.Record fields maybeExtensible ->
-    --         Gen.Element.text ""
+    --         Gen.Ui.text ""
     exp

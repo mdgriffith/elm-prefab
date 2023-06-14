@@ -1,4 +1,4 @@
-module Ui exposing (card, code, divider, lightCode, pointer)
+module Theme exposing (card, code, divider, lightCode, pointer)
 
 {-| -}
 

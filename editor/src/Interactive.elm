@@ -29,17 +29,15 @@ import Elm.Docs
 import Elm.Op
 import Elm.Type
 import Gen.App
-import Gen.Element
-import Gen.Element.Background
-import Gen.Element.Border
-import Gen.Element.Events
-import Gen.Element.Font
 import Gen.Html
 import Gen.Html.Attributes
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.String
+import Gen.Theme
 import Gen.Ui
+import Gen.Ui.Events
+import Gen.Ui.Font
 
 
 type alias Module =
@@ -247,16 +245,16 @@ selected top modules =
         Elm.Declare.fn "viewTab"
             ( "tab", Just type_ )
             (\tab ->
-                Gen.Element.row
-                    [ Gen.Element.spacing 24
-                    , Gen.Element.width Gen.Element.fill
-                    , Gen.Element.padding 24
+                Gen.Ui.row
+                    [ Gen.Ui.spacing 24
+                    , Gen.Ui.width Gen.Ui.fill
+                    , Gen.Ui.padding 24
                     ]
                     (List.map
                         (\mod ->
-                            Gen.Element.el
-                                [ Gen.Element.padding 12
-                                , Gen.Element.Events.onClick
+                            Gen.Ui.el
+                                [ Gen.Ui.padding 12
+                                , Gen.Ui.Events.onClick
                                     (Elm.apply
                                         (Elm.value
                                             { importFrom = []
@@ -272,7 +270,7 @@ selected top modules =
                                         ]
                                     )
                                 ]
-                                (Gen.Element.text mod.name)
+                                (Gen.Ui.text mod.name)
                         )
                         modules
                     )
@@ -393,16 +391,16 @@ selectedExample =
     --     Elm.Declare.fn "viewSelectedExample"
     --         ( "tab", Just type_ )
     --         (\tab ->
-    --             Gen.Element.row
-    --                 [ Gen.Element.spacing 24
-    --                 , Gen.Element.width Gen.Element.fill
-    --                 , Gen.Element.padding 24
+    --             Gen.Ui.row
+    --                 [ Gen.Ui.spacing 24
+    --                 , Gen.Ui.width Gen.Ui.fill
+    --                 , Gen.Ui.padding 24
     --                 ]
     --                 (List.map
     --                     (\mod ->
-    --                         Gen.Element.el
-    --                             [ Gen.Element.padding 12
-    --                             , Gen.Element.Events.onClick
+    --                         Gen.Ui.el
+    --                             [ Gen.Ui.padding 12
+    --                             , Gen.Ui.Events.onClick
     --                                 (Elm.apply
     --                                     (Elm.value
     --                                         { importFrom = []
@@ -418,7 +416,7 @@ selectedExample =
     --                                     ]
     --                                 )
     --                             ]
-    --                             (Gen.Element.text mod.name)
+    --                             (Gen.Ui.text mod.name)
     --                     )
     --                     modules
     --                 )
@@ -495,24 +493,25 @@ codeOrOutput top modules =
         Elm.Declare.fn "viewCodeOrResult"
             ( "tab", Just type_ )
             (\tab ->
-                Gen.Element.row
-                    [ Gen.Element.spacing 8
-                    , Gen.Element.paddingXY 32 8
-                    , Gen.Element.alignRight
+                Gen.Ui.row
+                    [ Gen.Ui.spacing 8
+                    , Gen.Ui.paddingXY 32 8
+                    , Gen.Ui.alignRight
                     ]
                     (List.map
                         (\( label, varName ) ->
-                            Gen.Element.el
-                                [ Gen.Element.paddingXY 8 4
-                                , Gen.Element.Border.width 1
-                                , Gen.Element.Border.rounded 4
-                                , Gen.Ui.pointer
-                                , Gen.Element.Border.color
-                                    (Elm.ifThen (Elm.Op.equal tab (valueNamed varName))
-                                        (Gen.Element.rgb 1 1 1)
-                                        (Gen.Element.rgb 0 0 0)
-                                    )
-                                , Gen.Element.Events.onClick
+                            Gen.Ui.el
+                                [ Gen.Ui.paddingXY 8 4
+                                , Gen.Ui.border
+                                    { width = 1
+                                    , color =
+                                        Elm.ifThen (Elm.Op.equal tab (valueNamed varName))
+                                            (Gen.Ui.rgb 1 1 1)
+                                            (Gen.Ui.rgb 0 0 0)
+                                    }
+                                , Gen.Ui.rounded 4
+                                , Gen.Theme.pointer
+                                , Gen.Ui.Events.onClick
                                     (Elm.apply
                                         (Elm.value
                                             { importFrom = []
@@ -528,7 +527,7 @@ codeOrOutput top modules =
                                         ]
                                     )
                                 ]
-                                (Gen.Element.text label)
+                                (Gen.Ui.text label)
                         )
                         [ ( "Output", "ShowOutput" )
                         , ( "Example", "ShowCode" )
@@ -699,24 +698,24 @@ view modelAlias modules additional =
     Elm.declaration "view"
         (Elm.fn ( "model", Just modelAlias )
             (\model ->
-                Gen.Element.layout
-                    [ --     Gen.Element.htmlAttribute
+                Gen.Ui.layout
+                    [ --     Gen.Ui.htmlAttribute
                       --     (Gen.Html.Attributes.style "background" "white")
-                      -- , Gen.Element.htmlAttribute
+                      -- , Gen.Ui.htmlAttribute
                       --     (Gen.Html.Attributes.style "color" "rgba(0, 0, 0, .87)")
-                      Gen.Element.htmlAttribute (Gen.Html.Attributes.style "background" "rgb(36,36,36)")
-                    , Gen.Element.Font.color (Gen.Element.rgb 1 1 1)
-                    , Gen.Element.inFront
+                      Gen.Ui.htmlAttribute (Gen.Html.Attributes.style "background" "rgb(36,36,36)")
+                    , Gen.Ui.Font.color (Gen.Ui.rgb 1 1 1)
+                    , Gen.Ui.inFront
                         (additional.focus.viewCall model)
-                    , Gen.Element.Font.family
-                        [ Gen.Element.Font.typeface "Fira Code"
-                        , Gen.Element.Font.sansSerif
+                    , Gen.Ui.Font.family
+                        [ Gen.Ui.Font.typeface "Fira Code"
+                        , Gen.Ui.Font.sansSerif
                         ]
                     ]
-                    (Gen.Element.column
-                        [ Gen.Element.width Gen.Element.fill
-                        , Gen.Element.height Gen.Element.fill
-                        , Gen.Element.spacing 16
+                    (Gen.Ui.column
+                        [ Gen.Ui.width Gen.Ui.fill
+                        , Gen.Ui.height Gen.Ui.fill
+                        , Gen.Ui.spacing 16
                         ]
                         (modules
                             |> List.concatMap
@@ -725,44 +724,47 @@ view modelAlias modules additional =
                                     List.indexedMap
                                         (\index interact ->
                                             Elm.ifThen (Elm.Op.equal (Elm.int index) (additional.example.get model))
-                                                (Gen.Element.column
-                                                    [ Gen.Element.width Gen.Element.fill
-                                                    , Gen.Element.height Gen.Element.fill
+                                                (Gen.Ui.column
+                                                    [ Gen.Ui.width Gen.Ui.fill
+                                                    , Gen.Ui.height Gen.Ui.fill
                                                     ]
-                                                    [ Gen.Element.el
-                                                        [ Gen.Element.Font.size 24
-                                                        , Gen.Element.paddingXY 32 10
-                                                        , Gen.Ui.pointer
-                                                        , Gen.Element.Font.family
-                                                            [ Gen.Element.Font.typeface "Fira Code"
-                                                            , Gen.Element.Font.sansSerif
+                                                    [ Gen.Ui.el
+                                                        [ Gen.Ui.Font.size 24
+                                                        , Gen.Ui.paddingXY 32 10
+                                                        , Gen.Theme.pointer
+                                                        , Gen.Ui.Font.family
+                                                            [ Gen.Ui.Font.typeface "Fira Code"
+                                                            , Gen.Ui.Font.sansSerif
                                                             ]
-                                                        , Gen.Element.Events.onClick
+                                                        , Gen.Ui.Events.onClick
                                                             (additional.example.toggleMenu (additional.example.getMenuOpen model))
                                                         , Elm.ifThen (additional.example.getMenuOpen model)
-                                                            (Gen.Element.below
+                                                            (Gen.Ui.below
                                                                 (mod.examples
                                                                     |> List.indexedMap
                                                                         (\optionIndex option ->
-                                                                            Gen.Element.text option.name
-                                                                                |> Gen.Element.el
-                                                                                    [ Gen.Element.Events.onClick
+                                                                            Gen.Ui.text option.name
+                                                                                |> Gen.Ui.el
+                                                                                    [ Gen.Ui.Events.onClick
                                                                                         (additional.example.onClick optionIndex)
                                                                                     ]
                                                                         )
-                                                                    |> Gen.Element.column
-                                                                        [ Gen.Element.padding 16
-                                                                        , Gen.Element.moveRight 32
-                                                                        , Gen.Element.Border.width 1
-                                                                        , Gen.Element.Border.rounded 4
-                                                                        , Gen.Element.Background.color (Gen.Element.rgb 0 0 0)
-                                                                        , Gen.Element.spacing 8
+                                                                    |> Gen.Ui.column
+                                                                        [ Gen.Ui.padding 16
+                                                                        , Gen.Ui.moveRight 32
+                                                                        , Gen.Ui.border
+                                                                            { width = 1
+                                                                            , color = Gen.Ui.rgb 0 0 0
+                                                                            }
+                                                                        , Gen.Ui.rounded 4
+                                                                        , Gen.Ui.background (Gen.Ui.rgb 0 0 0)
+                                                                        , Gen.Ui.spacing 8
                                                                         ]
                                                                 )
                                                             )
-                                                            Gen.Ui.pointer
+                                                            Gen.Theme.pointer
                                                         ]
-                                                        (Gen.Element.text
+                                                        (Gen.Ui.text
                                                             -- (modul.name ++ "." ++ targeting.start.name)
                                                             ("▶ " ++ interact.name)
                                                         )
@@ -778,7 +780,7 @@ view modelAlias modules additional =
                                                         ]
                                                     ]
                                                 )
-                                                Gen.Element.none
+                                                Gen.Ui.none
                                         )
                                         mod.examples
                                 )
