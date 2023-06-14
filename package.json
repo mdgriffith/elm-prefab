@@ -11,7 +11,7 @@
     "gen:install": "(cd plugins/app ; elm-codegen install) ; (cd plugins/theme ; elm-codegen install)",
     "gen:run": "ts-node ./cli/generate.ts",
     "editor:install": "cd editor; elm-codegen install",
-    "editor:run": "cd editor; elm-codegen run src/Generate.elm --debug --flags-from=testcases/button.json --output=generated"
+    "editor:run": "cd editor; elm-codegen run src/Generate.elm --debug --flags-from=test-apps/button.json --output=generated"
   },
   "repository": {
     "type": "git",
