@@ -25,8 +25,8 @@ current cache =
                 Nothing ->
                     Nothing
 
-                Just key_1_1_0_0 ->
-                    Dict.get key_1_1_0_0 details.cache
+                Just key ->
+                    Dict.get key details.cache
 
 
 setCurrent : String -> Cache state -> Cache state
