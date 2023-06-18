@@ -1,8 +1,12 @@
-module Main exposing (main)
+module Main exposing (..)
 
-{-| -}
+{-|
 
-import App.Effect as Effect
+@docs main
+
+-}
+
+import App.Effect
 import App.Engine
 import App.Sub
 import Browser.Navigation
@@ -15,9 +19,9 @@ main =
         { init =
             \navKey flags ->
                 ( { nav = navKey }
-                , Effect.none
+                , App.Effect.none
                 )
-        , update = \_ model -> ( model, Effect.none )
+        , update = \_ model -> ( model, App.Effect.none )
         , subscriptions = \_ -> App.Sub.none
         , view =
             \fromFrameMsg model innerView ->
@@ -35,6 +39,6 @@ main =
                             [ page.body
                             ]
                         }
-        , toCmd = \model effect -> Effect.toCmd model.nav effect
+        , toCmd = \model effect -> App.Effect.toCmd model.nav effect
         , toSub = \model sub -> App.Sub.toSubscription sub
         }
