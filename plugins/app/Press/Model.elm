@@ -8,6 +8,7 @@ import Elm.Case
 import Elm.Declare
 import Elm.Let
 import Gen.App.Effect
+import Gen.App.Page
 import Gen.App.State
 import Gen.App.Sub
 import Gen.App.View
@@ -205,7 +206,10 @@ initPage routes =
                                     let
                                         initialized =
                                             Elm.apply
-                                                (Elm.get "init" pageConfig)
+                                                (Elm.apply
+                                                    Gen.App.Page.values_.init
+                                                    [ pageConfig ]
+                                                )
                                                 [ params
                                                 , frame
                                                 ]
@@ -282,12 +286,14 @@ updatePage routes =
                                                                 let
                                                                     updated =
                                                                         Elm.apply
-                                                                            (Elm.value
-                                                                                { importFrom = pageModule
-                                                                                , name = "page"
-                                                                                , annotation = Nothing
-                                                                                }
-                                                                                |> Elm.get "update"
+                                                                            (Elm.apply
+                                                                                Gen.App.Page.values_.update
+                                                                                [ Elm.value
+                                                                                    { importFrom = pageModule
+                                                                                    , name = "page"
+                                                                                    , annotation = Nothing
+                                                                                    }
+                                                                                ]
                                                                             )
                                                                             [ pageMsg
                                                                             , pageState

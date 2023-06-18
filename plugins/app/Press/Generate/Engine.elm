@@ -9,6 +9,7 @@ import Elm.Let
 import Elm.Op
 import Gen.App.Effect
 import Gen.App.Markdown
+import Gen.App.Page
 import Gen.App.State
 import Gen.App.Sub
 import Gen.App.View
@@ -404,12 +405,14 @@ view routes =
                                                                     )
                                                                 )
                                                                 (Elm.apply
-                                                                    (Elm.value
-                                                                        { importFrom = pageModule
-                                                                        , name = "page"
-                                                                        , annotation = Nothing
-                                                                        }
-                                                                        |> Elm.get "view"
+                                                                    (Elm.apply
+                                                                        Gen.App.Page.values_.view
+                                                                        [ Elm.value
+                                                                            { importFrom = pageModule
+                                                                            , name = "page"
+                                                                            , annotation = Nothing
+                                                                            }
+                                                                        ]
                                                                     )
                                                                     [ pageState ]
                                                                 )
@@ -463,12 +466,14 @@ subscriptions routes =
                                                             ( "pageModel", Type.named pageModule "Model" )
                                                             (\pageState ->
                                                                 Elm.apply
-                                                                    (Elm.value
-                                                                        { importFrom = pageModule
-                                                                        , name = "page"
-                                                                        , annotation = Nothing
-                                                                        }
-                                                                        |> Elm.get "subscriptions"
+                                                                    (Elm.apply
+                                                                        Gen.App.Page.values_.subscriptions
+                                                                        [ Elm.value
+                                                                            { importFrom = pageModule
+                                                                            , name = "page"
+                                                                            , annotation = Nothing
+                                                                            }
+                                                                        ]
                                                                     )
                                                                     [ pageState
                                                                     ]
