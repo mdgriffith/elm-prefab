@@ -36,7 +36,7 @@ type MyType
 page =
     App.Page.page
         { init =
-            \params shared ->
+            \params shared maybeCached ->
                 ( "HEllo!"
                 , Effect.none
                 )

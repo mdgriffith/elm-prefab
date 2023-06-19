@@ -28,7 +28,7 @@ page : App.Page.Page { sourceUrl : String } shared Msg Model
 page =
     App.Page.page
         { init =
-            \params shared ->
+            \params shared maybeCached ->
                 ( params
                 , App.Effect.none
                 )

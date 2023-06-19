@@ -22,7 +22,7 @@ import App.View
 {-| -}
 type Page params shared msg model
     = Page
-        { init : params -> shared -> ( model, App.Effect.Effect msg )
+        { init : params -> shared -> Maybe model -> ( model, App.Effect.Effect msg )
         , update : msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : model -> App.Sub.Sub msg
         , view : model -> App.View.View msg
@@ -31,7 +31,7 @@ type Page params shared msg model
 
 {-| -}
 page :
-    { init : params -> shared -> ( model, App.Effect.Effect msg )
+    { init : params -> shared -> Maybe model -> ( model, App.Effect.Effect msg )
     , update : msg -> model -> ( model, App.Effect.Effect msg )
     , subscriptions : model -> App.Sub.Sub msg
     , view : model -> App.View.View msg
@@ -44,7 +44,7 @@ page =
 {-| -}
 init :
     Page params shared msg model
-    -> (params -> shared -> ( model, App.Effect.Effect msg ))
+    -> (params -> shared -> Maybe model -> ( model, App.Effect.Effect msg ))
 init (Page details) =
     details.init
 
