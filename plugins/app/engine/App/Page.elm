@@ -1,6 +1,6 @@
 module App.Page exposing
     ( Page, page
-    , init, update, subscriptions, view
+    , toInit, toUpdate, toSubscriptions, toView
     )
 
 {-|
@@ -10,7 +10,7 @@ module App.Page exposing
 
 # Internal Details
 
-@docs init, update, subscriptions, view
+@docs toInit, toUpdate, toSubscriptions, toView
 
 -}
 
@@ -23,18 +23,18 @@ import App.View
 type Page params shared msg model
     = Page
         { init : params -> shared -> Maybe model -> ( model, App.Effect.Effect msg )
-        , update : msg -> model -> ( model, App.Effect.Effect msg )
-        , subscriptions : model -> App.Sub.Sub msg
-        , view : model -> App.View.View msg
+        , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
+        , subscriptions : shared -> model -> App.Sub.Sub msg
+        , view : shared -> model -> App.View.View msg
         }
 
 
 {-| -}
 page :
     { init : params -> shared -> Maybe model -> ( model, App.Effect.Effect msg )
-    , update : msg -> model -> ( model, App.Effect.Effect msg )
-    , subscriptions : model -> App.Sub.Sub msg
-    , view : model -> App.View.View msg
+    , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
+    , subscriptions : shared -> model -> App.Sub.Sub msg
+    , view : shared -> model -> App.View.View msg
     }
     -> Page params shared msg model
 page =
@@ -42,32 +42,32 @@ page =
 
 
 {-| -}
-init :
+toInit :
     Page params shared msg model
     -> (params -> shared -> Maybe model -> ( model, App.Effect.Effect msg ))
-init (Page details) =
+toInit (Page details) =
     details.init
 
 
 {-| -}
-update :
+toUpdate :
     Page params shared msg model
-    -> (msg -> model -> ( model, App.Effect.Effect msg ))
-update (Page details) =
+    -> (shared -> msg -> model -> ( model, App.Effect.Effect msg ))
+toUpdate (Page details) =
     details.update
 
 
 {-| -}
-subscriptions :
+toSubscriptions :
     Page params shared msg model
-    -> (model -> App.Sub.Sub msg)
-subscriptions (Page details) =
+    -> (shared -> model -> App.Sub.Sub msg)
+toSubscriptions (Page details) =
     details.subscriptions
 
 
 {-| -}
-view :
+toView :
     Page params shared msg model
-    -> (model -> App.View.View msg)
-view (Page details) =
+    -> (shared -> model -> App.View.View msg)
+toView (Page details) =
     details.view

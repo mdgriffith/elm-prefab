@@ -179,7 +179,7 @@ app routes initPage =
                                                             , \route ->
                                                                 let
                                                                     initializedPage =
-                                                                        initPage.call route frameModel
+                                                                        initPage.call route (Press.Model.toShared config frameModel) Gen.App.State.init
                                                                 in
                                                                 Elm.Let.letIn
                                                                     (\( newPage, pageTag ) ->
@@ -288,7 +288,7 @@ update routes initPage updatePage =
                                         \route ->
                                             let
                                                 initializedPage =
-                                                    initPage.call route (Elm.get "frame" model)
+                                                    initPage.call route (Press.Model.toShared config (Elm.get "frame" model)) (Elm.get "states" model)
                                             in
                                             Elm.Let.letIn
                                                 (\( newPage, pageTag ) ->
@@ -341,7 +341,10 @@ update routes initPage updatePage =
                     , Elm.Case.branch1 "Page"
                         ( "pageMsg", types.pageMsg )
                         (\pageMsg ->
-                            updatePage.call config pageMsg model
+                            updatePage.call config
+                                (Press.Model.toShared config (Elm.get "frame" model))
+                                pageMsg
+                                model
                         )
                     ]
                     |> Elm.withType (Type.tuple types.model (Type.cmd types.msg))
@@ -353,13 +356,13 @@ view : List RouteInfo -> Elm.Declaration
 view routes =
     Elm.declaration "view"
         (Elm.fn2
-            ( "frame", Just types.frame )
+            ( "config", Just types.frame )
             ( "model", Just types.model )
-            (\frame model ->
+            (\config model ->
                 let
                     frameView pageView =
                         Elm.apply
-                            (Elm.get "view" frame)
+                            (Elm.get "view" config)
                             [ Elm.val "ToFrame"
                             , Elm.get "frame" model
                             , pageView
@@ -406,7 +409,7 @@ view routes =
                                                                 )
                                                                 (Elm.apply
                                                                     (Elm.apply
-                                                                        Gen.App.Page.values_.view
+                                                                        Gen.App.Page.values_.toView
                                                                         [ Elm.value
                                                                             { importFrom = pageModule
                                                                             , name = "page"
@@ -414,7 +417,9 @@ view routes =
                                                                             }
                                                                         ]
                                                                     )
-                                                                    [ pageState ]
+                                                                    [ Press.Model.toShared config (Elm.get "frame" model)
+                                                                    , pageState
+                                                                    ]
                                                                 )
                                                         )
                                                 )
@@ -467,7 +472,7 @@ subscriptions routes =
                                                             (\pageState ->
                                                                 Elm.apply
                                                                     (Elm.apply
-                                                                        Gen.App.Page.values_.subscriptions
+                                                                        Gen.App.Page.values_.toSubscriptions
                                                                         [ Elm.value
                                                                             { importFrom = pageModule
                                                                             , name = "page"
@@ -475,7 +480,8 @@ subscriptions routes =
                                                                             }
                                                                         ]
                                                                     )
-                                                                    [ pageState
+                                                                    [ Press.Model.toShared config (Elm.get "frame" model)
+                                                                    , pageState
                                                                     ]
                                                                     |> Gen.App.Sub.call_.map (Elm.val pageMsgTypeName)
                                                             )

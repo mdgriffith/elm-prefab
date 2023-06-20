@@ -40,10 +40,10 @@ page =
                 ( "HEllo!"
                 , Effect.none
                 )
-        , update = \msg model -> ( model, Effect.none )
-        , subscriptions = \model -> App.Sub.none
+        , update = \shared msg model -> ( model, Effect.none )
+        , subscriptions = \shared model -> App.Sub.none
         , view =
-            \model ->
+            \shared model ->
                 { title = "test"
                 , body =
                     Html.text model
