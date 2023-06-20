@@ -41,4 +41,5 @@ main =
                         }
         , toCmd = \model effect -> App.Effect.toCmd model.nav effect
         , toSub = \model sub -> App.Sub.toSubscription sub
+        , toShared = \model -> {}
         }
