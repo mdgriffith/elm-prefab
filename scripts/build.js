@@ -3,29 +3,40 @@ const path = require("path");
 
 /*
 
-This file creates a `.ts` file that just has the GraphQL/Engine.elm file as as string within it.
-
-This is because we both need to ship the Engine file and use it locally in this package.
-
+This copies a number of files into .ts files so we can write them as static files from the CLI.
 */
 
-const toTypescriptFile = (body) => `export default (): string => ${body}`;
+const toTypescriptFile = (body) => `
+import * as path from "path";
+import * as fs from "fs";
 
-const copyFileToTsFile = (pathToFile) => {
-  let body = JSON.stringify(fs.readFileSync(`./${pathToFile}`).toString());
+export const copyTo = (baseDir: string) => { 
+  ${body}
+}
+`;
 
-  const targetFilePath = `./cli/templates/${pathToFile}.ts`;
+const toCopyFile = (path, contents) => `
+  fs.mkdirSync(path.dirname(path.join(baseDir, "${path}")), { recursive: true });
+  fs.writeFileSync(path.join(baseDir, "${path}"), ${contents});
+`;
 
-  const dir = path.dirname(targetFilePath);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(targetFilePath, toTypescriptFile(body));
-};
-
-const copyDir = (dir) => {
+const copyDir = (dir, targetFilePath) => {
   const files = getFilesRecursively(dir);
+
+  const copyInstructions = [];
   for (const i in files) {
-    copyFileToTsFile(files[i]);
+    let body = JSON.stringify(fs.readFileSync(`./${files[i]}`).toString());
+
+    const targetPath = files[i].slice(dir.length);
+    copyInstructions.push(toCopyFile(targetPath, body));
   }
+
+  const targetDir = path.dirname(targetFilePath);
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.writeFileSync(
+    targetFilePath,
+    toTypescriptFile(copyInstructions.join("\n"))
+  );
 };
 
 const isDirectory = (pathStr) => fs.statSync(pathStr).isDirectory();
@@ -52,6 +63,10 @@ const getFilesRecursively = (filepath) => {
   return files.concat(getFiles(filepath));
 };
 
-copyDir("plugins/app/engine");
-copyDir("plugins/app/toCopy");
-copyDir("plugins/theme/webcomponents");
+//
+copyDir("plugins/app/engine", "./cli/templates/app/engine.ts");
+copyDir("plugins/app/toCopy", "./cli/templates/app/toCopy.ts");
+copyDir(
+  "plugins/theme/webcomponents",
+  "./cli/templates/theme/webcomponents.ts"
+);
