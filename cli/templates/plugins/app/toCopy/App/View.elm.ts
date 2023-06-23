@@ -1,0 +1,1 @@
+export default (): string => "module App.View exposing (View, map)\n\n{-|\n\n@docs View, map\n\n-}\n\nimport Html\n\n\ntype alias View msg =\n    { title : String\n    , body : Html.Html msg\n    }\n\n\nmap : (a -> b) -> View a -> View b\nmap fn myView =\n    { title = myView.title\n    , body = Html.map fn myView.body\n    }\n"
