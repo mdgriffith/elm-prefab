@@ -1,10 +1,13 @@
-// @ts-ignore
-import * as CodeGen from "elm-codegen";
 import * as fs from "fs";
 import * as path from "path";
 import * as AppEngine from "./templates/app/engine";
 import * as AppToCopy from "./templates/app/toCopy";
 import * as ThemeWebComponents from "./templates/theme/engine";
+import * as Generator from "./run_generator";
+
+// Elm Generators
+const AppGenerator = require("./generators/app");
+const ThemeGenerator = require("./generators/theme");
 
 export const generate = (options: {
   output: string;
@@ -55,7 +58,7 @@ export const app = (options: AppOptions) => {
       AppEngine.copyTo("./.elm-press");
       AppToCopy.copyTo("./src");
     },
-    run: (runOptions: { output: string }) => {
+    run: async (runOptions: { output: string }) => {
       // Copy static files
       AppEngine.copyTo("./.elm-press");
 
@@ -105,11 +108,9 @@ export const app = (options: AppOptions) => {
           });
         }
       }
-      return CodeGen.run("Generate.elm", {
-        debug: true,
-        output: runOptions.output,
-        flags: { assets: assets, elmFiles: elmFiles },
-        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/app/",
+      await Generator.run(AppGenerator.Elm.Generate, runOptions.output, {
+        assets: assets,
+        elmFiles: elmFiles,
       });
     },
   };
@@ -167,14 +168,13 @@ export const ui = (options: UiOptions) => {
     init: () => {
       ThemeWebComponents.copyTo("./.elm-press");
     },
-    run: (runOptions: { output: string }) => {
+    run: async (runOptions: { output: string }) => {
       ThemeWebComponents.copyTo("./.elm-press");
-      return CodeGen.run("Generate.elm", {
-        debug: true,
-        output: runOptions.output,
-        flags: options,
-        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/theme",
-      });
+      await Generator.run(
+        ThemeGenerator.Elm.Generate,
+        runOptions.output,
+        options
+      );
     },
   };
 };
@@ -222,18 +222,3 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     }
   }
 };
-
-// //
-// // Copy files
-// //    Files in `toCopy` go to the Elm `src` of the users project on `init`.
-// //    `engine` are static files that are copied into `.elm-press`
-// //
-
-// const init = (options: { baseDir: string; elmSrc: string; toCopy: string[]; engine: string[] }) => {
-//   // Copy files from `toCopy` into `elmSrc`
-
-// }
-
-// const runCopy = (options: {baseDir: string; elmSrc: string; toCopy: string[]; engine: string[] }) => {
-
-// }
