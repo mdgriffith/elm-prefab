@@ -9,23 +9,27 @@ import * as Generator from "./run_generator";
 const AppGenerator = require("./generators/app");
 const ThemeGenerator = require("./generators/theme");
 
-export const generate = (options: {
-  output: string;
+type GenerateOptions = {
+  src: string;
   generators: Generator[];
-}) => {
+};
+
+export const generate = (options: GenerateOptions) => {
   options.generators.sort((a, b) => a.generatorType - b.generatorType);
 
   for (const generator of options.generators) {
-    generator.init();
-    generator.run({ output: options.output });
+    generator.init({ internalSrc: "./.elm-press", src: options.src });
+    generator.run({ internalSrc: "./.elm-press", src: options.src });
   }
 };
 
 type Generator = {
   generatorType: GeneratorType;
-  init: () => void;
-  run: (options: { output: string }) => void;
+  init: (options: RunOptions) => void;
+  run: (options: RunOptions) => void;
 };
+
+type RunOptions = { internalSrc: string; src: string };
 
 export enum GeneratorType {
   DataRetrieval = 0,
@@ -54,13 +58,13 @@ type ElmFile = {
 export const app = (options: AppOptions) => {
   return {
     generatorType: GeneratorType.Standard,
-    init: () => {
-      AppEngine.copyTo("./.elm-press");
-      AppToCopy.copyTo("./src");
+    init: (runOptions: RunOptions) => {
+      AppEngine.copyTo(runOptions.internalSrc);
+      AppToCopy.copyTo(runOptions.src);
     },
-    run: async (runOptions: { output: string }) => {
+    run: async (runOptions: RunOptions) => {
       // Copy static files
-      AppEngine.copyTo("./.elm-press");
+      AppEngine.copyTo(runOptions.internalSrc);
 
       const files: File[] = [];
 
@@ -108,7 +112,7 @@ export const app = (options: AppOptions) => {
           });
         }
       }
-      await Generator.run(AppGenerator.Elm.Generate, runOptions.output, {
+      await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
         assets: assets,
         elmFiles: elmFiles,
       });
@@ -165,33 +169,15 @@ type BorderVariant = {
 export const ui = (options: UiOptions) => {
   return {
     generatorType: GeneratorType.Standard,
-    init: () => {
-      ThemeWebComponents.copyTo("./.elm-press");
+    init: (runOptions: RunOptions) => {
+      ThemeWebComponents.copyTo(runOptions.internalSrc);
     },
-    run: async (runOptions: { output: string }) => {
-      ThemeWebComponents.copyTo("./.elm-press");
-      await Generator.run(
-        ThemeGenerator.Elm.Generate,
-        runOptions.output,
-        options
-      );
+    run: async (runOptions: RunOptions) => {
+      ThemeWebComponents.copyTo(runOptions.internalSrc);
+      await Generator.run(ThemeGenerator.Elm.Generate, runOptions.src, options);
     },
   };
 };
-
-// export const interactive = (options: UiOptions) => {
-//   return {
-//     generatorType: GeneratorType.Standard,
-//     run: (runOptions: { output: string }) => {
-//       return CodeGen.run("Generate.elm", {
-//         debug: true,
-//         output: runOptions.output,
-//         flags: options,
-//         cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/theme",
-//       });
-//     },
-//   };
-// };
 
 export const figma = (options: { apiKey: string }) => {
   console.log(options.apiKey);

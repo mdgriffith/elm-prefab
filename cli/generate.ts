@@ -17,7 +17,7 @@ const colors = {
 };
 
 ElmPress.generate({
-  output: "generated",
+  src: path.join(__dirname, "../examples/elm-gql/src/"),
   generators: [
     ElmPress.app({
       markdown: path.join(__dirname, "../examples/elm-gql/guide"),
