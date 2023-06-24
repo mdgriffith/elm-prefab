@@ -7,9 +7,8 @@
   "scripts": {
     "build": "bash scripts/build.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "gen:init": "elm-codegen init",
     "gen:install": "(cd plugins/app ; elm-codegen install) ; (cd plugins/theme ; elm-codegen install)",
-    "gen:run": "ts-node ./cli/generate.ts",
+    "gen:run": "pnpm run build ; ts-node ./cli/generate.ts",
     "editor:install": "cd editor; elm-codegen install",
     "editor:run": "cd editor; elm-codegen run src/Generate.elm --debug --flags-from=test-apps/button.json --output=generated"
   },
