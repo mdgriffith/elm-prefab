@@ -13,6 +13,11 @@ type Name
     = Name String
 
 
+nameToString : Name -> String
+nameToString (Name name) =
+    name
+
+
 type alias Named thing =
     { name : Name
     , item : thing

@@ -42,10 +42,6 @@ decodeColor =
                         Json.Decode.succeed color
 
                     Err err ->
-                        let
-                            _ =
-                                Debug.log "ERR" err
-                        in
                         Json.Decode.fail ("I don't recognize this color: " ++ string)
             )
 
