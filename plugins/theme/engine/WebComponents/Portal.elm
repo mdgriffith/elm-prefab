@@ -1,4 +1,4 @@
-module WebComponent.Portal exposing
+module WebComponents.Portal exposing
     ( Model, closed
     , view
     , MenuPosition(..)
@@ -8,16 +8,12 @@ module WebComponent.Portal exposing
 
 {-| This custom element is helping us with 2 things.
 
-First, we need to be able to render dropdown menus at the top of the DOM so they don't accidently get clipped when there are scrollbars.
+we need to be able to render dropdown menus at the top of the DOM so they don't accidently get clipped when there are scrollbars.
 
 The scrollbar clipping thing is a hard blocker from how CSS and stacking contexts work, so our solution is to render it in one place in
 the DOM in Elm, but have some javascript that moves the element to a place at the top of the DOM behind the scenes.
 
 This is called a "portal" in React land. So, we're just copying that here.
-
-Second! We also want a drop down to be a drop _up_ if it is too low on the screen. We can do this calculation by capturing bounding boxes and doing some math with the window.
-
-This element does not care about other styling or behavior though!
 
 @docs Model, closed
 @docs view
