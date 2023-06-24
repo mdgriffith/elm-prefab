@@ -11,3 +11,4 @@ generated
 editor/codegen/Gen
 
 dist
+.elm-press
