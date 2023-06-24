@@ -2,6 +2,9 @@
 import * as CodeGen from "elm-codegen";
 import * as fs from "fs";
 import * as path from "path";
+import * as AppEngine from "./templates/app/engine";
+import * as AppToCopy from "./templates/app/toCopy";
+import * as ThemeWebComponents from "./templates/theme/engine";
 
 export const generate = (options: {
   output: string;
@@ -10,12 +13,14 @@ export const generate = (options: {
   options.generators.sort((a, b) => a.generatorType - b.generatorType);
 
   for (const generator of options.generators) {
+    generator.init();
     generator.run({ output: options.output });
   }
 };
 
 type Generator = {
   generatorType: GeneratorType;
+  init: () => void;
   run: (options: { output: string }) => void;
 };
 
@@ -46,7 +51,14 @@ type ElmFile = {
 export const app = (options: AppOptions) => {
   return {
     generatorType: GeneratorType.Standard,
+    init: () => {
+      AppEngine.copyTo("./.elm-press");
+      AppToCopy.copyTo("./src");
+    },
     run: (runOptions: { output: string }) => {
+      // Copy static files
+      AppEngine.copyTo("./.elm-press");
+
       const files: File[] = [];
 
       let assets: {
@@ -97,7 +109,7 @@ export const app = (options: AppOptions) => {
         debug: true,
         output: runOptions.output,
         flags: { assets: assets, elmFiles: elmFiles },
-        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/app",
+        cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/app/",
       });
     },
   };
@@ -150,10 +162,13 @@ type BorderVariant = {
 };
 
 export const ui = (options: UiOptions) => {
-  console.log(options);
   return {
     generatorType: GeneratorType.Standard,
+    init: () => {
+      ThemeWebComponents.copyTo("./.elm-press");
+    },
     run: (runOptions: { output: string }) => {
+      ThemeWebComponents.copyTo("./.elm-press");
       return CodeGen.run("Generate.elm", {
         debug: true,
         output: runOptions.output,
@@ -163,6 +178,20 @@ export const ui = (options: UiOptions) => {
     },
   };
 };
+
+// export const interactive = (options: UiOptions) => {
+//   return {
+//     generatorType: GeneratorType.Standard,
+//     run: (runOptions: { output: string }) => {
+//       return CodeGen.run("Generate.elm", {
+//         debug: true,
+//         output: runOptions.output,
+//         flags: options,
+//         cwd: "/Users/mattgriffith/projects/mdgriffith/elm-press/plugins/theme",
+//       });
+//     },
+//   };
+// };
 
 export const figma = (options: { apiKey: string }) => {
   console.log(options.apiKey);
@@ -193,3 +222,18 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     }
   }
 };
+
+// //
+// // Copy files
+// //    Files in `toCopy` go to the Elm `src` of the users project on `init`.
+// //    `engine` are static files that are copied into `.elm-press`
+// //
+
+// const init = (options: { baseDir: string; elmSrc: string; toCopy: string[]; engine: string[] }) => {
+//   // Copy files from `toCopy` into `elmSrc`
+
+// }
+
+// const runCopy = (options: {baseDir: string; elmSrc: string; toCopy: string[]; engine: string[] }) => {
+
+// }
