@@ -174,7 +174,8 @@ app routes initPage =
                                             let
                                                 newStates =
                                                     Elm.Case.maybe (parseUrl url)
-                                                        { just =
+                                                        { nothing = Elm.tuple Gen.App.State.init Gen.Platform.Cmd.none
+                                                        , just =
                                                             ( "route"
                                                             , \route ->
                                                                 let
@@ -195,7 +196,6 @@ app routes initPage =
                                                                     |> Elm.Let.tuple "pageModel" "tag" initializedPage
                                                                     |> Elm.Let.toExpression
                                                             )
-                                                        , nothing = Elm.tuple Gen.App.State.init Gen.Platform.Cmd.none
                                                         }
                                             in
                                             Elm.Let.letIn
@@ -283,12 +283,27 @@ update routes initPage updatePage =
                                     parseUrl url
                             in
                             Elm.Case.maybe parsed
-                                { just =
+                                { nothing =
+                                    let
+                                        updatedModel =
+                                            Elm.updateRecord
+                                                [ ( "states"
+                                                  , Elm.get "states" model
+                                                        |> Gen.App.State.toNotFound
+                                                  )
+                                                ]
+                                                model
+                                    in
+                                    Elm.tuple updatedModel
+                                        Gen.Platform.Cmd.none
+                                , just =
                                     Tuple.pair "route" <|
                                         \route ->
                                             let
                                                 initializedPage =
-                                                    initPage.call route (Press.Model.toShared config (Elm.get "frame" model)) (Elm.get "states" model)
+                                                    initPage.call route
+                                                        (Press.Model.toShared config (Elm.get "frame" model))
+                                                        (Elm.get "states" model)
                                             in
                                             Elm.Let.letIn
                                                 (\( newPage, pageTag ) ->
@@ -308,8 +323,6 @@ update routes initPage updatePage =
                                                 )
                                                 |> Elm.Let.tuple "pageModel" "tag" initializedPage
                                                 |> Elm.Let.toExpression
-                                , nothing =
-                                    Elm.tuple model Gen.Platform.Cmd.none
                                 }
                         )
                     , Elm.Case.branch1 "ToFrame"

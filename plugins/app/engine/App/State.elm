@@ -1,13 +1,13 @@
 module App.State exposing
     ( Cache, init, current, get
-    , insert, setCurrent
+    , insert, setCurrent, toNotFound
     )
 
 {-|
 
 @docs Cache, init, current, get
 
-#docs setCurrent, insert
+#docs setCurrent, insert, toNotFound
 
 -}
 
@@ -34,6 +34,28 @@ init =
 current : Cache state -> Maybe state
 current (Cache details) =
     details.current
+
+
+toNotFound : Cache state -> Cache state
+toNotFound (Cache details) =
+    Cache
+        { details
+            | currentKey = Nothing
+            , current = Nothing
+            , cache =
+                case details.currentKey of
+                    Nothing ->
+                        details.cache
+
+                    Just currentKey ->
+                        case details.current of
+                            Nothing ->
+                                details.cache
+
+                            Just current ->
+                                details.cache
+                                    |> Dict.insert currentKey current
+        }
 
 
 setCurrent : String -> Cache state -> Cache state
