@@ -1,16 +1,19 @@
 module App.Page exposing
     ( Page, page
-    , toInit, toUpdate, toSubscriptions, toView
+    , withUrlSync, ParamChange(..)
+    , toInit, toUpdate, toSubscriptions, toView, toUrlSync
     )
 
 {-|
 
 @docs Page, page
 
+@docs withUrlSync, ParamChange
+
 
 # Internal Details
 
-@docs toInit, toUpdate, toSubscriptions, toView
+@docs toInit, toUpdate, toSubscriptions, toView, toUrlSync
 
 -}
 
@@ -26,6 +29,11 @@ type Page params shared msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg
         , view : shared -> model -> App.View.View msg
+        , urlSync :
+            Maybe
+                { toParams : model -> params
+                , onParamChange : params -> ParamChange msg
+                }
         }
 
 
@@ -37,8 +45,30 @@ page :
     , view : shared -> model -> App.View.View msg
     }
     -> Page params shared msg model
-page =
+page options =
     Page
+        { init = options.init
+        , update = options.update
+        , subscriptions = options.subscriptions
+        , view = options.view
+        , urlSync = Nothing
+        }
+
+
+{-| -}
+withUrlSync :
+    { toParams : model -> params
+    , onParamChange : params -> ParamChange msg
+    }
+    -> Page params shared msg model
+    -> Page params shared msg model
+withUrlSync urlSync page =
+    { page | urlSync = Just urlSync }
+
+
+type ParamChange msg
+    = SendParamsToCurrentPage msg
+    | LoadNewPage
 
 
 {-| -}
@@ -71,3 +101,15 @@ toView :
     -> (shared -> model -> App.View.View msg)
 toView (Page details) =
     details.view
+
+
+{-| -}
+toUrlSync :
+    Page params shared msg model
+    ->
+        Maybe
+            { toParams : model -> params
+            , onParamChange : params -> ParamChange msg
+            }
+toUrlSync (Page details) =
+    details.urlSync
