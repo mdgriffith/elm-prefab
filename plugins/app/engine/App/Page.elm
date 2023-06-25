@@ -8,7 +8,7 @@ module App.Page exposing
 
 @docs Page, page
 
-@docs withUrlSync, ParamChange
+@docs withUrlSync, ParamChange, sendParamsToCurrentPage, loadNewPage
 
 
 # Internal Details
@@ -55,6 +55,10 @@ page options =
         }
 
 
+
+{- URL SYNCING -}
+
+
 {-| -}
 withUrlSync :
     { toParams : model -> params
@@ -69,6 +73,18 @@ withUrlSync urlSync page =
 type ParamChange msg
     = SendParamsToCurrentPage msg
     | LoadNewPage
+
+
+{-| -}
+sendParamsToCurrentPage : msg -> ParamChange msg
+sendParamsToCurrentPage msg =
+    SendParamsToCurrentPage msg
+
+
+{-| -}
+loadNewPage : ParamChange msg
+loadNewPage =
+    LoadNewPage
 
 
 {-| -}
