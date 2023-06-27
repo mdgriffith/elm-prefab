@@ -75,9 +75,6 @@ generate routes =
     let
         initPage =
             Press.Model.initPage routes
-
-        updatePage =
-            Press.Model.updatePage routes
     in
     Elm.file [ "App", "Engine" ]
         [ app routes initPage
@@ -111,25 +108,26 @@ generate routes =
                 { group = Nothing
                 , exposeConstructor = True
                 }
-        , Elm.customType "Msg"
-            [ Elm.variantWith "UrlRequested" [ Gen.Browser.annotation_.urlRequest ]
-            , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
-            , Elm.variantWith "Page" [ Type.named [] "PageMsg" ]
-            , Elm.variantWith "ToFrame" [ Type.var "frameMsg" ]
-            ]
-        , Elm.customType "PageMsg"
-            (routes
-                |> List.map
-                    (\route ->
-                        Elm.variantWith
-                            (types.toPageMsg route.name)
-                            [ Type.named route.moduleName "Msg"
-                            ]
-                    )
+        , let
+            pageVariants =
+                routes
+                    |> List.map
+                        (\route ->
+                            Elm.variantWith
+                                (types.toPageMsg route.name)
+                                [ Type.named route.moduleName "Msg"
+                                ]
+                        )
+          in
+          Elm.customType "Msg"
+            ([ Elm.variantWith "UrlRequested" [ Gen.Browser.annotation_.urlRequest ]
+             , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
+             , Elm.variantWith "Global" [ Type.var "frameMsg" ]
+             ]
+                ++ pageVariants
             )
-        , update routes initPage updatePage
+        , update routes initPage
         , initPage.declaration
-        , updatePage.declaration
         , view routes
         , subscriptions routes
         ]
@@ -213,7 +211,7 @@ app routes initPage =
                                                         )
                                                         (Gen.Platform.Cmd.batch
                                                             [ frameEffect
-                                                                |> Gen.App.Effect.call_.map (Elm.val "ToFrame")
+                                                                |> Gen.App.Effect.call_.map (Elm.val "Global")
                                                                 |> Press.Model.toCmd config frameModel
                                                                 |> Elm.withType (Type.cmd (Type.named [] "Msg"))
                                                             , pageCmd
@@ -240,7 +238,7 @@ app routes initPage =
         |> Elm.expose
 
 
-update routes initPage updatePage =
+update routes initPage =
     Elm.declaration "update"
         (Elm.fn3
             ( "config", Just types.frame )
@@ -249,7 +247,7 @@ update routes initPage updatePage =
             (\config msg model ->
                 Elm.Case.custom msg
                     types.msg
-                    [ Elm.Case.branch1 "UrlRequested"
+                    ([ Elm.Case.branch1 "UrlRequested"
                         ( "request", Gen.Browser.annotation_.urlRequest )
                         (\request ->
                             Elm.Case.custom request
@@ -275,7 +273,7 @@ update routes initPage updatePage =
                                     )
                                 ]
                         )
-                    , Elm.Case.branch1 "UrlChanged"
+                     , Elm.Case.branch1 "UrlChanged"
                         ( "url", Gen.Url.annotation_.url )
                         (\url ->
                             let
@@ -325,7 +323,7 @@ update routes initPage updatePage =
                                                 |> Elm.Let.toExpression
                                 }
                         )
-                    , Elm.Case.branch1 "ToFrame"
+                     , Elm.Case.branch1 "Global"
                         ( "frameMsg", Type.var "frameMsg" )
                         (\frameMsg ->
                             let
@@ -344,22 +342,19 @@ update routes initPage updatePage =
                                                 ]
                                         )
                                         (frameEffect
-                                            |> Gen.App.Effect.call_.map (Elm.val "ToFrame")
+                                            |> Gen.App.Effect.call_.map (Elm.val "Global")
                                             |> toCmd config (Elm.get "frame" model)
                                         )
                                 )
                                 |> Elm.Let.tuple "newFrame" "frameEffect" updatedFrame
                                 |> Elm.Let.toExpression
                         )
-                    , Elm.Case.branch1 "Page"
-                        ( "pageMsg", types.pageMsg )
-                        (\pageMsg ->
-                            updatePage.call config
-                                (Press.Model.toShared config (Elm.get "frame" model))
-                                pageMsg
-                                model
-                        )
-                    ]
+                     ]
+                        ++ Press.Model.updatePageBranches routes
+                            config
+                            (Press.Model.toShared config (Elm.get "frame" model))
+                            model
+                    )
                     |> Elm.withType (Type.tuple types.model (Type.cmd types.msg))
             )
         )
@@ -376,7 +371,7 @@ view routes =
                     frameView pageView =
                         Elm.apply
                             (Elm.get "view" config)
-                            [ Elm.val "ToFrame"
+                            [ Elm.val "Global"
                             , Elm.get "frame" model
                             , pageView
                             ]
@@ -412,11 +407,9 @@ view routes =
                                                                 (Elm.fn
                                                                     ( "innerMsg", Nothing )
                                                                     (\innerMsg ->
-                                                                        Elm.apply (Elm.val "Page")
-                                                                            [ Elm.apply
-                                                                                (Elm.val pageMsgTypeName)
-                                                                                [ innerMsg
-                                                                                ]
+                                                                        Elm.apply
+                                                                            (Elm.val pageMsgTypeName)
+                                                                            [ innerMsg
                                                                             ]
                                                                     )
                                                                 )
@@ -455,7 +448,7 @@ subscriptions routes =
                     [ Elm.apply
                         (Elm.get "subscriptions" config)
                         [ Elm.get "frame" model ]
-                        |> Gen.App.Sub.call_.map (Elm.val "ToFrame")
+                        |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
                     , Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
                         { nothing =
@@ -464,42 +457,40 @@ subscriptions routes =
                             ( "current"
                             , \current ->
                                 toSub config (Elm.get "frame" model) <|
-                                    Gen.App.Sub.call_.map (Elm.val "Page")
-                                        (Elm.Case.custom current
-                                            types.pageModel
-                                            (routes
-                                                |> List.map
-                                                    (\route ->
-                                                        let
-                                                            stateKey =
-                                                                route.name
+                                    Elm.Case.custom current
+                                        types.pageModel
+                                        (routes
+                                            |> List.map
+                                                (\route ->
+                                                    let
+                                                        stateKey =
+                                                            route.name
 
-                                                            pageModule =
-                                                                route.moduleName
+                                                        pageModule =
+                                                            route.moduleName
 
-                                                            pageMsgTypeName =
-                                                                types.toPageMsg route.name
-                                                        in
-                                                        Elm.Case.branch1 stateKey
-                                                            ( "pageModel", Type.named pageModule "Model" )
-                                                            (\pageState ->
-                                                                Elm.apply
-                                                                    (Elm.apply
-                                                                        Gen.App.Page.values_.toSubscriptions
-                                                                        [ Elm.value
-                                                                            { importFrom = pageModule
-                                                                            , name = "page"
-                                                                            , annotation = Nothing
-                                                                            }
-                                                                        ]
-                                                                    )
-                                                                    [ Press.Model.toShared config (Elm.get "frame" model)
-                                                                    , pageState
+                                                        pageMsgTypeName =
+                                                            types.toPageMsg route.name
+                                                    in
+                                                    Elm.Case.branch1 stateKey
+                                                        ( "pageModel", Type.named pageModule "Model" )
+                                                        (\pageState ->
+                                                            Elm.apply
+                                                                (Elm.apply
+                                                                    Gen.App.Page.values_.toSubscriptions
+                                                                    [ Elm.value
+                                                                        { importFrom = pageModule
+                                                                        , name = "page"
+                                                                        , annotation = Nothing
+                                                                        }
                                                                     ]
-                                                                    |> Gen.App.Sub.call_.map (Elm.val pageMsgTypeName)
-                                                            )
-                                                    )
-                                            )
+                                                                )
+                                                                [ Press.Model.toShared config (Elm.get "frame" model)
+                                                                , pageState
+                                                                ]
+                                                                |> Gen.App.Sub.call_.map (Elm.val pageMsgTypeName)
+                                                        )
+                                                )
                                         )
                             )
                         }
