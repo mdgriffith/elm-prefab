@@ -295,11 +295,11 @@ update routes initPage =
                                     Elm.tuple updatedModel
                                         Gen.Platform.Cmd.none
                                 , just =
-                                    Tuple.pair "route" <|
-                                        \route ->
+                                    Tuple.pair "newRoute" <|
+                                        \newRoute ->
                                             let
                                                 initializedPage =
-                                                    initPage.call route
+                                                    initPage.call newRoute
                                                         (Press.Model.toShared config (Elm.get "frame" model))
                                                         (Elm.get "states" model)
                                             in
