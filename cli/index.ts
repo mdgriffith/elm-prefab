@@ -59,12 +59,12 @@ export const app = (options: AppOptions) => {
   return {
     generatorType: GeneratorType.Standard,
     init: (runOptions: RunOptions) => {
-      AppEngine.copyTo(runOptions.internalSrc);
-      AppToCopy.copyTo(runOptions.src);
+      AppEngine.copyTo(runOptions.internalSrc, true);
+      AppToCopy.copyTo(runOptions.src, false);
     },
     run: async (runOptions: RunOptions) => {
       // Copy static files
-      AppEngine.copyTo(runOptions.internalSrc);
+      AppEngine.copyTo(runOptions.internalSrc, true);
 
       const files: File[] = [];
 
@@ -170,10 +170,10 @@ export const ui = (options: UiOptions) => {
   return {
     generatorType: GeneratorType.Standard,
     init: (runOptions: RunOptions) => {
-      ThemeWebComponents.copyTo(runOptions.internalSrc);
+      ThemeWebComponents.copyTo(runOptions.internalSrc, true);
     },
     run: async (runOptions: RunOptions) => {
-      ThemeWebComponents.copyTo(runOptions.internalSrc);
+      ThemeWebComponents.copyTo(runOptions.internalSrc, true);
       await Generator.run(
         ThemeGenerator.Elm.Generate,
         runOptions.internalSrc,

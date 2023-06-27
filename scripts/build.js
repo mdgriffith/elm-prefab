@@ -10,14 +10,16 @@ const toTypescriptFile = (body) => `
 import * as path from "path";
 import * as fs from "fs";
 
-export const copyTo = (baseDir: string) => { 
+export const copyTo = (baseDir: string, overwrite: boolean) => { 
   ${body}
 }
 `;
 
 const toCopyFile = (path, contents) => `
-  fs.mkdirSync(path.dirname(path.join(baseDir, "${path}")), { recursive: true });
-  fs.writeFileSync(path.join(baseDir, "${path}"), ${contents});
+  if (overwrite || !fs.existsSync(path.join(baseDir, "${path}"))) {
+    fs.mkdirSync(path.dirname(path.join(baseDir, "${path}")), { recursive: true });
+    fs.writeFileSync(path.join(baseDir, "${path}"), ${contents});
+  }
 `;
 
 const copyDir = (dir, targetFilePath) => {
