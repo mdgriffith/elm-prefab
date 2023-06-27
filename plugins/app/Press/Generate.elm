@@ -696,6 +696,44 @@ wrapList fields =
                 )
 
 
+sameRoute : List RouteInfo -> Elm.Declaration
+sameRoute routes =
+    Elm.declaration "sameRoute"
+        (Elm.fn2
+            ( "one", Just (Type.named [] "Route") )
+            ( "two", Just (Type.named [] "Route") )
+            (\one two ->
+                Elm.Case.custom one
+                    (Type.named [] "Route")
+                    (routes
+                        |> List.map
+                            (\route ->
+                                Elm.Case.branch1 route.name
+                                    ( "params", Type.var "params" )
+                                    (\_ ->
+                                        Elm.Case.custom two
+                                            (Type.named [] "Route")
+                                            [ Elm.Case.branch1 route.name
+                                                ( "params2", Type.var "params2" )
+                                                (\_ ->
+                                                    Elm.bool True
+                                                )
+                                            , Elm.Case.otherwise
+                                                (\_ ->
+                                                    Elm.bool False
+                                                )
+                                            ]
+                                    )
+                            )
+                    )
+            )
+        )
+        |> Elm.exposeWith
+            { exposeConstructor = False
+            , group = Just "Route"
+            }
+
+
 parseAppUrl : List RouteInfo -> Elm.Declaration
 parseAppUrl routes =
     let
@@ -817,6 +855,7 @@ urlParser routes =
             { exposeConstructor = True
             , group = Just "Encodings"
             }
+    , sameRoute routes
     , parseAppUrl routes
     , Elm.unsafe """
 getSingle : String -> AppUrl.QueryParameters -> Maybe String
