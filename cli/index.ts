@@ -74,7 +74,7 @@ export const app = (options: AppOptions) => {
       } | null = null;
       if (options.markdown) {
         readFilesRecursively(options.markdown, files);
-        assets = { base: options.markdown, files: files };
+        assets = { base: path.normalize(options.markdown), files: files };
       }
 
       const elmFiles: ElmFile[] = [];
