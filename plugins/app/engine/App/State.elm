@@ -52,9 +52,9 @@ toNotFound (Cache details) =
                             Nothing ->
                                 details.cache
 
-                            Just current ->
+                            Just currentState ->
                                 details.cache
-                                    |> Dict.insert currentKey current
+                                    |> Dict.insert currentKey currentState
         }
 
 
