@@ -77,16 +77,16 @@ generate routes =
             Press.Model.initPage routes
     in
     Elm.file [ "App", "Engine" ]
-        [ app routes initPage
-        , Elm.alias "App"
+        [ Elm.alias "App"
             (Type.namedWith []
                 "Program"
                 [ Gen.Json.Encode.annotation_.value
-                , Type.namedWith [] "Model" [ Type.var "frame" ]
-                , Type.namedWith [] "Msg" [ Type.var "frameMsg" ]
+                , Type.namedWith [] "Model" [ Type.var "model" ]
+                , Type.namedWith [] "Msg" [ Type.var "msg" ]
                 ]
             )
             |> Elm.expose
+        , app routes initPage
         , Elm.alias "Model" types.modelRecord
         , Elm.customType "State"
             (routes
