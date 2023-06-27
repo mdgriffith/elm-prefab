@@ -174,7 +174,11 @@ export const ui = (options: UiOptions) => {
     },
     run: async (runOptions: RunOptions) => {
       ThemeWebComponents.copyTo(runOptions.internalSrc);
-      await Generator.run(ThemeGenerator.Elm.Generate, runOptions.src, options);
+      await Generator.run(
+        ThemeGenerator.Elm.Generate,
+        runOptions.internalSrc,
+        options
+      );
     },
   };
 };
