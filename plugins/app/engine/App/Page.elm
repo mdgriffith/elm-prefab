@@ -18,17 +18,18 @@ module App.Page exposing
 -}
 
 import App.Effect
+import App.Shared
 import App.Sub
 import App.View
 
 
 {-| -}
-type Page params shared msg model
+type Page params msg model
     = Page
-        { init : params -> shared -> Maybe model -> ( model, App.Effect.Effect msg )
-        , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
-        , subscriptions : shared -> model -> App.Sub.Sub msg
-        , view : shared -> model -> App.View.View msg
+        { init : params -> App.Shared.Shared -> Maybe model -> ( model, App.Effect.Effect msg )
+        , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
+        , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
+        , view : App.Shared.Shared -> model -> App.View.View msg
         , urlSync :
             Maybe
                 { toParams : model -> params
@@ -39,12 +40,12 @@ type Page params shared msg model
 
 {-| -}
 page :
-    { init : params -> shared -> Maybe model -> ( model, App.Effect.Effect msg )
-    , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
-    , subscriptions : shared -> model -> App.Sub.Sub msg
-    , view : shared -> model -> App.View.View msg
+    { init : params -> App.Shared.Shared -> Maybe model -> ( model, App.Effect.Effect msg )
+    , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
+    , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
+    , view : App.Shared.Shared -> model -> App.View.View msg
     }
-    -> Page params shared msg model
+    -> Page params msg model
 page options =
     Page
         { init = options.init
@@ -64,10 +65,10 @@ withUrlSync :
     { toParams : model -> params
     , onParamChange : params -> ParamChange msg
     }
-    -> Page params shared msg model
-    -> Page params shared msg model
-withUrlSync urlSync page =
-    { page | urlSync = Just urlSync }
+    -> Page params msg model
+    -> Page params msg model
+withUrlSync urlSync (Page details) =
+    Page { details | urlSync = Just urlSync }
 
 
 type ParamChange msg
@@ -89,39 +90,39 @@ loadNewPage =
 
 {-| -}
 toInit :
-    Page params shared msg model
-    -> (params -> shared -> Maybe model -> ( model, App.Effect.Effect msg ))
+    Page params msg model
+    -> (params -> App.Shared.Shared -> Maybe model -> ( model, App.Effect.Effect msg ))
 toInit (Page details) =
     details.init
 
 
 {-| -}
 toUpdate :
-    Page params shared msg model
-    -> (shared -> msg -> model -> ( model, App.Effect.Effect msg ))
+    Page params msg model
+    -> (App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ))
 toUpdate (Page details) =
     details.update
 
 
 {-| -}
 toSubscriptions :
-    Page params shared msg model
-    -> (shared -> model -> App.Sub.Sub msg)
+    Page params msg model
+    -> (App.Shared.Shared -> model -> App.Sub.Sub msg)
 toSubscriptions (Page details) =
     details.subscriptions
 
 
 {-| -}
 toView :
-    Page params shared msg model
-    -> (shared -> model -> App.View.View msg)
+    Page params msg model
+    -> (App.Shared.Shared -> model -> App.View.View msg)
 toView (Page details) =
     details.view
 
 
 {-| -}
 toUrlSync :
-    Page params shared msg model
+    Page params msg model
     ->
         Maybe
             { toParams : model -> params

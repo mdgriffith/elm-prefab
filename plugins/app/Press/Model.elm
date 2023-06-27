@@ -64,6 +64,10 @@ appMsg =
     Type.namedWith [] "Msg" [ Type.var "msg" ]
 
 
+sharedType =
+    Type.named [ "App", "Shared" ] "Shared"
+
+
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
@@ -129,7 +133,7 @@ types =
               , Type.function
                     [ Type.var "model"
                     ]
-                    (Type.var "shared")
+                    sharedType
               )
             ]
     , pageModel = Type.named [] "PageModel"
@@ -187,7 +191,7 @@ initPage :
 initPage routes =
     Elm.Declare.fn3 "initPage"
         ( "route", Just (Type.named [ "Route" ] "Route") )
-        ( "shared", Just (Type.var "shared") )
+        ( "shared", Just sharedType )
         ( "cache", Just (Gen.App.State.annotation_.cache (Type.named [] "State")) )
         (\route shared cache ->
             Elm.Case.custom route
@@ -269,7 +273,7 @@ initPage routes =
 updatePage routes =
     Elm.Declare.fn4 "updatePage"
         ( "config", Just types.frame )
-        ( "shared", Just (Type.var "shared") )
+        ( "shared", Just sharedType )
         ( "msg", Just types.pageMsg )
         ( "model", Just types.model )
         (\config shared msg model ->
