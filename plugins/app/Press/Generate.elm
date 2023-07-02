@@ -397,6 +397,7 @@ generateRoutes routes =
                 routes
             , urlEncoder routes
             , urlParser routes
+            , urlToId routes
             ]
         )
 
@@ -573,6 +574,39 @@ pathToUrlPieces base filepath =
 
     else
         Nothing
+
+
+urlToId : List RouteInfo -> List Elm.Declaration
+urlToId routes =
+    [ Elm.declaration "toId"
+        (Elm.fn ( "route", Just (Type.named [] "Route") )
+            (\route ->
+                Elm.Case.custom route
+                    (Type.named [] "Route")
+                    (routes
+                        |> List.map
+                            (\({ name, pattern } as individualRoute) ->
+                                Elm.Case.branch1 name
+                                    ( "params", paramType individualRoute )
+                                    (\_ ->
+                                        Elm.string name
+                                    )
+                             -- let
+                             --     (UrlPattern { path, queryParams }) =
+                             --         pattern
+                             -- in
+                             -- renderPath path queryParams params
+                            )
+                    )
+            )
+            |> Elm.withType
+                (Type.function [ Type.named [] "Route" ] Type.string)
+        )
+        |> Elm.exposeWith
+            { exposeConstructor = True
+            , group = Just "Encodings"
+            }
+    ]
 
 
 urlEncoder : List RouteInfo -> List Elm.Declaration
