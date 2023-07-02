@@ -73,8 +73,11 @@ pageRecordType =
 generate : List RouteInfo -> Elm.File
 generate routes =
     let
-        initPage =
-            Press.Model.initPage routes
+        loadPage =
+            Press.Model.loadPage routes
+
+        getPageInit =
+            Press.Model.getPageInit routes
     in
     Elm.file [ "App", "Engine" ]
         [ Elm.alias "App"
@@ -86,7 +89,7 @@ generate routes =
                 ]
             )
             |> Elm.expose
-        , app routes initPage
+        , app routes getPageInit loadPage
         , Elm.alias "Model" types.modelRecord
         , Elm.customType "State"
             (routes
@@ -100,6 +103,7 @@ generate routes =
             )
         , Elm.customType "View"
             [ Elm.variant "NotFound"
+            , Elm.variantWith "Loading" []
             , Elm.variantWith "View"
                 [ Gen.App.View.annotation_.view (Type.var "appMsg")
                 ]
@@ -123,11 +127,16 @@ generate routes =
             ([ Elm.variantWith "UrlRequested" [ Gen.Browser.annotation_.urlRequest ]
              , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
              , Elm.variantWith "Global" [ Type.var "frameMsg" ]
+             , Elm.variantWith "Loaded"
+                [ types.routeType
+                , types.pageLoadResult
+                ]
              ]
                 ++ pageVariants
             )
-        , update routes initPage
-        , initPage.declaration
+        , update routes getPageInit loadPage
+        , getPageInit.declaration
+        , loadPage.declaration
         , view routes
         , subscriptions routes
         ]
@@ -144,7 +153,7 @@ parseUrl url =
         [ url ]
 
 
-app routes initPage =
+app routes getPageInit loadPage =
     Elm.declaration "app"
         (Elm.fn
             ( "config"
@@ -170,56 +179,26 @@ app routes initPage =
                                     Elm.Let.letIn
                                         (\( frameModel, frameEffect ) ->
                                             let
-                                                newStates =
-                                                    Elm.Case.maybe (parseUrl url)
-                                                        { nothing = Elm.tuple Gen.App.State.init Gen.Platform.Cmd.none
-                                                        , just =
-                                                            ( "route"
-                                                            , \route ->
-                                                                let
-                                                                    initializedPage =
-                                                                        initPage.call route (Press.Model.toShared config frameModel) Gen.App.State.init
-                                                                in
-                                                                Elm.Let.letIn
-                                                                    (\( newPage, pageTag ) ->
-                                                                        Elm.tuple
-                                                                            (Gen.App.State.init
-                                                                                |> Gen.App.State.call_.insert pageTag (Elm.get "new" newPage)
-                                                                                |> Gen.App.State.call_.setCurrent pageTag
-                                                                            )
-                                                                            (Elm.get "effect" newPage
-                                                                                |> Press.Model.toCmd config frameModel
-                                                                            )
-                                                                    )
-                                                                    |> Elm.Let.tuple "pageModel" "tag" initializedPage
-                                                                    |> Elm.Let.toExpression
-                                                            )
-                                                        }
+                                                model =
+                                                    Elm.record
+                                                        [ ( "key", key )
+                                                        , ( "url", url )
+                                                        , ( "frame", frameModel )
+                                                        , ( "states"
+                                                          , Gen.App.State.init
+                                                          )
+                                                        ]
+                                                        |> Elm.withType types.model
                                             in
-                                            Elm.Let.letIn
-                                                (\( pageInitialzied, pageCmd ) ->
-                                                    Elm.tuple
-                                                        (Elm.record
-                                                            [ ( "key", key )
-                                                            , ( "url", url )
-                                                            , ( "frame", frameModel )
-                                                            , ( "states"
-                                                              , pageInitialzied
-                                                              )
-                                                            ]
-                                                            |> Elm.withType types.model
-                                                        )
-                                                        (Gen.Platform.Cmd.batch
-                                                            [ frameEffect
-                                                                |> Gen.App.Effect.call_.map (Elm.val "Global")
-                                                                |> Press.Model.toCmd config frameModel
-                                                                |> Elm.withType (Type.cmd (Type.named [] "Msg"))
-                                                            , pageCmd
-                                                            ]
-                                                        )
-                                                )
-                                                |> Elm.Let.tuple "pageInitialized" "pageCmd" newStates
-                                                |> Elm.Let.toExpression
+                                            Elm.Case.maybe (parseUrl url)
+                                                { nothing = Elm.tuple model Gen.Platform.Cmd.none
+                                                , just =
+                                                    ( "route"
+                                                    , \route ->
+                                                        getPageInit.call route (Press.Model.toShared config frameModel) Gen.App.State.init
+                                                            |> loadPage.call config model route
+                                                    )
+                                                }
                                         )
                                         |> Elm.Let.tuple "frameModel" "frameCmd" frameInitialized
                                         |> Elm.Let.toExpression
@@ -238,7 +217,7 @@ app routes initPage =
         |> Elm.expose
 
 
-update routes initPage =
+update routes getPageInit loadPage =
     Elm.declaration "update"
         (Elm.fn3
             ( "config", Just types.frame )
@@ -287,7 +266,7 @@ update routes initPage =
                                             Elm.updateRecord
                                                 [ ( "states"
                                                   , Elm.get "states" model
-                                                        |> Gen.App.State.toNotFound
+                                                        |> Gen.App.State.clearCurrent
                                                   )
                                                 ]
                                                 model
@@ -297,31 +276,17 @@ update routes initPage =
                                 , just =
                                     Tuple.pair "newRoute" <|
                                         \newRoute ->
-                                            let
-                                                initializedPage =
-                                                    initPage.call newRoute
-                                                        (Press.Model.toShared config (Elm.get "frame" model))
-                                                        (Elm.get "states" model)
-                                            in
-                                            Elm.Let.letIn
-                                                (\( newPage, pageTag ) ->
-                                                    Elm.tuple
-                                                        (Elm.updateRecord
-                                                            [ ( "states"
-                                                              , Elm.get "states" model
-                                                                    |> Gen.App.State.call_.insert pageTag (Elm.get "new" newPage)
-                                                                    |> Gen.App.State.call_.setCurrent pageTag
-                                                              )
-                                                            ]
-                                                            model
-                                                        )
-                                                        (Elm.get "effect" newPage
-                                                            |> toCmd config (Elm.get "frame" model)
-                                                        )
-                                                )
-                                                |> Elm.Let.tuple "pageModel" "tag" initializedPage
-                                                |> Elm.Let.toExpression
+                                            getPageInit.call newRoute
+                                                (Press.Model.toShared config (Elm.get "frame" model))
+                                                (Elm.get "states" model)
+                                                |> loadPage.call config model newRoute
                                 }
+                        )
+                     , Elm.Case.branch2 "Loaded"
+                        ( "route", types.routeType )
+                        ( "loaded", types.pageLoadResult )
+                        (\route initialization ->
+                            loadPage.call config model route initialization
                         )
                      , Elm.Case.branch1 "Global"
                         ( "frameMsg", Type.var "frameMsg" )
@@ -378,12 +343,11 @@ view routes =
                             |> Elm.withType (Gen.Browser.annotation_.document types.msg)
                 in
                 frameView <|
-                    Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
-                        { nothing =
-                            Elm.val "NotFound"
-                        , just =
-                            ( "current"
-                            , \current ->
+                    Gen.App.State.caseOf_.loaded (Gen.App.State.current (Elm.get "states" model))
+                        { notFound = Elm.val "NotFound"
+                        , loading = Elm.val "Loading"
+                        , loaded =
+                            \current ->
                                 Elm.apply (Elm.val "View")
                                     [ Elm.Case.custom current
                                         types.pageModel
@@ -431,7 +395,6 @@ view routes =
                                                 )
                                         )
                                     ]
-                            )
                         }
             )
         )

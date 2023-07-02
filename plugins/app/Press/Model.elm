@@ -7,6 +7,7 @@ import Elm.Annotation as Type
 import Elm.Case
 import Elm.Declare
 import Elm.Let
+import Elm.Op
 import Gen.App.Effect
 import Gen.App.Page
 import Gen.App.State
@@ -71,7 +72,12 @@ sharedType =
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
+    , routeType = Type.named [ "Route" ] "Route"
     , model = Type.namedWith [] "Model" [ Type.var "model" ]
+    , pageLoadResult =
+        Gen.App.Page.annotation_.init
+            (Type.named [] "State")
+            appMsg
     , modelRecord =
         Type.record
             [ ( "key", Gen.Browser.Navigation.annotation_.key )
@@ -139,12 +145,6 @@ types =
     , pageModel = Type.named [] "PageModel"
     , effect = Type.namedWith [] "Effect" [ Type.var "msg" ]
     , subscription = Type.namedWith [] "Subscription" [ Type.var "msg" ]
-    , route =
-        Elm.value
-            { importFrom = [ "Route" ]
-            , name = "Route"
-            , annotation = Nothing
-            }
     , cache = Type.named [] "Cache"
     , toPageMsg =
         \string ->
@@ -179,7 +179,99 @@ setState key val model =
     Gen.App.State.call_.insert key val (Elm.get "states" model)
 
 
-initPage :
+loadPage :
+    List RouteInfo
+    ->
+        { declaration : Elm.Declaration
+        , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+        , callFrom :
+            List String -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+        , value : List String -> Elm.Expression
+        }
+loadPage routes =
+    Elm.Declare.fn4 "loadPage"
+        ( "config", Just types.frame )
+        ( "model", Just types.model )
+        ( "route", Just types.routeType )
+        ( "initialization", Just types.pageLoadResult )
+        (\config model route initialization ->
+            Elm.Let.letIn
+                (\pageId ->
+                    Elm.Case.custom initialization
+                        (Type.named [] "PageLoadResult")
+                        [ Elm.Case.branch0 "NotFound"
+                            (let
+                                updatedModel =
+                                    Elm.updateRecord
+                                        [ ( "states"
+                                          , Elm.get "states" model
+                                                |> Gen.App.State.call_.toNotFound pageId
+                                          )
+                                        ]
+                                        model
+                             in
+                             Elm.tuple updatedModel
+                                Gen.Platform.Cmd.none
+                            )
+                        , Elm.Case.branch2 "Loaded"
+                            ( "newPage", Type.named [] "State" )
+                            ( "pageEffect", Gen.App.Effect.annotation_.effect types.msg )
+                            (\newPage pageEffect ->
+                                Elm.tuple
+                                    (Elm.updateRecord
+                                        [ ( "states"
+                                          , Elm.get "states" model
+                                                |> Gen.App.State.call_.insert pageId newPage
+                                          )
+                                        ]
+                                        model
+                                    )
+                                    (pageEffect
+                                        |> toCmd config (Elm.get "frame" model)
+                                    )
+                            )
+                        , Elm.Case.branch1 "LoadFrom"
+                            ( "pageEffect", types.pageLoadResult )
+                            (\pageEffect ->
+                                let
+                                    updatedModel =
+                                        Elm.updateRecord
+                                            [ ( "states"
+                                              , Elm.get "states" model
+                                                    |> Gen.App.State.call_.toLoading pageId
+                                              )
+                                            ]
+                                            model
+                                in
+                                Elm.tuple updatedModel
+                                    (pageEffect
+                                        |> Gen.App.Effect.call_.map
+                                            (Elm.apply
+                                                (Elm.val "Loaded")
+                                                [ route
+                                                ]
+                                            )
+                                        |> toCmd config (Elm.get "frame" model)
+                                    )
+                            )
+                        ]
+                )
+                |> Elm.Let.value "pageId"
+                    (Elm.apply
+                        (Elm.value
+                            { importFrom = [ "Route" ]
+                            , name = "toId"
+                            , annotation = Nothing
+                            }
+                        )
+                        [ route ]
+                    )
+                |> Elm.Let.toExpression
+                |> Elm.withType (Type.tuple types.model (Type.cmd types.msg))
+        )
+
+
+getPageInit :
     List RouteInfo
     ->
         { declaration : Elm.Declaration
@@ -188,14 +280,14 @@ initPage :
             List String -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
         , value : List String -> Elm.Expression
         }
-initPage routes =
-    Elm.Declare.fn3 "initPage"
-        ( "route", Just (Type.named [ "Route" ] "Route") )
+getPageInit routes =
+    Elm.Declare.fn3 "getPageInit"
+        ( "route", Just types.routeType )
         ( "shared", Just sharedType )
         ( "cache", Just (Gen.App.State.annotation_.cache (Type.named [] "State")) )
         (\route shared cache ->
             Elm.Case.custom route
-                (Type.named [ "Route" ] "Route")
+                types.routeType
                 (routes
                     |> List.map
                         (\routeInfo ->
@@ -219,13 +311,10 @@ initPage routes =
                             Elm.Case.branch1 routeInfo.name
                                 ( "params", Type.unit )
                                 (\params ->
-                                    let
-                                        initialized =
+                                    Elm.Let.letIn
+                                        (\pageDetails ->
                                             Elm.apply
-                                                (Elm.apply
-                                                    Gen.App.Page.values_.toInit
-                                                    [ pageConfig ]
-                                                )
+                                                (Elm.get "init" pageDetails)
                                                 [ params
                                                 , shared
                                                 , getPage stateKey
@@ -234,38 +323,27 @@ initPage routes =
                                                     , just = Elm.just
                                                     }
                                                 ]
-                                    in
-                                    Elm.Let.letIn
-                                        (\( newPage, pageEffect ) ->
-                                            Elm.tuple
-                                                (Elm.record
-                                                    [ ( "new"
-                                                      , Elm.apply
-                                                            (Elm.val stateKey)
-                                                            [ newPage ]
-                                                      )
-                                                    , ( "effect"
-                                                      , pageEffect
-                                                            |> Gen.App.Effect.call_.map (Elm.val pageMsgTypeName)
-                                                      )
-                                                    ]
-                                                )
-                                                (Elm.string stateKey)
+                                                |> Elm.Op.pipe
+                                                    (Elm.apply
+                                                        Gen.App.Page.values_.mapInitPlan
+                                                        [ Elm.record
+                                                            [ ( "onModel", Elm.val stateKey )
+                                                            , ( "onMsg", Elm.val pageMsgTypeName )
+                                                            ]
+                                                        ]
+                                                    )
                                         )
-                                        |> Elm.Let.tuple "newPage" "pageEffect" initialized
+                                        |> Elm.Let.value "pageDetails"
+                                            (Elm.apply
+                                                Gen.App.Page.values_.toInternalDetails
+                                                [ pageConfig ]
+                                            )
                                         |> Elm.Let.toExpression
                                 )
                         )
                 )
                 |> Elm.withType
-                    (Type.tuple
-                        (Type.record
-                            [ ( "new", Type.named [] "State" )
-                            , ( "effect", Gen.App.Effect.annotation_.effect types.msg )
-                            ]
-                        )
-                        Type.string
-                    )
+                    types.pageLoadResult
         )
 
 
