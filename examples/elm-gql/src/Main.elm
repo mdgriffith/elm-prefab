@@ -33,6 +33,13 @@ main =
                             ]
                         }
 
+                    App.Engine.Loading _ ->
+                        { title = "Loading"
+                        , body =
+                            [ Html.text "loading"
+                            ]
+                        }
+
                     App.Engine.View page ->
                         { title = page.title
                         , body =
