@@ -69,10 +69,14 @@ sharedType =
     Type.named [ "App", "Shared" ] "Shared"
 
 
+routeType =
+    Type.named [ "Route" ] "Route"
+
+
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
-    , routeType = Type.named [ "Route" ] "Route"
+    , routeType = routeType
     , model = Type.namedWith [] "Model" [ Type.var "model" ]
     , pageLoadResult =
         Gen.App.Page.annotation_.init
@@ -82,6 +86,7 @@ types =
         Type.record
             [ ( "key", Gen.Browser.Navigation.annotation_.key )
             , ( "url", Gen.Url.annotation_.url )
+            , ( "currentRoute", Type.maybe routeType )
             , ( "states", Gen.App.State.annotation_.cache (Type.named [] "State") )
             , ( "frame", Type.var "frame" )
             ]

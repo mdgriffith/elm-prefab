@@ -102,8 +102,8 @@ generate routes =
                     )
             )
         , Elm.customType "View"
-            [ Elm.variant "NotFound"
-            , Elm.variantWith "Loading" []
+            [ Elm.variantWith "NotFound" [ Gen.Url.annotation_.url ]
+            , Elm.variantWith "Loading" [ Type.maybe types.routeType ]
             , Elm.variantWith "View"
                 [ Gen.App.View.annotation_.view (Type.var "appMsg")
                 ]
@@ -183,6 +183,7 @@ app routes getPageInit loadPage =
                                                     Elm.record
                                                         [ ( "key", key )
                                                         , ( "url", url )
+                                                        , ( "route", Elm.nothing )
                                                         , ( "frame", frameModel )
                                                         , ( "states"
                                                           , Gen.App.State.init
@@ -268,6 +269,8 @@ update routes getPageInit loadPage =
                                                   , Elm.get "states" model
                                                         |> Gen.App.State.clearCurrent
                                                   )
+                                                , ( "url", url )
+                                                , ( "currentRoute", Elm.nothing )
                                                 ]
                                                 model
                                     in
@@ -276,10 +279,32 @@ update routes getPageInit loadPage =
                                 , just =
                                     Tuple.pair "newRoute" <|
                                         \newRoute ->
+                                            let
+                                                id =
+                                                    Elm.apply
+                                                        (Elm.value
+                                                            { importFrom = [ "Route" ]
+                                                            , name = "toId"
+                                                            , annotation = Nothing
+                                                            }
+                                                        )
+                                                        [ newRoute ]
+
+                                                updatedModel =
+                                                    Elm.updateRecord
+                                                        [ ( "url", url )
+                                                        , ( "currentRoute", newRoute )
+                                                        , ( "states"
+                                                          , Elm.get "states" model
+                                                                |> Gen.App.State.call_.setCurrent id
+                                                          )
+                                                        ]
+                                                        model
+                                            in
                                             getPageInit.call newRoute
                                                 (Press.Model.toShared config (Elm.get "frame" model))
                                                 (Elm.get "states" model)
-                                                |> loadPage.call config model newRoute
+                                                |> loadPage.call config updatedModel newRoute
                                 }
                         )
                      , Elm.Case.branch2 "Loaded"
@@ -344,8 +369,14 @@ view routes =
                 in
                 frameView <|
                     Gen.App.State.caseOf_.loaded (Gen.App.State.current (Elm.get "states" model))
-                        { notFound = Elm.val "NotFound"
-                        , loading = Elm.val "Loading"
+                        { notFound =
+                            Elm.apply
+                                (Elm.val "NotFound")
+                                [ Elm.get "url" model ]
+                        , loading =
+                            Elm.apply
+                                (Elm.val "Loading")
+                                [ Elm.get "currentRoute" model ]
                         , loaded =
                             \current ->
                                 Elm.apply (Elm.val "View")
