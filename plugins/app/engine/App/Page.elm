@@ -3,7 +3,6 @@ module App.Page exposing
     , Init, init, initWith, notFound, loadFrom
     , withUrlSync
     , InitPlan(..), toInternalDetails, mapInitPlan
-    , toInit, toUpdate, toSubscriptions, toView, toUrlSync
     )
 
 {-|
@@ -18,8 +17,6 @@ module App.Page exposing
 # Internal Details
 
 @docs InitPlan, toInternalDetails, mapInitPlan
-
-@docs toInit, toUpdate, toSubscriptions, toView, toUrlSync
 
 -}
 
@@ -142,46 +139,3 @@ toInternalDetails :
         }
 toInternalDetails (Page details) =
     details
-
-
-{-| -}
-toInit :
-    Page params msg model
-    -> (params -> App.Shared.Shared -> Maybe model -> ( model, App.Effect.Effect msg ))
-toInit (Page details) =
-    details.init
-
-
-{-| -}
-toUpdate :
-    Page params msg model
-    -> (App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ))
-toUpdate (Page details) =
-    details.update
-
-
-{-| -}
-toSubscriptions :
-    Page params msg model
-    -> (App.Shared.Shared -> model -> App.Sub.Sub msg)
-toSubscriptions (Page details) =
-    details.subscriptions
-
-
-{-| -}
-toView :
-    Page params msg model
-    -> (App.Shared.Shared -> model -> App.View.View msg)
-toView (Page details) =
-    details.view
-
-
-{-| -}
-toUrlSync :
-    Page params msg model
-    ->
-        Maybe
-            { toParams : model -> params
-            }
-toUrlSync (Page details) =
-    details.urlSync

@@ -311,10 +311,11 @@ getPageInit routes =
                             Elm.Case.branch1 routeInfo.name
                                 ( "params", Type.unit )
                                 (\params ->
-                                    Elm.Let.letIn
-                                        (\pageDetails ->
+                                    withPageHelper pageConfig
+                                        "init"
+                                        (\pageInit ->
                                             Elm.apply
-                                                (Elm.get "init" pageDetails)
+                                                pageInit
                                                 [ params
                                                 , shared
                                                 , getPage stateKey
@@ -333,18 +334,25 @@ getPageInit routes =
                                                         ]
                                                     )
                                         )
-                                        |> Elm.Let.value "pageDetails"
-                                            (Elm.apply
-                                                Gen.App.Page.values_.toInternalDetails
-                                                [ pageConfig ]
-                                            )
-                                        |> Elm.Let.toExpression
                                 )
                         )
                 )
                 |> Elm.withType
                     types.pageLoadResult
         )
+
+
+withPageHelper pageConfig fieldName fn =
+    Elm.Let.letIn
+        (\pageDetails ->
+            fn (Elm.get fieldName pageDetails)
+        )
+        |> Elm.Let.value "pageDetails"
+            (Elm.apply
+                Gen.App.Page.values_.toInternalDetails
+                [ pageConfig ]
+            )
+        |> Elm.Let.toExpression
 
 
 updatePageBranches :
@@ -377,20 +385,21 @@ updatePageBranches routes config shared model =
                                 \pageState ->
                                     let
                                         updated =
-                                            Elm.apply
-                                                (Elm.apply
-                                                    Gen.App.Page.values_.toUpdate
-                                                    [ Elm.value
-                                                        { importFrom = pageModule
-                                                        , name = "page"
-                                                        , annotation = Nothing
-                                                        }
-                                                    ]
+                                            withPageHelper
+                                                (Elm.value
+                                                    { importFrom = pageModule
+                                                    , name = "page"
+                                                    , annotation = Nothing
+                                                    }
                                                 )
-                                                [ shared
-                                                , pageMsg
-                                                , pageState
-                                                ]
+                                                "update"
+                                                (\pageUpdate ->
+                                                    Elm.apply pageUpdate
+                                                        [ shared
+                                                        , pageMsg
+                                                        , pageState
+                                                        ]
+                                                )
                                     in
                                     Elm.Let.letIn
                                         (\( innerPageModel, pageEffect ) ->
