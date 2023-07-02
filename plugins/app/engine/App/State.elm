@@ -72,8 +72,8 @@ toLoading key (Cache details) =
 Such as when the URL has changed to a new page that does not exist.
 
 -}
-clearCurrent : String -> Cache state -> Cache state
-clearCurrent key (Cache details) =
+clearCurrent : Cache state -> Cache state
+clearCurrent (Cache details) =
     Cache
         { details
             | current = Nothing
@@ -84,13 +84,8 @@ clearCurrent key (Cache details) =
                         details.cache
 
                     Just previousCurrent ->
-                        case details.current of
-                            Nothing ->
-                                details.cache
-
-                            Just currentState ->
-                                details.cache
-                                    |> Dict.insert previousCurrent.key previousCurrent.state
+                        details.cache
+                            |> Dict.insert previousCurrent.key previousCurrent.state
         }
 
 
