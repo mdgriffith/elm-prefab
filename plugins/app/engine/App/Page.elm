@@ -1,7 +1,6 @@
 module App.Page exposing
     ( Page, page
     , Init, init, initWith, notFound, loadFrom
-    , withUrlSync
     , InitPlan(..), toInternalDetails, mapInitPlan
     )
 
@@ -11,10 +10,10 @@ module App.Page exposing
 
 @docs Init, init, initWith, notFound, loadFrom
 
-@docs withUrlSync
-
 
 # Internal Details
+
+These are
 
 @docs InitPlan, toInternalDetails, mapInitPlan
 
@@ -33,10 +32,6 @@ type Page params msg model
         , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
         , view : App.Shared.Shared -> model -> App.View.View msg
-        , urlSync :
-            Maybe
-                { toParams : model -> { params : params, addToBrowserHistory : Bool }
-                }
         }
 
 
@@ -70,7 +65,13 @@ type InitPlan msg model
     | LoadFrom (App.Effect.Effect (InitPlan msg model))
 
 
-mapInitPlan : { onModel : model -> model2, onMsg : msg -> msg2 } -> InitPlan msg model -> InitPlan msg2 model2
+{-| -}
+mapInitPlan :
+    { onModel : model -> model2
+    , onMsg : msg -> msg2
+    }
+    -> InitPlan msg model
+    -> InitPlan msg2 model2
 mapInitPlan ({ onModel, onMsg } as fns) initPlan =
     case initPlan of
         NotFound ->
@@ -108,19 +109,6 @@ loadFrom effect =
 
 
 
-{- URL SYNCING -}
-
-
-{-| -}
-withUrlSync :
-    { toParams : model -> { params : params, addToBrowserHistory : Bool } }
-    -> Page params msg model
-    -> Page params msg model
-withUrlSync urlSync (Page details) =
-    Page { details | urlSync = Just urlSync }
-
-
-
 {- Internal -}
 
 
@@ -132,10 +120,6 @@ toInternalDetails :
         , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
         , view : App.Shared.Shared -> model -> App.View.View msg
-        , urlSync :
-            Maybe
-                { toParams : model -> { params : params, addToBrowserHistory : Bool }
-                }
         }
 toInternalDetails (Page details) =
     details
