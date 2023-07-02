@@ -1,6 +1,6 @@
 module App.Page exposing
     ( Page, page
-    , withUrlSync, ParamChange(..)
+    , withUrlSync
     , toInit, toUpdate, toSubscriptions, toView, toUrlSync
     )
 
@@ -8,7 +8,7 @@ module App.Page exposing
 
 @docs Page, page
 
-@docs withUrlSync, ParamChange, sendParamsToCurrentPage, loadNewPage
+@docs withUrlSync
 
 
 # Internal Details
@@ -33,7 +33,6 @@ type Page params msg model
         , urlSync :
             Maybe
                 { toParams : model -> params
-                , onParamChange : params -> ParamChange msg
                 }
         }
 
@@ -63,29 +62,11 @@ page options =
 {-| -}
 withUrlSync :
     { toParams : model -> params
-    , onParamChange : params -> ParamChange msg
     }
     -> Page params msg model
     -> Page params msg model
 withUrlSync urlSync (Page details) =
     Page { details | urlSync = Just urlSync }
-
-
-type ParamChange msg
-    = SendParamsToCurrentPage msg
-    | LoadNewPage
-
-
-{-| -}
-sendParamsToCurrentPage : msg -> ParamChange msg
-sendParamsToCurrentPage msg =
-    SendParamsToCurrentPage msg
-
-
-{-| -}
-loadNewPage : ParamChange msg
-loadNewPage =
-    LoadNewPage
 
 
 {-| -}
@@ -126,7 +107,6 @@ toUrlSync :
     ->
         Maybe
             { toParams : model -> params
-            , onParamChange : params -> ParamChange msg
             }
 toUrlSync (Page details) =
     details.urlSync
