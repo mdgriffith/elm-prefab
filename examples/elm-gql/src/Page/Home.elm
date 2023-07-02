@@ -37,9 +37,7 @@ page =
     App.Page.page
         { init =
             \params shared maybeCached ->
-                ( "HEllo!"
-                , Effect.none
-                )
+                App.Page.init "HEllo!"
         , update = \shared msg model -> ( model, Effect.none )
         , subscriptions = \shared model -> App.Sub.none
         , view =

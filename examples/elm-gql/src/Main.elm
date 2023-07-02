@@ -46,7 +46,7 @@ main =
                             [ page.body
                             ]
                         }
-        , toCmd = \model effect -> App.Effect.toCmd model.nav effect
+        , toCmd = \model effect -> App.Effect.toCmd { navKey = model.nav } effect
         , toSub = \model sub -> App.Sub.toSubscription sub
         , toShared = \model -> {}
         }
