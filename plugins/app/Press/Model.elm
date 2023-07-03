@@ -22,19 +22,20 @@ import Gen.Url
 import Set exposing (Set)
 
 
-type alias RouteInfo =
-    { name : String
+type alias Page =
+    { id : String
     , moduleName : List String
-    , pattern : UrlPattern
-    , type_ : RouteType
+    , url : UrlPattern
+    , deprecatedUrls : List UrlPattern
+    , source : String
+    , assets : Maybe SourceDirectory
     }
 
 
-type RouteType
-    = Elm
-    | Markdown
-        { files : List Source
-        }
+type alias SourceDirectory =
+    { base : String
+    , files : List Source
+    }
 
 
 type alias Source =
@@ -46,6 +47,7 @@ type alias Source =
 type UrlPattern
     = UrlPattern
         { path : List UrlPiece
+        , includePathTail : Bool
         , queryParams : QueryParams
         }
 
@@ -185,7 +187,7 @@ setState key val model =
 
 
 loadPage :
-    List RouteInfo
+    List Page
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -277,7 +279,7 @@ loadPage routes =
 
 
 getPageInit :
-    List RouteInfo
+    List Page
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -298,13 +300,13 @@ getPageInit routes =
                         (\routeInfo ->
                             let
                                 stateKey =
-                                    routeInfo.name
+                                    routeInfo.id
 
                                 pageModule =
                                     routeInfo.moduleName
 
                                 pageMsgTypeName =
-                                    types.toPageMsg routeInfo.name
+                                    types.toPageMsg routeInfo.id
 
                                 pageConfig =
                                     Elm.value
@@ -313,7 +315,7 @@ getPageInit routes =
                                         , annotation = Nothing
                                         }
                             in
-                            Elm.Case.branch1 routeInfo.name
+                            Elm.Case.branch1 routeInfo.id
                                 ( "params", Type.unit )
                                 (\params ->
                                     withPageHelper pageConfig
@@ -361,7 +363,7 @@ withPageHelper pageConfig fieldName fn =
 
 
 updatePageBranches :
-    List RouteInfo
+    List Page
     -> Elm.Expression
     -> Elm.Expression
     -> Elm.Expression
@@ -372,13 +374,13 @@ updatePageBranches routes config shared model =
             (\route ->
                 let
                     stateKey =
-                        route.name
+                        route.id
 
                     pageModule =
                         route.moduleName
 
                     pageMsgTypeName =
-                        types.toPageMsg route.name
+                        types.toPageMsg route.id
                 in
                 Elm.Case.branch1 pageMsgTypeName
                     ( "pageMsg", Type.named pageModule "Msg" )

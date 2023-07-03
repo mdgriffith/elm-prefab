@@ -70,7 +70,7 @@ pageRecordType =
         ]
 
 
-generate : List RouteInfo -> Elm.File
+generate : List Page -> Elm.File
 generate routes =
     let
         loadPage =
@@ -96,7 +96,7 @@ generate routes =
                 |> List.map
                     (\route ->
                         Elm.variantWith
-                            route.name
+                            route.id
                             [ Type.named route.moduleName "Model"
                             ]
                     )
@@ -118,7 +118,7 @@ generate routes =
                     |> List.map
                         (\route ->
                             Elm.variantWith
-                                (types.toPageMsg route.name)
+                                (types.toPageMsg route.id)
                                 [ Type.named route.moduleName "Msg"
                                 ]
                         )
@@ -350,7 +350,7 @@ update routes getPageInit loadPage =
         )
 
 
-view : List RouteInfo -> Elm.Declaration
+view : List Page -> Elm.Declaration
 view routes =
     Elm.declaration "view"
         (Elm.fn2
@@ -387,13 +387,13 @@ view routes =
                                                 (\route ->
                                                     let
                                                         stateKey =
-                                                            route.name
+                                                            route.id
 
                                                         pageModule =
                                                             route.moduleName
 
                                                         pageMsgTypeName =
-                                                            types.toPageMsg route.name
+                                                            types.toPageMsg route.id
                                                     in
                                                     Elm.Case.branch1 stateKey
                                                         ( "pageModel", Type.named pageModule "Model" )
@@ -432,7 +432,7 @@ view routes =
         )
 
 
-subscriptions : List RouteInfo -> Elm.Declaration
+subscriptions : List Page -> Elm.Declaration
 subscriptions routes =
     Elm.declaration "subscriptions"
         (Elm.fn2
@@ -459,13 +459,13 @@ subscriptions routes =
                                                 (\route ->
                                                     let
                                                         stateKey =
-                                                            route.name
+                                                            route.id
 
                                                         pageModule =
                                                             route.moduleName
 
                                                         pageMsgTypeName =
-                                                            types.toPageMsg route.name
+                                                            types.toPageMsg route.id
                                                     in
                                                     Elm.Case.branch1 stateKey
                                                         ( "pageModel", Type.named pageModule "Model" )

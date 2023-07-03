@@ -11,13 +11,13 @@ const ThemeGenerator = require("./generators/theme");
 
 type GenerateOptions = {
   src: string;
-  generators: Generator[];
+  plugins: Generator[];
 };
 
 export const generate = (options: GenerateOptions) => {
-  options.generators.sort((a, b) => a.generatorType - b.generatorType);
+  options.plugins.sort((a, b) => a.generatorType - b.generatorType);
 
-  for (const generator of options.generators) {
+  for (const generator of options.plugins) {
     generator.init({ internalSrc: "./.elm-press", src: options.src });
     generator.run({ internalSrc: "./.elm-press", src: options.src });
   }
@@ -36,23 +36,33 @@ export enum GeneratorType {
   Standard = 1,
 }
 
-type Pages = {
-  dir: string;
-  urls?: PageUrl[];
-};
+type AppOptions = { [key: string]: Page };
+
+type Page = string | PageUrl | FromDirectory;
 
 type PageUrl = {
-  page: string;
-  url?: string;
-  urls?: string[];
+  url: string;
+  deprecatedUrls?: string[];
 };
 
-type AppOptions = { markdown?: string; elm?: Pages };
+type FromDirectory = {
+  dir: string;
+  url: string;
+  deprecatedUrls?: string[];
+};
 
 type ElmFile = {
   source: string;
   id: string[];
-  urls: string[];
+  moduleName: string[];
+  url: string;
+  deprecatedUrls?: string[];
+  assets: Assets | null;
+};
+
+type Assets = {
+  base: string;
+  files: { path: string; contents: string }[];
 };
 
 export const app = (options: AppOptions) => {
@@ -66,59 +76,79 @@ export const app = (options: AppOptions) => {
       // Copy static files
       AppEngine.copyTo(runOptions.internalSrc, true);
 
-      const files: File[] = [];
-
-      let assets: {
-        base: string;
-        files: { path: string; contents: string }[];
-      } | null = null;
-      if (options.markdown) {
-        readFilesRecursively(options.markdown, files);
-        assets = { base: path.normalize(options.markdown), files: files };
-      }
+      const pageDir = path.join(runOptions.src, "Page");
 
       const elmFiles: ElmFile[] = [];
-      if (options.elm) {
-        const rawElmFiles: File[] = [];
-        readFilesRecursively(options.elm.dir, rawElmFiles);
 
-        for (const elmFile of rawElmFiles) {
-          const urls: string[] = [];
+      // All Elm page files
+      const rawElmFiles: File[] = [];
+      readFilesRecursively(pageDir, rawElmFiles);
 
-          if (options.elm.urls) {
-            for (const pageUrl of options.elm.urls) {
-              if (elmFile.path.endsWith(pageUrl.page)) {
-                if (pageUrl.url) {
-                  urls.push(pageUrl.url);
-                } else if (pageUrl.urls) {
-                  urls.concat(urls);
-                }
-                break;
-              }
-            }
+      for (const elmFile of rawElmFiles) {
+        let id: string[] = path
+          .relative(pageDir, elmFile.path)
+          .replace(".elm", "")
+          .split(path.sep);
+
+        const moduleName = path
+          .relative(runOptions.src, elmFile.path)
+          .replace(".elm", "")
+          .split(path.sep)
+          .join(".");
+
+        if (moduleName in options) {
+          const pageConfig = options[moduleName];
+          console.log(pageConfig);
+
+          let url: string = "";
+          let deprecatedUrls: string[] = [];
+          let assets: Assets | null = null;
+
+          if (typeof pageConfig === "string") {
+            // Single Url
+            url = pageConfig;
+            deprecatedUrls = [];
+          } else if ("dir" in pageConfig) {
+            // From Directory
+            let files: File[] = [];
+            readFilesRecursively(pageConfig.dir, files);
+            assets = { base: path.normalize(pageConfig.dir), files: files };
+
+            // We require a URL for a directory
+            url = pageConfig.url;
+          } else {
+            // Normal Elm page with url options
+            url = pageConfig.url;
+            deprecatedUrls = pageConfig.deprecatedUrls
+              ? pageConfig.deprecatedUrls
+              : [];
           }
-
-          options.elm.dir;
-
-          const id: string[] = path
-            .relative(options.elm.dir, elmFile.path)
-            .replace(".elm", "")
-            .split(path.sep);
 
           elmFiles.push({
             source: elmFile.contents,
             id: id,
-            urls: urls,
+            moduleName: moduleName.split("."),
+            url: url,
+            deprecatedUrls: deprecatedUrls,
+            assets: assets,
           });
+          // Delete the page config from the options so we can tell if there are missing ones later
+          // Also a page config can only be used once
+          delete options[moduleName];
+        } else {
+          throw new Error(`${moduleName}:  page config not found`);
         }
       }
+
+      // console.log(elmFiles);
       await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
-        assets: assets,
-        elmFiles: elmFiles,
+        pages: elmFiles,
       });
     },
   };
 };
+
+// UI Theme Plugin
 
 export type UiOptions = {
   backgrounds: {
@@ -166,7 +196,7 @@ type BorderVariant = {
   width?: number;
 };
 
-export const ui = (options: UiOptions) => {
+export const theme = (options: UiOptions) => {
   return {
     generatorType: GeneratorType.Standard,
     init: (runOptions: RunOptions) => {
