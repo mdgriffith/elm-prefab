@@ -26,7 +26,7 @@ main =
         , view =
             \fromFrameMsg model innerView ->
                 case innerView of
-                    App.Engine.NotFound ->
+                    App.Engine.NotFound _ ->
                         { title = "Not found"
                         , body =
                             [ Html.text "not found"
