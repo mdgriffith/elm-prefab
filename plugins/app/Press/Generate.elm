@@ -218,8 +218,9 @@ parsePath =
 
 decodeDirectory : Json.Decode.Decoder SourceDirectory
 decodeDirectory =
-    Json.Decode.map2 SourceDirectory
+    Json.Decode.map3 SourceDirectory
         (Json.Decode.field "base" Json.Decode.string)
+        (Json.Decode.field "baseOnServer" Json.Decode.string)
         (Json.Decode.field "files" (Json.Decode.list decodeSource))
 
 

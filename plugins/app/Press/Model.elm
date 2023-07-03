@@ -34,6 +34,7 @@ type alias Page =
 
 type alias SourceDirectory =
     { base : String
+    , baseOnServer : String
     , files : List Source
     }
 

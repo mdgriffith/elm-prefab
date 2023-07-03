@@ -90,6 +90,7 @@ generate routes =
             , urlEncoder routes
             , urlParser routes
             , urlToId routes
+            , assetLookup routes
             ]
         )
 
@@ -106,7 +107,7 @@ paramType route =
         (UrlPattern { queryParams, includePathTail, path }) =
             route.url
     in
-    if hasNoParams queryParams && not includePathTail then
+    if hasNoParams queryParams && not includePathTail && route.assets == Nothing then
         Type.record []
 
     else
@@ -128,7 +129,13 @@ paramType route =
         in
         Type.record
             (List.concat
-                [ List.filterMap
+                [ case route.assets of
+                    Nothing ->
+                        []
+
+                    Just assets ->
+                        [ ( "src", Type.string ) ]
+                , List.filterMap
                     (\piece ->
                         case piece of
                             Token _ ->
@@ -148,34 +155,6 @@ paramType route =
                     |> addCatchall
                 ]
             )
-
-
-
--- pathToUrlPieces : String -> String -> Maybe ( String, List UrlPiece )
--- pathToUrlPieces base filepath =
---     let
---         ( relativePath, ext ) =
---             Path.relative base filepath
---                 |> Path.extension
---     in
---     if ext == "md" || ext == "markdown" then
---         let
---             tokens =
---                 relativePath
---                     |> String.split "/"
---                     |> List.map camelToKebab
---                     |> List.filter (not << String.isEmpty)
---                     |> List.map Token
---             name =
---                 relativePath
---                     |> String.split "/"
---                     |> List.map toElmTypeName
---                     |> List.filter (not << String.isEmpty)
---                     |> String.join ""
---         in
---         Just ( name, tokens )
---     else
---         Nothing
 
 
 urlToId : List Page -> List Elm.Declaration
@@ -204,6 +183,57 @@ urlToId routes =
             , group = Just "Encodings"
             }
     ]
+
+
+assetLookup : List Page -> List Elm.Declaration
+assetLookup routes =
+    let
+        branches =
+            routes
+                |> List.concatMap
+                    (\individualRoute ->
+                        case individualRoute.assets of
+                            Nothing ->
+                                []
+
+                            Just assets ->
+                                List.map
+                                    (\file ->
+                                        let
+                                            appUrlString =
+                                                Path.relative assets.base file.path
+                                                    |> Path.removeExtension
+
+                                            serverUrlString =
+                                                Path.join assets.baseOnServer
+                                                    (Path.relative assets.base file.path)
+                                        in
+                                        ( appUrlString
+                                        , Elm.just
+                                            (Elm.string serverUrlString)
+                                        )
+                                    )
+                                    assets.files
+                    )
+    in
+    case branches of
+        [] ->
+            []
+
+        _ ->
+            [ Elm.declaration "lookupAsset"
+                (Elm.fn ( "path", Just Type.string )
+                    (\path ->
+                        Elm.Case.string path
+                            { cases = branches
+                            , otherwise =
+                                Elm.nothing
+                            }
+                    )
+                    |> Elm.withType
+                        (Type.function [ Type.string ] (Type.maybe Type.string))
+                )
+            ]
 
 
 urlEncoder : List Page -> List Elm.Declaration
@@ -336,7 +366,7 @@ wrapList fields =
 
 sameRoute : List Page -> Elm.Declaration
 sameRoute routes =
-    Elm.declaration "sameRoute"
+    Elm.declaration "sameRouteBase"
         (Elm.fn2
             ( "one", Just (Type.named [] "Route") )
             ( "two", Just (Type.named [] "Route") )
@@ -424,6 +454,13 @@ parseAppUrl routes =
                                             |> (\innerFields ->
                                                     if includePathTail then
                                                         "path = andPathTail" :: innerFields
+
+                                                    else
+                                                        innerFields
+                                               )
+                                            |> (\innerFields ->
+                                                    if includePathTail then
+                                                        "src = andPathTail" :: innerFields
 
                                                     else
                                                         innerFields

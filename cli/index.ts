@@ -48,6 +48,7 @@ type PageUrl = {
 type FromDirectory = {
   dir: string;
   url: string;
+  urlOnServer: string;
   deprecatedUrls?: string[];
 };
 
@@ -62,6 +63,7 @@ type ElmFile = {
 
 type Assets = {
   base: string;
+  baseOnServer: string;
   files: { path: string; contents: string }[];
 };
 
@@ -112,7 +114,11 @@ export const app = (options: AppOptions) => {
             // From Directory
             let files: File[] = [];
             readFilesRecursively(pageConfig.dir, files);
-            assets = { base: path.normalize(pageConfig.dir), files: files };
+            assets = {
+              base: path.normalize(pageConfig.dir),
+              baseOnServer: pageConfig.urlOnServer,
+              files: files,
+            };
 
             // We require a URL for a directory
             url = pageConfig.url;
