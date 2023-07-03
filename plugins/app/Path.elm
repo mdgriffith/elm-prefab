@@ -1,4 +1,16 @@
-module Path exposing (extension, relative, removeExtension, toFilename)
+module Path exposing (extension, join, relative, removeExtension, toFilename)
+
+
+join : String -> String -> String
+join one two =
+    if String.endsWith "/" one && String.startsWith "/" two then
+        one ++ String.dropLeft 1 two
+
+    else if String.startsWith "/" two then
+        one ++ two
+
+    else
+        one ++ "/" ++ two
 
 
 relative : String -> String -> String
