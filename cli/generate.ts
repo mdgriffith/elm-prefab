@@ -1,55 +1,36 @@
-import * as path from "path";
 import * as ElmPress from ".";
 
+import * as Tailwind from "./palettes/tailwind";
+
 const colors = {
-  neutral: {
-    "50": "#fafafa",
-    "100": "#f5f5f5",
-    "200": "#e5e5e5",
-    "300": "#d4d4d4",
-    "400": "#a3a3a3",
-    "500": "#737373",
-    "600": "#525252",
-    "700": "#404040",
-    "800": "#262626",
-    "900": "#171717",
-  },
+  neutral: Tailwind.colors.zinc,
+  primary: Tailwind.colors.pink,
 };
 
 ElmPress.generate({
-  src: path.join(__dirname, "../examples/elm-gql/src/"),
-  generators: [
+  src: "./examples/elm-gql/src/",
+  plugins: [
     ElmPress.app({
-      markdown: path.join(__dirname, "../examples/elm-gql/guide"),
-      elm: {
-        dir: path.join(__dirname, "../examples/elm-gql/src/Page"),
-        urls: [
-          {
-            page: "Home.elm",
-            url: "/",
-          },
-          // {
-          //   page: "Home.elm",
-          //   url: "/old-homepage?{search,tag,**}",
-          // },
-        ],
+      "Page.Home": "/old-homepage-2/*?{search}",
+      "Page.Markdown": {
+        dir: "./examples/elm-gql/guide",
+        url: "/guides/*",
+        urlOnServer: "/assets/guides/",
       },
     }),
-    ElmPress.ui({
-      backgrounds: {
+    ElmPress.theme({
+      colors: {
+        white: "#ffffff",
         neutral: colors.neutral,
+        primary: colors.primary,
       },
       spacing: {
-        sm4: 2,
-        sm3: 4,
-        sm2: 8,
-        sm: 12,
-        md: 16,
-        lg: 20,
-        lg1: 24,
-        lg2: 32,
-        lg3: 40,
-        lg4: 80,
+        xxSmall: 2,
+        xSmall: 4,
+        small: 8,
+        medium: 16,
+        large: 32,
+        xLarge: 64,
       },
       typography: {
         h1: {
@@ -64,7 +45,7 @@ ElmPress.generate({
           size: 20,
           color: colors.neutral["900"],
         },
-        base: {
+        default: {
           face: "Noto Sans",
           fallback: ["sans-serif"],
           size: 16,

@@ -157,8 +157,8 @@ export const app = (options: AppOptions) => {
 // UI Theme Plugin
 
 export type UiOptions = {
-  backgrounds: {
-    [index: string]: Palette;
+  colors: {
+    [index: string]: Palette | string;
   };
   spacing: Spacing;
   typography: Typography;
@@ -166,9 +166,14 @@ export type UiOptions = {
     [index: string]: BorderVariant;
   };
   shadows?: string[];
+  screens?: Screens;
 };
 
 interface Spacing {
+  [index: string]: number;
+}
+
+interface Screens {
   [index: string]: number;
 }
 
@@ -187,13 +192,6 @@ type Typeface = {
   color: Palette | string;
   weight?: number;
   leadingRatio?: number;
-};
-
-type TypeVariant = {
-  weight?: number;
-  size: number;
-  lineSpacing?: number;
-  color: Palette | string;
 };
 
 type BorderVariant = {
