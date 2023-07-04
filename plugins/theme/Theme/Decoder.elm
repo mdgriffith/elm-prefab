@@ -15,8 +15,8 @@ nameToString (Name str) =
 decode : Json.Decode.Decoder Theme
 decode =
     Json.Decode.map5 Theme
-        (Json.Decode.field "backgrounds"
-            (Json.Decode.succeed [])
+        (Json.Decode.field "colors"
+            decodeColorPalette
         )
         (Json.Decode.field "spacing"
             (decodeNamed Json.Decode.int)
@@ -30,6 +30,32 @@ decode =
         (Json.Decode.field "shadows"
             (Json.Decode.succeed [])
         )
+
+
+decodeColorPalette : Json.Decode.Decoder (List (Named Color))
+decodeColorPalette =
+    Json.Decode.keyValuePairs
+        (decodePalette decodeColor)
+        |> Json.Decode.map
+            (List.concatMap flattenPalette)
+
+
+flattenPalette ( key, palette ) =
+    case palette of
+        Single color ->
+            [ { name = Name key
+              , item = color
+              }
+            ]
+
+        Palette colors ->
+            List.map
+                (\{ name, item } ->
+                    { name = Name (key ++ Theme.nameToString name)
+                    , item = item
+                    }
+                )
+                colors
 
 
 decodeColor : Json.Decode.Decoder Color

@@ -29,7 +29,7 @@ type Color
 
 
 type alias Theme =
-    { backgrounds : List (Named Color)
+    { colors : List (Named Color)
     , spacing : List (Named Int)
     , typography : List (Named Typeface)
     , borders : List (Named BorderVariant)
