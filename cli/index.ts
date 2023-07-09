@@ -160,6 +160,9 @@ export type UiOptions = {
   colors: {
     [index: string]: Palette | string;
   };
+  palettes: RequiredPalettes & {
+    [index: string]: ColorPalette;
+  };
   spacing: Spacing;
   typography: Typography;
   borders?: {
@@ -177,9 +180,27 @@ interface Screens {
   [index: string]: number;
 }
 
+// Color Palettes
+
+type RequiredPalettes = {
+  primary: ColorPalette;
+  secondary: ColorPalette;
+  danger: ColorPalette;
+  neutral: ColorPalette;
+  neutralInverted: ColorPalette;
+};
+
+type ColorPalette = {
+  background: string;
+  foreground: string;
+  border?: string;
+};
+
 interface Palette {
   [index: string]: string;
 }
+
+// Typography
 
 interface Typography {
   [index: string]: Typeface;
@@ -196,7 +217,6 @@ type Typeface = {
 
 type BorderVariant = {
   rounded?: number;
-  color: string;
   width?: number;
 };
 

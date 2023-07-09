@@ -21,8 +21,36 @@ ElmPress.generate({
     ElmPress.theme({
       colors: {
         white: "#ffffff",
+        black: "#000000",
         neutral: colors.neutral,
         primary: colors.primary,
+      },
+      palettes: {
+        primary: {
+          background: colors.primary["500"],
+          foreground: colors.neutral["100"],
+          border: colors.primary["500"],
+        },
+        secondary: {
+          background: "#ffffff",
+          foreground: colors.neutral["800"],
+          border: colors.neutral["300"],
+        },
+        danger: {
+          background: colors.primary["500"],
+          foreground: colors.neutral["100"],
+          border: colors.primary["500"],
+        },
+        neutral: {
+          background: "#ffffff",
+          foreground: "#000000",
+          border: "#000000",
+        },
+        neutralInverted: {
+          background: "#000000",
+          foreground: "#ffffff",
+          border: "#000000",
+        },
       },
       spacing: {
         xxSmall: 2,
@@ -59,7 +87,7 @@ ElmPress.generate({
         },
       },
       borders: {
-        small: { rounded: 2, width: 1, color: colors.neutral["900"] },
+        small: { rounded: 2, width: 1 },
       },
       shadows: [],
     }),
