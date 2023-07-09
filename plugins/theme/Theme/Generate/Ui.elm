@@ -21,6 +21,7 @@ attr a =
 generate : Theme.Theme -> List Elm.File
 generate theme =
     [ generateColors theme
+    , generatePalettes theme
     , Elm.file [ "Ui", "Theme" ]
         (List.concat
             [ [ Elm.declaration "layout"
@@ -102,10 +103,7 @@ generate theme =
               , Elm.declaration "border"
                     (toFields
                         (\border ->
-                            Ui.border
-                                { width = border.width
-                                , color = toColor border.color
-                                }
+                            Ui.border border.width
                         )
                         theme.borders
                         |> Elm.record
@@ -154,6 +152,24 @@ generateColors theme =
             |> List.map
                 (\( name, val ) ->
                     Elm.declaration name val
+                        |> Elm.expose
+                )
+        )
+
+
+generatePalettes : Theme.Theme -> Elm.File
+generatePalettes theme =
+    Elm.file [ "Ui", "Theme", "Palette" ]
+        (theme.palettes
+            |> List.map
+                (\{ name, item } ->
+                    Elm.declaration (Theme.nameToString name)
+                        (Ui.palette
+                            { background = toColor item.background
+                            , font = toColor item.foreground
+                            , border = toColor item.border
+                            }
+                        )
                         |> Elm.expose
                 )
         )
