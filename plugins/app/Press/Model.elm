@@ -34,6 +34,7 @@ type alias Page =
 
 type alias SourceDirectory =
     { base : String
+    , baseOnApp : String
     , baseOnServer : String
     , files : List Source
     }
@@ -83,8 +84,8 @@ types =
     , model = Type.namedWith [] "Model" [ Type.var "model" ]
     , pageLoadResult =
         Gen.App.Page.annotation_.init
-            (Type.named [] "State")
             appMsg
+            (Type.named [] "State")
     , modelRecord =
         Type.record
             [ ( "key", Gen.Browser.Navigation.annotation_.key )
@@ -206,7 +207,11 @@ loadPage routes =
             Elm.Let.letIn
                 (\pageId ->
                     Elm.Case.custom initialization
-                        (Type.named [] "PageLoadResult")
+                        (Type.namedWith
+                            [ "App", "Page" ]
+                            "InitPlan"
+                            [ Type.var "msg", Type.var "model" ]
+                        )
                         [ Elm.Case.branch0 "NotFound"
                             (let
                                 updatedModel =
@@ -230,6 +235,7 @@ loadPage routes =
                                         [ ( "states"
                                           , Elm.get "states" model
                                                 |> Gen.App.State.call_.insert pageId newPage
+                                                |> Gen.App.State.call_.setCurrent pageId
                                           )
                                         ]
                                         model

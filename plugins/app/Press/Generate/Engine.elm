@@ -126,7 +126,7 @@ generate routes =
           Elm.customType "Msg"
             ([ Elm.variantWith "UrlRequested" [ Gen.Browser.annotation_.urlRequest ]
              , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
-             , Elm.variantWith "Global" [ Type.var "frameMsg" ]
+             , Elm.variantWith "Global" [ Type.var "msg" ]
              , Elm.variantWith "Loaded"
                 [ types.routeType
                 , types.pageLoadResult
@@ -183,7 +183,7 @@ app routes getPageInit loadPage =
                                                     Elm.record
                                                         [ ( "key", key )
                                                         , ( "url", url )
-                                                        , ( "route", Elm.nothing )
+                                                        , ( "currentRoute", Elm.nothing )
                                                         , ( "frame", frameModel )
                                                         , ( "states"
                                                           , Gen.App.State.init
@@ -293,7 +293,7 @@ update routes getPageInit loadPage =
                                                 updatedModel =
                                                     Elm.updateRecord
                                                         [ ( "url", url )
-                                                        , ( "currentRoute", newRoute )
+                                                        , ( "currentRoute", Elm.just newRoute )
                                                         , ( "states"
                                                           , Elm.get "states" model
                                                                 |> Gen.App.State.call_.setCurrent id
@@ -445,12 +445,11 @@ subscriptions routes =
                         [ Elm.get "frame" model ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
-                    , Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
-                        { nothing =
-                            Gen.Platform.Sub.none
-                        , just =
-                            ( "current"
-                            , \current ->
+                    , Gen.App.State.caseOf_.loaded (Gen.App.State.current (Elm.get "states" model))
+                        { loading = Gen.Platform.Sub.none
+                        , notFound = Gen.Platform.Sub.none
+                        , loaded =
+                            \current ->
                                 toSub config (Elm.get "frame" model) <|
                                     Elm.Case.custom current
                                         types.pageModel
@@ -488,7 +487,6 @@ subscriptions routes =
                                                         )
                                                 )
                                         )
-                            )
                         }
                     ]
             )

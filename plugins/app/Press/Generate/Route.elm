@@ -3,6 +3,7 @@ module Press.Generate.Route exposing (generate)
 import Elm
 import Elm.Annotation as Type
 import Elm.Case
+import Elm.Case.Branch as Branch
 import Elm.Let
 import Elm.Op
 import Gen.App.Markdown
@@ -402,114 +403,6 @@ sameRoute routes =
             }
 
 
-parseAppUrl : List Page -> Elm.Declaration
-parseAppUrl routes =
-    let
-        paths =
-            routes
-                |> List.reverse
-                |> List.concatMap
-                    (\route ->
-                        case route.url of
-                            UrlPattern { path, includePathTail, queryParams } ->
-                                let
-                                    branch =
-                                        if includePathTail then
-                                            path
-                                                |> List.map
-                                                    (\piece ->
-                                                        case piece of
-                                                            Token token ->
-                                                                surround "\"" "\"" token
-
-                                                            Variable var ->
-                                                                var
-                                                    )
-                                                |> wrapOpenList "andPathTail"
-
-                                        else
-                                            path
-                                                |> List.map
-                                                    (\piece ->
-                                                        case piece of
-                                                            Token token ->
-                                                                surround "\"" "\"" token
-
-                                                            Variable var ->
-                                                                var
-                                                    )
-                                                |> wrapList
-
-                                    fieldsFromPath =
-                                        path
-                                            |> List.filterMap
-                                                (\piece ->
-                                                    case piece of
-                                                        Token token ->
-                                                            Nothing
-
-                                                        Variable var ->
-                                                            Just (var ++ " = " ++ var)
-                                                )
-                                            |> (\innerFields ->
-                                                    if includePathTail then
-                                                        "path = andPathTail" :: innerFields
-
-                                                    else
-                                                        innerFields
-                                               )
-                                            |> (\innerFields ->
-                                                    if includePathTail then
-                                                        "src = andPathTail" :: innerFields
-
-                                                    else
-                                                        innerFields
-                                               )
-
-                                    queryParamFields =
-                                        if queryParams.includeCatchAll then
-                                            [ "params = appUrl.queryParameters" ]
-
-                                        else
-                                            case Set.toList queryParams.specificFields of
-                                                [] ->
-                                                    []
-
-                                                specificFields ->
-                                                    List.map
-                                                        (\field ->
-                                                            field ++ " = getSingle " ++ field ++ " appUrl.queryParameters"
-                                                        )
-                                                        specificFields
-
-                                    constructedRoute =
-                                        route.id
-                                            ++ " "
-                                            ++ (fieldsFromPath
-                                                    ++ queryParamFields
-                                                    |> wrapRecord
-                                               )
-                                in
-                                [ "        " ++ branch ++ " ->\n            Just <| " ++ constructedRoute
-                                ]
-                    )
-                |> String.join "\n\n"
-    in
-    Elm.unsafe
-        ("""
-
-parseAppUrl : AppUrl.AppUrl -> Maybe Route
-parseAppUrl appUrl = 
-    case appUrl.path of
-${paths}
-
-        _ -> 
-            Nothing
-"""
-            |> String.replace "${paths}" paths
-        )
-
-
 urlParser : List Page -> List Elm.Declaration
 urlParser routes =
     [ Elm.declaration "parse"
@@ -551,3 +444,106 @@ getList field appUrlParams =
 
 """
     ]
+
+
+parseAppUrl : List Page -> Elm.Declaration
+parseAppUrl routes =
+    Elm.declaration "parseAppUrl"
+        (Elm.fn
+            ( "appUrl", Just Gen.AppUrl.annotation_.appUrl )
+            (\appUrl ->
+                Elm.Case.custom
+                    (Elm.get "path" appUrl)
+                    (Type.list Type.string)
+                    (List.map toBranchPattern routes
+                        ++ [ Branch.ignore Elm.nothing
+                           ]
+                    )
+                    |> Elm.withType
+                        (Type.maybe (Type.named [] "Route"))
+            )
+        )
+
+
+toBranchPattern : Page -> Branch.Pattern Elm.Expression
+toBranchPattern page =
+    urlToPatterns page page.url
+
+
+urlToPatterns : Page -> UrlPattern -> Branch.Pattern Elm.Expression
+urlToPatterns page (UrlPattern pattern) =
+    if pattern.includePathTail then
+        Branch.listWithRemaining
+            { patterns = List.map toTokenPattern pattern.path
+            , remaining = Branch.var "andPathTail"
+            , startWith = []
+            , gather =
+                \fields gathered ->
+                    fields ++ gathered
+            , finally =
+                \fields remaining ->
+                    case page.assets of
+                        Nothing ->
+                            Elm.apply
+                                (Elm.val page.id)
+                                [ Elm.record (( "path", remaining ) :: fields)
+                                ]
+                                |> Elm.just
+
+                        Just assets ->
+                            let
+                                lookupAsset =
+                                    Elm.apply (Elm.val "lookupAsset")
+                                        [ Elm.Op.append
+                                            (Elm.string "/")
+                                            (Gen.String.call_.join (Elm.string "/") remaining)
+                                        ]
+                            in
+                            Elm.Case.custom lookupAsset
+                                (Type.maybe Type.string)
+                                [ Branch.just (Branch.var "src")
+                                    |> Branch.map
+                                        (\src ->
+                                            Elm.apply
+                                                (Elm.val page.id)
+                                                [ Elm.record
+                                                    (( "src", src )
+                                                        :: ( "path", remaining )
+                                                        :: fields
+                                                    )
+                                                ]
+                                                |> Elm.just
+                                        )
+                                , Branch.nothing Elm.nothing
+                                ]
+            }
+
+    else
+        Branch.list
+            { patterns = List.map toTokenPattern pattern.path
+            , startWith = []
+            , gather =
+                \fields gathered ->
+                    fields ++ gathered
+            , finally =
+                \fields ->
+                    Elm.apply
+                        (Elm.val page.id)
+                        [ Elm.record fields
+                        ]
+                        |> Elm.just
+            }
+
+
+toTokenPattern : UrlPiece -> Branch.Pattern (List ( String, Elm.Expression ))
+toTokenPattern token =
+    case token of
+        Token string ->
+            Branch.string string []
+
+        Variable varname ->
+            Branch.var varname
+                |> Branch.map
+                    (\var ->
+                        [ ( varname, var ) ]
+                    )

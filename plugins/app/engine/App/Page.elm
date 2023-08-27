@@ -49,7 +49,6 @@ page options =
         , update = options.update
         , subscriptions = options.subscriptions
         , view = options.view
-        , urlSync = Nothing
         }
 
 
@@ -116,7 +115,7 @@ loadFrom effect =
 toInternalDetails :
     Page params msg model
     ->
-        { init : params -> App.Shared.Shared -> Maybe model -> ( model, App.Effect.Effect msg )
+        { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
         , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
         , view : App.Shared.Shared -> model -> App.View.View msg
