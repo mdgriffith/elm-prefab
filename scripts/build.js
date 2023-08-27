@@ -69,3 +69,4 @@ const getFilesRecursively = (filepath) => {
 copyDir("plugins/app/engine", "./cli/templates/app/engine.ts");
 copyDir("plugins/app/toCopy", "./cli/templates/app/toCopy.ts");
 copyDir("plugins/theme/engine", "./cli/templates/theme/engine.ts");
+copyDir("plugins/theme/js", "./cli/templates/theme/js.ts");
