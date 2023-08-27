@@ -81,7 +81,7 @@ generateDirectory routes =
                                     []
 
                                 Just assets ->
-                                    List.map (toSourceDirectoryReference route assets) assets.files
+                                    List.filterMap (toSourceDirectoryReference route assets) assets.files
                         )
                         routes
                     )
@@ -97,48 +97,54 @@ toSourceDirectoryReference route assets src =
                 |> Path.removeExtension
                 |> String.split "/"
                 |> List.filter (not << String.isEmpty)
-                |> String.join "_"
+                |> String.join "/"
 
         headers =
             getHeaders src.source
                 |> List.map Elm.string
     in
-    Elm.record
-        [ ( "title"
-          , List.head headers
-                |> Maybe.withDefault (Elm.string srcPath)
-          )
-        , ( "route"
-          , Elm.apply
-                (Elm.value
-                    { importFrom = [ "Route" ]
-                    , name = route.id
-                    , annotation = Just (Type.named [ "Route" ] "Route")
-                    }
-                )
-                [ Elm.record
-                    [ ( "path", Elm.string srcPath )
-                    ]
-                ]
-          )
-        , ( "crumbs"
-          , String.split "/" srcPath
-                |> List.filterMap
-                    (\str ->
-                        if String.isEmpty str then
-                            Nothing
+    if String.isEmpty srcPath then
+        Nothing
 
-                        else
-                            Just (Elm.string str)
-                    )
-                |> List.reverse
-                |> List.drop 1
-                |> List.reverse
-                |> Elm.list
-          )
-        , ( "sourceUrl", Elm.string srcPath )
-        , ( "headers", Elm.list headers )
-        ]
+    else
+        Just <|
+            Elm.record
+                [ ( "title"
+                  , List.head headers
+                        |> Maybe.withDefault (Elm.string srcPath)
+                  )
+                , ( "route"
+                  , Elm.apply
+                        (Elm.value
+                            { importFrom = [ "Route" ]
+                            , name = route.id
+                            , annotation = Just (Type.named [ "Route" ] "Route")
+                            }
+                        )
+                        [ Elm.record
+                            [ ( "src", Elm.string (Path.join assets.baseOnApp srcPath) )
+                            , ( "path", Elm.list (List.map Elm.string (String.split "/" srcPath)) )
+                            ]
+                        ]
+                  )
+                , ( "crumbs"
+                  , String.split "/" srcPath
+                        |> List.filterMap
+                            (\str ->
+                                if String.isEmpty str then
+                                    Nothing
+
+                                else
+                                    Just (Elm.string str)
+                            )
+                        |> List.reverse
+                        |> List.drop 1
+                        |> List.reverse
+                        |> Elm.list
+                  )
+                , ( "sourceUrl", Elm.string (Path.join assets.baseOnApp srcPath) )
+                , ( "headers", Elm.list headers )
+                ]
 
 
 
