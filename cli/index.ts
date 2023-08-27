@@ -63,6 +63,7 @@ type ElmFile = {
 
 type Assets = {
   base: string;
+  baseOnApp: string;
   baseOnServer: string;
   files: { path: string; contents: string }[];
 };
@@ -116,6 +117,7 @@ export const app = (options: AppOptions) => {
             readFilesRecursively(pageConfig.dir, files);
             assets = {
               base: path.normalize(pageConfig.dir),
+              baseOnApp: pageConfig.url.replace("/*", ""),
               baseOnServer: pageConfig.urlOnServer,
               files: files,
             };
