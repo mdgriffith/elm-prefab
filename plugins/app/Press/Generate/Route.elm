@@ -170,8 +170,26 @@ urlToId routes =
                             (\individualRoute ->
                                 Elm.Case.branch1 individualRoute.id
                                     ( "params", paramType individualRoute )
-                                    (\_ ->
-                                        Elm.string individualRoute.id
+                                    (\params ->
+                                        let
+                                            variables =
+                                                getParamVariableList individualRoute
+                                                    |> List.map
+                                                        (\name ->
+                                                            Elm.get name params
+                                                        )
+                                        in
+                                        case variables of
+                                            [] ->
+                                                Elm.string individualRoute.id
+
+                                            _ ->
+                                                Gen.String.call_.join (Elm.string "/")
+                                                    (Elm.list
+                                                        (Elm.string individualRoute.id
+                                                            :: variables
+                                                        )
+                                                    )
                                     )
                             )
                     )
@@ -184,6 +202,22 @@ urlToId routes =
             , group = Just "Encodings"
             }
     ]
+
+
+getParamVariableList : Page -> List String
+getParamVariableList page =
+    case page.url of
+        UrlPattern { path } ->
+            List.filterMap
+                (\piece ->
+                    case piece of
+                        Token _ ->
+                            Nothing
+
+                        Variable name ->
+                            Just name
+                )
+                path
 
 
 assetLookup : List Page -> List Elm.Declaration
