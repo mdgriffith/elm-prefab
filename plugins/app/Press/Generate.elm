@@ -102,6 +102,17 @@ decodeUrlPattern =
             )
 
 
+{-| Parses a format like
+
+    /users/:id/*?{search}
+
+Which parses
+
+  - id into a string
+  - \* into a list of strings
+  - and `search` into a list of strings from ?search
+
+-}
 parseUrlPattern : Parser.Parser UrlPattern
 parseUrlPattern =
     Parser.succeed
