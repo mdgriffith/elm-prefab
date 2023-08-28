@@ -14,8 +14,11 @@ nameToString (Name str) =
 
 decode : Json.Decode.Decoder Theme
 decode =
-    Json.Decode.map5 Theme
+    Json.Decode.map6 Theme
         (Json.Decode.field "colors"
+            decodeColorSwatch
+        )
+        (Json.Decode.field "palettes"
             decodeColorPalette
         )
         (Json.Decode.field "spacing"
@@ -32,8 +35,26 @@ decode =
         )
 
 
-decodeColorPalette : Json.Decode.Decoder (List (Named Color))
+decodeColorPalette : Json.Decode.Decoder (List (Named ColorPalette))
 decodeColorPalette =
+    Json.Decode.keyValuePairs
+        (Json.Decode.map3 ColorPalette
+            (Json.Decode.field "foreground" decodeColor)
+            (Json.Decode.field "background" decodeColor)
+            (Json.Decode.field "border" decodeColor)
+        )
+        |> Json.Decode.map
+            (List.map
+                (\( key, palette ) ->
+                    { name = Name key
+                    , item = palette
+                    }
+                )
+            )
+
+
+decodeColorSwatch : Json.Decode.Decoder (List (Named Color))
+decodeColorSwatch =
     Json.Decode.keyValuePairs
         (decodePalette decodeColor)
         |> Json.Decode.map
@@ -112,11 +133,10 @@ decodePalette decodeThing =
 
 decodeBorderVariant : Json.Decode.Decoder BorderVariant
 decodeBorderVariant =
-    Json.Decode.map3 BorderVariant
+    Json.Decode.map2 BorderVariant
         (Json.Decode.maybe (Json.Decode.field "rounded" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 0)
         )
-        (Json.Decode.field "color" decodeColor)
         (Json.Decode.maybe (Json.Decode.field "width" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 1)
         )

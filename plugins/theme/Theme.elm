@@ -30,10 +30,18 @@ type Color
 
 type alias Theme =
     { colors : List (Named Color)
+    , palettes : List (Named ColorPalette)
     , spacing : List (Named Int)
     , typography : List (Named Typeface)
     , borders : List (Named BorderVariant)
     , shadows : List (Named Shadow)
+    }
+
+
+type alias ColorPalette =
+    { foreground : Color
+    , background : Color
+    , border : Color
     }
 
 
@@ -54,7 +62,6 @@ type Palette thing
 
 type alias BorderVariant =
     { rounded : Int
-    , color : Color
     , width : Int
     }
 

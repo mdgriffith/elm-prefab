@@ -44,7 +44,7 @@ modal options =
         }
 
 
-withCloseOnBackdropClick : Maybe (Bool -> msg) -> Modal msg -> Modal msg
+withCloseOnBackdropClick : (Bool -> msg) -> Modal msg -> Modal msg
 withCloseOnBackdropClick closeOnClickBackdrop (Modal details) =
     Modal
         { details

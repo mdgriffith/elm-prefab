@@ -1,6 +1,5 @@
 module Ui.Button exposing
-    ( Button, button
-    , withSecondary
+    ( Button, primary, secondary
     , withSmall
     , withWidthFill
     , view, viewRow
@@ -8,12 +7,7 @@ module Ui.Button exposing
 
 {-|
 
-@docs Button, button
-
-
-## Color
-
-@docs withSecondary
+@docs Button, primary, secondary
 
 
 ## Sizing
@@ -30,6 +24,8 @@ module Ui.Button exposing
 -}
 
 import Ui
+import Ui.Theme
+import Ui.Theme.Palette
 
 
 type Button msg
@@ -64,16 +60,33 @@ type Style
 
 
 {-| -}
-button :
+primary :
     { label : String
     , onClick : msg
     }
     -> Button msg
-button options =
+primary options =
     Button
         { label = options.label
         , onClick = options.onClick
         , style = Primary
+        , widthFill = False
+        , corners = Rounded
+        , size = Normal
+        }
+
+
+{-| -}
+secondary :
+    { label : String
+    , onClick : msg
+    }
+    -> Button msg
+secondary options =
+    Button
+        { label = options.label
+        , onClick = options.onClick
+        , style = Secondary
         , widthFill = False
         , corners = Rounded
         , size = Normal
@@ -112,7 +125,7 @@ view : Button msg -> Ui.Element msg
 view (Button details) =
     Ui.el
         [ Ui.onClick details.onClick
-        , Ui.Theme.font.base
+        , Ui.Theme.font.default
 
         -- Variable styles
         , if details.widthFill then
@@ -126,6 +139,12 @@ view (Button details) =
 
             Normal ->
                 Ui.Theme.padding.md
+        , case details.style of
+            Primary ->
+                Ui.Theme.Palette.primary
+
+            Secondary ->
+                Ui.Theme.Palette.secondary
         , case details.corners of
             Rounded ->
                 Ui.rounded 4

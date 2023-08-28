@@ -5,7 +5,7 @@ module Theme.Generate.Ui exposing (generate)
 import Elm
 import Elm.Annotation
 import Elm.Op
-import Gen.Ui as Ui
+import Gen.Ui
 import Gen.Ui.Font
 import Gen.Ui.Input
 import Theme
@@ -15,7 +15,7 @@ attr : Elm.Expression -> Elm.Expression
 attr a =
     a
         |> Elm.withType
-            (Ui.annotation_.attribute (Elm.Annotation.var "msg"))
+            (Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg"))
 
 
 generate : Theme.Theme -> List Elm.File
@@ -29,12 +29,12 @@ generate theme =
                         ( "attrs"
                         , Just
                             (Elm.Annotation.list
-                                (Ui.annotation_.attribute (Elm.Annotation.var "msg"))
+                                (Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg"))
                             )
                         )
                         ( "body", Nothing )
                         (\attrs body ->
-                            Ui.call_.layout
+                            Gen.Ui.call_.layout
                                 (Elm.Op.cons
                                     (Elm.get "default"
                                         (Elm.val "font")
@@ -58,19 +58,19 @@ generate theme =
                                 ( "attrs"
                                 , Just
                                     (Elm.Annotation.list
-                                        (Ui.annotation_.attribute (Elm.Annotation.var "msg"))
+                                        (Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg"))
                                     )
                                 )
                                 ( "label", Just Elm.Annotation.string )
                                 (\attrs label ->
-                                    Ui.call_.el
+                                    Gen.Ui.call_.el
                                         (Elm.Op.cons
                                             (Elm.get name
                                                 (Elm.val "font")
                                             )
                                             attrs
                                         )
-                                        (Ui.call_.text label)
+                                        (Gen.Ui.call_.text label)
                                 )
                             )
                             |> Elm.expose
@@ -103,7 +103,7 @@ generate theme =
               , Elm.declaration "border"
                     (toFields
                         (\border ->
-                            Ui.border border.width
+                            Gen.Ui.border border.width
                         )
                         theme.borders
                         |> Elm.record
@@ -111,14 +111,14 @@ generate theme =
                     |> Elm.expose
               , Elm.declaration "spacing"
                     (Elm.record
-                        (toFields (attr << Ui.spacing)
+                        (toFields (attr << Gen.Ui.spacing)
                             theme.spacing
                         )
                     )
                     |> Elm.expose
               , Elm.declaration "padding"
                     (Elm.record
-                        (toFields (attr << Ui.padding)
+                        (toFields (attr << Gen.Ui.padding)
                             theme.spacing
                             ++ [ ( "xy"
                                  , Elm.record
@@ -127,7 +127,16 @@ generate theme =
                                             Elm.record
                                                 (toFields
                                                     (\spacingY ->
-                                                        attr (Ui.paddingXY spacingX spacingY)
+                                                        attr
+                                                            (Gen.Ui.paddingWith
+                                                                (Gen.Ui.make_.edges
+                                                                    { top = Elm.int spacingY
+                                                                    , right = Elm.int spacingX
+                                                                    , bottom = Elm.int spacingY
+                                                                    , left = Elm.int spacingX
+                                                                    }
+                                                                )
+                                                            )
                                                     )
                                                     theme.spacing
                                                 )
@@ -164,7 +173,7 @@ generatePalettes theme =
             |> List.map
                 (\{ name, item } ->
                     Elm.declaration (Theme.nameToString name)
-                        (Ui.palette
+                        (Gen.Ui.palette
                             { background = toColor item.background
                             , font = toColor item.foreground
                             , border = toColor item.border
@@ -181,7 +190,7 @@ generatePalettes theme =
 
 toColor : Theme.Color -> Elm.Expression
 toColor (Theme.Color r g b) =
-    Ui.rgb r g b
+    Gen.Ui.rgb r g b
 
 
 toFields : (thing -> Elm.Expression) -> List (Theme.Named thing) -> List ( String, Elm.Expression )
