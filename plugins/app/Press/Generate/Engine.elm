@@ -178,24 +178,38 @@ app routes getPageInit loadPage =
                                     in
                                     Elm.Let.letIn
                                         (\( frameModel, frameEffect ) ->
-                                            let
-                                                model =
-                                                    Elm.record
-                                                        [ ( "key", key )
-                                                        , ( "url", url )
-                                                        , ( "currentRoute", Elm.nothing )
-                                                        , ( "frame", frameModel )
-                                                        , ( "states"
-                                                          , Gen.App.State.init
-                                                          )
-                                                        ]
-                                                        |> Elm.withType types.model
-                                            in
                                             Elm.Case.maybe (parseUrl url)
-                                                { nothing = Elm.tuple model Gen.Platform.Cmd.none
+                                                { nothing =
+                                                    let
+                                                        model =
+                                                            Elm.record
+                                                                [ ( "key", key )
+                                                                , ( "url", url )
+                                                                , ( "currentRoute", Elm.nothing )
+                                                                , ( "frame", frameModel )
+                                                                , ( "states"
+                                                                  , Gen.App.State.init
+                                                                  )
+                                                                ]
+                                                                |> Elm.withType types.model
+                                                    in
+                                                    Elm.tuple model Gen.Platform.Cmd.none
                                                 , just =
                                                     ( "route"
                                                     , \route ->
+                                                        let
+                                                            model =
+                                                                Elm.record
+                                                                    [ ( "key", key )
+                                                                    , ( "url", url )
+                                                                    , ( "currentRoute", Elm.just route )
+                                                                    , ( "frame", frameModel )
+                                                                    , ( "states"
+                                                                      , Gen.App.State.init
+                                                                      )
+                                                                    ]
+                                                                    |> Elm.withType types.model
+                                                        in
                                                         getPageInit.call route (Press.Model.toShared config frameModel) Gen.App.State.init
                                                             |> loadPage.call config model route
                                                     )
