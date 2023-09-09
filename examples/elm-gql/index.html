@@ -4481,9 +4481,10 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $author$project$App$Engine$ToFrame = function (a) {
-	return {$: 'ToFrame', a: a};
+var $elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
 };
+var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $author$project$App$Engine$UrlChanged = function (a) {
 	return {$: 'UrlChanged', a: a};
 };
@@ -4513,10 +4514,6 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 };
 var $elm$core$Basics$False = {$: 'False'};
 var $elm$core$Basics$add = _Basics_add;
-var $elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
-};
-var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$String$all = _String_all;
 var $elm$core$Basics$and = _Basics_and;
 var $elm$core$Basics$append = _Utils_append;
@@ -5199,22 +5196,11 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$application = _Browser_application;
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $author$project$App$State$Cache = function (a) {
-	return {$: 'Cache', a: a};
-};
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $author$project$App$State$init = $author$project$App$State$Cache(
-	{cache: $elm$core$Dict$empty, current: $elm$core$Maybe$Nothing, currentKey: $elm$core$Maybe$Nothing});
 var $author$project$App$Engine$Home = function (a) {
 	return {$: 'Home', a: a};
 };
 var $author$project$App$Engine$Markdown = function (a) {
 	return {$: 'Markdown', a: a};
-};
-var $author$project$App$Engine$Page = function (a) {
-	return {$: 'Page', a: a};
 };
 var $author$project$App$Engine$ToHome = function (a) {
 	return {$: 'ToHome', a: a};
@@ -5257,18 +5243,25 @@ var $elm$core$Dict$get = F2(
 var $author$project$App$State$get = F2(
 	function (key, _v0) {
 		var details = _v0.a;
-		var _v1 = details.currentKey;
+		var _v1 = details.current;
 		if (_v1.$ === 'Nothing') {
 			return A2($elm$core$Dict$get, key, details.cache);
 		} else {
-			var currentKey = _v1.a;
-			return _Utils_eq(currentKey, key) ? details.current : A2($elm$core$Dict$get, key, details.cache);
+			var cur = _v1.a;
+			return _Utils_eq(cur.key, key) ? $elm$core$Maybe$Just(cur.state) : A2($elm$core$Dict$get, key, details.cache);
 		}
 	});
-var $author$project$App$Page$init = function (_v0) {
-	var details = _v0.a;
-	return details.init;
+var $author$project$App$Page$Error = function (a) {
+	return {$: 'Error', a: a};
 };
+var $author$project$App$Page$LoadFrom = function (a) {
+	return {$: 'LoadFrom', a: a};
+};
+var $author$project$App$Page$Loaded = F2(
+	function (a, b) {
+		return {$: 'Loaded', a: a, b: b};
+	});
+var $author$project$App$Page$NotFound = {$: 'NotFound'};
 var $author$project$App$Effect$Back = function (a) {
 	return {$: 'Back', a: a};
 };
@@ -5312,13 +5305,42 @@ var $author$project$App$Effect$map = F2(
 				var n = effect.a;
 				return $author$project$App$Effect$Back(n);
 			default:
-				var details = effect.a.details;
 				var tag = effect.a.tag;
+				var details = effect.a.details;
 				return $author$project$App$Effect$Send(
 					{details: details, tag: tag});
 		}
 	});
+var $author$project$App$Page$mapInitPlan = F2(
+	function (fns, initPlan) {
+		var onModel = fns.onModel;
+		var onMsg = fns.onMsg;
+		switch (initPlan.$) {
+			case 'NotFound':
+				return $author$project$App$Page$NotFound;
+			case 'Error':
+				var err = initPlan.a;
+				return $author$project$App$Page$Error(err);
+			case 'Loaded':
+				var model = initPlan.a;
+				var effect = initPlan.b;
+				return A2(
+					$author$project$App$Page$Loaded,
+					onModel(model),
+					A2($author$project$App$Effect$map, onMsg, effect));
+			default:
+				var effect = initPlan.a;
+				return $author$project$App$Page$LoadFrom(
+					A2(
+						$author$project$App$Effect$map,
+						$author$project$App$Page$mapInitPlan(fns),
+						effect));
+		}
+	});
 var $author$project$App$Effect$none = $author$project$App$Effect$None;
+var $author$project$App$Page$init = function (model) {
+	return A2($author$project$App$Page$Loaded, model, $author$project$App$Effect$none);
+};
 var $author$project$App$Sub$Sub = function (a) {
 	return {$: 'Sub', a: a};
 };
@@ -5328,14 +5350,17 @@ var $author$project$App$Sub$none = $author$project$App$Sub$Sub($elm$core$Platfor
 var $author$project$App$Page$Page = function (a) {
 	return {$: 'Page', a: a};
 };
-var $author$project$App$Page$page = $author$project$App$Page$Page;
+var $author$project$App$Page$page = function (options) {
+	return $author$project$App$Page$Page(
+		{init: options.init, subscriptions: options.subscriptions, update: options.update, view: options.view});
+};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Page$Home$page = $author$project$App$Page$page(
 	{
 		init: F3(
 			function (params, shared, maybeCached) {
-				return _Utils_Tuple2('HEllo!', $author$project$App$Effect$none);
+				return $author$project$App$Page$init('HEllo!');
 			}),
 		subscriptions: F2(
 			function (shared, model) {
@@ -5357,7 +5382,7 @@ var $author$project$Page$Markdown$page = $author$project$App$Page$page(
 	{
 		init: F3(
 			function (params, shared, maybeCached) {
-				return _Utils_Tuple2(params, $author$project$App$Effect$none);
+				return $author$project$App$Page$init(params);
 			}),
 		subscriptions: F2(
 			function (shared, model) {
@@ -5370,81 +5395,86 @@ var $author$project$Page$Markdown$page = $author$project$App$Page$page(
 		view: F2(
 			function (shared, model) {
 				return {
-					body: $elm$html$Html$text(model.sourceUrl),
+					body: $elm$html$Html$text(model.src),
 					title: 'Markdown'
 				};
 			})
 	});
-var $author$project$App$Engine$initPage = F3(
+var $author$project$App$Page$toInternalDetails = function (_v0) {
+	var details = _v0.a;
+	return details;
+};
+var $author$project$App$Engine$getPageInit = F3(
 	function (route, shared, cache) {
 		if (route.$ === 'Home') {
 			var params = route.a;
-			var _v1 = A4(
-				$author$project$App$Page$init,
-				$author$project$Page$Home$page,
-				params,
-				shared,
-				function () {
-					var _v2 = A2($author$project$App$State$get, 'Home', cache);
-					if (_v2.$ === 'Nothing') {
-						return $elm$core$Maybe$Nothing;
-					} else {
-						var foundPage_4_0_1_0_0 = _v2.a;
-						if (foundPage_4_0_1_0_0.$ === 'Home') {
-							var page = foundPage_4_0_1_0_0.a;
-							return $elm$core$Maybe$Just(page);
-						} else {
-							var otherwise_1_1_4_0_1_0_0 = foundPage_4_0_1_0_0;
+			var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+			return A2(
+				$author$project$App$Page$mapInitPlan,
+				{onModel: $author$project$App$Engine$Home, onMsg: $author$project$App$Engine$ToHome},
+				A3(
+					pageDetails.init,
+					params,
+					shared,
+					function () {
+						var _v1 = A2($author$project$App$State$get, 'Home', cache);
+						if (_v1.$ === 'Nothing') {
 							return $elm$core$Maybe$Nothing;
+						} else {
+							var foundPage = _v1.a;
+							if (foundPage.$ === 'Home') {
+								var page = foundPage.a;
+								return $elm$core$Maybe$Just(page);
+							} else {
+								var otherwise = foundPage;
+								return $elm$core$Maybe$Nothing;
+							}
 						}
-					}
-				}());
-			var newPage = _v1.a;
-			var pageEffect = _v1.b;
-			return _Utils_Tuple2(
-				{
-					effect: A2(
-						$author$project$App$Effect$map,
-						$author$project$App$Engine$Page,
-						A2($author$project$App$Effect$map, $author$project$App$Engine$ToHome, pageEffect)),
-					_new: $author$project$App$Engine$Home(newPage)
-				},
-				'Home');
+					}()));
 		} else {
 			var params = route.a;
-			var _v4 = A4(
-				$author$project$App$Page$init,
-				$author$project$Page$Markdown$page,
-				params,
-				shared,
-				function () {
-					var _v5 = A2($author$project$App$State$get, 'Markdown', cache);
-					if (_v5.$ === 'Nothing') {
-						return $elm$core$Maybe$Nothing;
-					} else {
-						var foundPage_4_0_1_0_0 = _v5.a;
-						if (foundPage_4_0_1_0_0.$ === 'Markdown') {
-							var page = foundPage_4_0_1_0_0.a;
-							return $elm$core$Maybe$Just(page);
-						} else {
-							var otherwise_1_1_4_0_1_0_0 = foundPage_4_0_1_0_0;
+			var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+			return A2(
+				$author$project$App$Page$mapInitPlan,
+				{onModel: $author$project$App$Engine$Markdown, onMsg: $author$project$App$Engine$ToMarkdown},
+				A3(
+					pageDetails.init,
+					params,
+					shared,
+					function () {
+						var _v3 = A2($author$project$App$State$get, 'Markdown', cache);
+						if (_v3.$ === 'Nothing') {
 							return $elm$core$Maybe$Nothing;
+						} else {
+							var foundPage = _v3.a;
+							if (foundPage.$ === 'Markdown') {
+								var page = foundPage.a;
+								return $elm$core$Maybe$Just(page);
+							} else {
+								var otherwise = foundPage;
+								return $elm$core$Maybe$Nothing;
+							}
 						}
-					}
-				}());
-			var newPage = _v4.a;
-			var pageEffect = _v4.b;
-			return _Utils_Tuple2(
-				{
-					effect: A2(
-						$author$project$App$Effect$map,
-						$author$project$App$Engine$Page,
-						A2($author$project$App$Effect$map, $author$project$App$Engine$ToMarkdown, pageEffect)),
-					_new: $author$project$App$Engine$Markdown(newPage)
-				},
-				'Markdown');
+					}()));
 		}
 	});
+var $author$project$App$State$Cache = function (a) {
+	return {$: 'Cache', a: a};
+};
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $author$project$App$State$init = $author$project$App$State$Cache(
+	{cache: $elm$core$Dict$empty, current: $elm$core$Maybe$Nothing});
+var $author$project$App$Engine$Loaded = F2(
+	function (a, b) {
+		return {$: 'Loaded', a: a, b: b};
+	});
+var $author$project$App$Engine$PageError_ = function (a) {
+	return {$: 'PageError_', a: a};
+};
+var $author$project$App$Engine$PageLoading_ = function (a) {
+	return {$: 'PageLoading_', a: a};
+};
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -5554,104 +5584,36 @@ var $elm$core$Dict$insert = F3(
 		}
 	});
 var $author$project$App$State$insert = F3(
-	function (key, value, _v0) {
+	function (key, newState, _v0) {
 		var details = _v0.a;
-		var _v1 = details.currentKey;
+		var _v1 = details.current;
 		if (_v1.$ === 'Nothing') {
 			return $author$project$App$State$Cache(
 				_Utils_update(
 					details,
 					{
-						cache: A3($elm$core$Dict$insert, key, value, details.cache)
+						cache: A3($elm$core$Dict$insert, key, newState, details.cache)
 					}));
 		} else {
-			var currentKey = _v1.a;
-			return _Utils_eq(currentKey, key) ? $author$project$App$State$Cache(
+			var curr = _v1.a;
+			return _Utils_eq(curr.key, key) ? $author$project$App$State$Cache(
 				_Utils_update(
 					details,
 					{
-						current: $elm$core$Maybe$Just(value)
+						current: $elm$core$Maybe$Just(
+							_Utils_update(
+								curr,
+								{state: newState}))
 					})) : $author$project$App$State$Cache(
 				_Utils_update(
 					details,
 					{
-						cache: A3($elm$core$Dict$insert, key, value, details.cache)
+						cache: A3($elm$core$Dict$insert, key, newState, details.cache)
 					}));
 		}
 	});
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $elm$url$Url$percentDecode = _Url_percentDecode;
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
-var $lydell$elm_app_url$AppUrl$percentDecode = function (string) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		string,
-		$elm$url$Url$percentDecode(string));
-};
-var $lydell$elm_app_url$AppUrl$trimLeadingSlash = function (string) {
-	return A2($elm$core$String$startsWith, '/', string) ? A2($elm$core$String$dropLeft, 1, string) : string;
-};
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $elm$core$String$dropRight = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3($elm$core$String$slice, 0, -n, string);
-	});
-var $elm$core$String$endsWith = _String_endsWith;
-var $lydell$elm_app_url$AppUrl$trimTrailingSlash = function (string) {
-	return A2($elm$core$String$endsWith, '/', string) ? A2($elm$core$String$dropRight, 1, string) : string;
-};
-var $lydell$elm_app_url$AppUrl$parsePath = function (path) {
-	var trimmed = $lydell$elm_app_url$AppUrl$trimTrailingSlash(
-		$lydell$elm_app_url$AppUrl$trimLeadingSlash(path));
-	return $elm$core$String$isEmpty(trimmed) ? _List_Nil : A2(
-		$elm$core$List$map,
-		$lydell$elm_app_url$AppUrl$percentDecode,
-		A2($elm$core$String$split, '/', trimmed));
-};
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var $lydell$elm_app_url$AppUrl$insert = F2(
-	function (value, maybeList) {
-		return $elm$core$Maybe$Just(
-			A2(
-				$elm$core$List$cons,
-				value,
-				A2($elm$core$Maybe$withDefault, _List_Nil, maybeList)));
-	});
-var $elm$core$String$replace = F3(
-	function (before, after, string) {
-		return A2(
-			$elm$core$String$join,
-			after,
-			A2($elm$core$String$split, before, string));
-	});
-var $lydell$elm_app_url$AppUrl$queryParameterDecode = A2(
-	$elm$core$Basics$composeR,
-	A2($elm$core$String$replace, '+', ' '),
-	$lydell$elm_app_url$AppUrl$percentDecode);
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6014,6 +5976,213 @@ var $elm$core$Dict$remove = F2(
 			return x;
 		}
 	});
+var $author$project$App$State$remove = F2(
+	function (key, _v0) {
+		var details = _v0.a;
+		var _v1 = details.current;
+		if (_v1.$ === 'Nothing') {
+			return $author$project$App$State$Cache(
+				_Utils_update(
+					details,
+					{
+						cache: A2($elm$core$Dict$remove, key, details.cache)
+					}));
+		} else {
+			var curr = _v1.a;
+			return _Utils_eq(curr.key, key) ? $author$project$App$State$Cache(
+				_Utils_update(
+					details,
+					{current: $elm$core$Maybe$Nothing})) : $author$project$App$State$Cache(
+				_Utils_update(
+					details,
+					{
+						cache: A2($elm$core$Dict$remove, key, details.cache)
+					}));
+		}
+	});
+var $author$project$App$State$clearCurrent = function (_v0) {
+	var details = _v0.a;
+	return $author$project$App$State$Cache(
+		_Utils_update(
+			details,
+			{
+				cache: function () {
+					var _v1 = details.current;
+					if (_v1.$ === 'Nothing') {
+						return details.cache;
+					} else {
+						var previousCurrent = _v1.a;
+						return A3($elm$core$Dict$insert, previousCurrent.key, previousCurrent.state, details.cache);
+					}
+				}(),
+				current: $elm$core$Maybe$Nothing
+			}));
+};
+var $author$project$App$State$setCurrent = F2(
+	function (key, cache) {
+		var _v0 = $author$project$App$State$clearCurrent(cache);
+		var cleared = _v0.a;
+		return $author$project$App$State$Cache(
+			_Utils_update(
+				cleared,
+				{
+					cache: A2($elm$core$Dict$remove, key, cleared.cache),
+					current: function () {
+						var _v1 = A2($elm$core$Dict$get, key, cleared.cache);
+						if (_v1.$ === 'Nothing') {
+							return $elm$core$Maybe$Nothing;
+						} else {
+							var currentState = _v1.a;
+							return $elm$core$Maybe$Just(
+								{key: key, state: currentState});
+						}
+					}()
+				}));
+	});
+var $author$project$Route$toId = function (route) {
+	if (route.$ === 'Home') {
+		var params = route.a;
+		return A2(
+			$elm$core$String$join,
+			'/',
+			_List_fromArray(
+				['Home', params.id]));
+	} else {
+		var params = route.a;
+		return 'Markdown';
+	}
+};
+var $author$project$App$Engine$loadPage = F4(
+	function (config, model, route, initialization) {
+		var pageId = $author$project$Route$toId(route);
+		switch (initialization.$) {
+			case 'NotFound':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A2($author$project$App$State$remove, pageId, model.states)
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'Error':
+				var err = initialization.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A3(
+								$author$project$App$State$insert,
+								pageId,
+								$author$project$App$Engine$PageError_(err),
+								model.states)
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'Loaded':
+				var newPage = initialization.a;
+				var pageEffect = initialization.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A2(
+								$author$project$App$State$setCurrent,
+								pageId,
+								A3($author$project$App$State$insert, pageId, newPage, model.states))
+						}),
+					A2(config.toCmd, model.frame, pageEffect));
+			default:
+				var pageEffect = initialization.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A3(
+								$author$project$App$State$insert,
+								pageId,
+								$author$project$App$Engine$PageLoading_(route),
+								model.states)
+						}),
+					A2(
+						config.toCmd,
+						model.frame,
+						A2(
+							$author$project$App$Effect$map,
+							$author$project$App$Engine$Loaded(route),
+							pageEffect)));
+		}
+	});
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$url$Url$percentDecode = _Url_percentDecode;
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $lydell$elm_app_url$AppUrl$percentDecode = function (string) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		string,
+		$elm$url$Url$percentDecode(string));
+};
+var $lydell$elm_app_url$AppUrl$trimLeadingSlash = function (string) {
+	return A2($elm$core$String$startsWith, '/', string) ? A2($elm$core$String$dropLeft, 1, string) : string;
+};
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$String$dropRight = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3($elm$core$String$slice, 0, -n, string);
+	});
+var $elm$core$String$endsWith = _String_endsWith;
+var $lydell$elm_app_url$AppUrl$trimTrailingSlash = function (string) {
+	return A2($elm$core$String$endsWith, '/', string) ? A2($elm$core$String$dropRight, 1, string) : string;
+};
+var $lydell$elm_app_url$AppUrl$parsePath = function (path) {
+	var trimmed = $lydell$elm_app_url$AppUrl$trimTrailingSlash(
+		$lydell$elm_app_url$AppUrl$trimLeadingSlash(path));
+	return $elm$core$String$isEmpty(trimmed) ? _List_Nil : A2(
+		$elm$core$List$map,
+		$lydell$elm_app_url$AppUrl$percentDecode,
+		A2($elm$core$String$split, '/', trimmed));
+};
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var $lydell$elm_app_url$AppUrl$insert = F2(
+	function (value, maybeList) {
+		return $elm$core$Maybe$Just(
+			A2(
+				$elm$core$List$cons,
+				value,
+				A2($elm$core$Maybe$withDefault, _List_Nil, maybeList)));
+	});
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $lydell$elm_app_url$AppUrl$queryParameterDecode = A2(
+	$elm$core$Basics$composeR,
+	A2($elm$core$String$replace, '+', ' '),
+	$lydell$elm_app_url$AppUrl$percentDecode);
 var $elm$core$Dict$update = F3(
 	function (targetKey, alter, dictionary) {
 		var _v0 = alter(
@@ -6066,38 +6235,77 @@ var $author$project$Route$Home = function (a) {
 var $author$project$Route$Markdown = function (a) {
 	return {$: 'Markdown', a: a};
 };
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Route$lookupAsset = function (path) {
+	switch (path) {
+		case '/CodePatterns':
+			return $elm$core$Maybe$Just('/assets/guides/CodePatterns.md');
+		case '/LifeOfAQuery':
+			return $elm$core$Maybe$Just('/assets/guides/LifeOfAQuery.md');
+		case '/nested/CodePatterns':
+			return $elm$core$Maybe$Just('/assets/guides/nested/CodePatterns.md');
+		default:
+			return $elm$core$Maybe$Nothing;
+	}
+};
 var $author$project$Route$parseAppUrl = function (appUrl) {
 	var _v0 = appUrl.path;
-	_v0$4:
+	_v0$2:
 	while (true) {
 		if (_v0.b) {
-			if (!_v0.b.b) {
-				switch (_v0.a) {
-					case 'CodePatterns':
+			switch (_v0.a) {
+				case 'old-homepage-2':
+					if (_v0.b.b) {
+						var _v1 = _v0.b;
+						var id = _v1.a;
+						var andPathTail = _v1.b;
+						return $elm$core$Maybe$Just(
+							$author$project$Route$Home(
+								{
+									id: id,
+									path: andPathTail,
+									search: A2(
+										$elm$core$Maybe$andThen,
+										$elm$core$List$head,
+										A2($elm$core$Dict$get, 'search', appUrl.queryParameters))
+								}));
+					} else {
+						break _v0$2;
+					}
+				case 'guides':
+					var andPathTail = _v0.b;
+					var _v2 = $author$project$Route$lookupAsset(
+						'/' + A2($elm$core$String$join, '/', andPathTail));
+					if (_v2.$ === 'Just') {
+						var src = _v2.a;
 						return $elm$core$Maybe$Just(
 							$author$project$Route$Markdown(
-								{sourceUrl: '/assets/CodePatterns.md'}));
-					case 'LifeOfAQuery':
-						return $elm$core$Maybe$Just(
-							$author$project$Route$Markdown(
-								{sourceUrl: '/assets/LifeOfAQuery.md'}));
-					default:
-						break _v0$4;
-				}
-			} else {
-				if (((_v0.a === 'nested') && (_v0.b.a === 'CodePatterns')) && (!_v0.b.b.b)) {
-					var _v1 = _v0.b;
-					return $elm$core$Maybe$Just(
-						$author$project$Route$Markdown(
-							{sourceUrl: '/assets/nested/CodePatterns.md'}));
-				} else {
-					break _v0$4;
-				}
+								{path: andPathTail, src: src}));
+					} else {
+						return $elm$core$Maybe$Nothing;
+					}
+				default:
+					break _v0$2;
 			}
 		} else {
-			return $elm$core$Maybe$Just(
-				$author$project$Route$Home(
-					{}));
+			break _v0$2;
 		}
 	}
 	return $elm$core$Maybe$Nothing;
@@ -6106,43 +6314,17 @@ var $author$project$Route$parse = function (url) {
 	return $author$project$Route$parseAppUrl(
 		$lydell$elm_app_url$AppUrl$fromUrl(url));
 };
-var $author$project$App$State$setCurrent = F2(
-	function (key, _v0) {
-		var details = _v0.a;
-		return $author$project$App$State$Cache(
-			_Utils_update(
-				details,
-				{
-					cache: function () {
-						var _v1 = details.currentKey;
-						if (_v1.$ === 'Nothing') {
-							return details.cache;
-						} else {
-							var previousCurrentKey = _v1.a;
-							if (_Utils_eq(previousCurrentKey, key)) {
-								return details.cache;
-							} else {
-								var _v2 = details.current;
-								if (_v2.$ === 'Nothing') {
-									return details.cache;
-								} else {
-									var previousCurrent = _v2.a;
-									return A3(
-										$elm$core$Dict$insert,
-										previousCurrentKey,
-										previousCurrent,
-										A2($elm$core$Dict$remove, key, details.cache));
-								}
-							}
-						}
-					}(),
-					current: A2($elm$core$Dict$get, key, details.cache),
-					currentKey: $elm$core$Maybe$Just(key)
-				}));
-	});
+var $author$project$App$Engine$Global = function (a) {
+	return {$: 'Global', a: a};
+};
 var $author$project$App$State$current = function (_v0) {
 	var details = _v0.a;
-	return details.current;
+	return A2(
+		$elm$core$Maybe$map,
+		function ($) {
+			return $.state;
+		},
+		details.current);
 };
 var $author$project$App$Sub$Batch = function (a) {
 	return {$: 'Batch', a: a};
@@ -6163,10 +6345,6 @@ var $author$project$App$Sub$map = F2(
 					subs));
 		}
 	});
-var $author$project$App$Page$subscriptions = function (_v0) {
-	var details = _v0.a;
-	return details.subscriptions;
-};
 var $author$project$App$Engine$subscriptions = F2(
 	function (config, model) {
 		return $elm$core$Platform$Sub$batch(
@@ -6177,43 +6355,52 @@ var $author$project$App$Engine$subscriptions = F2(
 					model.frame,
 					A2(
 						$author$project$App$Sub$map,
-						$author$project$App$Engine$ToFrame,
+						$author$project$App$Engine$Global,
 						config.subscriptions(model.frame))),
 					function () {
 					var _v0 = $author$project$App$State$current(model.states);
 					if (_v0.$ === 'Nothing') {
 						return $elm$core$Platform$Sub$none;
 					} else {
-						var current_2_1_0_0 = _v0.a;
-						return A2(
-							config.toSub,
-							model.frame,
-							A2(
-								$author$project$App$Sub$map,
-								$author$project$App$Engine$Page,
-								function () {
-									if (current_2_1_0_0.$ === 'Home') {
-										var pageModel = current_2_1_0_0.a;
+						var currentState = _v0.a;
+						switch (currentState.$) {
+							case 'PageError_':
+								var pageError = currentState.a;
+								return $elm$core$Platform$Sub$none;
+							case 'PageLoading_':
+								var pageRoute = currentState.a;
+								return $elm$core$Platform$Sub$none;
+							case 'Home':
+								var pageModel = currentState.a;
+								return A2(
+									config.toSub,
+									model.frame,
+									function () {
+										var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
 										return A2(
 											$author$project$App$Sub$map,
 											$author$project$App$Engine$ToHome,
-											A3(
-												$author$project$App$Page$subscriptions,
-												$author$project$Page$Home$page,
+											A2(
+												pageDetails.subscriptions,
 												config.toShared(model.frame),
 												pageModel));
-									} else {
-										var pageModel = current_2_1_0_0.a;
+									}());
+							default:
+								var pageModel = currentState.a;
+								return A2(
+									config.toSub,
+									model.frame,
+									function () {
+										var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
 										return A2(
 											$author$project$App$Sub$map,
 											$author$project$App$Engine$ToMarkdown,
-											A3(
-												$author$project$App$Page$subscriptions,
-												$author$project$Page$Markdown$page,
+											A2(
+												pageDetails.subscriptions,
 												config.toShared(model.frame),
 												pageModel));
-									}
-								}()));
+									}());
+						}
 					}
 				}()
 				]));
@@ -6264,82 +6451,6 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
-var $author$project$App$Page$update = function (_v0) {
-	var details = _v0.a;
-	return details.update;
-};
-var $author$project$App$Engine$updatePage = F4(
-	function (config, shared, msg, model) {
-		if (msg.$ === 'ToHome') {
-			var pageMsg = msg.a;
-			var _v1 = A2($author$project$App$State$get, 'Home', model.states);
-			if (_v1.$ === 'Nothing') {
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-			} else {
-				var foundPage_1_1_0_0 = _v1.a;
-				if (foundPage_1_1_0_0.$ === 'Home') {
-					var page = foundPage_1_1_0_0.a;
-					var _v3 = A4($author$project$App$Page$update, $author$project$Page$Home$page, shared, pageMsg, page);
-					var updatedPage = _v3.a;
-					var pageEffect = _v3.b;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								states: A3(
-									$author$project$App$State$insert,
-									'Home',
-									$author$project$App$Engine$Home(updatedPage),
-									model.states)
-							}),
-						A2(
-							config.toCmd,
-							model.frame,
-							A2(
-								$author$project$App$Effect$map,
-								$author$project$App$Engine$Page,
-								A2($author$project$App$Effect$map, $author$project$App$Engine$ToHome, pageEffect))));
-				} else {
-					var otherwise_1_1_1_1_0_0 = foundPage_1_1_0_0;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			}
-		} else {
-			var pageMsg = msg.a;
-			var _v4 = A2($author$project$App$State$get, 'Markdown', model.states);
-			if (_v4.$ === 'Nothing') {
-				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-			} else {
-				var foundPage_1_1_0_0 = _v4.a;
-				if (foundPage_1_1_0_0.$ === 'Markdown') {
-					var page = foundPage_1_1_0_0.a;
-					var _v6 = A4($author$project$App$Page$update, $author$project$Page$Markdown$page, shared, pageMsg, page);
-					var updatedPage = _v6.a;
-					var pageEffect = _v6.b;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								states: A3(
-									$author$project$App$State$insert,
-									'Markdown',
-									$author$project$App$Engine$Markdown(updatedPage),
-									model.states)
-							}),
-						A2(
-							config.toCmd,
-							model.frame,
-							A2(
-								$author$project$App$Effect$map,
-								$author$project$App$Engine$Page,
-								A2($author$project$App$Effect$map, $author$project$App$Engine$ToMarkdown, pageEffect))));
-				} else {
-					var otherwise_1_1_1_1_0_0 = foundPage_1_1_0_0;
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				}
-			}
-		}
-	});
 var $author$project$App$Engine$update = F3(
 	function (config, msg, model) {
 		switch (msg.$) {
@@ -6363,32 +6474,46 @@ var $author$project$App$Engine$update = F3(
 				var url = msg.a;
 				var _v2 = $author$project$Route$parse(url);
 				if (_v2.$ === 'Nothing') {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-				} else {
-					var route_1_1_0_0 = _v2.a;
-					var _v3 = A3(
-						$author$project$App$Engine$initPage,
-						route_1_1_0_0,
-						config.toShared(model.frame),
-						model.states);
-					var pageModel = _v3.a;
-					var tag = _v3.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
+								currentRoute: $elm$core$Maybe$Nothing,
+								states: $author$project$App$State$clearCurrent(model.states),
+								url: url
+							}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					var newRoute = _v2.a;
+					return A4(
+						$author$project$App$Engine$loadPage,
+						config,
+						_Utils_update(
+							model,
+							{
+								currentRoute: $elm$core$Maybe$Just(newRoute),
 								states: A2(
 									$author$project$App$State$setCurrent,
-									tag,
-									A3($author$project$App$State$insert, tag, pageModel._new, model.states))
+									$author$project$Route$toId(newRoute),
+									model.states),
+								url: url
 							}),
-						A2(config.toCmd, model.frame, pageModel.effect));
+						newRoute,
+						A3(
+							$author$project$App$Engine$getPageInit,
+							newRoute,
+							config.toShared(model.frame),
+							model.states));
 				}
-			case 'ToFrame':
+			case 'Loaded':
+				var route = msg.a;
+				var loaded = msg.b;
+				return A4($author$project$App$Engine$loadPage, config, model, route, loaded);
+			case 'Global':
 				var frameMsg = msg.a;
-				var _v4 = A2(config.update, frameMsg, model.frame);
-				var newFrame = _v4.a;
-				var frameEffect = _v4.b;
+				var _v3 = A2(config.update, frameMsg, model.frame);
+				var newFrame = _v3.a;
+				var frameEffect = _v3.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -6396,18 +6521,94 @@ var $author$project$App$Engine$update = F3(
 					A2(
 						config.toCmd,
 						model.frame,
-						A2($author$project$App$Effect$map, $author$project$App$Engine$ToFrame, frameEffect)));
+						A2($author$project$App$Effect$map, $author$project$App$Engine$Global, frameEffect)));
+			case 'ToHome':
+				var pageMsg = msg.a;
+				var _v4 = A2($author$project$App$State$get, 'Home', model.states);
+				if (_v4.$ === 'Nothing') {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				} else {
+					var foundPage = _v4.a;
+					if (foundPage.$ === 'Home') {
+						var page = foundPage.a;
+						var _v6 = function () {
+							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+							return A3(
+								pageDetails.update,
+								config.toShared(model.frame),
+								pageMsg,
+								page);
+						}();
+						var updatedPage = _v6.a;
+						var pageEffect = _v6.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									states: A3(
+										$author$project$App$State$insert,
+										'Home',
+										$author$project$App$Engine$Home(updatedPage),
+										model.states)
+								}),
+							A2(
+								config.toCmd,
+								model.frame,
+								A2($author$project$App$Effect$map, $author$project$App$Engine$ToHome, pageEffect)));
+					} else {
+						var otherwise = foundPage;
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					}
+				}
 			default:
 				var pageMsg = msg.a;
-				return A4(
-					$author$project$App$Engine$updatePage,
-					config,
-					config.toShared(model.frame),
-					pageMsg,
-					model);
+				var _v7 = A2($author$project$App$State$get, 'Markdown', model.states);
+				if (_v7.$ === 'Nothing') {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				} else {
+					var foundPage = _v7.a;
+					if (foundPage.$ === 'Markdown') {
+						var page = foundPage.a;
+						var _v9 = function () {
+							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+							return A3(
+								pageDetails.update,
+								config.toShared(model.frame),
+								pageMsg,
+								page);
+						}();
+						var updatedPage = _v9.a;
+						var pageEffect = _v9.b;
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									states: A3(
+										$author$project$App$State$insert,
+										'Markdown',
+										$author$project$App$Engine$Markdown(updatedPage),
+										model.states)
+								}),
+							A2(
+								config.toCmd,
+								model.frame,
+								A2($author$project$App$Effect$map, $author$project$App$Engine$ToMarkdown, pageEffect)));
+					} else {
+						var otherwise = foundPage;
+						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+					}
+				}
 		}
 	});
-var $author$project$App$Engine$NotFound = {$: 'NotFound'};
+var $author$project$App$Engine$Error = function (a) {
+	return {$: 'Error', a: a};
+};
+var $author$project$App$Engine$Loading = function (a) {
+	return {$: 'Loading', a: a};
+};
+var $author$project$App$Engine$NotFound = function (a) {
+	return {$: 'NotFound', a: a};
+};
 var $author$project$App$Engine$View = function (a) {
 	return {$: 'View', a: a};
 };
@@ -6420,52 +6621,52 @@ var $author$project$App$View$map = F2(
 			title: myView.title
 		};
 	});
-var $author$project$App$Page$view = function (_v0) {
-	var details = _v0.a;
-	return details.view;
-};
 var $author$project$App$Engine$view = F2(
 	function (config, model) {
 		return A3(
 			config.view,
-			$author$project$App$Engine$ToFrame,
+			$author$project$App$Engine$Global,
 			model.frame,
 			function () {
 				var _v0 = $author$project$App$State$current(model.states);
 				if (_v0.$ === 'Nothing') {
-					return $author$project$App$Engine$NotFound;
+					return $author$project$App$Engine$NotFound(model.url);
 				} else {
-					var current_4_0_0 = _v0.a;
-					return $author$project$App$Engine$View(
-						function () {
-							if (current_4_0_0.$ === 'Home') {
-								var pageModel = current_4_0_0.a;
-								return A2(
+					var currentState = _v0.a;
+					switch (currentState.$) {
+						case 'PageError_':
+							var pageError = currentState.a;
+							return $author$project$App$Engine$Error(pageError);
+						case 'PageLoading_':
+							var pageRoute = currentState.a;
+							return $author$project$App$Engine$Loading(pageRoute);
+						case 'Home':
+							var pageModel = currentState.a;
+							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+							return $author$project$App$Engine$View(
+								A2(
 									$author$project$App$View$map,
 									function (innerMsg) {
-										return $author$project$App$Engine$Page(
-											$author$project$App$Engine$ToHome(innerMsg));
+										return $author$project$App$Engine$ToHome(innerMsg);
 									},
-									A3(
-										$author$project$App$Page$view,
-										$author$project$Page$Home$page,
+									A2(
+										pageDetails.view,
 										config.toShared(model.frame),
-										pageModel));
-							} else {
-								var pageModel = current_4_0_0.a;
-								return A2(
+										pageModel)));
+						default:
+							var pageModel = currentState.a;
+							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+							return $author$project$App$Engine$View(
+								A2(
 									$author$project$App$View$map,
 									function (innerMsg) {
-										return $author$project$App$Engine$Page(
-											$author$project$App$Engine$ToMarkdown(innerMsg));
+										return $author$project$App$Engine$ToMarkdown(innerMsg);
 									},
-									A3(
-										$author$project$App$Page$view,
-										$author$project$Page$Markdown$page,
+									A2(
+										pageDetails.view,
 										config.toShared(model.frame),
-										pageModel));
-							}
-						}());
+										pageModel)));
+					}
 				}
 			}());
 	});
@@ -6477,40 +6678,30 @@ var $author$project$App$Engine$app = function (config) {
 					var _v0 = A2(config.init, key, flags);
 					var frameModel = _v0.a;
 					var frameCmd = _v0.b;
-					var _v1 = function () {
-						var _v2 = $author$project$Route$parse(url);
-						if (_v2.$ === 'Nothing') {
-							return _Utils_Tuple2($author$project$App$State$init, $elm$core$Platform$Cmd$none);
-						} else {
-							var route_2_0_1_0_0 = _v2.a;
-							var _v3 = A3(
-								$author$project$App$Engine$initPage,
-								route_2_0_1_0_0,
+					var _v1 = $author$project$Route$parse(url);
+					if (_v1.$ === 'Nothing') {
+						return _Utils_Tuple2(
+							{currentRoute: $elm$core$Maybe$Nothing, frame: frameModel, key: key, states: $author$project$App$State$init, url: url},
+							$elm$core$Platform$Cmd$none);
+					} else {
+						var route = _v1.a;
+						return A4(
+							$author$project$App$Engine$loadPage,
+							config,
+							{
+								currentRoute: $elm$core$Maybe$Just(route),
+								frame: frameModel,
+								key: key,
+								states: $author$project$App$State$init,
+								url: url
+							},
+							route,
+							A3(
+								$author$project$App$Engine$getPageInit,
+								route,
 								config.toShared(frameModel),
-								$author$project$App$State$init);
-							var pageModel = _v3.a;
-							var tag = _v3.b;
-							return _Utils_Tuple2(
-								A2(
-									$author$project$App$State$setCurrent,
-									tag,
-									A3($author$project$App$State$insert, tag, pageModel._new, $author$project$App$State$init)),
-								A2(config.toCmd, frameModel, pageModel.effect));
-						}
-					}();
-					var pageInitialized = _v1.a;
-					var pageCmd = _v1.b;
-					return _Utils_Tuple2(
-						{frame: frameModel, key: key, states: pageInitialized, url: url},
-						$elm$core$Platform$Cmd$batch(
-							_List_fromArray(
-								[
-									A2(
-									config.toCmd,
-									frameModel,
-									A2($author$project$App$Effect$map, $author$project$App$Engine$ToFrame, frameCmd)),
-									pageCmd
-								])));
+								$author$project$App$State$init));
+					}
 				}),
 			onUrlChange: $author$project$App$Engine$UrlChanged,
 			onUrlRequest: $author$project$App$Engine$UrlRequested,
@@ -6632,21 +6823,39 @@ var $author$project$Main$main = $author$project$App$Engine$app(
 			}),
 		view: F3(
 			function (fromFrameMsg, model, innerView) {
-				if (innerView.$ === 'NotFound') {
-					return {
-						body: _List_fromArray(
-							[
-								$elm$html$Html$text('not found')
-							]),
-						title: 'Not found'
-					};
-				} else {
-					var page = innerView.a;
-					return {
-						body: _List_fromArray(
-							[page.body]),
-						title: page.title
-					};
+				switch (innerView.$) {
+					case 'NotFound':
+						return {
+							body: _List_fromArray(
+								[
+									$elm$html$Html$text('not found')
+								]),
+							title: 'Not found'
+						};
+					case 'Error':
+						var pageError = innerView.a;
+						return {
+							body: _List_fromArray(
+								[
+									$elm$html$Html$text('Unauthorized')
+								]),
+							title: 'Unauthorized'
+						};
+					case 'Loading':
+						return {
+							body: _List_fromArray(
+								[
+									$elm$html$Html$text('loading')
+								]),
+							title: 'Loading'
+						};
+					default:
+						var page = innerView.a;
+						return {
+							body: _List_fromArray(
+								[page.body]),
+							title: page.title
+						};
 				}
 			})
 	});

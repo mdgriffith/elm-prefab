@@ -10,6 +10,12 @@ export const copyTo = (baseDir: string, overwrite: boolean) => {
   }
 
 
+  if (overwrite || !fs.existsSync(path.join(baseDir, "/App/PageError.elm"))) {
+    fs.mkdirSync(path.dirname(path.join(baseDir, "/App/PageError.elm")), { recursive: true });
+    fs.writeFileSync(path.join(baseDir, "/App/PageError.elm"), "module App.PageError exposing (Error(..))\n\n{-| \nYou may want to protect a page with a certain error when it is first requested.\n\n- `NotFound` is built in to `elm-press`, so you don't need to capture that here.\n\nCommon errors are\n\n    - Unauthenticated — When you require someone to be signed in in order to see a page.\n    - Permission denied — When you require taht someone is both signed in and has certain permissions.\n\n\n-}\n\n\ntype Error =\n    Unauthenticated");
+  }
+
+
   if (overwrite || !fs.existsSync(path.join(baseDir, "/App/Shared.elm"))) {
     fs.mkdirSync(path.dirname(path.join(baseDir, "/App/Shared.elm")), { recursive: true });
     fs.writeFileSync(path.join(baseDir, "/App/Shared.elm"), "module App.Shared exposing (Shared)\n\n{-| Data that is shared between the global app and the individual pages.\n-}\n\n\ntype alias Shared =\n    {}\n");

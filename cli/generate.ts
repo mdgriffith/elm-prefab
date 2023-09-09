@@ -11,7 +11,8 @@ ElmPress.generate({
   src: "./examples/elm-gql/src/",
   plugins: [
     ElmPress.app({
-      "Page.Home": "/old-homepage-2/*?{search}",
+      "Page.Home": "/old-homepage-2/:id/*?{search}",
+
       "Page.Markdown": {
         dir: "./examples/elm-gql/guide",
         url: "/guides/*",
