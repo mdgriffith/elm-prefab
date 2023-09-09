@@ -1,7 +1,6 @@
 module App.State exposing
     ( Cache, init, current, get
-    , Loaded(..)
-    , setCurrent, insert, toNotFound, toLoading
+    , setCurrent, insert, remove
     , clearCurrent
     )
 
@@ -9,9 +8,9 @@ module App.State exposing
 
 @docs Cache, init, current, get
 
-@docs Loaded
+@docs insert, remove
 
-@docs setCurrent, insert, toNotFound, toLoading
+@docs setCurrent, clearCurrent
 
 -}
 
@@ -23,16 +22,10 @@ type Cache state
         { current :
             Maybe
                 { key : String
-                , state : Loaded state
+                , state : state
                 }
-        , cache : Dict.Dict String (Loaded state)
+        , cache : Dict.Dict String state
         }
-
-
-type Loaded state
-    = Loading
-    | NotFound
-    | Loaded state
 
 
 {-| -}
@@ -45,26 +38,11 @@ init =
 
 
 {-| -}
-current : Cache state -> Loaded state
+current : Cache state -> Maybe state
 current (Cache details) =
-    case details.current of
-        Nothing ->
-            NotFound
-
-        Just currentState ->
-            currentState.state
+    Maybe.map .state details.current
 
 
-{-| -}
-toNotFound : String -> Cache state -> Cache state
-toNotFound key cache =
-    insertLoaded key NotFound cache
-
-
-{-| -}
-toLoading : String -> Cache state -> Cache state
-toLoading key cache =
-    insertLoaded key Loading cache
 
 
 {-| This is called when there is no clear new current state.
@@ -99,12 +77,15 @@ setCurrent key cache =
     Cache
         { cleared
             | current =
-                Just
-                    { key = key
-                    , state =
-                        Dict.get key cleared.cache
-                            |> Maybe.withDefault NotFound
-                    }
+                case Dict.get key cleared.cache of 
+                    Nothing -> 
+                        Nothing
+
+                    Just currentState ->
+                        Just
+                            { key = key
+                            , state = currentState
+                            }
             , cache =
                 Dict.remove key cleared.cache
         }
@@ -115,60 +96,43 @@ get : String -> Cache state -> Maybe state
 get key (Cache details) =
     case details.current of
         Nothing ->
-            case Dict.get key details.cache of
-                Just (Loaded state) ->
-                    Just state
-
-                _ ->
-                    Nothing
+            Dict.get key details.cache
 
         Just cur ->
             if cur.key == key then
-                case cur.state of
-                    Loaded state ->
-                        Just state
-
-                    _ ->
-                        Nothing
+                Just cur.state
 
             else
-                case Dict.get key details.cache of
-                    Just (Loaded state) ->
-                        Just state
+                Dict.get key details.cache
 
-                    _ ->
-                        Nothing
 
 
 {-| -}
 insert : String -> state -> Cache state -> Cache state
 insert key newState (Cache details) =
-    let
-        state =
-            Loaded newState
-    in
     case details.current of
         Nothing ->
-            Cache { details | cache = Dict.insert key state details.cache }
+            Cache { details | cache = Dict.insert key newState details.cache }
 
         Just curr ->
             if curr.key == key then
-                Cache { details | current = Just { curr | state = state } }
+                Cache { details | current = Just { curr | state = newState } }
 
             else
-                Cache { details | cache = Dict.insert key state details.cache }
+                Cache { details | cache = Dict.insert key newState details.cache }
 
 
 {-| -}
-insertLoaded : String -> Loaded state -> Cache state -> Cache state
-insertLoaded key state (Cache details) =
+remove : String -> Cache state -> Cache state
+remove key (Cache details) =
     case details.current of
         Nothing ->
-            Cache { details | cache = Dict.insert key state details.cache }
+            Cache { details | cache = Dict.remove key details.cache }
 
-        Just currentValue ->
-            if currentValue.key == key then
-                Cache { details | current = Just { currentValue | state = state } }
+        Just curr ->
+            if curr.key == key then
+                Cache { details | current = Nothing }
 
             else
-                Cache { details | cache = Dict.insert key state details.cache }
+                Cache { details | cache = Dict.remove key details.cache }
+

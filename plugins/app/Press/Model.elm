@@ -20,6 +20,7 @@ import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.Url
 import Set exposing (Set)
+import Gen.App.PageError
 
 
 type alias Page =
@@ -91,7 +92,9 @@ types =
             [ ( "key", Gen.Browser.Navigation.annotation_.key )
             , ( "url", Gen.Url.annotation_.url )
             , ( "currentRoute", Type.maybe routeType )
-            , ( "states", Gen.App.State.annotation_.cache (Type.named [] "State") )
+            , ( "states"
+              , Gen.App.State.annotation_.cache (Type.named [] "State")
+              )
             , ( "frame", Type.var "frame" )
             ]
     , frame =
@@ -218,13 +221,38 @@ loadPage routes =
                                     Elm.updateRecord
                                         [ ( "states"
                                           , Elm.get "states" model
-                                                |> Gen.App.State.call_.toNotFound pageId
+                                                |> Gen.App.State.call_.remove pageId
                                           )
                                         ]
                                         model
                              in
                              Elm.tuple updatedModel
                                 Gen.Platform.Cmd.none
+                            )
+                        , Elm.Case.branch1 "Error"
+                            ( "err", Gen.App.PageError.annotation_.error )
+                            (\err -> 
+                                let
+                                    updatedModel =
+                                        Elm.updateRecord
+                                            [ ( "states"
+                                            , Elm.get "states" model
+                                                |> Gen.App.State.call_.insert pageId
+                                                    (Elm.apply 
+                                                        (Elm.value
+                                                            { importFrom = []
+                                                            , name = "PageError_"
+                                                            , annotation  = Nothing
+                                                            }
+                                                        )
+                                                        [ err ]
+                                                    )
+                                            )
+                                            ]
+                                            model
+                                in
+                                Elm.tuple updatedModel
+                                    Gen.Platform.Cmd.none
                             )
                         , Elm.Case.branch2 "Loaded"
                             ( "newPage", Type.named [] "State" )
@@ -252,7 +280,16 @@ loadPage routes =
                                         Elm.updateRecord
                                             [ ( "states"
                                               , Elm.get "states" model
-                                                    |> Gen.App.State.call_.toLoading pageId
+                                                    |> Gen.App.State.call_.insert pageId
+                                                        (Elm.apply 
+                                                            (Elm.value
+                                                                { importFrom = []
+                                                                , name = "PageLoading_"
+                                                                , annotation  = Nothing
+                                                                }
+                                                            )
+                                                            [ route ]
+                                                        )
                                               )
                                             ]
                                             model

@@ -33,6 +33,13 @@ main =
                             ]
                         }
 
+                    App.Engine.Error pageError ->
+                        { title = "Unauthorized"
+                        , body =
+                            [ Html.text "Unauthorized"
+                            ]
+                        }
+
                     App.Engine.Loading _ ->
                         { title = "Loading"
                         , body =
@@ -46,7 +53,7 @@ main =
                             [ page.body
                             ]
                         }
-        , toCmd = \model effect -> App.Effect.toCmd { navKey = model.nav } effect
+        , toCmd = \model effect -> App.Effect.toCmd model.nav effect
         , toSub = \model sub -> App.Sub.toSubscription sub
         , toShared = \model -> {}
         }

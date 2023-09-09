@@ -34,7 +34,7 @@ import Parser exposing ((|.), (|=))
 import Path
 import Press.Model exposing (..)
 import Set exposing (Set)
-
+import Gen.App.PageError
 
 pageRecordType =
     Type.record
@@ -92,18 +92,25 @@ generate routes =
         , app routes getPageInit loadPage
         , Elm.alias "Model" types.modelRecord
         , Elm.customType "State"
-            (routes
-                |> List.map
-                    (\route ->
-                        Elm.variantWith
-                            route.id
-                            [ Type.named route.moduleName "Model"
-                            ]
-                    )
+            (let 
+                routeVariants =
+                    routes
+                        |> List.map
+                            (\route ->
+                                Elm.variantWith
+                                    route.id
+                                    [ Type.named route.moduleName "Model"
+                                    ]
+                            )
+            in
+            Elm.variantWith "PageError_" [ Gen.App.PageError.annotation_.error ] 
+                :: Elm.variantWith "PageLoading_" [ types.routeType ] 
+                :: routeVariants
             )
         , Elm.customType "View"
             [ Elm.variantWith "NotFound" [ Gen.Url.annotation_.url ]
-            , Elm.variantWith "Loading" [ Type.maybe types.routeType ]
+            , Elm.variantWith "Loading" [ types.routeType ]
+            , Elm.variantWith "Error" [ Gen.App.PageError.annotation_.error ]
             , Elm.variantWith "View"
                 [ Gen.App.View.annotation_.view (Type.var "appMsg")
                 ]
@@ -382,69 +389,82 @@ view routes =
                             |> Elm.withType (Gen.Browser.annotation_.document types.msg)
                 in
                 frameView <|
-                    Gen.App.State.caseOf_.loaded (Gen.App.State.current (Elm.get "states" model))
-                        { notFound =
-                            Elm.apply
+                    Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
+                        { nothing =
+                             Elm.apply
                                 (Elm.val "NotFound")
                                 [ Elm.get "url" model ]
-                        , loading =
-                            Elm.apply
-                                (Elm.val "Loading")
-                                [ Elm.get "currentRoute" model ]
-                        , loaded =
-                            \current ->
-                                Elm.apply (Elm.val "View")
-                                    [ Elm.Case.custom current
-                                        types.pageModel
-                                        (routes
-                                            |> List.map
-                                                (\route ->
-                                                    let
-                                                        stateKey =
-                                                            route.id
-
-                                                        pageModule =
-                                                            route.moduleName
-
-                                                        pageMsgTypeName =
-                                                            types.toPageMsg route.id
-                                                    in
-                                                    Elm.Case.branch1 stateKey
-                                                        ( "pageModel", Type.named pageModule "Model" )
-                                                        (\pageState ->
-                                                            Press.Model.withPageHelper
-                                                                (Elm.value
-                                                                    { importFrom = pageModule
-                                                                    , name = "page"
-                                                                    , annotation = Nothing
-                                                                    }
-                                                                )
-                                                                "view"
-                                                                (\pageView ->
-                                                                    Gen.App.View.call_.map
-                                                                        (Elm.fn
-                                                                            ( "innerMsg", Nothing )
-                                                                            (\innerMsg ->
-                                                                                Elm.apply
-                                                                                    (Elm.val pageMsgTypeName)
-                                                                                    [ innerMsg
-                                                                                    ]
-                                                                            )
-                                                                        )
-                                                                        (Elm.apply pageView
-                                                                            [ Press.Model.toShared config (Elm.get "frame" model)
-                                                                            , pageState
-                                                                            ]
-                                                                        )
-                                                                )
-                                                        )
-                                                )
+                        , just =
+                            ("currentState", \current -> 
+                                Elm.Case.custom current
+                                    types.pageModel
+                                    (Elm.Case.branch1 "PageError_" ( "pageError", Gen.App.PageError.annotation_.error )
+                                        (\err -> 
+                                             Elm.apply
+                                                (Elm.val "Error")
+                                                [ err ]
                                         )
-                                    ]
+                                        :: Elm.Case.branch1 "PageLoading_" ( "pageRoute", types.routeType  )
+                                            (\pageRoute -> 
+                                                Elm.apply
+                                                    (Elm.val "Loading")
+                                                    [ pageRoute ]
+                                            )
+                                        ::  List.map (routeToView config model) routes
+                                            
+                                    )
+                            
+                            )
+
                         }
             )
         )
+                                                           
 
+routeToView config model route =
+    let
+        stateKey =
+            route.id
+
+        pageModule =
+            route.moduleName
+
+        pageMsgTypeName =
+            types.toPageMsg route.id
+    in
+    Elm.Case.branch1 stateKey
+        ( "pageModel", Type.named pageModule "Model" )
+        (\pageState ->
+            Press.Model.withPageHelper
+                (Elm.value
+                    { importFrom = pageModule
+                    , name = "page"
+                    , annotation = Nothing
+                    }
+                )
+                "view"
+                (\pageView ->
+                    Elm.apply (Elm.val "View")
+                        [ Gen.App.View.call_.map
+                            (Elm.fn
+                                ( "innerMsg", Nothing )
+                                (\innerMsg ->
+                                Elm.apply
+                                        (Elm.val pageMsgTypeName)
+                                        [ innerMsg
+                                        ]
+                                
+                                )
+                            )
+                            (Elm.apply pageView
+                                [ Press.Model.toShared config (Elm.get "frame" model)
+                                , pageState
+                                ]
+                            )
+                        ]
+                )
+        )
+                                            
 
 subscriptions : List Page -> Elm.Declaration
 subscriptions routes =
@@ -459,48 +479,23 @@ subscriptions routes =
                         [ Elm.get "frame" model ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
-                    , Gen.App.State.caseOf_.loaded (Gen.App.State.current (Elm.get "states" model))
-                        { loading = Gen.Platform.Sub.none
-                        , notFound = Gen.Platform.Sub.none
-                        , loaded =
-                            \current ->
-                                toSub config (Elm.get "frame" model) <|
-                                    Elm.Case.custom current
-                                        types.pageModel
-                                        (routes
-                                            |> List.map
-                                                (\route ->
-                                                    let
-                                                        stateKey =
-                                                            route.id
+                    ,  Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
+                        { nothing = Gen.Platform.Sub.none
+                        , just =
+                            ("currentState", \current -> 
+                                Elm.Case.custom current
+                                    types.pageModel
+                                    (Elm.Case.branch1 "PageError_" ( "pageError", Gen.App.PageError.annotation_.error )
+                                        (\err -> Gen.Platform.Sub.none)
+                                        :: Elm.Case.branch1 "PageLoading_" ( "pageRoute", types.routeType  )
+                                            (\pageRoute -> Gen.Platform.Sub.none)
+                                        :: List.map
+                                            (routeToSubscription config model)
+                                            routes
+                                    )
+                            
+                            )
 
-                                                        pageModule =
-                                                            route.moduleName
-
-                                                        pageMsgTypeName =
-                                                            types.toPageMsg route.id
-                                                    in
-                                                    Elm.Case.branch1 stateKey
-                                                        ( "pageModel", Type.named pageModule "Model" )
-                                                        (\pageState ->
-                                                            Press.Model.withPageHelper
-                                                                (Elm.value
-                                                                    { importFrom = pageModule
-                                                                    , name = "page"
-                                                                    , annotation = Nothing
-                                                                    }
-                                                                )
-                                                                "subscriptions"
-                                                                (\pageSubscriptions ->
-                                                                    Elm.apply pageSubscriptions
-                                                                        [ Press.Model.toShared config (Elm.get "frame" model)
-                                                                        , pageState
-                                                                        ]
-                                                                        |> Gen.App.Sub.call_.map (Elm.val pageMsgTypeName)
-                                                                )
-                                                        )
-                                                )
-                                        )
                         }
                     ]
             )
@@ -511,4 +506,36 @@ subscriptions routes =
                     ]
                     (Gen.Platform.Sub.annotation_.sub types.msg)
                 )
+        )
+
+routeToSubscription config model route =
+    let
+        stateKey =
+            route.id
+
+        pageModule =
+            route.moduleName
+
+        pageMsgTypeName =
+            types.toPageMsg route.id
+    in
+    Elm.Case.branch1 stateKey
+        ( "pageModel", Type.named pageModule "Model" )
+        (\pageState ->
+            toSub config (Elm.get "frame" model) <|
+                Press.Model.withPageHelper
+                    (Elm.value
+                        { importFrom = pageModule
+                        , name = "page"
+                        , annotation = Nothing
+                        }
+                    )
+                    "subscriptions"
+                    (\pageSubscriptions ->
+                        Elm.apply pageSubscriptions
+                            [ Press.Model.toShared config (Elm.get "frame" model)
+                            , pageState
+                            ]
+                            |> Gen.App.Sub.call_.map (Elm.val pageMsgTypeName)
+                    )
         )

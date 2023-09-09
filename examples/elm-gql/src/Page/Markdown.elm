@@ -15,7 +15,7 @@ import Html
 
 {-| -}
 type alias Model =
-    { sourceUrl : String }
+     { src : String, path : List String }
 
 
 {-| -}
@@ -24,7 +24,7 @@ type alias Msg =
 
 
 {-| -}
-page : App.Page.Page { sourceUrl : String } shared Msg Model
+page : App.Page.Page { src : String, path : List String } Msg Model
 page =
     App.Page.page
         { init =
@@ -36,6 +36,6 @@ page =
             \shared model ->
                 { title = "Markdown"
                 , body =
-                    Html.text model.sourceUrl
+                    Html.text model.src
                 }
         }

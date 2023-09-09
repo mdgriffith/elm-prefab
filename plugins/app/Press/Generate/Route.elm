@@ -15,6 +15,7 @@ import Gen.Dict
 import Gen.Html
 import Gen.Http
 import Gen.Json.Encode
+import Gen.Maybe
 import Gen.List
 import Gen.Markdown.Parser
 import Gen.Markdown.Renderer
@@ -342,7 +343,15 @@ renderPath path includePathTail queryParams paramValues =
                                 (Elm.apply
                                     Gen.Dict.values_.insert
                                     [ Elm.string field
-                                    , Elm.get field paramValues
+                                    , Elm.Case.maybe (Elm.get field paramValues)
+                                        { nothing = Elm.list []
+                                        , just =
+                                            ( "param"
+                                            , \param ->
+                                                Elm.list [ param ]
+                                            )
+
+                                        }
                                     ]
                                 )
                     )
@@ -489,7 +498,7 @@ parseAppUrl routes =
                 Elm.Case.custom
                     (Elm.get "path" appUrl)
                     (Type.list Type.string)
-                    (List.map toBranchPattern routes
+                    (List.map (toBranchPattern appUrl) routes
                         ++ [ Branch.ignore Elm.nothing
                            ]
                     )
@@ -499,13 +508,13 @@ parseAppUrl routes =
         )
 
 
-toBranchPattern : Page -> Branch.Pattern Elm.Expression
-toBranchPattern page =
-    urlToPatterns page page.url
+toBranchPattern : Elm.Expression -> Page -> Branch.Pattern Elm.Expression
+toBranchPattern appUrl page =
+    urlToPatterns appUrl page page.url
 
 
-urlToPatterns : Page -> UrlPattern -> Branch.Pattern Elm.Expression
-urlToPatterns page (UrlPattern pattern) =
+urlToPatterns : Elm.Expression -> Page -> UrlPattern -> Branch.Pattern Elm.Expression
+urlToPatterns appUrl page (UrlPattern pattern) =
     if pattern.includePathTail then
         Branch.listWithRemaining
             { patterns = List.map toTokenPattern pattern.path
@@ -515,7 +524,24 @@ urlToPatterns page (UrlPattern pattern) =
                 \fields gathered ->
                     fields ++ gathered
             , finally =
-                \fields remaining ->
+                \pathFields remaining ->
+                    let 
+                        fields =
+                            pathFields ++ queryParamFields
+
+                        queryParamFields =
+                            pattern.queryParams.specificFields
+                                |> Set.foldl
+                                    (\queryField gathered -> 
+                                        ( queryField
+                                        , Elm.get "queryParameters" appUrl
+                                            |> Gen.Dict.get (Elm.string queryField)
+                                            |> Gen.Maybe.call_.andThen Gen.List.values_.head
+                                        ) :: gathered
+                                    )
+                                    []
+
+                    in
                     case page.assets of
                         Nothing ->
                             Elm.apply
@@ -560,8 +586,26 @@ urlToPatterns page (UrlPattern pattern) =
                 \fields gathered ->
                     fields ++ gathered
             , finally =
-                \fields ->
+                \pathFields ->
+                    let 
+                        fields =
+                            pathFields ++ queryParamFields
+
+                        queryParamFields =
+                            pattern.queryParams.specificFields
+                                |> Set.foldl
+                                    (\queryField gathered -> 
+                                        ( queryField
+                                        , Elm.get "queryParameters" appUrl
+                                            |> Gen.Dict.get (Elm.string queryField)
+                                            |> Gen.Maybe.call_.andThen Gen.List.values_.head
+                                        ) :: gathered
+                                    )
+                                    []
+
+                    in
                     Elm.apply
+
                         (Elm.val page.id)
                         [ Elm.record fields
                         ]

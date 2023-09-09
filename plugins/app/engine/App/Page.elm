@@ -23,6 +23,7 @@ import App.Effect
 import App.Shared
 import App.Sub
 import App.View
+import App.PageError
 
 
 {-| -}
@@ -60,6 +61,7 @@ type alias Init msg model =
 {-| -}
 type InitPlan msg model
     = NotFound
+    | Error App.PageError.Error
     | Loaded model (App.Effect.Effect msg)
     | LoadFrom (App.Effect.Effect (InitPlan msg model))
 
@@ -75,6 +77,9 @@ mapInitPlan ({ onModel, onMsg } as fns) initPlan =
     case initPlan of
         NotFound ->
             NotFound
+
+        Error err ->
+            Error err
 
         Loaded model effect ->
             Loaded (onModel model) (App.Effect.map onMsg effect)
@@ -105,6 +110,12 @@ notFound =
 loadFrom : App.Effect.Effect (Init msg model) -> Init msg model
 loadFrom effect =
     LoadFrom effect
+
+
+{-|-}
+error : App.PageError.Error -> Init msg model
+error pageError =
+    Error pageError
 
 
 
