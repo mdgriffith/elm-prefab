@@ -5352,7 +5352,16 @@ var $author$project$App$Page$Page = function (a) {
 };
 var $author$project$App$Page$page = function (options) {
 	return $author$project$App$Page$Page(
-		{init: options.init, subscriptions: options.subscriptions, update: options.update, view: options.view});
+		{
+			init: options.init,
+			subscriptions: options.subscriptions,
+			update: options.update,
+			view: F2(
+				function (shared, model) {
+					return $elm$core$Result$Ok(
+						A2(options.view, shared, model));
+				})
+		});
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
@@ -6643,29 +6652,43 @@ var $author$project$App$Engine$view = F2(
 						case 'Home':
 							var pageModel = currentState.a;
 							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
-							return $author$project$App$Engine$View(
-								A2(
-									$author$project$App$View$map,
-									function (innerMsg) {
-										return $author$project$App$Engine$ToHome(innerMsg);
-									},
+							var pageViewResult = A2(
+								pageDetails.view,
+								config.toShared(model.frame),
+								pageModel);
+							if (pageViewResult.$ === 'Ok') {
+								var pageViewSuccess = pageViewResult.a;
+								return $author$project$App$Engine$View(
 									A2(
-										pageDetails.view,
-										config.toShared(model.frame),
-										pageModel)));
+										$author$project$App$View$map,
+										function (innerMsg) {
+											return $author$project$App$Engine$ToHome(innerMsg);
+										},
+										pageViewSuccess));
+							} else {
+								var pageError = pageViewResult.a;
+								return $author$project$App$Engine$Error(pageError);
+							}
 						default:
 							var pageModel = currentState.a;
 							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
-							return $author$project$App$Engine$View(
-								A2(
-									$author$project$App$View$map,
-									function (innerMsg) {
-										return $author$project$App$Engine$ToMarkdown(innerMsg);
-									},
+							var pageViewResult = A2(
+								pageDetails.view,
+								config.toShared(model.frame),
+								pageModel);
+							if (pageViewResult.$ === 'Ok') {
+								var pageViewSuccess = pageViewResult.a;
+								return $author$project$App$Engine$View(
 									A2(
-										pageDetails.view,
-										config.toShared(model.frame),
-										pageModel)));
+										$author$project$App$View$map,
+										function (innerMsg) {
+											return $author$project$App$Engine$ToMarkdown(innerMsg);
+										},
+										pageViewSuccess));
+							} else {
+								var pageError = pageViewResult.a;
+								return $author$project$App$Engine$Error(pageError);
+							}
 					}
 				}
 			}());

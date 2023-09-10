@@ -11,9 +11,10 @@ module App.Page exposing
 @docs Init, init, initWith, notFound, loadFrom
 
 
+
 # Internal Details
 
-These are
+These are used internally and you shouldn't need to worry about them!
 
 @docs InitPlan, toInternalDetails, mapInitPlan
 
@@ -27,12 +28,16 @@ import App.PageError
 
 
 {-| -}
-type Page params msg model
-    = Page
-        { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
-        , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
-        , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
-        , view : App.Shared.Shared -> model -> App.View.View msg
+type alias Page params msg model
+    = PageDetails App.Shared.Shared params msg model
+    
+    
+type PageDetails shared params msg model =
+    Page
+        { init : params -> shared -> Maybe model -> Init msg model
+        , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
+        , subscriptions : shared -> model -> App.Sub.Sub msg
+        , view : shared -> model -> Result App.PageError.Error (App.View.View msg)
         }
 
 
@@ -49,9 +54,48 @@ page options =
         { init = options.init
         , update = options.update
         , subscriptions = options.subscriptions
-        , view = options.view
+        , view = 
+            \shared model ->
+                Ok (options.view shared model)
         }
 
+{-|--}
+withGuard : (shared -> Result App.PageError.Error newShared) -> PageDetails newShared params msg model -> PageDetails shared params msg model
+withGuard toShared (Page options) =
+    Page
+        { init = 
+            \params shared maybeModel ->
+                case toShared shared of
+                    Err err ->
+                        Error err
+                    
+                    Ok newShared ->
+                        options.init params newShared maybeModel 
+        , update =
+            \shared msg model ->
+                 case toShared shared of
+                    Err err ->
+                        (model, App.Effect.none)
+                    
+                    Ok newShared ->
+                        options.update newShared msg model
+        , subscriptions = 
+             \shared model ->
+                 case toShared shared of
+                    Err err ->
+                        App.Sub.none
+                    
+                    Ok newShared ->
+                        options.subscriptions newShared model
+        , view = 
+             \shared model ->
+                 case toShared shared of
+                    Err err ->
+                        Err err
+                    
+                    Ok newShared ->
+                        options.view newShared model
+        }
 
 {-| -}
 type alias Init msg model =
@@ -129,7 +173,7 @@ toInternalDetails :
         { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
         , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
-        , view : App.Shared.Shared -> model -> App.View.View msg
+        , view : App.Shared.Shared -> model -> Result App.PageError.Error (App.View.View msg)
         }
 toInternalDetails (Page details) =
     details

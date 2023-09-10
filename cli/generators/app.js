@@ -15869,20 +15869,72 @@
             }), _List_fromArray([mapArg, mapArg0]));
         })
     };
+    var $mdgriffith$elm_codegen$Elm$Case$result_fn = function (mainExpression, branches) {
+        return function (index) {
+            var _v0 = $mdgriffith$elm_codegen$Elm$Case$captureCase_fn(mainExpression, _List_Nil, $mdgriffith$elm_codegen$Internal$Index$dive(index), _List_fromArray([
+                function (branchIndex) {
+                    var _v1 = branches.hw;
+                    var okNameStr = _v1.a;
+                    var toOk = _v1.b;
+                    var ok = $mdgriffith$elm_codegen$Internal$Compiler$toVarMaybeType_fn(branchIndex, okNameStr, $elm$core$Maybe$Nothing);
+                    return _Utils_Tuple3(ok.e, $stil4m$elm_syntax$Elm$Syntax$Pattern$NamedPattern_fn({ aR: _List_Nil, r: "Ok" }, _List_fromArray([
+                        $mdgriffith$elm_codegen$Internal$Compiler$nodify($stil4m$elm_syntax$Elm$Syntax$Pattern$VarPattern(ok.r))
+                    ])), toOk(ok.v));
+                },
+                function (branchIndex) {
+                    var _v2 = branches.g1;
+                    var errNameStr = _v2.a;
+                    var toErr = _v2.b;
+                    var err = $mdgriffith$elm_codegen$Internal$Compiler$toVarMaybeType_fn(branchIndex, errNameStr, $elm$core$Maybe$Nothing);
+                    return _Utils_Tuple3(err.e, $stil4m$elm_syntax$Elm$Syntax$Pattern$NamedPattern_fn({ aR: _List_Nil, r: "Err" }, _List_fromArray([
+                        $mdgriffith$elm_codegen$Internal$Compiler$nodify($stil4m$elm_syntax$Elm$Syntax$Pattern$VarPattern(err.r))
+                    ])), toErr(err.v));
+                }
+            ]));
+            var expr = _v0.a;
+            var gathered = _v0.b;
+            return {
+                p: function () {
+                    var _v3 = gathered.p;
+                    if (_v3.$ === 1) {
+                        return $elm$core$Result$Err(_List_fromArray([$mdgriffith$elm_codegen$Internal$Compiler$EmptyCaseStatement]));
+                    }
+                    else {
+                        var ann = _v3.a;
+                        return ann;
+                    }
+                }(),
+                c: $stil4m$elm_syntax$Elm$Syntax$Expression$CaseExpression({
+                    gI: $elm$core$List$reverse(gathered.gI),
+                    c: $mdgriffith$elm_codegen$Internal$Compiler$nodify(expr.c)
+                }),
+                d: _Utils_ap(expr.d, gathered.d)
+            };
+        };
+    }, $mdgriffith$elm_codegen$Elm$Case$result = F2($mdgriffith$elm_codegen$Elm$Case$result_fn);
     var $author$project$Press$Generate$Engine$routeToView_fn = function (config, model, route) {
         var stateKey = route.hc;
         var pageMsgTypeName = $author$project$Press$Model$types.bh(route.hc);
         var pageModule = route.aR;
         return $mdgriffith$elm_codegen$Elm$Case$branch1_fn(stateKey, _Utils_Tuple2("pageModel", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(pageModule, "Model")), function (pageState) {
             return $author$project$Press$Model$withPageHelper_fn($mdgriffith$elm_codegen$Elm$value({ p: $elm$core$Maybe$Nothing, q: pageModule, r: "page" }), "view", function (pageView) {
-                return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("View"), _List_fromArray([
-                    A2($author$project$Gen$App$View$call_.dV, $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("innerMsg", $elm$core$Maybe$Nothing), function (innerMsg) {
-                        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val(pageMsgTypeName), _List_fromArray([innerMsg]));
-                    }), $mdgriffith$elm_codegen$Elm$apply_fn(pageView, _List_fromArray([
-                        $author$project$Press$Model$toShared_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("frame", model)),
-                        pageState
-                    ])))
-                ]));
+                return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageViewResult", $mdgriffith$elm_codegen$Elm$apply_fn(pageView, _List_fromArray([
+                    $author$project$Press$Model$toShared_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("frame", model)),
+                    pageState
+                ])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageViewResult) {
+                    return $mdgriffith$elm_codegen$Elm$Case$result_fn(pageViewResult, {
+                        g1: _Utils_Tuple2("pageError", function (pageError) {
+                            return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("Error"), _List_fromArray([pageError]));
+                        }),
+                        hw: _Utils_Tuple2("pageViewSuccess", function (pageViewSuccess) {
+                            return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("View"), _List_fromArray([
+                                A2($author$project$Gen$App$View$call_.dV, $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("innerMsg", $elm$core$Maybe$Nothing), function (innerMsg) {
+                                    return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val(pageMsgTypeName), _List_fromArray([innerMsg]));
+                                }), pageViewSuccess)
+                            ]));
+                        })
+                    });
+                })));
             });
         });
     }, $author$project$Press$Generate$Engine$routeToView = F3($author$project$Press$Generate$Engine$routeToView_fn);

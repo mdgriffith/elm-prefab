@@ -444,24 +444,45 @@ routeToView config model route =
                 )
                 "view"
                 (\pageView ->
-                    Elm.apply (Elm.val "View")
-                        [ Gen.App.View.call_.map
-                            (Elm.fn
-                                ( "innerMsg", Nothing )
-                                (\innerMsg ->
-                                Elm.apply
-                                        (Elm.val pageMsgTypeName)
-                                        [ innerMsg
-                                        ]
-                                
-                                )
-                            )
+                     Elm.Let.letIn
+                        (\pageViewResult ->
+                            Elm.Case.result pageViewResult 
+                                { err =
+                                    ( "pageError"
+                                    , \pageError ->
+                                         Elm.apply
+                                            (Elm.val "Error")
+                                            [ pageError ]
+
+                                    )
+                                , ok =
+                                    ( "pageViewSuccess"
+                                    , \pageViewSuccess ->
+                                        Elm.apply (Elm.val "View")
+                                             [ Gen.App.View.call_.map
+                                                (Elm.fn
+                                                    ( "innerMsg", Nothing )
+                                                    (\innerMsg ->
+                                                    Elm.apply
+                                                            (Elm.val pageMsgTypeName)
+                                                            [ innerMsg
+                                                            ]
+                                                    
+                                                    )
+                                                )
+                                                pageViewSuccess   
+                                            ]
+                                    )
+
+                                }
+                        )
+                        |> Elm.Let.value "pageViewResult"
                             (Elm.apply pageView
                                 [ Press.Model.toShared config (Elm.get "frame" model)
                                 , pageState
                                 ]
                             )
-                        ]
+                        |> Elm.Let.toExpression
                 )
         )
                                             
