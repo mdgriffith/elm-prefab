@@ -6,36 +6,21 @@ import Elm
 import Elm.Annotation as Type
 import Elm.Case
 import Elm.Let
-import Elm.Op
 import Gen.App.Effect
-import Gen.App.Markdown
-import Gen.App.Page
+import Gen.App.PageError
 import Gen.App.State
 import Gen.App.Sub
 import Gen.App.View
 import Gen.Browser
 import Gen.Browser.Navigation
-import Gen.Dict
-import Gen.Html
-import Gen.Http
 import Gen.Json.Encode
-import Gen.List
-import Gen.Markdown.Parser
-import Gen.Markdown.Renderer
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
-import Gen.String
-import Gen.Tuple
 import Gen.Url
-import Gen.Url.Parser
-import Gen.Url.Parser.Query
-import Json.Decode
-import Parser exposing ((|.), (|=))
-import Path
 import Press.Model exposing (..)
-import Set exposing (Set)
-import Gen.App.PageError
 
+
+pageRecordType : Type.Annotation
 pageRecordType =
     Type.record
         [ ( "init"
@@ -92,7 +77,7 @@ generate routes =
         , app routes getPageInit loadPage
         , Elm.alias "Model" types.modelRecord
         , Elm.customType "State"
-            (let 
+            (let
                 routeVariants =
                     routes
                         |> List.map
@@ -102,9 +87,9 @@ generate routes =
                                     [ Type.named route.moduleName "Model"
                                     ]
                             )
-            in
-            Elm.variantWith "PageError_" [ Gen.App.PageError.annotation_.error ] 
-                :: Elm.variantWith "PageLoading_" [ types.routeType ] 
+             in
+             Elm.variantWith "PageError_" [ Gen.App.PageError.annotation_.error ]
+                :: Elm.variantWith "PageLoading_" [ types.routeType ]
                 :: routeVariants
             )
         , Elm.customType "View"
@@ -149,6 +134,7 @@ generate routes =
         ]
 
 
+parseUrl : Elm.Expression -> Elm.Expression
 parseUrl url =
     Elm.apply
         (Elm.value
@@ -239,6 +225,26 @@ app routes getPageInit loadPage =
         |> Elm.expose
 
 
+update :
+    List Page
+    ->
+        { a
+            | call :
+                Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+        }
+    ->
+        { b
+            | call :
+                Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+        }
+    -> Elm.Declaration
 update routes getPageInit loadPage =
     Elm.declaration "update"
         (Elm.fn3
@@ -391,35 +397,35 @@ view routes =
                 frameView <|
                     Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
                         { nothing =
-                             Elm.apply
+                            Elm.apply
                                 (Elm.val "NotFound")
                                 [ Elm.get "url" model ]
                         , just =
-                            ("currentState", \current -> 
+                            ( "currentState"
+                            , \current ->
                                 Elm.Case.custom current
                                     types.pageModel
-                                    (Elm.Case.branch1 "PageError_" ( "pageError", Gen.App.PageError.annotation_.error )
-                                        (\err -> 
-                                             Elm.apply
+                                    (Elm.Case.branch1 "PageError_"
+                                        ( "pageError", Gen.App.PageError.annotation_.error )
+                                        (\err ->
+                                            Elm.apply
                                                 (Elm.val "Error")
                                                 [ err ]
                                         )
-                                        :: Elm.Case.branch1 "PageLoading_" ( "pageRoute", types.routeType  )
-                                            (\pageRoute -> 
+                                        :: Elm.Case.branch1 "PageLoading_"
+                                            ( "pageRoute", types.routeType )
+                                            (\pageRoute ->
                                                 Elm.apply
                                                     (Elm.val "Loading")
                                                     [ pageRoute ]
                                             )
-                                        ::  List.map (routeToView config model) routes
-                                            
+                                        :: List.map (routeToView config model) routes
                                     )
-                            
                             )
-
                         }
             )
         )
-                                                           
+
 
 routeToView config model route =
     let
@@ -444,36 +450,33 @@ routeToView config model route =
                 )
                 "view"
                 (\pageView ->
-                     Elm.Let.letIn
+                    Elm.Let.letIn
                         (\pageViewResult ->
-                            Elm.Case.result pageViewResult 
+                            Elm.Case.result pageViewResult
                                 { err =
                                     ( "pageError"
                                     , \pageError ->
-                                         Elm.apply
+                                        Elm.apply
                                             (Elm.val "Error")
                                             [ pageError ]
-
                                     )
                                 , ok =
                                     ( "pageViewSuccess"
                                     , \pageViewSuccess ->
                                         Elm.apply (Elm.val "View")
-                                             [ Gen.App.View.call_.map
+                                            [ Gen.App.View.call_.map
                                                 (Elm.fn
                                                     ( "innerMsg", Nothing )
                                                     (\innerMsg ->
-                                                    Elm.apply
+                                                        Elm.apply
                                                             (Elm.val pageMsgTypeName)
                                                             [ innerMsg
                                                             ]
-                                                    
                                                     )
                                                 )
-                                                pageViewSuccess   
+                                                pageViewSuccess
                                             ]
                                     )
-
                                 }
                         )
                         |> Elm.Let.value "pageViewResult"
@@ -485,7 +488,7 @@ routeToView config model route =
                         |> Elm.Let.toExpression
                 )
         )
-                                            
+
 
 subscriptions : List Page -> Elm.Declaration
 subscriptions routes =
@@ -500,23 +503,24 @@ subscriptions routes =
                         [ Elm.get "frame" model ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
-                    ,  Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
+                    , Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
                         { nothing = Gen.Platform.Sub.none
                         , just =
-                            ("currentState", \current -> 
+                            ( "currentState"
+                            , \current ->
                                 Elm.Case.custom current
                                     types.pageModel
-                                    (Elm.Case.branch1 "PageError_" ( "pageError", Gen.App.PageError.annotation_.error )
+                                    (Elm.Case.branch1 "PageError_"
+                                        ( "pageError", Gen.App.PageError.annotation_.error )
                                         (\err -> Gen.Platform.Sub.none)
-                                        :: Elm.Case.branch1 "PageLoading_" ( "pageRoute", types.routeType  )
+                                        :: Elm.Case.branch1 "PageLoading_"
+                                            ( "pageRoute", types.routeType )
                                             (\pageRoute -> Gen.Platform.Sub.none)
                                         :: List.map
                                             (routeToSubscription config model)
                                             routes
                                     )
-                            
                             )
-
                         }
                     ]
             )
@@ -528,6 +532,7 @@ subscriptions routes =
                     (Gen.Platform.Sub.annotation_.sub types.msg)
                 )
         )
+
 
 routeToSubscription config model route =
     let
