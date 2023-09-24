@@ -10,9 +10,9 @@ import Elm.Let
 import Elm.Op
 import Gen.App.Effect
 import Gen.App.Page
+import Gen.App.PageError
 import Gen.App.State
 import Gen.App.Sub
-import Gen.App.View
 import Gen.Browser
 import Gen.Browser.Navigation
 import Gen.Json.Encode
@@ -20,7 +20,6 @@ import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.Url
 import Set exposing (Set)
-import Gen.App.PageError
 
 
 type alias Page =
@@ -66,14 +65,17 @@ type UrlPiece
     | Variable String
 
 
+appMsg : Type.Annotation
 appMsg =
     Type.namedWith [] "Msg" [ Type.var "msg" ]
 
 
+sharedType : Type.Annotation
 sharedType =
     Type.named [ "App", "Shared" ] "Shared"
 
 
+routeType : Type.Annotation
 routeType =
     Type.named [ "Route" ] "Route"
 
@@ -183,10 +185,12 @@ toSub config frameModel sub =
     Elm.apply (Elm.get "toSub" config) [ frameModel, sub ]
 
 
+getState : Elm.Expression -> Elm.Expression -> Elm.Expression
 getState key model =
     Gen.App.State.call_.get key (Elm.get "states" model)
 
 
+setState : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
 setState key val model =
     Gen.App.State.call_.insert key val (Elm.get "states" model)
 
@@ -231,23 +235,23 @@ loadPage routes =
                             )
                         , Elm.Case.branch1 "Error"
                             ( "err", Gen.App.PageError.annotation_.error )
-                            (\err -> 
+                            (\err ->
                                 let
                                     updatedModel =
                                         Elm.updateRecord
                                             [ ( "states"
-                                            , Elm.get "states" model
-                                                |> Gen.App.State.call_.insert pageId
-                                                    (Elm.apply 
-                                                        (Elm.value
-                                                            { importFrom = []
-                                                            , name = "PageError_"
-                                                            , annotation  = Nothing
-                                                            }
+                                              , Elm.get "states" model
+                                                    |> Gen.App.State.call_.insert pageId
+                                                        (Elm.apply
+                                                            (Elm.value
+                                                                { importFrom = []
+                                                                , name = "PageError_"
+                                                                , annotation = Nothing
+                                                                }
+                                                            )
+                                                            [ err ]
                                                         )
-                                                        [ err ]
-                                                    )
-                                            )
+                                              )
                                             ]
                                             model
                                 in
@@ -281,11 +285,11 @@ loadPage routes =
                                             [ ( "states"
                                               , Elm.get "states" model
                                                     |> Gen.App.State.call_.insert pageId
-                                                        (Elm.apply 
+                                                        (Elm.apply
                                                             (Elm.value
                                                                 { importFrom = []
                                                                 , name = "PageLoading_"
-                                                                , annotation  = Nothing
+                                                                , annotation = Nothing
                                                                 }
                                                             )
                                                             [ route ]
@@ -393,6 +397,7 @@ getPageInit routes =
         )
 
 
+withPageHelper : Elm.Expression -> String -> (Elm.Expression -> Elm.Expression) -> Elm.Expression
 withPageHelper pageConfig fieldName fn =
     Elm.Let.letIn
         (\pageDetails ->
@@ -478,6 +483,14 @@ updatePageBranches routes config shared model =
             )
 
 
+getPage :
+    String
+    -> Elm.Expression
+    ->
+        { just : Elm.Expression -> Elm.Expression
+        , nothing : Elm.Expression
+        }
+    -> Elm.Expression
 getPage key states onFound =
     Elm.Case.maybe (Gen.App.State.get key states)
         { nothing = onFound.nothing
