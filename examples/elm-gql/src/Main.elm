@@ -13,12 +13,12 @@ import Browser.Navigation
 import Html
 
 
-main : App.Engine.App { nav : Browser.Navigation.Key } ()
+main : App.Engine.App {} ()
 main =
     App.Engine.app
         { init =
-            \navKey flags ->
-                ( { nav = navKey }
+            \flags ->
+                ( {}
                 , App.Effect.none
                 )
         , update = \_ model -> ( model, App.Effect.none )
@@ -53,7 +53,7 @@ main =
                             [ page.body
                             ]
                         }
-        , toCmd = \model effect -> App.Effect.toCmd model.nav effect
+        , toCmd = \options model effect -> App.Effect.toCmd options effect
         , toSub = \model sub -> App.Sub.toSubscription sub
         , toShared = \model -> {}
         }
