@@ -80,38 +80,41 @@ routeType =
     Type.named [ "Route" ] "Route"
 
 
-types =
-    { msg = appMsg
-    , pageMsg = Type.named [] "PageMsg"
-    , routeType = routeType
-    , model = Type.namedWith [] "Model" [ Type.var "model" ]
-    , pageLoadResult =
-        Gen.App.Page.annotation_.init
-            appMsg
-            (Type.named [] "State")
-    , modelRecord =
+type ConfigType
+    = ViewConfig
+    | SubscriptionConfig
+    | UpdateConfig
+    | FullConfig
+    | TestConfig
+
+
+toConfig configType =
+    (if configType == FullConfig then
         Type.record
-            [ ( "key", Gen.Browser.Navigation.annotation_.key )
-            , ( "url", Gen.Url.annotation_.url )
-            , ( "currentRoute", Type.maybe routeType )
-            , ( "states"
-              , Gen.App.State.annotation_.cache (Type.named [] "State")
-              )
-            , ( "frame", Type.var "frame" )
-            ]
-    , frame =
-        Type.record
-            [ ( "init"
+
+     else
+        Type.extensible "config"
+    )
+        (List.filterMap
+            (\( allowed, name, val ) ->
+                if List.member configType allowed || configType == FullConfig then
+                    Just ( name, val )
+
+                else
+                    Nothing
+            )
+            [ ( [ TestConfig ]
+              , "init"
               , Type.function
-                    [ Gen.Browser.Navigation.annotation_.key
-                    , Gen.Json.Encode.annotation_.value
+                    [ Gen.Json.Encode.annotation_.value
                     ]
                     (Type.tuple
                         (Type.var "model")
                         (Gen.App.Effect.annotation_.effect (Type.var "msg"))
                     )
               )
-            , ( "update"
+            , ( [ UpdateConfig, TestConfig ]
+              , "update"
               , Type.function
                     [ Type.var "msg"
                     , Type.var "model"
@@ -121,13 +124,15 @@ types =
                         (Gen.App.Effect.annotation_.effect (Type.var "msg"))
                     )
               )
-            , ( "subscriptions"
+            , ( [ SubscriptionConfig ]
+              , "subscriptions"
               , Type.function
                     [ Type.var "model"
                     ]
                     (Gen.App.Sub.annotation_.sub (Type.var "msg"))
               )
-            , ( "view"
+            , ( [ ViewConfig, TestConfig ]
+              , "view"
               , Type.function
                     [ Type.function [ Type.var "msg" ] appMsg
                     , Type.var "model"
@@ -135,27 +140,66 @@ types =
                     ]
                     (Gen.Browser.annotation_.document appMsg)
               )
-            , ( "toCmd"
+            , ( []
+              , "toCmd"
               , Type.function
-                    [ Type.var "model"
+                    [ Type.record
+                        [ ( "navKey", Gen.Browser.Navigation.annotation_.key )
+                        ]
+                    , Type.var "model"
                     , Gen.App.Effect.annotation_.effect appMsg
                     ]
                     (Gen.Platform.Cmd.annotation_.cmd appMsg)
               )
-            , ( "toSub"
+            , ( [ SubscriptionConfig ]
+              , "toSub"
               , Type.function
                     [ Type.var "model"
                     , Gen.App.Sub.annotation_.sub appMsg
                     ]
                     (Gen.Platform.Sub.annotation_.sub appMsg)
               )
-            , ( "toShared"
+            , ( [ ViewConfig, UpdateConfig, SubscriptionConfig, TestConfig ]
+              , "toShared"
               , Type.function
                     [ Type.var "model"
                     ]
                     sharedType
               )
             ]
+        )
+
+
+types =
+    { msg = appMsg
+    , pageMsg = Type.named [] "PageMsg"
+    , routeType = routeType
+    , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
+    , testModel = Type.namedWith [] "Model" [ Type.unit, Type.var "model" ]
+    , pageLoadResult =
+        Gen.App.Page.annotation_.init
+            appMsg
+            (Type.named [] "State")
+    , modelRecord =
+        Type.record
+            [ ( "key", Type.var "key" )
+            , ( "url", Gen.Url.annotation_.url )
+            , ( "currentRoute", Type.maybe routeType )
+            , ( "states"
+              , Gen.App.State.annotation_.cache (Type.named [] "State")
+              )
+            , ( "frame", Type.var "frame" )
+            ]
+    , frame =
+        toConfig FullConfig
+    , frameView =
+        toConfig ViewConfig
+    , frameUpdate =
+        toConfig UpdateConfig
+    , frameSub =
+        toConfig SubscriptionConfig
+    , frameTest =
+        toConfig TestConfig
     , pageModel = Type.named [] "PageModel"
     , effect = Type.namedWith [] "Effect" [ Type.var "msg" ]
     , subscription = Type.namedWith [] "Subscription" [ Type.var "msg" ]
@@ -175,9 +219,9 @@ toShared config frameModel =
     Elm.apply (Elm.get "toShared" config) [ frameModel ]
 
 
-toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
-toCmd config frameModel effect =
-    Elm.apply (Elm.get "toCmd" config) [ frameModel, effect ]
+toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+toCmd config navKey frameModel effect =
+    Elm.apply (Elm.get "toCmd" config) [ Elm.record [ ( "navKey", navKey ) ], frameModel, effect ]
 
 
 toSub : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -206,7 +250,7 @@ loadPage :
         }
 loadPage routes =
     Elm.Declare.fn4 "loadPage"
-        ( "config", Just types.frame )
+        ( "config", Just types.frameUpdate )
         ( "model", Just types.model )
         ( "route", Just types.routeType )
         ( "initialization", Just types.pageLoadResult )
@@ -231,7 +275,7 @@ loadPage routes =
                                         model
                              in
                              Elm.tuple updatedModel
-                                Gen.Platform.Cmd.none
+                                Gen.App.Effect.none
                             )
                         , Elm.Case.branch1 "Error"
                             ( "err", Gen.App.PageError.annotation_.error )
@@ -256,7 +300,7 @@ loadPage routes =
                                             model
                                 in
                                 Elm.tuple updatedModel
-                                    Gen.Platform.Cmd.none
+                                    Gen.App.Effect.none
                             )
                         , Elm.Case.branch2 "Loaded"
                             ( "newPage", Type.named [] "State" )
@@ -272,9 +316,7 @@ loadPage routes =
                                         ]
                                         model
                                     )
-                                    (pageEffect
-                                        |> toCmd config (Elm.get "frame" model)
-                                    )
+                                    pageEffect
                             )
                         , Elm.Case.branch1 "LoadFrom"
                             ( "pageEffect", types.pageLoadResult )
@@ -306,7 +348,6 @@ loadPage routes =
                                                 [ route
                                                 ]
                                             )
-                                        |> toCmd config (Elm.get "frame" model)
                                     )
                             )
                         ]
@@ -322,7 +363,7 @@ loadPage routes =
                         [ route ]
                     )
                 |> Elm.Let.toExpression
-                |> Elm.withType (Type.tuple types.model (Type.cmd types.msg))
+                |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))
         )
 
 
@@ -436,7 +477,7 @@ updatePageBranches routes config shared model =
                     (\pageMsg ->
                         getPage stateKey
                             (Elm.get "states" model)
-                            { nothing = Elm.tuple model Gen.Platform.Cmd.none
+                            { nothing = Elm.tuple model Gen.App.Effect.none
                             , just =
                                 \pageState ->
                                     let
@@ -473,7 +514,6 @@ updatePageBranches routes config shared model =
                                                 )
                                                 (pageEffect
                                                     |> Gen.App.Effect.call_.map (Elm.val pageMsgTypeName)
-                                                    |> toCmd config (Elm.get "frame" model)
                                                 )
                                         )
                                         |> Elm.Let.tuple "updatedPage" "pageEffect" updated
