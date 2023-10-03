@@ -1,11 +1,14 @@
 port module App.Effect exposing
-    ( none, pushUrl, replaceUrl, load, reload, forward, back
+    ( none, batch
+    , pushUrl, replaceUrl, load, reload, forward, back
     , Effect, toCmd, map
     )
 
 {-|
 
-@docs none, pushUrl, replaceUrl, load, reload, forward, back
+@docs none, batch
+
+@docs pushUrl, replaceUrl, load, reload, forward, back
 
 
 # Effects
@@ -25,6 +28,11 @@ import Json.Encode
 none : Effect msg
 none =
     None
+
+
+batch : List (Effect msg) -> Effect msg
+batch =
+    Batch
 
 
 pushUrl : String -> Effect msg
@@ -59,6 +67,7 @@ back =
 
 type Effect msg
     = None
+    | Batch (List (Effect msg))
     | PushUrl String
     | ReplaceUrl String
     | Load String
@@ -80,6 +89,9 @@ toCmd { navKey } effect =
         None ->
             Cmd.none
 
+        Batch effects ->
+            Cmd.batch (List.map (toCmd { navKey = navKey }) effects)
+
         PushUrl url ->
             Browser.Navigation.pushUrl navKey url
 
@@ -93,10 +105,10 @@ toCmd { navKey } effect =
             Browser.Navigation.reload
 
         Forward steps ->
-            Browser.Navigation.forward key steps
+            Browser.Navigation.forward navKey steps
 
         Back steps ->
-            Browser.Navigation.back key steps
+            Browser.Navigation.back navKey steps
 
         SendToWorld outgoingMsg ->
             outgoing outgoingMsg
@@ -107,6 +119,9 @@ map f effect =
     case effect of
         None ->
             None
+
+        Batch effects ->
+            Batch (List.map (map f) effects)
 
         PushUrl url ->
             PushUrl url
