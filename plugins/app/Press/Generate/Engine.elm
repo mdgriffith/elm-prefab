@@ -73,8 +73,12 @@ generate routes =
                 , Type.namedWith [] "Msg" [ Type.var "msg" ]
                 ]
             )
-            |> Elm.expose
+            |> Elm.exposeWith
+                { group = Just "App"
+                , exposeConstructor = True
+                }
         , app routes getPageInit loadPage
+        , testAlias
         , test getPageInit loadPage
         , Elm.alias "Model" types.modelRecord
         , Elm.customType "State"
@@ -102,7 +106,7 @@ generate routes =
                 ]
             ]
             |> Elm.exposeWith
-                { group = Nothing
+                { group = Just "App"
                 , exposeConstructor = True
                 }
         , let
@@ -135,6 +139,25 @@ generate routes =
         ]
 
 
+testAlias =
+    Elm.alias "Test"
+        (Type.record
+            [ ( "init"
+              , Type.function [ Gen.Json.Encode.annotation_.value, Gen.Url.annotation_.url, Type.unit ]
+                    (Type.tuple types.testModel (Gen.App.Effect.annotation_.effect types.msg))
+              )
+            , ( "view", Type.function [ types.testModel ] (Gen.Browser.annotation_.document types.msg) )
+            , ( "update", Type.function [ types.msg, types.testModel ] (Type.tuple types.testModel (Gen.App.Effect.annotation_.effect types.msg)) )
+            , ( "onUrlRequest", Type.function [ Gen.Browser.annotation_.urlRequest ] types.msg )
+            , ( "onUrlChange", Type.function [ Gen.Url.annotation_.url ] types.msg )
+            ]
+        )
+        |> Elm.exposeWith
+            { group = Just "Testing"
+            , exposeConstructor = True
+            }
+
+
 {-|
 
     { init : flags -> Url -> () -> ( model, effect )
@@ -165,21 +188,13 @@ test getPageInit loadPage =
                     , ( "onUrlRequest", Elm.val "UrlRequested" )
                     , ( "onUrlChange", Elm.val "UrlChanged" )
                     ]
-                    |> Elm.withType
-                        (Type.record
-                            [ ( "init"
-                              , Type.function [ Gen.Json.Encode.annotation_.value, Gen.Url.annotation_.url, Type.unit ]
-                                    (Type.tuple types.testModel (Gen.App.Effect.annotation_.effect types.msg))
-                              )
-                            , ( "view", Type.function [ types.testModel ] (Gen.Browser.annotation_.document types.msg) )
-                            , ( "update", Type.function [ types.msg, types.testModel ] (Type.tuple types.testModel (Gen.App.Effect.annotation_.effect types.msg)) )
-                            , ( "onUrlRequest", Type.function [ Gen.Browser.annotation_.urlRequest ] types.msg )
-                            , ( "onUrlChange", Type.function [ Gen.Url.annotation_.url ] types.msg )
-                            ]
-                        )
+                    |> Elm.withType (Type.namedWith [] "Test" [ Type.var "model", Type.var "msg" ])
             )
         )
-        |> Elm.expose
+        |> Elm.exposeWith
+            { group = Just "Testing"
+            , exposeConstructor = True
+            }
 
 
 parseUrl : Elm.Expression -> Elm.Expression
@@ -253,7 +268,10 @@ app routes getPageInit loadPage =
                     |> Elm.withType (Type.namedWith [] "App" [ Type.var "model", Type.var "msg" ])
             )
         )
-        |> Elm.expose
+        |> Elm.exposeWith
+            { group = Just "App"
+            , exposeConstructor = True
+            }
 
 
 init getPageInit loadPage config flags url key =
