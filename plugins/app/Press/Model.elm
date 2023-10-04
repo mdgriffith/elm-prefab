@@ -9,7 +9,7 @@ import Elm.Declare
 import Elm.Let
 import Elm.Op
 import Gen.App.Effect
-import Gen.App.Page
+import Gen.App.Engine.Page
 import Gen.App.PageError
 import Gen.App.State
 import Gen.App.Sub
@@ -177,7 +177,7 @@ types =
     , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
     , testModel = Type.namedWith [] "Model" [ Type.unit, Type.var "model" ]
     , pageLoadResult =
-        Gen.App.Page.annotation_.init
+        Gen.App.Engine.Page.annotation_.init
             appMsg
             (Type.named [] "State")
     , modelRecord =
@@ -259,7 +259,7 @@ loadPage routes =
                 (\pageId ->
                     Elm.Case.custom initialization
                         (Type.namedWith
-                            [ "App", "Page" ]
+                            [ "App", "Engine", "Page" ]
                             "InitPlan"
                             [ Type.var "msg", Type.var "model" ]
                         )
@@ -422,7 +422,7 @@ getPageInit routes =
                                                 ]
                                                 |> Elm.Op.pipe
                                                     (Elm.apply
-                                                        Gen.App.Page.values_.mapInitPlan
+                                                        Gen.App.Engine.Page.values_.mapInitPlan
                                                         [ Elm.record
                                                             [ ( "onModel", Elm.val stateKey )
                                                             , ( "onMsg", Elm.val pageMsgTypeName )
@@ -446,7 +446,7 @@ withPageHelper pageConfig fieldName fn =
         )
         |> Elm.Let.value "pageDetails"
             (Elm.apply
-                Gen.App.Page.values_.toInternalDetails
+                Gen.App.Engine.Page.values_.toInternalDetails
                 [ pageConfig ]
             )
         |> Elm.Let.toExpression

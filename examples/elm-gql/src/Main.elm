@@ -8,17 +8,18 @@ module Main exposing (..)
 
 import App.Effect
 import App.Engine
+import App.Shared
 import App.Sub
 import Browser.Navigation
 import Html
 
 
-main : App.Engine.App {} ()
+main : App.Engine.App { shared : { authenticated : App.Shared.Authenticated } } ()
 main =
     App.Engine.app
         { init =
             \flags ->
-                ( {}
+                ( { shared = { authenticated = App.Shared.Authenticated } }
                 , App.Effect.none
                 )
         , update = \_ model -> ( model, App.Effect.none )
@@ -55,5 +56,5 @@ main =
                         }
         , toCmd = \options model effect -> App.Effect.toCmd options effect
         , toSub = \model sub -> App.Sub.toSubscription sub
-        , toShared = \model -> {}
+        , toShared = .shared
         }

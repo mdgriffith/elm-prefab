@@ -10,6 +10,12 @@ export const copyTo = (baseDir: string, overwrite: boolean) => {
   }
 
 
+  if (overwrite || !fs.existsSync(path.join(baseDir, "/App/Page.elm"))) {
+    fs.mkdirSync(path.dirname(path.join(baseDir, "/App/Page.elm")), { recursive: true });
+    fs.writeFileSync(path.join(baseDir, "/App/Page.elm"), "module App.Page exposing\n    ( Page, page, authenticated\n    , Init, init, initWith, notFound, loadFrom, error\n    )\n\n{-|\n\n@docs Page, page, authenticated\n\n@docs Init, init, initWith, notFound, loadFrom, error\n\n-}\n\nimport App.Effect\nimport App.Engine.Page\nimport App.PageError\nimport App.Shared\nimport App.Sub\nimport App.View\n\n\n{-| -}\ntype alias Page params msg model =\n    App.Engine.Page.Page App.Shared.Shared params msg model\n\n\n{-| -}\npage :\n    { init : params -> App.Shared.Shared -> Maybe model -> Init msg model\n    , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )\n    , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg\n    , view : App.Shared.Shared -> model -> App.View.View msg\n    }\n    -> Page params msg model\npage =\n    App.Engine.Page.page\n\n\n{-| -}\ntype alias Authenticated shared params msg model =\n    App.Engine.Page.Page shared params msg model\n\n\n{-| -}\nauthenticated :\n    { init : params -> App.Shared.Shared -> Maybe model -> Init msg model\n    , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )\n    , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg\n    , view : App.Shared.Shared -> model -> App.View.View msg\n    }\n    -> Page params msg model\nauthenticated options =\n    App.Engine.Page.page options\n        |> App.Engine.Page.withGuard\n            (\\shared ->\n                case shared.authenticated of\n                    App.Shared.Authenticated ->\n                        Ok shared\n\n                    App.Shared.Unauthenticated ->\n                        Err App.PageError.Unauthenticated\n            )\n\n\ntype alias Init msg model =\n    App.Engine.Page.Init msg model\n\n\n{-| -}\ninit : model -> Init msg model\ninit =\n    App.Engine.Page.init\n\n\n{-| -}\ninitWith : model -> App.Effect.Effect msg -> Init msg model\ninitWith =\n    App.Engine.Page.initWith\n\n\n{-| -}\nnotFound : Init msg model\nnotFound =\n    App.Engine.Page.notFound\n\n\n{-| -}\nloadFrom : App.Effect.Effect (Init msg model) -> Init msg model\nloadFrom =\n    App.Engine.Page.loadFrom\n\n\n{-| -}\nerror : App.PageError.Error -> Init msg model\nerror =\n    App.Engine.Page.error\n");
+  }
+
+
   if (overwrite || !fs.existsSync(path.join(baseDir, "/App/PageError.elm"))) {
     fs.mkdirSync(path.dirname(path.join(baseDir, "/App/PageError.elm")), { recursive: true });
     fs.writeFileSync(path.join(baseDir, "/App/PageError.elm"), "module App.PageError exposing (Error(..))\n\n{-| \nYou may want to protect a page with a certain error when it is first requested.\n\n- `NotFound` is built in to `elm-press`, so you don't need to capture that here.\n\nCommon errors are\n\n    - Unauthenticated — When you require someone to be signed in in order to see a page.\n    - Permission denied — When you require taht someone is both signed in and has certain permissions.\n\n\n-}\n\n\ntype Error =\n    Unauthenticated");
@@ -18,7 +24,7 @@ export const copyTo = (baseDir: string, overwrite: boolean) => {
 
   if (overwrite || !fs.existsSync(path.join(baseDir, "/App/Shared.elm"))) {
     fs.mkdirSync(path.dirname(path.join(baseDir, "/App/Shared.elm")), { recursive: true });
-    fs.writeFileSync(path.join(baseDir, "/App/Shared.elm"), "module App.Shared exposing (Shared)\n\n{-| Data that is shared between the global app and the individual pages.\n-}\n\n\ntype alias Shared =\n    {}\n");
+    fs.writeFileSync(path.join(baseDir, "/App/Shared.elm"), "module App.Shared exposing\n    ( Shared\n    , Authenticated(..)\n    )\n\n{-| Data that is shared between the global app and the individual pages.\n\n@docs Shared\n\n@docs Authenticated\n\n-}\n\n\ntype alias Shared =\n    { authenticated : Authenticated }\n\n\ntype Authenticated\n    = Authenticated\n    | Unauthenticated\n");
   }
 
 

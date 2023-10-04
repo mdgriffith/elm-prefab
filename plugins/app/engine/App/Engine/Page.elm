@@ -1,4 +1,4 @@
-module App.Page exposing
+module App.Engine.Page exposing
     ( Page, page
     , Init, init, initWith, notFound, loadFrom, error
     , withGuard
@@ -29,12 +29,7 @@ import App.Sub
 import App.View
 
 
-{-| -}
-type alias Page params msg model =
-    PageDetails App.Shared.Shared params msg model
-
-
-type PageDetails shared params msg model
+type Page shared params msg model
     = Page
         { init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
@@ -50,7 +45,7 @@ page :
     , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
     , view : App.Shared.Shared -> model -> App.View.View msg
     }
-    -> Page params msg model
+    -> Page App.Shared.Shared params msg model
 page options =
     Page
         { init = options.init
@@ -63,7 +58,10 @@ page options =
 
 
 {-| -}
-withGuard : (shared -> Result App.PageError.Error newShared) -> PageDetails newShared params msg model -> PageDetails shared params msg model
+withGuard :
+    (shared -> Result App.PageError.Error newShared)
+    -> Page newShared params msg model
+    -> Page shared params msg model
 withGuard toShared (Page options) =
     Page
         { init =
@@ -172,12 +170,12 @@ error pageError =
 
 {-| -}
 toInternalDetails :
-    Page params msg model
+    Page shared params msg model
     ->
-        { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
-        , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
-        , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
-        , view : App.Shared.Shared -> model -> Result App.PageError.Error (App.View.View msg)
+        { init : params -> shared -> Maybe model -> Init msg model
+        , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
+        , subscriptions : shared -> model -> App.Sub.Sub msg
+        , view : shared -> model -> Result App.PageError.Error (App.View.View msg)
         }
 toInternalDetails (Page details) =
     details
