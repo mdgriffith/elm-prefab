@@ -83,14 +83,14 @@ type Effect msg
 port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
 
 
-toCmd : { navKey : Browser.Navigation.Key } -> Effect msg -> Cmd msg
-toCmd { navKey } effect =
+toCmd : { options | navKey : Browser.Navigation.Key } -> Effect msg -> Cmd msg
+toCmd ({ navKey } as options) effect =
     case effect of
         None ->
             Cmd.none
 
         Batch effects ->
-            Cmd.batch (List.map (toCmd { navKey = navKey }) effects)
+            Cmd.batch (List.map (toCmd options) effects)
 
         PushUrl url ->
             Browser.Navigation.pushUrl navKey url

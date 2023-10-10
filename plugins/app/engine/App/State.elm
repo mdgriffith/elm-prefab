@@ -1,14 +1,14 @@
 module App.State exposing
     ( Cache, init, current, get
-    , setCurrent, insert, remove
-    , clearCurrent
+    , insert, remove, drop
+    , setCurrent, clearCurrent
     )
 
 {-|
 
 @docs Cache, init, current, get
 
-@docs insert, remove
+@docs insert, remove, drop
 
 @docs setCurrent, clearCurrent
 
@@ -43,8 +43,6 @@ current (Cache details) =
     Maybe.map .state details.current
 
 
-
-
 {-| This is called when there is no clear new current state.
 
 Such as when the URL has changed to a new page that does not exist.
@@ -67,6 +65,16 @@ clearCurrent (Cache details) =
         }
 
 
+{-|
+
+    Drop everything but the current item
+
+-}
+drop : Cache state -> Cache state
+drop (Cache details) =
+    Cache { details | cache = Dict.empty }
+
+
 {-| -}
 setCurrent : String -> Cache state -> Cache state
 setCurrent key cache =
@@ -77,8 +85,8 @@ setCurrent key cache =
     Cache
         { cleared
             | current =
-                case Dict.get key cleared.cache of 
-                    Nothing -> 
+                case Dict.get key cleared.cache of
+                    Nothing ->
                         Nothing
 
                     Just currentState ->
@@ -104,7 +112,6 @@ get key (Cache details) =
 
             else
                 Dict.get key details.cache
-
 
 
 {-| -}
@@ -135,4 +142,3 @@ remove key (Cache details) =
 
             else
                 Cache { details | cache = Dict.remove key details.cache }
-

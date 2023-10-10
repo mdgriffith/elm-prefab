@@ -145,6 +145,18 @@ toConfig configType =
               , Type.function
                     [ Type.record
                         [ ( "navKey", Gen.Browser.Navigation.annotation_.key )
+                        , ( "toApp"
+                          , Type.function [ Type.var "msg" ] appMsg
+                          )
+                        , ( "dropPageCache"
+                          , appMsg
+                          )
+                        , ( "preload"
+                          , Type.function [ routeType ] appMsg
+                          )
+                        , ( "reinitializeCurrentPage"
+                          , appMsg
+                          )
                         ]
                     , Type.var "model"
                     , Gen.App.Effect.annotation_.effect appMsg
@@ -221,7 +233,17 @@ toShared config frameModel =
 
 toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
 toCmd config navKey frameModel effect =
-    Elm.apply (Elm.get "toCmd" config) [ Elm.record [ ( "navKey", navKey ) ], frameModel, effect ]
+    Elm.apply (Elm.get "toCmd" config)
+        [ Elm.record
+            [ ( "navKey", navKey )
+            , ( "toApp", Elm.val "Global" )
+            , ( "dropPageCache", Elm.val "PageCacheCleared" )
+            , ( "preload", Elm.val "Preload" )
+            , ( "reinitializeCurrentPage", Elm.val "PageReinitializeRequested" )
+            ]
+        , frameModel
+        , effect
+        ]
 
 
 toSub : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -295,6 +317,7 @@ loadPage routes =
                                                             )
                                                             [ err ]
                                                         )
+                                                    |> Gen.App.State.call_.setCurrent pageId
                                               )
                                             ]
                                             model
@@ -312,6 +335,124 @@ loadPage routes =
                                           , Elm.get "states" model
                                                 |> Gen.App.State.call_.insert pageId newPage
                                                 |> Gen.App.State.call_.setCurrent pageId
+                                          )
+                                        ]
+                                        model
+                                    )
+                                    pageEffect
+                            )
+                        , Elm.Case.branch1 "LoadFrom"
+                            ( "pageEffect", types.pageLoadResult )
+                            (\pageEffect ->
+                                let
+                                    updatedModel =
+                                        Elm.updateRecord
+                                            [ ( "states"
+                                              , Elm.get "states" model
+                                                    |> Gen.App.State.call_.insert pageId
+                                                        (Elm.apply
+                                                            (Elm.value
+                                                                { importFrom = []
+                                                                , name = "PageLoading_"
+                                                                , annotation = Nothing
+                                                                }
+                                                            )
+                                                            [ route ]
+                                                        )
+                                                    |> Gen.App.State.call_.setCurrent pageId
+                                              )
+                                            ]
+                                            model
+                                in
+                                Elm.tuple updatedModel
+                                    (pageEffect
+                                        |> Gen.App.Effect.call_.map
+                                            (Elm.apply
+                                                (Elm.val "Loaded")
+                                                [ route
+                                                ]
+                                            )
+                                    )
+                            )
+                        ]
+                )
+                |> Elm.Let.value "pageId"
+                    (Elm.apply
+                        (Elm.value
+                            { importFrom = [ "Route" ]
+                            , name = "toId"
+                            , annotation = Nothing
+                            }
+                        )
+                        [ route ]
+                    )
+                |> Elm.Let.toExpression
+                |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))
+        )
+
+
+preloadPage :
+    List Page
+    ->
+        { declaration : Elm.Declaration
+        , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+        , callFrom :
+            List String -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+        , value : List String -> Elm.Expression
+        }
+preloadPage routes =
+    Elm.Declare.fn4 "preloadPage"
+        ( "config", Just types.frameUpdate )
+        ( "model", Just types.model )
+        ( "route", Just types.routeType )
+        ( "initialization", Just types.pageLoadResult )
+        (\config model route initialization ->
+            Elm.Let.letIn
+                (\pageId ->
+                    Elm.Case.custom initialization
+                        (Type.namedWith
+                            [ "App", "Engine", "Page" ]
+                            "InitPlan"
+                            [ Type.var "msg", Type.var "model" ]
+                        )
+                        [ Elm.Case.branch0 "NotFound"
+                            (Elm.tuple model
+                                Gen.App.Effect.none
+                            )
+                        , Elm.Case.branch1 "Error"
+                            ( "err", Gen.App.PageError.annotation_.error )
+                            (\err ->
+                                let
+                                    updatedModel =
+                                        Elm.updateRecord
+                                            [ ( "states"
+                                              , Elm.get "states" model
+                                                    |> Gen.App.State.call_.insert pageId
+                                                        (Elm.apply
+                                                            (Elm.value
+                                                                { importFrom = []
+                                                                , name = "PageError_"
+                                                                , annotation = Nothing
+                                                                }
+                                                            )
+                                                            [ err ]
+                                                        )
+                                              )
+                                            ]
+                                            model
+                                in
+                                Elm.tuple updatedModel
+                                    Gen.App.Effect.none
+                            )
+                        , Elm.Case.branch2 "Loaded"
+                            ( "newPage", Type.named [] "State" )
+                            ( "pageEffect", Gen.App.Effect.annotation_.effect types.msg )
+                            (\newPage pageEffect ->
+                                Elm.tuple
+                                    (Elm.updateRecord
+                                        [ ( "states"
+                                          , Elm.get "states" model
+                                                |> Gen.App.State.call_.insert pageId newPage
                                           )
                                         ]
                                         model

@@ -61,6 +61,9 @@ generate routes =
         loadPage =
             Press.Model.loadPage routes
 
+        preloadPage =
+            Press.Model.preloadPage routes
+
         getPageInit =
             Press.Model.getPageInit routes
     in
@@ -123,6 +126,9 @@ generate routes =
           Elm.customType "Msg"
             ([ Elm.variantWith "UrlRequested" [ Gen.Browser.annotation_.urlRequest ]
              , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
+             , Elm.variant "PageCacheCleared"
+             , Elm.variantWith "Preload" [ types.routeType ]
+             , Elm.variant "PageReinitializeRequested"
              , Elm.variantWith "Global" [ Type.var "msg" ]
              , Elm.variantWith "Loaded"
                 [ types.routeType
@@ -131,9 +137,10 @@ generate routes =
              ]
                 ++ pageVariants
             )
-        , update routes getPageInit loadPage
+        , update routes getPageInit loadPage preloadPage
         , getPageInit.declaration
         , loadPage.declaration
+        , preloadPage.declaration
         , view routes
         , subscriptions routes
         ]
@@ -365,8 +372,17 @@ update :
                 -> Elm.Expression
                 -> Elm.Expression
         }
+    ->
+        { b
+            | call :
+                Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+                -> Elm.Expression
+        }
     -> Elm.Declaration
-update routes getPageInit loadPage =
+update routes getPageInit loadPage preloadPage =
     Elm.declaration "update"
         (Elm.fn3
             ( "config", Just types.frameUpdate )
@@ -459,6 +475,44 @@ update routes getPageInit loadPage =
                         ( "loaded", types.pageLoadResult )
                         (\route initialization ->
                             loadPage.call config model route initialization
+                        )
+
+                     --
+                     , Elm.Case.branch0 "PageCacheCleared"
+                        (Elm.tuple
+                            (Elm.updateRecord
+                                [ ( "states"
+                                  , Elm.get "states" model
+                                        |> Gen.App.State.drop
+                                  )
+                                ]
+                                model
+                            )
+                            Gen.App.Effect.none
+                        )
+                     , Elm.Case.branch0 "PageReinitializeRequested"
+                        -- loadPage.call config model route initialization
+                        (Elm.Case.maybe (Elm.get "currentRoute" model)
+                            { just =
+                                ( "current"
+                                , \currentRoute ->
+                                    getPageInit.call currentRoute
+                                        (Press.Model.toShared config (Elm.get "frame" model))
+                                        (Elm.get "states" model)
+                                        |> loadPage.call config model currentRoute
+                                )
+                            , nothing =
+                                Elm.tuple model
+                                    Gen.App.Effect.none
+                            }
+                        )
+                     , Elm.Case.branch1 "Preload"
+                        ( "route", types.routeType )
+                        (\routeToPreload ->
+                            getPageInit.call routeToPreload
+                                (Press.Model.toShared config (Elm.get "frame" model))
+                                (Elm.get "states" model)
+                                |> preloadPage.call config model routeToPreload
                         )
                      , Elm.Case.branch1 "Global"
                         ( "frameMsg", Type.var "frameMsg" )

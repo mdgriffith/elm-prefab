@@ -1,6 +1,8 @@
 port module App.Effect exposing
     ( none, batch
-    , pushUrl, replaceUrl, load, reload, forward, back
+    , pushUrl, replaceUrl
+    , forward, back
+    , preload, load, reload
     , Effect, toCmd, map
     )
 
@@ -8,7 +10,11 @@ port module App.Effect exposing
 
 @docs none, batch
 
-@docs pushUrl, replaceUrl, load, reload, forward, back
+@docs pushUrl, replaceUrl
+
+@docs forward, back
+
+@docs preload, load, reload
 
 
 # Effects
@@ -23,6 +29,7 @@ import Browser.Navigation
 import Html
 import Http
 import Json.Encode
+import Route
 
 
 none : Effect msg
@@ -50,6 +57,11 @@ load =
     Load
 
 
+preload : Route.Route -> Effect msg
+preload =
+    Preload
+
+
 reload : Effect msg
 reload =
     Reload
@@ -68,12 +80,19 @@ back =
 type Effect msg
     = None
     | Batch (List (Effect msg))
+      --
+    | Callback msg
+      -- Urls
     | PushUrl String
     | ReplaceUrl String
+      -- Loading
+    | Preload Route.Route
     | Load String
     | Reload
+      -- History navigation
     | Forward Int
     | Back Int
+      -- JS interop
     | SendToWorld
         { tag : String
         , details : Maybe Json.Encode.Value
@@ -83,14 +102,14 @@ type Effect msg
 port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
 
 
-toCmd : { navKey : Browser.Navigation.Key } -> Effect msg -> Cmd msg
-toCmd { navKey } effect =
+toCmd : { options | navKey : Browser.Navigation.Key } -> Effect msg -> Cmd msg
+toCmd ({ navKey } as options) effect =
     case effect of
         None ->
             Cmd.none
 
         Batch effects ->
-            Cmd.batch (List.map (toCmd { navKey = navKey }) effects)
+            Cmd.batch (List.map (toCmd options) effects)
 
         PushUrl url ->
             Browser.Navigation.pushUrl navKey url
