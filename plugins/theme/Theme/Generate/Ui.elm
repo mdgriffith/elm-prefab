@@ -116,6 +116,36 @@ generate theme =
                         )
                     )
                     |> Elm.expose
+              , Elm.declaration "row"
+                    (Elm.record
+                        (toFields
+                            (\spacing ->
+                                Elm.fn2
+                                    ( "attrs", Nothing )
+                                    ( "children", Nothing )
+                                    (\attrs children ->
+                                        Gen.Ui.call_.row (Elm.Op.cons (Gen.Ui.spacing spacing) attrs) children
+                                    )
+                            )
+                            theme.spacing
+                        )
+                    )
+                    |> Elm.expose
+              , Elm.declaration "column"
+                    (Elm.record
+                        (toFields
+                            (\spacing ->
+                                Elm.fn2
+                                    ( "attrs", Nothing )
+                                    ( "children", Nothing )
+                                    (\attrs children ->
+                                        Gen.Ui.call_.column (Elm.Op.cons (Gen.Ui.spacing spacing) attrs) children
+                                    )
+                            )
+                            theme.spacing
+                        )
+                    )
+                    |> Elm.expose
               , Elm.declaration "padding"
                     (Elm.record
                         (toFields (attr << Gen.Ui.padding)
@@ -128,21 +158,29 @@ generate theme =
                                                 (toFields
                                                     (\spacingY ->
                                                         attr
-                                                            (Gen.Ui.paddingWith
-                                                                (Gen.Ui.make_.edges
-                                                                    { top = Elm.int spacingY
-                                                                    , right = Elm.int spacingX
-                                                                    , bottom = Elm.int spacingY
-                                                                    , left = Elm.int spacingX
-                                                                    }
-                                                                )
-                                                            )
+                                                            (Gen.Ui.paddingXY spacingX spacingY)
                                                     )
                                                     theme.spacing
                                                 )
                                         )
                                         theme.spacing
                                     )
+                                 )
+                               , ( "top"
+                                 , Elm.record
+                                    (toFields (attr << Gen.Ui.paddingTop) theme.spacing)
+                                 )
+                               , ( "right"
+                                 , Elm.record
+                                    (toFields (attr << Gen.Ui.paddingRight) theme.spacing)
+                                 )
+                               , ( "bottom"
+                                 , Elm.record
+                                    (toFields (attr << Gen.Ui.paddingBottom) theme.spacing)
+                                 )
+                               , ( "left"
+                                 , Elm.record
+                                    (toFields (attr << Gen.Ui.paddingLeft) theme.spacing)
                                  )
                                ]
                         )
