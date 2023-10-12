@@ -4,6 +4,7 @@ import * as AppEngine from "./templates/app/engine";
 import * as AppToCopy from "./templates/app/toCopy";
 import * as ThemeWebComponents from "./templates/theme/engine";
 import * as Generator from "./run_generator";
+import { Command } from "commander";
 
 // Elm Generators
 const AppGenerator = require("./generators/app");
@@ -14,14 +15,10 @@ type GenerateOptions = {
   plugins: Generator[];
 };
 
-export const generate = (options: GenerateOptions) => {
-  options.plugins.sort((a, b) => a.generatorType - b.generatorType);
-
-  for (const generator of options.plugins) {
-    generator.init({ internalSrc: "./.elm-press", src: options.src });
-    generator.run({ internalSrc: "./.elm-press", src: options.src });
-  }
-};
+export enum GeneratorType {
+  DataRetrieval = 0,
+  Standard = 1,
+}
 
 type Generator = {
   generatorType: GeneratorType;
@@ -31,26 +28,18 @@ type Generator = {
 
 type RunOptions = { internalSrc: string; src: string };
 
-export enum GeneratorType {
-  DataRetrieval = 0,
-  Standard = 1,
-}
+export const generate = (options: GenerateOptions) => {
+  options.plugins.sort((a, b) => a.generatorType - b.generatorType);
 
-type AppOptions = { [key: string]: Page };
-
-type Page = string | PageUrl | FromDirectory;
-
-type PageUrl = {
-  url: string;
-  deprecatedUrls?: string[];
+  for (const generator of options.plugins) {
+    generator.init({ internalSrc: "./.elm-press", src: options.src });
+    generator.run({ internalSrc: "./.elm-press", src: options.src });
+  }
 };
 
-type FromDirectory = {
-  dir: string;
-  url: string;
-  urlOnServer: string;
-  deprecatedUrls?: string[];
-};
+// Plugins
+
+// App Generation
 
 type ElmFile = {
   source: string;
@@ -68,7 +57,7 @@ type Assets = {
   files: { path: string; contents: string }[];
 };
 
-export const app = (options: AppOptions) => {
+export const app = (options: any) => {
   return {
     generatorType: GeneratorType.Standard,
     init: (runOptions: RunOptions) => {
@@ -101,7 +90,6 @@ export const app = (options: AppOptions) => {
 
         if (moduleName in options) {
           const pageConfig = options[moduleName];
-          console.log(pageConfig);
 
           let url: string = "";
           let deprecatedUrls: string[] = [];
@@ -148,7 +136,6 @@ export const app = (options: AppOptions) => {
         }
       }
 
-      // console.log(elmFiles);
       await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
         pages: elmFiles,
       });
@@ -156,73 +143,7 @@ export const app = (options: AppOptions) => {
   };
 };
 
-// UI Theme Plugin
-
-export type UiOptions = {
-  colors: {
-    [index: string]: Palette | string;
-  };
-  palettes: RequiredPalettes & {
-    [index: string]: ColorPalette;
-  };
-  spacing: Spacing;
-  typography: Typography;
-  borders?: {
-    [index: string]: BorderVariant;
-  };
-  shadows?: string[];
-  screens?: Screens;
-};
-
-interface Spacing {
-  [index: string]: number;
-}
-
-interface Screens {
-  [index: string]: number;
-}
-
-// Color Palettes
-
-type RequiredPalettes = {
-  primary: ColorPalette;
-  secondary: ColorPalette;
-  danger: ColorPalette;
-  neutral: ColorPalette;
-  neutralInverted: ColorPalette;
-};
-
-type ColorPalette = {
-  background: string;
-  foreground: string;
-  border?: string;
-};
-
-interface Palette {
-  [index: string]: string;
-}
-
-// Typography
-
-interface Typography {
-  [index: string]: Typeface;
-}
-
-type Typeface = {
-  face: string;
-  fallback: string[];
-  size: number;
-  color: Palette | string;
-  weight?: number;
-  leadingRatio?: number;
-};
-
-type BorderVariant = {
-  rounded?: number;
-  width?: number;
-};
-
-export const theme = (options: UiOptions) => {
+const theme = (options: any) => {
   return {
     generatorType: GeneratorType.Standard,
     init: (runOptions: RunOptions) => {
@@ -239,19 +160,38 @@ export const theme = (options: UiOptions) => {
   };
 };
 
-export const figma = (options: { apiKey: string }) => {
-  console.log(options.apiKey);
-  return { generatorType: GeneratorType.Standard, run: () => {} };
-};
+// CLI Program
 
-export const notion = (options: { apiKey: string }) => {
-  console.log(options.apiKey);
-  return { generatorType: GeneratorType.DataRetrieval, run: () => {} };
-};
+const program = new Command();
 
-// Some helpful file utilities
+program
+  .name("elm-press")
+  .description("Generate and maintain Elm scaffolding")
+  .version("0.1.0");
 
-export type Directory = { base: string; files: File[] };
+program
+  .command("generate")
+  .description("Generate Elm scaffolding based on an `elm.generate.json` file")
+  .action(() => {
+    const config = JSON.parse(fs.readFileSync("./elm.generate.json", "utf-8"));
+    const plugins: Generator[] = [];
+
+    for (const pluginName in config) {
+      if (config.hasOwnProperty(pluginName)) {
+        switch (pluginName) {
+          case "theme":
+            plugins.push(theme(config.theme));
+            break;
+          case "app":
+            plugins.push(app(config.app));
+            break;
+          default:
+            console.log(`It's neither a theme nor an app. ${pluginName}`);
+        }
+      }
+    }
+    generate({ src: "./src", plugins: plugins });
+  });
 
 export type File = { path: string; contents: string };
 
@@ -268,3 +208,5 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     }
   }
 };
+
+program.parse();

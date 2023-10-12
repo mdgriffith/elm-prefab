@@ -9536,32 +9536,6 @@
             };
         };
     }, $mdgriffith$elm_codegen$Elm$get = F2($mdgriffith$elm_codegen$Elm$get_fn);
-    var $author$project$Gen$Ui$make_ = {
-        b8: function (edges_args) {
-            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$alias_fn(_List_fromArray(["Ui"]), "Edges", _List_Nil, $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-                _Utils_Tuple2("top", $mdgriffith$elm_codegen$Elm$Annotation$int),
-                _Utils_Tuple2("right", $mdgriffith$elm_codegen$Elm$Annotation$int),
-                _Utils_Tuple2("bottom", $mdgriffith$elm_codegen$Elm$Annotation$int),
-                _Utils_Tuple2("left", $mdgriffith$elm_codegen$Elm$Annotation$int)
-            ]))), $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
-                $elm$core$Tuple$pair_fn("top", edges_args.fR),
-                $elm$core$Tuple$pair_fn("right", edges_args.br),
-                $elm$core$Tuple$pair_fn("bottom", edges_args.ef),
-                $elm$core$Tuple$pair_fn("left", edges_args.bk)
-            ])));
-        },
-        dg: function (position_args) {
-            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$alias_fn(_List_fromArray(["Ui"]), "Position", _List_Nil, $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-                _Utils_Tuple2("x", $mdgriffith$elm_codegen$Elm$Annotation$int),
-                _Utils_Tuple2("y", $mdgriffith$elm_codegen$Elm$Annotation$int),
-                _Utils_Tuple2("z", $mdgriffith$elm_codegen$Elm$Annotation$int)
-            ]))), $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
-                $elm$core$Tuple$pair_fn("x", position_args.f0),
-                $elm$core$Tuple$pair_fn("y", position_args.f1),
-                $elm$core$Tuple$pair_fn("z", position_args.f2)
-            ])));
-        }
-    };
     var $author$project$Gen$Ui$padding = function (paddingArg) {
         return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
             a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
@@ -9573,17 +9547,62 @@
             $mdgriffith$elm_codegen$Elm$int(paddingArg)
         ]));
     };
-    var $author$project$Gen$Ui$paddingWith = function (paddingWithArg) {
+    var $author$project$Gen$Ui$paddingBottom = function (paddingBottomArg) {
         return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
-            a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Edges", _List_Nil)
-            ]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
+            a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
             ])))),
             b: _List_fromArray(["Ui"]),
-            c: "paddingWith"
-        }), _List_fromArray([paddingWithArg]));
+            c: "paddingBottom"
+        }), _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$int(paddingBottomArg)
+        ]));
     };
+    var $author$project$Gen$Ui$paddingLeft = function (paddingLeftArg) {
+        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
+            a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+            ])))),
+            b: _List_fromArray(["Ui"]),
+            c: "paddingLeft"
+        }), _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$int(paddingLeftArg)
+        ]));
+    };
+    var $author$project$Gen$Ui$paddingRight = function (paddingRightArg) {
+        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
+            a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+            ])))),
+            b: _List_fromArray(["Ui"]),
+            c: "paddingRight"
+        }), _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$int(paddingRightArg)
+        ]));
+    };
+    var $author$project$Gen$Ui$paddingTop = function (paddingTopArg) {
+        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
+            a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+            ])))),
+            b: _List_fromArray(["Ui"]),
+            c: "paddingTop"
+        }), _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$int(paddingTopArg)
+        ]));
+    };
+    var $author$project$Gen$Ui$paddingXY_fn = function (paddingXYArg, paddingXYArg0) {
+        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
+            a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+            ])))),
+            b: _List_fromArray(["Ui"]),
+            c: "paddingXY"
+        }), _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$int(paddingXYArg),
+            $mdgriffith$elm_codegen$Elm$int(paddingXYArg0)
+        ]));
+    }, $author$project$Gen$Ui$paddingXY = F2($author$project$Gen$Ui$paddingXY_fn);
     var $author$project$Gen$Ui$Font$regular = $mdgriffith$elm_codegen$Elm$value({
         a: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui", "Font"]), "Weight", _List_Nil)),
         b: _List_fromArray(["Ui", "Font"]),
@@ -9638,17 +9657,26 @@
                         return $author$project$Gen$Ui$border(border.bK);
                     }, theme.ee)))),
                     $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn("spacing", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$spacing), theme.dH)))),
+                    $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn("row", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(function (spacing) {
+                        return $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("attrs", $elm$core$Maybe$Nothing), _Utils_Tuple2("children", $elm$core$Maybe$Nothing), function (attrs, children) {
+                            return A2($author$project$Gen$Ui$call_.dw, $mdgriffith$elm_codegen$Elm$Op$applyInfix_fn($mdgriffith$elm_codegen$Elm$Op$cons_a0, $mdgriffith$elm_codegen$Elm$Op$cons_a1, $mdgriffith$elm_codegen$Elm$Op$cons_a2, $author$project$Gen$Ui$spacing(spacing), attrs), children);
+                        });
+                    }, theme.dH)))),
+                    $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn("column", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(function (spacing) {
+                        return $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("attrs", $elm$core$Maybe$Nothing), _Utils_Tuple2("children", $elm$core$Maybe$Nothing), function (attrs, children) {
+                            return A2($author$project$Gen$Ui$call_.b1, $mdgriffith$elm_codegen$Elm$Op$applyInfix_fn($mdgriffith$elm_codegen$Elm$Op$cons_a0, $mdgriffith$elm_codegen$Elm$Op$cons_a1, $mdgriffith$elm_codegen$Elm$Op$cons_a2, $author$project$Gen$Ui$spacing(spacing), attrs), children);
+                        });
+                    }, theme.dH)))),
                     $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn("padding", $mdgriffith$elm_codegen$Elm$record(_Utils_ap($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$padding), theme.dH), _List_fromArray([
                         _Utils_Tuple2("xy", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(function (spacingX) {
                             return $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(function (spacingY) {
-                                return $author$project$Theme$Generate$Ui$attr($author$project$Gen$Ui$paddingWith($author$project$Gen$Ui$make_.b8({
-                                    ef: $mdgriffith$elm_codegen$Elm$int(spacingY),
-                                    bk: $mdgriffith$elm_codegen$Elm$int(spacingX),
-                                    br: $mdgriffith$elm_codegen$Elm$int(spacingX),
-                                    fR: $mdgriffith$elm_codegen$Elm$int(spacingY)
-                                })));
+                                return $author$project$Theme$Generate$Ui$attr($author$project$Gen$Ui$paddingXY_fn(spacingX, spacingY));
                             }, theme.dH));
-                        }, theme.dH)))
+                        }, theme.dH))),
+                        _Utils_Tuple2("top", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$paddingTop), theme.dH))),
+                        _Utils_Tuple2("right", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$paddingRight), theme.dH))),
+                        _Utils_Tuple2("bottom", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$paddingBottom), theme.dH))),
+                        _Utils_Tuple2("left", $mdgriffith$elm_codegen$Elm$record($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$paddingLeft), theme.dH)))
                     ])))))
                 ])
             ])))

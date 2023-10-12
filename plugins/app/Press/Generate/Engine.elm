@@ -491,7 +491,6 @@ update routes getPageInit loadPage preloadPage =
                             Gen.App.Effect.none
                         )
                      , Elm.Case.branch0 "PageReinitializeRequested"
-                        -- loadPage.call config model route initialization
                         (Elm.Case.maybe (Elm.get "currentRoute" model)
                             { just =
                                 ( "current"
