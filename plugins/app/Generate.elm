@@ -10,6 +10,28 @@ import Press.Generate
 
 main : Program Json.Decode.Value () ()
 main =
-    Generate.fromJson
-        Press.Generate.decode
-        Press.Generate.generate
+    Generate.withFeedback
+        (\flags ->
+            case Json.Decode.decodeValue Press.Generate.decode flags of
+                Ok input ->
+                    case Press.Generate.generate input of
+                        Ok output ->
+                            Ok
+                                { info = []
+                                , files =
+                                    [ { path = "src/Generated/Api.elm"
+                                      , content = output
+                                      }
+                                    ]
+                                }
+
+                        Err errorList ->
+                            Err (List.map Press.Generate.errorToDetails errorList)
+
+                Err e ->
+                    Err
+                        [ { title = "Error decoding flags"
+                          , description = Json.Decode.errorToString e
+                          }
+                        ]
+        )

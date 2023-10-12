@@ -1,4 +1,4 @@
-module Press.Generate exposing (decode, generate)
+module Press.Generate exposing (Error, decode, errorToDetails, generate)
 
 {-| Press generates the minimal amount needed to have a working app.
 
@@ -57,11 +57,64 @@ import Set exposing (Set)
 {- GENERATES -}
 
 
-generate : Options -> List Elm.File
+type Error
+    = RouteCollision
+        { base : Press.Model.Page
+        , collisions : List Press.Model.UrlPattern
+        }
+
+
+errorToDetails : Error -> { title : String, description : String }
+errorToDetails error =
+    case error of
+        RouteCollision ->
+            { title = "Route collision"
+            , description = ""
+            }
+
+
+generate : Options -> Result (List Error) (List Elm.File)
 generate routes =
-    Press.Generate.Engine.generate routes
-        :: Press.Generate.Route.generate routes
-        :: Press.Generate.Directory.generate routes
+    let
+        errors =
+            validateRoutes routes
+    in
+    case errors of
+        [] ->
+            Ok
+                (Press.Generate.Engine.generate routes
+                    :: Press.Generate.Route.generate routes
+                    :: Press.Generate.Directory.generate routes
+                )
+
+        _ ->
+            Err errors
+
+
+validateRoutes : List Page -> List Error
+validateRoutes pages =
+    List.concatMap (validatePageRoutes pages) pages
+
+
+validatePageRoutes : List Page -> Page -> List Error
+validatePageRoutes allPages page =
+    let
+        otherRoutes =
+            allPages
+                |> List.filter (\p -> p.id /= page.id)
+                |> List.concatMap Press.Model.getRoutes
+    in
+    case List.filter (Press.Model.hasCollisions page.url) otherRoutes of
+        [] ->
+            []
+
+        collisions ->
+            Just
+                (RouteCollision
+                    { base = page
+                    , collisions = collisions
+                    }
+                )
 
 
 

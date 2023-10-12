@@ -1290,6 +1290,117 @@
         }
         return _Utils_Tuple3(newOffset, row, col);
     }, _Parser_findSubString = F5(_Parser_findSubString_fn);
+    var _Bitwise_and_fn = function (a, b) {
+        return a & b;
+    }, _Bitwise_and = F2(_Bitwise_and_fn);
+    var _Bitwise_or_fn = function (a, b) {
+        return a | b;
+    }, _Bitwise_or = F2(_Bitwise_or_fn);
+    var _Bitwise_xor_fn = function (a, b) {
+        return a ^ b;
+    }, _Bitwise_xor = F2(_Bitwise_xor_fn);
+    function _Bitwise_complement(a) {
+        return ~a;
+    }
+    ;
+    var _Bitwise_shiftLeftBy_fn = function (offset, a) {
+        return a << offset;
+    }, _Bitwise_shiftLeftBy = F2(_Bitwise_shiftLeftBy_fn);
+    var _Bitwise_shiftRightBy_fn = function (offset, a) {
+        return a >> offset;
+    }, _Bitwise_shiftRightBy = F2(_Bitwise_shiftRightBy_fn);
+    var _Bitwise_shiftRightZfBy_fn = function (offset, a) {
+        return a >>> offset;
+    }, _Bitwise_shiftRightZfBy = F2(_Bitwise_shiftRightZfBy_fn);
+    var _Regex_never = /.^/;
+    var _Regex_fromStringWith_fn = function (options, string) {
+        var flags = "g";
+        if (options.hx) {
+            flags += "m";
+        }
+        if (options.gM) {
+            flags += "i";
+        }
+        try {
+            return $elm$core$Maybe$Just(new RegExp(string, flags));
+        }
+        catch (error) {
+            return $elm$core$Maybe$Nothing;
+        }
+    }, _Regex_fromStringWith = F2(_Regex_fromStringWith_fn);
+    var _Regex_contains_fn = function (re, string) {
+        return string.match(re) !== null;
+    }, _Regex_contains = F2(_Regex_contains_fn);
+    var _Regex_findAtMost_fn = function (n, re, str) {
+        var out = [];
+        var number = 0;
+        var string = str;
+        var lastIndex = re.lastIndex;
+        var prevLastIndex = -1;
+        var result;
+        while (number++ < n && (result = re.exec(string))) {
+            if (prevLastIndex == re.lastIndex)
+                break;
+            var i = result.length - 1;
+            var subs = new Array(i);
+            while (i > 0) {
+                var submatch = result[i];
+                subs[--i] = submatch
+                    ? $elm$core$Maybe$Just(submatch)
+                    : $elm$core$Maybe$Nothing;
+            }
+            out.push($elm$regex$Regex$Match_fn(result[0], result.index, number, _List_fromArray(subs)));
+            prevLastIndex = re.lastIndex;
+        }
+        re.lastIndex = lastIndex;
+        return _List_fromArray(out);
+    }, _Regex_findAtMost = F3(_Regex_findAtMost_fn);
+    var _Regex_replaceAtMost_fn = function (n, re, replacer, string) {
+        var count = 0;
+        function jsReplacer(match) {
+            if (count++ >= n) {
+                return match;
+            }
+            var i = arguments.length - 3;
+            var submatches = new Array(i);
+            while (i > 0) {
+                var submatch = arguments[i];
+                submatches[--i] = submatch
+                    ? $elm$core$Maybe$Just(submatch)
+                    : $elm$core$Maybe$Nothing;
+            }
+            return replacer($elm$regex$Regex$Match_fn(match, arguments[arguments.length - 2], count, _List_fromArray(submatches)));
+        }
+        return string.replace(re, jsReplacer);
+    }, _Regex_replaceAtMost = F4(_Regex_replaceAtMost_fn);
+    var _Regex_splitAtMost_fn = function (n, re, str) {
+        var string = str;
+        var out = [];
+        var start = re.lastIndex;
+        var restoreLastIndex = re.lastIndex;
+        while (n--) {
+            var result = re.exec(string);
+            if (!result)
+                break;
+            out.push(string.slice(start, result.index));
+            start = re.lastIndex;
+        }
+        out.push(string.slice(start));
+        re.lastIndex = restoreLastIndex;
+        return _List_fromArray(out);
+    }, _Regex_splitAtMost = F3(_Regex_splitAtMost_fn);
+    var _Regex_infinity = Infinity;
+    function _Url_percentEncode(string) {
+        return encodeURIComponent(string);
+    }
+    function _Url_percentDecode(string) {
+        try {
+            return $elm$core$Maybe$Just(decodeURIComponent(string));
+        }
+        catch (e) {
+            return $elm$core$Maybe$Nothing;
+        }
+    }
     function _Scheduler_succeed(value) {
         return {
             $: 0,
@@ -1692,126 +1803,6 @@
                 : (obj[name] = exports[name]);
         }
     }
-    var _Bitwise_and_fn = function (a, b) {
-        return a & b;
-    }, _Bitwise_and = F2(_Bitwise_and_fn);
-    var _Bitwise_or_fn = function (a, b) {
-        return a | b;
-    }, _Bitwise_or = F2(_Bitwise_or_fn);
-    var _Bitwise_xor_fn = function (a, b) {
-        return a ^ b;
-    }, _Bitwise_xor = F2(_Bitwise_xor_fn);
-    function _Bitwise_complement(a) {
-        return ~a;
-    }
-    ;
-    var _Bitwise_shiftLeftBy_fn = function (offset, a) {
-        return a << offset;
-    }, _Bitwise_shiftLeftBy = F2(_Bitwise_shiftLeftBy_fn);
-    var _Bitwise_shiftRightBy_fn = function (offset, a) {
-        return a >> offset;
-    }, _Bitwise_shiftRightBy = F2(_Bitwise_shiftRightBy_fn);
-    var _Bitwise_shiftRightZfBy_fn = function (offset, a) {
-        return a >>> offset;
-    }, _Bitwise_shiftRightZfBy = F2(_Bitwise_shiftRightZfBy_fn);
-    var _Regex_never = /.^/;
-    var _Regex_fromStringWith_fn = function (options, string) {
-        var flags = "g";
-        if (options.hx) {
-            flags += "m";
-        }
-        if (options.gM) {
-            flags += "i";
-        }
-        try {
-            return $elm$core$Maybe$Just(new RegExp(string, flags));
-        }
-        catch (error) {
-            return $elm$core$Maybe$Nothing;
-        }
-    }, _Regex_fromStringWith = F2(_Regex_fromStringWith_fn);
-    var _Regex_contains_fn = function (re, string) {
-        return string.match(re) !== null;
-    }, _Regex_contains = F2(_Regex_contains_fn);
-    var _Regex_findAtMost_fn = function (n, re, str) {
-        var out = [];
-        var number = 0;
-        var string = str;
-        var lastIndex = re.lastIndex;
-        var prevLastIndex = -1;
-        var result;
-        while (number++ < n && (result = re.exec(string))) {
-            if (prevLastIndex == re.lastIndex)
-                break;
-            var i = result.length - 1;
-            var subs = new Array(i);
-            while (i > 0) {
-                var submatch = result[i];
-                subs[--i] = submatch
-                    ? $elm$core$Maybe$Just(submatch)
-                    : $elm$core$Maybe$Nothing;
-            }
-            out.push($elm$regex$Regex$Match_fn(result[0], result.index, number, _List_fromArray(subs)));
-            prevLastIndex = re.lastIndex;
-        }
-        re.lastIndex = lastIndex;
-        return _List_fromArray(out);
-    }, _Regex_findAtMost = F3(_Regex_findAtMost_fn);
-    var _Regex_replaceAtMost_fn = function (n, re, replacer, string) {
-        var count = 0;
-        function jsReplacer(match) {
-            if (count++ >= n) {
-                return match;
-            }
-            var i = arguments.length - 3;
-            var submatches = new Array(i);
-            while (i > 0) {
-                var submatch = arguments[i];
-                submatches[--i] = submatch
-                    ? $elm$core$Maybe$Just(submatch)
-                    : $elm$core$Maybe$Nothing;
-            }
-            return replacer($elm$regex$Regex$Match_fn(match, arguments[arguments.length - 2], count, _List_fromArray(submatches)));
-        }
-        return string.replace(re, jsReplacer);
-    }, _Regex_replaceAtMost = F4(_Regex_replaceAtMost_fn);
-    var _Regex_splitAtMost_fn = function (n, re, str) {
-        var string = str;
-        var out = [];
-        var start = re.lastIndex;
-        var restoreLastIndex = re.lastIndex;
-        while (n--) {
-            var result = re.exec(string);
-            if (!result)
-                break;
-            out.push(string.slice(start, result.index));
-            start = re.lastIndex;
-        }
-        out.push(string.slice(start));
-        re.lastIndex = restoreLastIndex;
-        return _List_fromArray(out);
-    }, _Regex_splitAtMost = F3(_Regex_splitAtMost_fn);
-    var _Regex_infinity = Infinity;
-    function _Url_percentEncode(string) {
-        return encodeURIComponent(string);
-    }
-    function _Url_percentDecode(string) {
-        try {
-            return $elm$core$Maybe$Just(decodeURIComponent(string));
-        }
-        catch (e) {
-            return $elm$core$Maybe$Nothing;
-        }
-    }
-    var $author$project$Press$Model$Page_fn = function (id, moduleName, url, deprecatedUrls, source, assets) {
-        return { bC: assets, gY: deprecatedUrls, hj: id, aT: moduleName, h2: source, af: url };
-    }, $author$project$Press$Model$Page = F6($author$project$Press$Model$Page_fn);
-    var $author$project$Press$Model$SourceDirectory_fn = function (base, baseOnApp, baseOnServer, files) {
-        return { bL: base, bM: baseOnApp, gI: baseOnServer, cP: files };
-    }, $author$project$Press$Model$SourceDirectory = F4($author$project$Press$Model$SourceDirectory_fn);
-    var $author$project$Press$Model$Source_fn = function (path, source) {
-        return { hQ: path, h2: source };
-    }, $author$project$Press$Model$Source = F2($author$project$Press$Model$Source_fn);
     var $elm$core$List$cons = _List_cons;
     var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
     var $elm$core$Array$foldr_fn = function (func, baseCase, _v0) {
@@ -1887,6 +1878,18 @@
     var $elm$core$Result$Err = function (a) {
         return { $: 1, a: a };
     };
+    var $elm$core$Result$Ok = function (a) {
+        return { $: 0, a: a };
+    };
+    var $author$project$Press$Model$Page_fn = function (id, moduleName, url, deprecatedUrls, source, assets) {
+        return { bC: assets, gY: deprecatedUrls, hj: id, aT: moduleName, h2: source, af: url };
+    }, $author$project$Press$Model$Page = F6($author$project$Press$Model$Page_fn);
+    var $author$project$Press$Model$SourceDirectory_fn = function (base, baseOnApp, baseOnServer, files) {
+        return { bL: base, bM: baseOnApp, gI: baseOnServer, cP: files };
+    }, $author$project$Press$Model$SourceDirectory = F4($author$project$Press$Model$SourceDirectory_fn);
+    var $author$project$Press$Model$Source_fn = function (path, source) {
+        return { hQ: path, h2: source };
+    }, $author$project$Press$Model$Source = F2($author$project$Press$Model$Source_fn);
     var $elm$json$Json$Decode$Failure_fn = function (a, b) {
         return { $: 3, a: a, b: b };
     }, $elm$json$Json$Decode$Failure = F2($elm$json$Json$Decode$Failure_fn);
@@ -1896,9 +1899,6 @@
     var $elm$json$Json$Decode$Index_fn = function (a, b) {
         return { $: 1, a: a, b: b };
     }, $elm$json$Json$Decode$Index = F2($elm$json$Json$Decode$Index_fn);
-    var $elm$core$Result$Ok = function (a) {
-        return { $: 0, a: a };
-    };
     var $elm$json$Json$Decode$OneOf = function (a) {
         return { $: 2, a: a };
     };
@@ -2895,72 +2895,6 @@
     var $author$project$Press$Generate$decodePage = _Json_map6_fn($author$project$Press$Model$Page, _Json_decodeField_fn("id", _Json_map1_fn($elm$core$String$join("_"), $elm$json$Json$Decode$list($elm$json$Json$Decode$string))), _Json_decodeField_fn("moduleName", $elm$json$Json$Decode$list($elm$json$Json$Decode$string)), _Json_decodeField_fn("url", $author$project$Press$Generate$decodeUrlPattern), _Json_decodeField_fn("deprecatedUrls", $elm$json$Json$Decode$list($author$project$Press$Generate$decodeUrlPattern)), _Json_decodeField_fn("source", $elm$json$Json$Decode$string), _Json_decodeField_fn("assets", $elm$json$Json$Decode$maybe($author$project$Press$Generate$decodeDirectory)));
     var $author$project$Press$Generate$decode = _Json_decodeField_fn("pages", $elm$json$Json$Decode$list($author$project$Press$Generate$decodePage));
     var $elm$json$Json$Decode$decodeValue = _Json_run;
-    var $elm$json$Json$Encode$list_fn = function (func, entries) {
-        return _Json_wrap($elm$core$List$foldl_fn(_Json_addEntry(func), _Json_emptyArray(0), entries));
-    }, $elm$json$Json$Encode$list = F2($elm$json$Json$Encode$list_fn);
-    var $elm$json$Json$Encode$object = function (pairs) {
-        return _Json_wrap($elm$core$List$foldl_fn_unwrapped(function (_v0, obj) {
-            var k = _v0.a;
-            var v = _v0.b;
-            return _Json_addField_fn(k, v, obj);
-        }, _Json_emptyObject(0), pairs));
-    };
-    var $elm$json$Json$Encode$string = _Json_wrap;
-    var $author$project$Gen$CodeGen$Generate$onFailureSend = _Platform_outgoingPort("onFailureSend", $elm$json$Json$Encode$list(function ($) {
-        return $elm$json$Json$Encode$object(_List_fromArray([
-            _Utils_Tuple2("description", $elm$json$Json$Encode$string($.aJ)),
-            _Utils_Tuple2("title", $elm$json$Json$Encode$string($.$8))
-        ]));
-    }));
-    var $author$project$Gen$CodeGen$Generate$error = function (errs) {
-        return $author$project$Gen$CodeGen$Generate$onFailureSend(errs);
-    };
-    var $author$project$Gen$CodeGen$Generate$onSuccessSend = _Platform_outgoingPort("onSuccessSend", $elm$json$Json$Encode$list(function ($) {
-        return $elm$json$Json$Encode$object(_List_fromArray([
-            _Utils_Tuple2("contents", $elm$json$Json$Encode$string($.cb)),
-            _Utils_Tuple2("path", $elm$json$Json$Encode$string($.hQ)),
-            _Utils_Tuple2("warnings", $elm$json$Json$Encode$list(function ($) {
-                return $elm$json$Json$Encode$object(_List_fromArray([
-                    _Utils_Tuple2("declaration", $elm$json$Json$Encode$string($.gW)),
-                    _Utils_Tuple2("warning", $elm$json$Json$Encode$string($.im))
-                ]));
-            })($.gw))
-        ]));
-    }));
-    var $author$project$Gen$CodeGen$Generate$files = function (list) {
-        return $author$project$Gen$CodeGen$Generate$onSuccessSend(list);
-    };
-    var $elm$core$Platform$Cmd$batch = _Platform_batch;
-    var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-    var $elm$core$Platform$Sub$batch = _Platform_batch;
-    var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-    var $elm$core$Platform$worker = _Platform_worker;
-    var $author$project$Gen$CodeGen$Generate$fromJson_fn = function (decoder, f) {
-        return $elm$core$Platform$worker({
-            aO: function (flags) {
-                var _v0 = _Json_run_fn(decoder, flags);
-                if (!_v0.$) {
-                    var input = _v0.a;
-                    return _Utils_Tuple2(0, $author$project$Gen$CodeGen$Generate$files(f(input)));
-                }
-                else {
-                    var e = _v0.a;
-                    return _Utils_Tuple2(0, $author$project$Gen$CodeGen$Generate$error(_List_fromArray([
-                        {
-                            aJ: $elm$json$Json$Decode$errorToString(e),
-                            $8: "Error decoding flags"
-                        }
-                    ])));
-                }
-            },
-            h8: function (_v1) {
-                return $elm$core$Platform$Sub$none;
-            },
-            ii: F2(function (_v2, model) {
-                return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
-            })
-        });
-    }, $author$project$Gen$CodeGen$Generate$fromJson = F2($author$project$Gen$CodeGen$Generate$fromJson_fn);
     var $elm$core$List$maybeCons_fn = function (f, mx, xs) {
         var _v0 = f(mx);
         if (!_v0.$) {
@@ -17922,6 +17856,93 @@
         return _List_Cons($author$project$Press$Generate$Engine$generate(routes), _List_Cons($author$project$Press$Generate$Route$generate(routes), $author$project$Press$Generate$Directory$generate(routes)));
     };
     var $elm$json$Json$Decode$value = _Json_decodeValue;
-    var $author$project$Generate$main = $author$project$Gen$CodeGen$Generate$fromJson_fn($author$project$Press$Generate$decode, $author$project$Press$Generate$generate);
+    var $elm$core$Platform$Cmd$batch = _Platform_batch;
+    var $elm$json$Json$Encode$list_fn = function (func, entries) {
+        return _Json_wrap($elm$core$List$foldl_fn(_Json_addEntry(func), _Json_emptyArray(0), entries));
+    }, $elm$json$Json$Encode$list = F2($elm$json$Json$Encode$list_fn);
+    var $elm$json$Json$Encode$object = function (pairs) {
+        return _Json_wrap($elm$core$List$foldl_fn_unwrapped(function (_v0, obj) {
+            var k = _v0.a;
+            var v = _v0.b;
+            return _Json_addField_fn(k, v, obj);
+        }, _Json_emptyObject(0), pairs));
+    };
+    var $elm$json$Json$Encode$string = _Json_wrap;
+    var $author$project$Gen$CodeGen$Generate$onFailureSend = _Platform_outgoingPort("onFailureSend", $elm$json$Json$Encode$list(function ($) {
+        return $elm$json$Json$Encode$object(_List_fromArray([
+            _Utils_Tuple2("description", $elm$json$Json$Encode$string($.aJ)),
+            _Utils_Tuple2("title", $elm$json$Json$Encode$string($.$8))
+        ]));
+    }));
+    var $author$project$Gen$CodeGen$Generate$error = function (errs) {
+        return $author$project$Gen$CodeGen$Generate$onFailureSend(errs);
+    };
+    var $author$project$Gen$CodeGen$Generate$onSuccessSend = _Platform_outgoingPort("onSuccessSend", $elm$json$Json$Encode$list(function ($) {
+        return $elm$json$Json$Encode$object(_List_fromArray([
+            _Utils_Tuple2("contents", $elm$json$Json$Encode$string($.cb)),
+            _Utils_Tuple2("path", $elm$json$Json$Encode$string($.hQ)),
+            _Utils_Tuple2("warnings", $elm$json$Json$Encode$list(function ($) {
+                return $elm$json$Json$Encode$object(_List_fromArray([
+                    _Utils_Tuple2("declaration", $elm$json$Json$Encode$string($.gW)),
+                    _Utils_Tuple2("warning", $elm$json$Json$Encode$string($.im))
+                ]));
+            })($.gw))
+        ]));
+    }));
+    var $author$project$Gen$CodeGen$Generate$files = function (list) {
+        return $author$project$Gen$CodeGen$Generate$onSuccessSend(list);
+    };
+    var $author$project$Gen$CodeGen$Generate$onInfoSend = _Platform_outgoingPort("onInfoSend", $elm$json$Json$Encode$string);
+    var $author$project$Gen$CodeGen$Generate$info = function (err) {
+        return $author$project$Gen$CodeGen$Generate$onInfoSend(err);
+    };
+    var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+    var $elm$core$Platform$Sub$batch = _Platform_batch;
+    var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+    var $elm$core$Platform$worker = _Platform_worker;
+    var $author$project$Gen$CodeGen$Generate$withFeedback = function (f) {
+        return $elm$core$Platform$worker({
+            aO: function (flags) {
+                return _Utils_Tuple2(0, function () {
+                    var _v0 = f(flags);
+                    if (!_v0.$) {
+                        var result = _v0.a;
+                        return $elm$core$Platform$Cmd$batch(_Utils_ap($elm$core$List$map_fn($author$project$Gen$CodeGen$Generate$info, result.hm), _List_fromArray([
+                            $author$project$Gen$CodeGen$Generate$files(result.cP)
+                        ])));
+                    }
+                    else {
+                        var errors = _v0.a;
+                        return $author$project$Gen$CodeGen$Generate$error(errors);
+                    }
+                }());
+            },
+            h8: function (_v1) {
+                return $elm$core$Platform$Sub$none;
+            },
+            ii: F2(function (_v2, model) {
+                return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+            })
+        });
+    };
+    var $author$project$Generate$main = $author$project$Gen$CodeGen$Generate$withFeedback(function (flags) {
+        var _v0 = _Json_run_fn($author$project$Press$Generate$decode, flags);
+        if (!_v0.$) {
+            var input = _v0.a;
+            return $elm$core$Result$Ok({
+                cP: $author$project$Press$Generate$generate(input),
+                hm: _List_Nil
+            });
+        }
+        else {
+            var e = _v0.a;
+            return $elm$core$Result$Err(_List_fromArray([
+                {
+                    aJ: $elm$json$Json$Decode$errorToString(e),
+                    $8: "Error decoding flags"
+                }
+            ]));
+        }
+    });
     _Platform_export({ "Generate": { "init": $author$project$Generate$main($elm$json$Json$Decode$value)(0) } });
 }(this));

@@ -47,11 +47,14 @@ type alias Source =
 
 
 type UrlPattern
-    = UrlPattern
-        { path : List UrlPiece
-        , includePathTail : Bool
-        , queryParams : QueryParams
-        }
+    = UrlPattern UrlPatternDetails
+
+
+type alias UrlPatternDetails =
+    { path : List UrlPiece
+    , includePathTail : Bool
+    , queryParams : QueryParams
+    }
 
 
 type alias QueryParams =
@@ -63,6 +66,52 @@ type alias QueryParams =
 type UrlPiece
     = Token String
     | Variable String
+
+
+{-| Two URL patterns have collisions if they can both match the same URL.
+-}
+hasCollisions : UrlPattern -> UrlPattern -> Bool
+hasCollisions (UrlPattern one) (UrlPattern two) =
+    hasCollisionsHelp one one.path two two.path
+
+
+hasCollisionsHelp : UrlPatternDetails -> List UrlPiece -> UrlPatternDetails -> List UrlPiece -> Bool
+hasCollisionsHelp one onePath two twoPath =
+    case ( onePath, twoPath ) of
+        ( [], [] ) ->
+            --
+            True
+
+        ( [], _ ) ->
+            False
+
+        ( _, [] ) ->
+            False
+
+        ( (Token oneToken) :: oneTail, (Token twoToken) :: twoTail ) ->
+            if oneToken == twoToken then
+                hasCollisionsHelp one oneTail two twoTail
+
+            else
+                False
+
+        ( (Variable oneVar) :: oneTail, (Token twoToken) :: twoTail ) ->
+            -- A variable can potentially collide unless there is a descriminator later
+            -- /item/:item/details
+            -- /item/:item/preview
+            hasCollisionsHelp one oneTail two twoTail
+
+        ( (Token oneToken) :: oneTail, (Variable _) :: twoTail ) ->
+            -- Same as above
+            hasCollisionsHelp one oneTail two twoTail
+
+        ( (Variable _) :: oneTail, (Variable _) :: twoTail ) ->
+            hasCollisionsHelp one oneTail two twoTail
+
+
+getRoutes : Page -> List UrlPattern
+getRoutes page =
+    page.url :: page.deprecatedUrls
 
 
 appMsg : Type.Annotation
