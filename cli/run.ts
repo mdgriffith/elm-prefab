@@ -47,18 +47,23 @@ program
     for (const pluginName in config) {
       if (config.hasOwnProperty(pluginName)) {
         switch (pluginName) {
+          case "src":
+            break;
           case "theme":
             plugins.push(Theme.generator(config.theme));
             break;
           case "app":
             plugins.push(App.generator(config.app));
             break;
+
           default:
             console.log(`It's neither a theme nor an app. ${pluginName}`);
         }
       }
     }
-    generate({ src: "./src", plugins: plugins });
+    const src = config.src || "./src";
+
+    generate({ src: src, plugins: plugins });
   });
 
 program.parse();
