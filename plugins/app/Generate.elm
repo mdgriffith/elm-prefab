@@ -18,11 +18,7 @@ main =
                         Ok output ->
                             Ok
                                 { info = []
-                                , files =
-                                    [ { path = "src/Generated/Api.elm"
-                                      , content = output
-                                      }
-                                    ]
+                                , files = output
                                 }
 
                         Err errorList ->

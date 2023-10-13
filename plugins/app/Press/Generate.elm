@@ -67,7 +67,7 @@ type Error
 errorToDetails : Error -> { title : String, description : String }
 errorToDetails error =
     case error of
-        RouteCollision ->
+        RouteCollision collision ->
             { title = "Route collision"
             , description = ""
             }
@@ -109,12 +109,11 @@ validatePageRoutes allPages page =
             []
 
         collisions ->
-            Just
-                (RouteCollision
-                    { base = page
-                    , collisions = collisions
-                    }
-                )
+            [ RouteCollision
+                { base = page
+                , collisions = collisions
+                }
+            ]
 
 
 

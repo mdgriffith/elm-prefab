@@ -14,4 +14,4 @@ node scripts/build.js
 #     elm-optimize-level-2 Generate.elm --output=../../cli/generators/interactive.js
 # )
 # tsc
-esbuild cli/run.ts --bundle --outfile=dist/cli.js --platform=node
+esbuild cli/run.ts --bundle --outfile=dist/elm-press.js --platform=node

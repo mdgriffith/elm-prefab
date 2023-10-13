@@ -30,6 +30,7 @@ import Html
 import Http
 import Json.Encode
 import Route
+import Task
 
 
 none : Effect msg
@@ -102,8 +103,8 @@ type Effect msg
 port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
 
 
-toCmd : { options | navKey : Browser.Navigation.Key } -> Effect msg -> Cmd msg
-toCmd ({ navKey } as options) effect =
+toCmd : { options | navKey : Browser.Navigation.Key, preload : Route.Route -> msg } -> Effect msg -> Cmd msg
+toCmd options effect =
     case effect of
         None ->
             Cmd.none
@@ -112,10 +113,10 @@ toCmd ({ navKey } as options) effect =
             Cmd.batch (List.map (toCmd options) effects)
 
         PushUrl url ->
-            Browser.Navigation.pushUrl navKey url
+            Browser.Navigation.pushUrl options.navKey url
 
         ReplaceUrl url ->
-            Browser.Navigation.replaceUrl navKey url
+            Browser.Navigation.replaceUrl options.navKey url
 
         Load url ->
             Browser.Navigation.load url
@@ -124,13 +125,21 @@ toCmd ({ navKey } as options) effect =
             Browser.Navigation.reload
 
         Forward steps ->
-            Browser.Navigation.forward navKey steps
+            Browser.Navigation.forward options.navKey steps
 
         Back steps ->
-            Browser.Navigation.back navKey steps
+            Browser.Navigation.back options.navKey steps
 
         SendToWorld outgoingMsg ->
             outgoing outgoingMsg
+
+        Callback msg ->
+            Task.succeed ()
+                |> Task.perform (\_ -> msg)
+
+        Preload route ->
+            Task.succeed ()
+                |> Task.perform (\_ -> options.preload route)
 
 
 map : (a -> b) -> Effect a -> Effect b
@@ -162,3 +171,9 @@ map f effect =
 
         SendToWorld { tag, details } ->
             SendToWorld { tag = tag, details = details }
+
+        Callback msg ->
+            Callback (f msg)
+
+        Preload route ->
+            Preload route

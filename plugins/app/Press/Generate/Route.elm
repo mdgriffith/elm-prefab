@@ -15,10 +15,10 @@ import Gen.Dict
 import Gen.Html
 import Gen.Http
 import Gen.Json.Encode
-import Gen.Maybe
 import Gen.List
 import Gen.Markdown.Parser
 import Gen.Markdown.Renderer
+import Gen.Maybe
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.String
@@ -350,7 +350,6 @@ renderPath path includePathTail queryParams paramValues =
                                             , \param ->
                                                 Elm.list [ param ]
                                             )
-
                                         }
                                     ]
                                 )
@@ -410,40 +409,55 @@ wrapList fields =
 
 sameRoute : List Page -> Elm.Declaration
 sameRoute routes =
-    Elm.declaration "sameRouteBase"
-        (Elm.fn2
-            ( "one", Just (Type.named [] "Route") )
-            ( "two", Just (Type.named [] "Route") )
-            (\one two ->
-                Elm.Case.custom one
-                    (Type.named [] "Route")
-                    (routes
-                        |> List.map
-                            (\route ->
-                                Elm.Case.branch1 route.id
-                                    ( "params", Type.var "params" )
-                                    (\_ ->
-                                        Elm.Case.custom two
-                                            (Type.named [] "Route")
-                                            [ Elm.Case.branch1 route.id
-                                                ( "params2", Type.var "params2" )
-                                                (\_ ->
-                                                    Elm.bool True
-                                                )
-                                            , Elm.Case.otherwise
-                                                (\_ ->
-                                                    Elm.bool False
-                                                )
-                                            ]
-                                    )
-                            )
-                    )
+    if List.length routes <= 1 then
+        Elm.declaration "sameRouteBase"
+            (Elm.fn2
+                ( "one", Just (Type.named [] "Route") )
+                ( "two", Just (Type.named [] "Route") )
+                (\one two ->
+                    Elm.bool True
+                )
             )
-        )
-        |> Elm.exposeWith
-            { exposeConstructor = False
-            , group = Just "Route"
-            }
+            |> Elm.exposeWith
+                { exposeConstructor = False
+                , group = Just "Route"
+                }
+
+    else
+        Elm.declaration "sameRouteBase"
+            (Elm.fn2
+                ( "one", Just (Type.named [] "Route") )
+                ( "two", Just (Type.named [] "Route") )
+                (\one two ->
+                    Elm.Case.custom one
+                        (Type.named [] "Route")
+                        (routes
+                            |> List.map
+                                (\route ->
+                                    Elm.Case.branch1 route.id
+                                        ( "params", Type.var "params" )
+                                        (\_ ->
+                                            Elm.Case.custom two
+                                                (Type.named [] "Route")
+                                                [ Elm.Case.branch1 route.id
+                                                    ( "params2", Type.var "params2" )
+                                                    (\_ ->
+                                                        Elm.bool True
+                                                    )
+                                                , Elm.Case.otherwise
+                                                    (\_ ->
+                                                        Elm.bool False
+                                                    )
+                                                ]
+                                        )
+                                )
+                        )
+                )
+            )
+            |> Elm.exposeWith
+                { exposeConstructor = False
+                , group = Just "Route"
+                }
 
 
 urlParser : List Page -> List Elm.Declaration
@@ -525,22 +539,22 @@ urlToPatterns appUrl page (UrlPattern pattern) =
                     fields ++ gathered
             , finally =
                 \pathFields remaining ->
-                    let 
+                    let
                         fields =
                             pathFields ++ queryParamFields
 
                         queryParamFields =
                             pattern.queryParams.specificFields
                                 |> Set.foldl
-                                    (\queryField gathered -> 
+                                    (\queryField gathered ->
                                         ( queryField
                                         , Elm.get "queryParameters" appUrl
                                             |> Gen.Dict.get (Elm.string queryField)
                                             |> Gen.Maybe.call_.andThen Gen.List.values_.head
-                                        ) :: gathered
+                                        )
+                                            :: gathered
                                     )
                                     []
-
                     in
                     case page.assets of
                         Nothing ->
@@ -587,25 +601,24 @@ urlToPatterns appUrl page (UrlPattern pattern) =
                     fields ++ gathered
             , finally =
                 \pathFields ->
-                    let 
+                    let
                         fields =
                             pathFields ++ queryParamFields
 
                         queryParamFields =
                             pattern.queryParams.specificFields
                                 |> Set.foldl
-                                    (\queryField gathered -> 
+                                    (\queryField gathered ->
                                         ( queryField
                                         , Elm.get "queryParameters" appUrl
                                             |> Gen.Dict.get (Elm.string queryField)
                                             |> Gen.Maybe.call_.andThen Gen.List.values_.head
-                                        ) :: gathered
+                                        )
+                                            :: gathered
                                     )
                                     []
-
                     in
                     Elm.apply
-
                         (Elm.val page.id)
                         [ Elm.record fields
                         ]
