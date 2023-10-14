@@ -4481,10 +4481,19 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
+var $author$project$App$Shared$Authenticated = {$: 'Authenticated'};
+var $author$project$App$Engine$Global = function (a) {
+	return {$: 'Global', a: a};
+};
 var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
 var $elm$core$Maybe$Nothing = {$: 'Nothing'};
+var $author$project$App$Engine$PageCacheCleared = {$: 'PageCacheCleared'};
+var $author$project$App$Engine$PageReinitializeRequested = {$: 'PageReinitializeRequested'};
+var $author$project$App$Engine$Preload = function (a) {
+	return {$: 'Preload', a: a};
+};
 var $author$project$App$Engine$UrlChanged = function (a) {
 	return {$: 'UrlChanged', a: a};
 };
@@ -5196,6 +5205,10 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$application = _Browser_application;
+var $author$project$App$Effect$Batch = function (a) {
+	return {$: 'Batch', a: a};
+};
+var $author$project$App$Effect$batch = $author$project$App$Effect$Batch;
 var $author$project$App$Engine$Home = function (a) {
 	return {$: 'Home', a: a};
 };
@@ -5251,17 +5264,17 @@ var $author$project$App$State$get = F2(
 			return _Utils_eq(cur.key, key) ? $elm$core$Maybe$Just(cur.state) : A2($elm$core$Dict$get, key, details.cache);
 		}
 	});
-var $author$project$App$Page$Error = function (a) {
+var $author$project$App$Engine$Page$Error = function (a) {
 	return {$: 'Error', a: a};
 };
-var $author$project$App$Page$LoadFrom = function (a) {
+var $author$project$App$Engine$Page$LoadFrom = function (a) {
 	return {$: 'LoadFrom', a: a};
 };
-var $author$project$App$Page$Loaded = F2(
+var $author$project$App$Engine$Page$Loaded = F2(
 	function (a, b) {
 		return {$: 'Loaded', a: a, b: b};
 	});
-var $author$project$App$Page$NotFound = {$: 'NotFound'};
+var $author$project$App$Engine$Page$NotFound = {$: 'NotFound'};
 var $author$project$App$Effect$Back = function (a) {
 	return {$: 'Back', a: a};
 };
@@ -5279,14 +5292,21 @@ var $author$project$App$Effect$Reload = {$: 'Reload'};
 var $author$project$App$Effect$ReplaceUrl = function (a) {
 	return {$: 'ReplaceUrl', a: a};
 };
-var $author$project$App$Effect$Send = function (a) {
-	return {$: 'Send', a: a};
+var $author$project$App$Effect$SendToWorld = function (a) {
+	return {$: 'SendToWorld', a: a};
 };
 var $author$project$App$Effect$map = F2(
 	function (f, effect) {
 		switch (effect.$) {
 			case 'None':
 				return $author$project$App$Effect$None;
+			case 'Batch':
+				var effects = effect.a;
+				return $author$project$App$Effect$Batch(
+					A2(
+						$elm$core$List$map,
+						$author$project$App$Effect$map(f),
+						effects));
 			case 'PushUrl':
 				var url = effect.a;
 				return $author$project$App$Effect$PushUrl(url);
@@ -5307,51 +5327,52 @@ var $author$project$App$Effect$map = F2(
 			default:
 				var tag = effect.a.tag;
 				var details = effect.a.details;
-				return $author$project$App$Effect$Send(
+				return $author$project$App$Effect$SendToWorld(
 					{details: details, tag: tag});
 		}
 	});
-var $author$project$App$Page$mapInitPlan = F2(
+var $author$project$App$Engine$Page$mapInitPlan = F2(
 	function (fns, initPlan) {
 		var onModel = fns.onModel;
 		var onMsg = fns.onMsg;
 		switch (initPlan.$) {
 			case 'NotFound':
-				return $author$project$App$Page$NotFound;
+				return $author$project$App$Engine$Page$NotFound;
 			case 'Error':
 				var err = initPlan.a;
-				return $author$project$App$Page$Error(err);
+				return $author$project$App$Engine$Page$Error(err);
 			case 'Loaded':
 				var model = initPlan.a;
 				var effect = initPlan.b;
 				return A2(
-					$author$project$App$Page$Loaded,
+					$author$project$App$Engine$Page$Loaded,
 					onModel(model),
 					A2($author$project$App$Effect$map, onMsg, effect));
 			default:
 				var effect = initPlan.a;
-				return $author$project$App$Page$LoadFrom(
+				return $author$project$App$Engine$Page$LoadFrom(
 					A2(
 						$author$project$App$Effect$map,
-						$author$project$App$Page$mapInitPlan(fns),
+						$author$project$App$Engine$Page$mapInitPlan(fns),
 						effect));
 		}
 	});
 var $author$project$App$Effect$none = $author$project$App$Effect$None;
-var $author$project$App$Page$init = function (model) {
-	return A2($author$project$App$Page$Loaded, model, $author$project$App$Effect$none);
+var $author$project$App$Engine$Page$init = function (model) {
+	return A2($author$project$App$Engine$Page$Loaded, model, $author$project$App$Effect$none);
 };
+var $author$project$App$Page$init = $author$project$App$Engine$Page$init;
 var $author$project$App$Sub$Sub = function (a) {
 	return {$: 'Sub', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
 var $author$project$App$Sub$none = $author$project$App$Sub$Sub($elm$core$Platform$Sub$none);
-var $author$project$App$Page$Page = function (a) {
+var $author$project$App$Engine$Page$Page = function (a) {
 	return {$: 'Page', a: a};
 };
-var $author$project$App$Page$page = function (options) {
-	return $author$project$App$Page$Page(
+var $author$project$App$Engine$Page$page = function (options) {
+	return $author$project$App$Engine$Page$Page(
 		{
 			init: options.init,
 			subscriptions: options.subscriptions,
@@ -5363,6 +5384,7 @@ var $author$project$App$Page$page = function (options) {
 				})
 		});
 };
+var $author$project$App$Page$page = $author$project$App$Engine$Page$page;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Page$Home$page = $author$project$App$Page$page(
@@ -5409,7 +5431,7 @@ var $author$project$Page$Markdown$page = $author$project$App$Page$page(
 				};
 			})
 	});
-var $author$project$App$Page$toInternalDetails = function (_v0) {
+var $author$project$App$Engine$Page$toInternalDetails = function (_v0) {
 	var details = _v0.a;
 	return details;
 };
@@ -5417,9 +5439,9 @@ var $author$project$App$Engine$getPageInit = F3(
 	function (route, shared, cache) {
 		if (route.$ === 'Home') {
 			var params = route.a;
-			var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+			var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Home$page);
 			return A2(
-				$author$project$App$Page$mapInitPlan,
+				$author$project$App$Engine$Page$mapInitPlan,
 				{onModel: $author$project$App$Engine$Home, onMsg: $author$project$App$Engine$ToHome},
 				A3(
 					pageDetails.init,
@@ -5442,9 +5464,9 @@ var $author$project$App$Engine$getPageInit = F3(
 					}()));
 		} else {
 			var params = route.a;
-			var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+			var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Markdown$page);
 			return A2(
-				$author$project$App$Page$mapInitPlan,
+				$author$project$App$Engine$Page$mapInitPlan,
 				{onModel: $author$project$App$Engine$Markdown, onMsg: $author$project$App$Engine$ToMarkdown},
 				A3(
 					pageDetails.init,
@@ -5621,8 +5643,6 @@ var $author$project$App$State$insert = F3(
 					}));
 		}
 	});
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6072,20 +6092,23 @@ var $author$project$App$Engine$loadPage = F4(
 						{
 							states: A2($author$project$App$State$remove, pageId, model.states)
 						}),
-					$elm$core$Platform$Cmd$none);
+					$author$project$App$Effect$none);
 			case 'Error':
 				var err = initialization.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							states: A3(
-								$author$project$App$State$insert,
+							states: A2(
+								$author$project$App$State$setCurrent,
 								pageId,
-								$author$project$App$Engine$PageError_(err),
-								model.states)
+								A3(
+									$author$project$App$State$insert,
+									pageId,
+									$author$project$App$Engine$PageError_(err),
+									model.states))
 						}),
-					$elm$core$Platform$Cmd$none);
+					$author$project$App$Effect$none);
 			case 'Loaded':
 				var newPage = initialization.a;
 				var pageEffect = initialization.b;
@@ -6098,26 +6121,26 @@ var $author$project$App$Engine$loadPage = F4(
 								pageId,
 								A3($author$project$App$State$insert, pageId, newPage, model.states))
 						}),
-					A2(config.toCmd, model.frame, pageEffect));
+					pageEffect);
 			default:
 				var pageEffect = initialization.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							states: A3(
-								$author$project$App$State$insert,
+							states: A2(
+								$author$project$App$State$setCurrent,
 								pageId,
-								$author$project$App$Engine$PageLoading_(route),
-								model.states)
+								A3(
+									$author$project$App$State$insert,
+									pageId,
+									$author$project$App$Engine$PageLoading_(route),
+									model.states))
 						}),
 					A2(
-						config.toCmd,
-						model.frame,
-						A2(
-							$author$project$App$Effect$map,
-							$author$project$App$Engine$Loaded(route),
-							pageEffect)));
+						$author$project$App$Effect$map,
+						$author$project$App$Engine$Loaded(route),
+						pageEffect));
 		}
 	});
 var $elm$core$Maybe$map = F2(
@@ -6323,9 +6346,6 @@ var $author$project$Route$parse = function (url) {
 	return $author$project$Route$parseAppUrl(
 		$lydell$elm_app_url$AppUrl$fromUrl(url));
 };
-var $author$project$App$Engine$Global = function (a) {
-	return {$: 'Global', a: a};
-};
 var $author$project$App$State$current = function (_v0) {
 	var details = _v0.a;
 	return A2(
@@ -6385,7 +6405,7 @@ var $author$project$App$Engine$subscriptions = F2(
 									config.toSub,
 									model.frame,
 									function () {
-										var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+										var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Home$page);
 										return A2(
 											$author$project$App$Sub$map,
 											$author$project$App$Engine$ToHome,
@@ -6400,7 +6420,7 @@ var $author$project$App$Engine$subscriptions = F2(
 									config.toSub,
 									model.frame,
 									function () {
-										var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+										var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Markdown$page);
 										return A2(
 											$author$project$App$Sub$map,
 											$author$project$App$Engine$ToMarkdown,
@@ -6414,8 +6434,62 @@ var $author$project$App$Engine$subscriptions = F2(
 				}()
 				]));
 	});
-var $elm$browser$Browser$Navigation$load = _Browser_load;
-var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var $author$project$App$State$drop = function (_v0) {
+	var details = _v0.a;
+	return $author$project$App$State$Cache(
+		_Utils_update(
+			details,
+			{cache: $elm$core$Dict$empty}));
+};
+var $author$project$App$Effect$load = $author$project$App$Effect$Load;
+var $author$project$App$Engine$preloadPage = F4(
+	function (config, model, route, initialization) {
+		var pageId = $author$project$Route$toId(route);
+		switch (initialization.$) {
+			case 'NotFound':
+				return _Utils_Tuple2(model, $author$project$App$Effect$none);
+			case 'Error':
+				var err = initialization.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A3(
+								$author$project$App$State$insert,
+								pageId,
+								$author$project$App$Engine$PageError_(err),
+								model.states)
+						}),
+					$author$project$App$Effect$none);
+			case 'Loaded':
+				var newPage = initialization.a;
+				var pageEffect = initialization.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A3($author$project$App$State$insert, pageId, newPage, model.states)
+						}),
+					pageEffect);
+			default:
+				var pageEffect = initialization.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: A3(
+								$author$project$App$State$insert,
+								pageId,
+								$author$project$App$Engine$PageLoading_(route),
+								model.states)
+						}),
+					A2(
+						$author$project$App$Effect$map,
+						$author$project$App$Engine$Loaded(route),
+						pageEffect));
+		}
+	});
+var $author$project$App$Effect$pushUrl = $author$project$App$Effect$PushUrl;
 var $elm$url$Url$addPort = F2(
 	function (maybePort, starter) {
 		if (maybePort.$ === 'Nothing') {
@@ -6469,15 +6543,13 @@ var $author$project$App$Engine$update = F3(
 					var url = request.a;
 					return _Utils_Tuple2(
 						model,
-						A2(
-							$elm$browser$Browser$Navigation$pushUrl,
-							model.key,
+						$author$project$App$Effect$pushUrl(
 							$elm$url$Url$toString(url)));
 				} else {
 					var url = request.a;
 					return _Utils_Tuple2(
 						model,
-						$elm$browser$Browser$Navigation$load(url));
+						$author$project$App$Effect$load(url));
 				}
 			case 'UrlChanged':
 				var url = msg.a;
@@ -6491,7 +6563,7 @@ var $author$project$App$Engine$update = F3(
 								states: $author$project$App$State$clearCurrent(model.states),
 								url: url
 							}),
-						$elm$core$Platform$Cmd$none);
+						$author$project$App$Effect$none);
 				} else {
 					var newRoute = _v2.a;
 					return A4(
@@ -6518,38 +6590,72 @@ var $author$project$App$Engine$update = F3(
 				var route = msg.a;
 				var loaded = msg.b;
 				return A4($author$project$App$Engine$loadPage, config, model, route, loaded);
+			case 'PageCacheCleared':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							states: $author$project$App$State$drop(model.states)
+						}),
+					$author$project$App$Effect$none);
+			case 'PageReinitializeRequested':
+				var _v3 = model.currentRoute;
+				if (_v3.$ === 'Nothing') {
+					return _Utils_Tuple2(model, $author$project$App$Effect$none);
+				} else {
+					var current = _v3.a;
+					return A4(
+						$author$project$App$Engine$loadPage,
+						config,
+						model,
+						current,
+						A3(
+							$author$project$App$Engine$getPageInit,
+							current,
+							config.toShared(model.frame),
+							model.states));
+				}
+			case 'Preload':
+				var route = msg.a;
+				return A4(
+					$author$project$App$Engine$preloadPage,
+					config,
+					model,
+					route,
+					A3(
+						$author$project$App$Engine$getPageInit,
+						route,
+						config.toShared(model.frame),
+						model.states));
 			case 'Global':
 				var frameMsg = msg.a;
-				var _v3 = A2(config.update, frameMsg, model.frame);
-				var newFrame = _v3.a;
-				var frameEffect = _v3.b;
+				var _v4 = A2(config.update, frameMsg, model.frame);
+				var newFrame = _v4.a;
+				var frameEffect = _v4.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{frame: newFrame}),
-					A2(
-						config.toCmd,
-						model.frame,
-						A2($author$project$App$Effect$map, $author$project$App$Engine$Global, frameEffect)));
+					A2($author$project$App$Effect$map, $author$project$App$Engine$Global, frameEffect));
 			case 'ToHome':
 				var pageMsg = msg.a;
-				var _v4 = A2($author$project$App$State$get, 'Home', model.states);
-				if (_v4.$ === 'Nothing') {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var _v5 = A2($author$project$App$State$get, 'Home', model.states);
+				if (_v5.$ === 'Nothing') {
+					return _Utils_Tuple2(model, $author$project$App$Effect$none);
 				} else {
-					var foundPage = _v4.a;
+					var foundPage = _v5.a;
 					if (foundPage.$ === 'Home') {
 						var page = foundPage.a;
-						var _v6 = function () {
-							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+						var _v7 = function () {
+							var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Home$page);
 							return A3(
 								pageDetails.update,
 								config.toShared(model.frame),
 								pageMsg,
 								page);
 						}();
-						var updatedPage = _v6.a;
-						var pageEffect = _v6.b;
+						var updatedPage = _v7.a;
+						var pageEffect = _v7.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -6560,34 +6666,31 @@ var $author$project$App$Engine$update = F3(
 										$author$project$App$Engine$Home(updatedPage),
 										model.states)
 								}),
-							A2(
-								config.toCmd,
-								model.frame,
-								A2($author$project$App$Effect$map, $author$project$App$Engine$ToHome, pageEffect)));
+							A2($author$project$App$Effect$map, $author$project$App$Engine$ToHome, pageEffect));
 					} else {
 						var otherwise = foundPage;
-						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+						return _Utils_Tuple2(model, $author$project$App$Effect$none);
 					}
 				}
 			default:
 				var pageMsg = msg.a;
-				var _v7 = A2($author$project$App$State$get, 'Markdown', model.states);
-				if (_v7.$ === 'Nothing') {
-					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				var _v8 = A2($author$project$App$State$get, 'Markdown', model.states);
+				if (_v8.$ === 'Nothing') {
+					return _Utils_Tuple2(model, $author$project$App$Effect$none);
 				} else {
-					var foundPage = _v7.a;
+					var foundPage = _v8.a;
 					if (foundPage.$ === 'Markdown') {
 						var page = foundPage.a;
-						var _v9 = function () {
-							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+						var _v10 = function () {
+							var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Markdown$page);
 							return A3(
 								pageDetails.update,
 								config.toShared(model.frame),
 								pageMsg,
 								page);
 						}();
-						var updatedPage = _v9.a;
-						var pageEffect = _v9.b;
+						var updatedPage = _v10.a;
+						var pageEffect = _v10.b;
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
@@ -6598,13 +6701,10 @@ var $author$project$App$Engine$update = F3(
 										$author$project$App$Engine$Markdown(updatedPage),
 										model.states)
 								}),
-							A2(
-								config.toCmd,
-								model.frame,
-								A2($author$project$App$Effect$map, $author$project$App$Engine$ToMarkdown, pageEffect)));
+							A2($author$project$App$Effect$map, $author$project$App$Engine$ToMarkdown, pageEffect));
 					} else {
 						var otherwise = foundPage;
-						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+						return _Utils_Tuple2(model, $author$project$App$Effect$none);
 					}
 				}
 		}
@@ -6651,7 +6751,7 @@ var $author$project$App$Engine$view = F2(
 							return $author$project$App$Engine$Loading(pageRoute);
 						case 'Home':
 							var pageModel = currentState.a;
-							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Home$page);
+							var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Home$page);
 							var pageViewResult = A2(
 								pageDetails.view,
 								config.toShared(model.frame),
@@ -6671,7 +6771,7 @@ var $author$project$App$Engine$view = F2(
 							}
 						default:
 							var pageModel = currentState.a;
-							var pageDetails = $author$project$App$Page$toInternalDetails($author$project$Page$Markdown$page);
+							var pageDetails = $author$project$App$Engine$Page$toInternalDetails($author$project$Page$Markdown$page);
 							var pageViewResult = A2(
 								pageDetails.view,
 								config.toShared(model.frame),
@@ -6698,38 +6798,71 @@ var $author$project$App$Engine$app = function (config) {
 		{
 			init: F3(
 				function (flags, url, key) {
-					var _v0 = A2(config.init, key, flags);
-					var frameModel = _v0.a;
-					var frameCmd = _v0.b;
-					var _v1 = $author$project$Route$parse(url);
-					if (_v1.$ === 'Nothing') {
-						return _Utils_Tuple2(
-							{currentRoute: $elm$core$Maybe$Nothing, frame: frameModel, key: key, states: $author$project$App$State$init, url: url},
-							$elm$core$Platform$Cmd$none);
-					} else {
-						var route = _v1.a;
-						return A4(
-							$author$project$App$Engine$loadPage,
-							config,
-							{
-								currentRoute: $elm$core$Maybe$Just(route),
-								frame: frameModel,
-								key: key,
-								states: $author$project$App$State$init,
-								url: url
-							},
-							route,
-							A3(
-								$author$project$App$Engine$getPageInit,
+					var _v0 = function () {
+						var _v1 = config.init(flags);
+						var frameModel = _v1.a;
+						var frameCmd = _v1.b;
+						var _v2 = $author$project$Route$parse(url);
+						if (_v2.$ === 'Nothing') {
+							return _Utils_Tuple2(
+								{currentRoute: $elm$core$Maybe$Nothing, frame: frameModel, key: key, states: $author$project$App$State$init, url: url},
+								A2($author$project$App$Effect$map, $author$project$App$Engine$Global, frameCmd));
+						} else {
+							var route = _v2.a;
+							var _v3 = A4(
+								$author$project$App$Engine$loadPage,
+								config,
+								{
+									currentRoute: $elm$core$Maybe$Just(route),
+									frame: frameModel,
+									key: key,
+									states: $author$project$App$State$init,
+									url: url
+								},
 								route,
-								config.toShared(frameModel),
-								$author$project$App$State$init));
-					}
+								A3(
+									$author$project$App$Engine$getPageInit,
+									route,
+									config.toShared(frameModel),
+									$author$project$App$State$init));
+							var newModel0 = _v3.a;
+							var effect1 = _v3.b;
+							return _Utils_Tuple2(
+								newModel0,
+								$author$project$App$Effect$batch(
+									_List_fromArray(
+										[
+											A2($author$project$App$Effect$map, $author$project$App$Engine$Global, frameCmd),
+											effect1
+										])));
+						}
+					}();
+					var newModel = _v0.a;
+					var effect = _v0.b;
+					return _Utils_Tuple2(
+						newModel,
+						A3(
+							config.toCmd,
+							{dropPageCache: $author$project$App$Engine$PageCacheCleared, navKey: newModel.key, preload: $author$project$App$Engine$Preload, reinitializeCurrentPage: $author$project$App$Engine$PageReinitializeRequested, toApp: $author$project$App$Engine$Global},
+							newModel.frame,
+							effect));
 				}),
 			onUrlChange: $author$project$App$Engine$UrlChanged,
 			onUrlRequest: $author$project$App$Engine$UrlRequested,
 			subscriptions: $author$project$App$Engine$subscriptions(config),
-			update: $author$project$App$Engine$update(config),
+			update: F2(
+				function (msg, model) {
+					var _v4 = A3($author$project$App$Engine$update, config, msg, model);
+					var newModel = _v4.a;
+					var effect = _v4.b;
+					return _Utils_Tuple2(
+						newModel,
+						A3(
+							config.toCmd,
+							{dropPageCache: $author$project$App$Engine$PageCacheCleared, navKey: newModel.key, preload: $author$project$App$Engine$Preload, reinitializeCurrentPage: $author$project$App$Engine$PageReinitializeRequested, toApp: $author$project$App$Engine$Global},
+							newModel.frame,
+							effect));
+				}),
 			view: $author$project$App$Engine$view(config)
 		});
 };
@@ -6737,7 +6870,10 @@ var $elm$browser$Browser$Navigation$back = F2(
 	function (key, n) {
 		return A2(_Browser_go, key, -n);
 	});
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$browser$Browser$Navigation$forward = _Browser_go;
+var $elm$browser$Browser$Navigation$load = _Browser_load;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Maybe$destruct = F3(
 	function (_default, func, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6778,19 +6914,28 @@ var $author$project$App$Effect$outgoing = _Platform_outgoingPort(
 					$elm$json$Json$Encode$string($.tag))
 				]));
 	});
+var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$browser$Browser$Navigation$reload = _Browser_reload(false);
 var $elm$browser$Browser$Navigation$replaceUrl = _Browser_replaceUrl;
 var $author$project$App$Effect$toCmd = F2(
-	function (key, effect) {
+	function (options, effect) {
+		var navKey = options.navKey;
 		switch (effect.$) {
 			case 'None':
 				return $elm$core$Platform$Cmd$none;
+			case 'Batch':
+				var effects = effect.a;
+				return $elm$core$Platform$Cmd$batch(
+					A2(
+						$elm$core$List$map,
+						$author$project$App$Effect$toCmd(options),
+						effects));
 			case 'PushUrl':
 				var url = effect.a;
-				return A2($elm$browser$Browser$Navigation$pushUrl, key, url);
+				return A2($elm$browser$Browser$Navigation$pushUrl, navKey, url);
 			case 'ReplaceUrl':
 				var url = effect.a;
-				return A2($elm$browser$Browser$Navigation$replaceUrl, key, url);
+				return A2($elm$browser$Browser$Navigation$replaceUrl, navKey, url);
 			case 'Load':
 				var url = effect.a;
 				return $elm$browser$Browser$Navigation$load(url);
@@ -6798,10 +6943,10 @@ var $author$project$App$Effect$toCmd = F2(
 				return $elm$browser$Browser$Navigation$reload;
 			case 'Forward':
 				var steps = effect.a;
-				return A2($elm$browser$Browser$Navigation$forward, key, steps);
+				return A2($elm$browser$Browser$Navigation$forward, navKey, steps);
 			case 'Back':
 				var steps = effect.a;
-				return A2($elm$browser$Browser$Navigation$back, key, steps);
+				return A2($elm$browser$Browser$Navigation$back, navKey, steps);
 			default:
 				var outgoingMsg = effect.a;
 				return $author$project$App$Effect$outgoing(outgoingMsg);
@@ -6820,21 +6965,22 @@ var $author$project$App$Sub$toSubscription = function (sub) {
 var $elm$json$Json$Decode$value = _Json_decodeValue;
 var $author$project$Main$main = $author$project$App$Engine$app(
 	{
-		init: F2(
-			function (navKey, flags) {
-				return _Utils_Tuple2(
-					{nav: navKey},
-					$author$project$App$Effect$none);
-			}),
+		init: function (flags) {
+			return _Utils_Tuple2(
+				{
+					shared: {authenticated: $author$project$App$Shared$Authenticated}
+				},
+				$author$project$App$Effect$none);
+		},
 		subscriptions: function (_v0) {
 			return $author$project$App$Sub$none;
 		},
-		toCmd: F2(
-			function (model, effect) {
-				return A2($author$project$App$Effect$toCmd, model.nav, effect);
+		toCmd: F3(
+			function (options, model, effect) {
+				return A2($author$project$App$Effect$toCmd, options, effect);
 			}),
-		toShared: function (model) {
-			return {};
+		toShared: function ($) {
+			return $.shared;
 		},
 		toSub: F2(
 			function (model, sub) {
