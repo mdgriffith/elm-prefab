@@ -15,7 +15,11 @@
     },
     "local": [
       "/Users/mattgriffith/projects/mdgriffith/elm-ui/docs.json",
-      "./engine/Ui/Theme/Input.elm"
+      "./engine/Ui/Theme/Input.elm",
+      "../../plugins/app/toCopy/App/Page.elm",
+      "../../plugins/app/toCopy/App/Effect.elm",
+      "../../plugins/app/toCopy/App/Sub.elm",
+      "../../plugins/app/toCopy/App/View.elm"
     ]
   }
 }
