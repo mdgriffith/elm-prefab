@@ -8,6 +8,9 @@ export const generator = (options: any) => {
     generatorType: Options.GeneratorType.Standard,
     init: (runOptions: Options.RunOptions) => {},
     run: async (runOptions: Options.RunOptions) => {
+      options["project"] = testDocs;
+      options["viewers"] = [];
+
       await Generator.run(
         InteractiveGenerator.Elm.Generate,
         runOptions.internalSrc,

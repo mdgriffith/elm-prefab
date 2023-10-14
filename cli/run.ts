@@ -5,6 +5,7 @@ import * as Options from "./options";
 
 import * as App from "./run_app";
 import * as Theme from "./run_theme";
+import * as Interactive from "./run_interactive";
 
 type GenerateOptions = {
   src: string;
@@ -55,7 +56,9 @@ program
           case "app":
             plugins.push(App.generator(config.app));
             break;
-
+          case "interactive":
+            plugins.push(Interactive.generator(config.interactive));
+            break;
           default:
             console.log(`It's neither a theme nor an app. ${pluginName}`);
         }
