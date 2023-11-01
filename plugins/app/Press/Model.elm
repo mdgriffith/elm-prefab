@@ -68,6 +68,20 @@ type UrlPiece
     | Variable String
 
 
+hasVars : List UrlPiece -> Bool
+hasVars pieces =
+    List.any
+        (\piece ->
+            case piece of
+                Token _ ->
+                    False
+
+                Variable _ ->
+                    True
+        )
+        pieces
+
+
 {-| Two URL patterns have collisions if they can both match the same URL.
 -}
 hasCollisions : UrlPattern -> UrlPattern -> Bool

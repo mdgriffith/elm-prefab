@@ -109,7 +109,7 @@ paramType route =
         (UrlPattern { queryParams, includePathTail, path }) =
             route.url
     in
-    if hasNoParams queryParams && not includePathTail && route.assets == Nothing then
+    if hasNoParams queryParams && not includePathTail && route.assets == Nothing && not (hasVars path) then
         Type.record []
 
     else
