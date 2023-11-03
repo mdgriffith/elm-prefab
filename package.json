@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "gen:install": "(cd plugins/app ; elm-codegen install) ; (cd plugins/theme ; elm-codegen install) ; (cd plugins/interactive ; elm-codegen install)",
     "gen:run": "pnpm run build ; cd ./examples/elm-gql ; ts-node ../../cli/run.ts generate",
-    "example": "pnpm run gen:run ; (cd examples/elm-gql; elm make src/Main.elm)",
+    "example": "pnpm run gen:run ; (cd examples/elm-gql; elm make src/Main.elm --output=/dev/null)",
     "editor:install": "cd editor; elm-codegen install",
     "editor:run": "cd editor; elm-codegen run src/Generate.elm --debug --flags-from=test-apps/button.json --output=generated"
   },
