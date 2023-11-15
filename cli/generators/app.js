@@ -1315,10 +1315,10 @@
     var _Regex_never = /.^/;
     var _Regex_fromStringWith_fn = function (options, string) {
         var flags = "g";
-        if (options.hy) {
+        if (options.hz) {
             flags += "m";
         }
-        if (options.gO) {
+        if (options.gP) {
             flags += "i";
         }
         try {
@@ -1535,7 +1535,7 @@
         });
     }
     var _Platform_worker_fn = function (impl, flagDecoder, debugMetadata, args) {
-        return _Platform_initialize(flagDecoder, args, impl.aO, impl.ij, impl.h9, function () { return function () { }; });
+        return _Platform_initialize(flagDecoder, args, impl.aO, impl.ik, impl.ia, function () { return function () { }; });
     }, _Platform_worker = F4(_Platform_worker_fn);
     function _Platform_initialize(flagDecoder, args, init, update, subscriptions, stepperBuilder) {
         var result = _Json_run_fn(flagDecoder, _Json_wrap(args ? args["flags"] : undefined));
@@ -1882,13 +1882,13 @@
         return { $: 0, a: a };
     };
     var $author$project$Press$Model$Page_fn = function (id, moduleName, url, deprecatedUrls, source, assets) {
-        return { bD: assets, cj: deprecatedUrls, ds: id, aT: moduleName, h3: source, af: url };
+        return { bD: assets, cj: deprecatedUrls, ds: id, aT: moduleName, h4: source, af: url };
     }, $author$project$Press$Model$Page = F6($author$project$Press$Model$Page_fn);
     var $author$project$Press$Model$SourceDirectory_fn = function (base, baseOnApp, baseOnServer, files) {
-        return { gJ: base, bM: baseOnApp, gK: baseOnServer, cQ: files };
+        return { gK: base, bM: baseOnApp, gL: baseOnServer, cQ: files };
     }, $author$project$Press$Model$SourceDirectory = F4($author$project$Press$Model$SourceDirectory_fn);
     var $author$project$Press$Model$Source_fn = function (path, source) {
-        return { hR: path, h3: source };
+        return { hS: path, h4: source };
     }, $author$project$Press$Model$Source = F2($author$project$Press$Model$Source_fn);
     var $elm$json$Json$Decode$Failure_fn = function (a, b) {
         return { $: 3, a: a, b: b };
@@ -2176,14 +2176,14 @@
     }, $elm$core$Array$treeFromBuilder = F2($elm$core$Array$treeFromBuilder_fn);
     var $elm$core$Array$builderToArray_fn = function (reverseNodeList, builder) {
         if (!builder.x) {
-            return $elm$core$Array$Array_elm_builtin_fn($elm$core$Elm$JsArray$length(builder.fU), $elm$core$Array$shiftStep, $elm$core$Elm$JsArray$empty, builder.fU);
+            return $elm$core$Array$Array_elm_builtin_fn($elm$core$Elm$JsArray$length(builder.fV), $elm$core$Array$shiftStep, $elm$core$Elm$JsArray$empty, builder.fV);
         }
         else {
             var treeLen = builder.x * $elm$core$Array$branchFactor;
             var depth = $elm$core$Basics$floor($elm$core$Basics$logBase_fn($elm$core$Array$branchFactor, treeLen - 1));
             var correctNodeList = reverseNodeList ? $elm$core$List$reverse(builder.A) : builder.A;
             var tree = $elm$core$Array$treeFromBuilder_fn(correctNodeList, builder.x);
-            return $elm$core$Array$Array_elm_builtin_fn($elm$core$Elm$JsArray$length(builder.fU) + treeLen, $elm$core$Basics$max_fn(5, depth * $elm$core$Array$shiftStep), tree, builder.fU);
+            return $elm$core$Array$Array_elm_builtin_fn($elm$core$Elm$JsArray$length(builder.fV) + treeLen, $elm$core$Basics$max_fn(5, depth * $elm$core$Array$shiftStep), tree, builder.fV);
         }
     }, $elm$core$Array$builderToArray = F2($elm$core$Array$builderToArray_fn);
     var $elm$core$Basics$idiv = _Basics_idiv;
@@ -2191,7 +2191,7 @@
     var $elm$core$Array$initializeHelp_fn = function (fn, fromIndex, len, nodeList, tail) {
         initializeHelp: while (true) {
             if (fromIndex < 0) {
-                return $elm$core$Array$builderToArray_fn(false, { A: nodeList, x: (len / $elm$core$Array$branchFactor) | 0, fU: tail });
+                return $elm$core$Array$builderToArray_fn(false, { A: nodeList, x: (len / $elm$core$Array$branchFactor) | 0, fV: tail });
             }
             else {
                 var leaf = $elm$core$Array$Leaf(_JsArray_initialize_fn($elm$core$Array$branchFactor, fromIndex, fn));
@@ -2324,11 +2324,11 @@
         return { $: 1, a: a, b: b };
     }, $elm$parser$Parser$Advanced$AddRight = F2($elm$parser$Parser$Advanced$AddRight_fn);
     var $elm$parser$Parser$Advanced$DeadEnd_fn = function (row, col, problem, contextStack) {
-        return { b4: col, gY: contextStack, hT: problem, h0: row };
+        return { b4: col, gZ: contextStack, hU: problem, h1: row };
     }, $elm$parser$Parser$Advanced$DeadEnd = F4($elm$parser$Parser$Advanced$DeadEnd_fn);
     var $elm$parser$Parser$Advanced$Empty = { $: 0 };
     var $elm$parser$Parser$Advanced$fromState_fn = function (s, x) {
-        return $elm$parser$Parser$Advanced$AddRight_fn($elm$parser$Parser$Advanced$Empty, $elm$parser$Parser$Advanced$DeadEnd_fn(s.h0, s.b4, x, s.l));
+        return $elm$parser$Parser$Advanced$AddRight_fn($elm$parser$Parser$Advanced$Empty, $elm$parser$Parser$Advanced$DeadEnd_fn(s.h1, s.b4, x, s.l));
     }, $elm$parser$Parser$Advanced$fromState = F2($elm$parser$Parser$Advanced$fromState_fn);
     var $elm$parser$Parser$Advanced$isSubChar = _Parser_isSubChar;
     var $elm$core$Basics$negate = function (n) {
@@ -2337,7 +2337,7 @@
     var $elm$parser$Parser$Advanced$chompIf_fn = function (isGood, expecting) {
         return function (s) {
             var newOffset = _Parser_isSubChar_fn(isGood, s.g, s.bi);
-            return newOffset === -1 ? $elm$parser$Parser$Advanced$Bad_fn(false, $elm$parser$Parser$Advanced$fromState_fn(s, expecting)) : (newOffset === -2 ? $elm$parser$Parser$Advanced$Good_fn(true, 0, { b4: 1, l: s.l, p: s.p, g: s.g + 1, h0: s.h0 + 1, bi: s.bi }) : $elm$parser$Parser$Advanced$Good_fn(true, 0, { b4: s.b4 + 1, l: s.l, p: s.p, g: newOffset, h0: s.h0, bi: s.bi }));
+            return newOffset === -1 ? $elm$parser$Parser$Advanced$Bad_fn(false, $elm$parser$Parser$Advanced$fromState_fn(s, expecting)) : (newOffset === -2 ? $elm$parser$Parser$Advanced$Good_fn(true, 0, { b4: 1, l: s.l, p: s.p, g: s.g + 1, h1: s.h1 + 1, bi: s.bi }) : $elm$parser$Parser$Advanced$Good_fn(true, 0, { b4: s.b4 + 1, l: s.l, p: s.p, g: newOffset, h1: s.h1, bi: s.bi }));
         };
     }, $elm$parser$Parser$Advanced$chompIf = F2($elm$parser$Parser$Advanced$chompIf_fn);
     var $elm$parser$Parser$chompIf = function (isGood) {
@@ -2347,7 +2347,7 @@
         chompWhileHelp: while (true) {
             var newOffset = _Parser_isSubChar_fn(isGood, offset, s0.bi);
             if (newOffset === -1) {
-                return $elm$parser$Parser$Advanced$Good_fn(_Utils_cmp(s0.g, offset) < 0, 0, { b4: col, l: s0.l, p: s0.p, g: offset, h0: row, bi: s0.bi });
+                return $elm$parser$Parser$Advanced$Good_fn(_Utils_cmp(s0.g, offset) < 0, 0, { b4: col, l: s0.l, p: s0.p, g: offset, h1: row, bi: s0.bi });
             }
             else {
                 if (newOffset === -2) {
@@ -2373,7 +2373,7 @@
     }, $elm$parser$Parser$Advanced$chompWhileHelp = F5($elm$parser$Parser$Advanced$chompWhileHelp_fn);
     var $elm$parser$Parser$Advanced$chompWhile = function (isGood) {
         return function (s) {
-            return $elm$parser$Parser$Advanced$chompWhileHelp_fn(isGood, s.g, s.h0, s.b4, s);
+            return $elm$parser$Parser$Advanced$chompWhileHelp_fn(isGood, s.g, s.h1, s.b4, s);
         };
     };
     var $elm$parser$Parser$chompWhile = $elm$parser$Parser$Advanced$chompWhile;
@@ -2587,11 +2587,11 @@
         var expecting = _v0.b;
         var progress = !$elm$core$String$isEmpty(str);
         return function (s) {
-            var _v1 = _Parser_isSubString_fn(str, s.g, s.h0, s.b4, s.bi);
+            var _v1 = _Parser_isSubString_fn(str, s.g, s.h1, s.b4, s.bi);
             var newOffset = _v1.a;
             var newRow = _v1.b;
             var newCol = _v1.c;
-            return newOffset === -1 ? $elm$parser$Parser$Advanced$Bad_fn(false, $elm$parser$Parser$Advanced$fromState_fn(s, expecting)) : $elm$parser$Parser$Advanced$Good_fn(progress, 0, { b4: newCol, l: s.l, p: s.p, g: newOffset, h0: newRow, bi: s.bi });
+            return newOffset === -1 ? $elm$parser$Parser$Advanced$Bad_fn(false, $elm$parser$Parser$Advanced$fromState_fn(s, expecting)) : $elm$parser$Parser$Advanced$Good_fn(progress, 0, { b4: newCol, l: s.l, p: s.p, g: newOffset, h1: newRow, bi: s.bi });
         };
     };
     var $elm$parser$Parser$Advanced$symbol = $elm$parser$Parser$Advanced$token;
@@ -2605,7 +2605,7 @@
             }), $elm$parser$Parser$symbol("/")), $elm$parser$Parser$oneOf(_List_fromArray([
                 $elm$parser$Parser$Advanced$ignorer_fn($elm$parser$Parser$succeed($elm$parser$Parser$Done({
                     aN: true,
-                    hR: $elm$core$List$reverse(pieces)
+                    hS: $elm$core$List$reverse(pieces)
                 })), $elm$parser$Parser$symbol("*")),
                 $elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$succeed(F2(function (isVariable, label) {
                     return $author$project$Press$Generate$isBlank(label) ? $elm$parser$Parser$Loop(pieces) : $elm$parser$Parser$Loop(isVariable ? _List_Cons($author$project$Press$Model$Variable(label), pieces) : _List_Cons($author$project$Press$Model$Token(label), pieces));
@@ -2620,7 +2620,7 @@
             ]))),
             $elm$parser$Parser$succeed($elm$parser$Parser$Done({
                 aN: false,
-                hR: $elm$core$List$reverse(pieces)
+                hS: $elm$core$List$reverse(pieces)
             }))
         ]));
     });
@@ -2741,7 +2741,7 @@
         ])), $elm$parser$Parser$symbol("}")))
     ]));
     var $author$project$Press$Generate$parseUrlPattern = $elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$succeed(F2(function (path, queryParams) {
-        return { aN: path.aN, hR: path.hR, hV: queryParams };
+        return { aN: path.aN, hS: path.hS, hW: queryParams };
     })), $author$project$Press$Generate$parsePath), $author$project$Press$Generate$parseQueryParams);
     var $elm$core$List$foldrHelper_fn = function (fn, acc, ctr, ls) {
         if (!ls.b) {
@@ -2821,10 +2821,10 @@
         return tmp.b;
     }, $elm$core$List$map = F2($elm$core$List$map_fn);
     var $elm$parser$Parser$DeadEnd_fn = function (row, col, problem) {
-        return { b4: col, hT: problem, h0: row };
+        return { b4: col, hU: problem, h1: row };
     }, $elm$parser$Parser$DeadEnd = F3($elm$parser$Parser$DeadEnd_fn);
     var $elm$parser$Parser$problemToDeadEnd = function (p) {
-        return $elm$parser$Parser$DeadEnd_fn(p.h0, p.b4, p.hT);
+        return $elm$parser$Parser$DeadEnd_fn(p.h1, p.b4, p.hU);
     };
     var $elm$parser$Parser$Advanced$bagToList_fn = function (bag, list) {
         bagToList: while (true) {
@@ -2850,7 +2850,7 @@
     }, $elm$parser$Parser$Advanced$bagToList = F2($elm$parser$Parser$Advanced$bagToList_fn);
     var $elm$parser$Parser$Advanced$run_fn = function (_v0, src) {
         var parse = _v0;
-        var _v1 = parse({ b4: 1, l: _List_Nil, p: 1, g: 0, h0: 1, bi: src });
+        var _v1 = parse({ b4: 1, l: _List_Nil, p: 1, g: 0, h1: 1, bi: src });
         if (!_v1.$) {
             var value = _v1.b;
             return $elm$core$Result$Ok(value);
@@ -2897,7 +2897,7 @@
     var $elm$json$Json$Decode$decodeValue = _Json_run;
     var $author$project$Press$Generate$errorToDetails = function (error) {
         var collision = error;
-        return { aJ: "", ig: "Route collision" };
+        return { aJ: "", ih: "Route collision" };
     };
     var $elm$core$List$maybeCons_fn = function (f, mx, xs) {
         var _v0 = f(mx);
@@ -3272,8 +3272,8 @@
         }
     }, $elm$core$Result$mapError = F2($elm$core$Result$mapError_fn);
     var $stil4m$elm_syntax$Elm$Syntax$Range$emptyRange = {
-        m: { b6: 0, h0: 0 },
-        s: { b6: 0, h0: 0 }
+        m: { b6: 0, h1: 0 },
+        s: { b6: 0, h1: 0 }
     };
     var $mdgriffith$elm_codegen$Internal$Compiler$nodify = function (exp) {
         return $stil4m$elm_syntax$Elm$Syntax$Node$Node_fn($stil4m$elm_syntax$Elm$Syntax$Range$emptyRange, exp);
@@ -3458,7 +3458,7 @@
                 return "Case returns different types.";
             case 7:
                 var found = inf.a;
-                return "I can't find ." + (found.O + (", this record only has these fields:\n\n    " + $elm$core$String$join_fn("\n    ", found.g9)));
+                return "I can't find ." + (found.O + (", this record only has these fields:\n\n    " + $elm$core$String$join_fn("\n    ", found.ha)));
             case 8:
                 var attempting = inf.a;
                 return "You're trying to access\n\n    ." + (attempting.O + ("\n\nbut this value isn't a record. It's a\n\n    " + $stil4m$elm_syntax$Elm$Writer$write($stil4m$elm_syntax$Elm$Writer$writeTypeAnnotation($mdgriffith$elm_codegen$Internal$Compiler$nodify(attempting.al)))));
@@ -3467,7 +3467,7 @@
                 return "You're trying to access\n\n    ." + (attempting.O + ("\n\nbut this value isn't a record, it's a\n\n    " + ($stil4m$elm_syntax$Elm$Writer$write($stil4m$elm_syntax$Elm$Writer$writeTypeAnnotation($mdgriffith$elm_codegen$Internal$Compiler$nodify(attempting.al))) + "\n\nIs this value supposed to be an alias for a record? If so, check out Elm.alias!")));
             case 10:
                 var details = inf.a;
-                return details.g$ + " not found, though I was trying to unpack it in a let expression.";
+                return details.g0 + " not found, though I was trying to unpack it in a let expression.";
             case 12:
                 var type_ = inf.a;
                 return $stil4m$elm_syntax$Elm$Writer$write($stil4m$elm_syntax$Elm$Writer$writeTypeAnnotation($mdgriffith$elm_codegen$Internal$Compiler$nodify(type_))) + " is not appendable.  Only Strings and Lists are appendable";
@@ -4139,8 +4139,8 @@
                             else {
                                 var err = _v5.a;
                                 return $elm$core$Maybe$Just({
-                                    gZ: name,
-                                    $9: $mdgriffith$elm_codegen$Elm$renderError(err)
+                                    g_: name,
+                                    io: $mdgriffith$elm_codegen$Elm$renderError(err)
                                 });
                             }
                         }
@@ -4151,14 +4151,14 @@
                         }
                         else {
                             var err = resolvedType.a;
-                            return $elm$core$Maybe$Just({ gZ: name, $9: err });
+                            return $elm$core$Maybe$Just({ g_: name, io: err });
                         }
                     }
                 }();
                 return {
                     ah: body.d,
-                    gZ: $stil4m$elm_syntax$Elm$Syntax$Declaration$FunctionDeclaration({
-                        gZ: function () {
+                    g_: $stil4m$elm_syntax$Elm$Syntax$Declaration$FunctionDeclaration({
+                        g_: function () {
                             var _v1 = body.c;
                             if (_v1.$ === 17) {
                                 var lam = _v1.a;
@@ -4177,7 +4177,7 @@
                             }
                         }(),
                         a4: $elm$core$Maybe$Nothing,
-                        h2: function () {
+                        h3: function () {
                             var _v2 = body.i;
                             if (!_v2.$) {
                                 var sig = _v2.a;
@@ -4204,7 +4204,7 @@
                             }
                         }()
                     }),
-                    $9: maybeWarning
+                    io: maybeWarning
                 };
             }
         });
@@ -4301,7 +4301,7 @@
                     var fn = declaration.a;
                     var fnName = $mdgriffith$elm_codegen$Internal$Compiler$denode(function ($) {
                         return $.k;
-                    }($mdgriffith$elm_codegen$Internal$Compiler$denode(fn.gZ)));
+                    }($mdgriffith$elm_codegen$Internal$Compiler$denode(fn.g_)));
                     return _List_Cons($stil4m$elm_syntax$Elm$Syntax$Exposing$FunctionExpose(fnName), otherExposes);
                 case 1:
                     var synonym = declaration.a;
@@ -4312,7 +4312,7 @@
                     var typeName = $mdgriffith$elm_codegen$Internal$Compiler$denode(myType.k);
                     return details.as ? _List_Cons($stil4m$elm_syntax$Elm$Syntax$Exposing$TypeExpose({
                         k: typeName,
-                        hJ: $elm$core$Maybe$Just($stil4m$elm_syntax$Elm$Syntax$Range$emptyRange)
+                        hK: $elm$core$Maybe$Just($stil4m$elm_syntax$Elm$Syntax$Range$emptyRange)
                     }), otherExposes) : _List_Cons($stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose(typeName), otherExposes);
                 case 3:
                     var myPort = declaration.a;
@@ -4638,7 +4638,7 @@
                 return $the_sett$elm_pretty_printer$Pretty$string(val);
             default:
                 var exposedType = tlExpose.a;
-                var _v1 = exposedType.hJ;
+                var _v1 = exposedType.hK;
                 if (_v1.$ === 1) {
                     return $the_sett$elm_pretty_printer$Pretty$string(exposedType.k);
                 }
@@ -4661,7 +4661,7 @@
                 var _v1 = _Utils_Tuple2(exp, result);
                 if (_v1.a.$ === 3) {
                     var typeExpose = _v1.a.a;
-                    var _v2 = typeExpose.hJ;
+                    var _v2 = typeExpose.hK;
                     if (!_v2.$) {
                         return exp;
                     }
@@ -4672,7 +4672,7 @@
                 else {
                     if (_v1.b.$ === 3) {
                         var typeExpose = _v1.b.a;
-                        var _v3 = typeExpose.hJ;
+                        var _v3 = typeExpose.hK;
                         if (!_v3.$) {
                             return result;
                         }
@@ -5172,7 +5172,7 @@
         return $the_sett$elm_pretty_printer$Pretty$join_fn($elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$string("| "), $the_sett$elm_pretty_printer$Pretty$line), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Write$prettyValueConstructor(aliases), constructors));
     }, $mdgriffith$elm_codegen$Internal$Write$prettyValueConstructors = F2($mdgriffith$elm_codegen$Internal$Write$prettyValueConstructors_fn);
     var $mdgriffith$elm_codegen$Internal$Write$prettyCustomType_fn = function (aliases, type_) {
-        var customTypePretty = $the_sett$elm_pretty_printer$Pretty$nest_fn(4, $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $mdgriffith$elm_codegen$Internal$Write$prettyValueConstructors_fn(aliases, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeAll_a0, type_.gX)), $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$string("= "), $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$line, $the_sett$elm_pretty_printer$Pretty$join_fn($the_sett$elm_pretty_printer$Pretty$words_a0, _List_fromArray([
+        var customTypePretty = $the_sett$elm_pretty_printer$Pretty$nest_fn(4, $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $mdgriffith$elm_codegen$Internal$Write$prettyValueConstructors_fn(aliases, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeAll_a0, type_.gY)), $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$string("= "), $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$line, $the_sett$elm_pretty_printer$Pretty$join_fn($the_sett$elm_pretty_printer$Pretty$words_a0, _List_fromArray([
             $the_sett$elm_pretty_printer$Pretty$string("type"),
             $the_sett$elm_pretty_printer$Pretty$string($mdgriffith$elm_codegen$Internal$Compiler$denode(type_.k)),
             $the_sett$elm_pretty_printer$Pretty$join_fn($the_sett$elm_pretty_printer$Pretty$words_a0, $elm$core$List$map_fn($the_sett$elm_pretty_printer$Pretty$string, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeAll_a0, type_.da)))
@@ -5707,7 +5707,7 @@
             var expr = _v29.b;
             return $the_sett$elm_pretty_printer$Pretty$indent_fn(indent, $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$indent_fn(4, $mdgriffith$elm_codegen$Internal$Write$prettyExpressionInner_fn(aliases, $mdgriffith$elm_codegen$Internal$Write$topContext, 4, $mdgriffith$elm_codegen$Internal$Compiler$denode(expr)).a), $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$line, $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $the_sett$elm_pretty_printer$Pretty$string(" ->"), $mdgriffith$elm_codegen$Internal$Write$prettyPattern_fn(aliases, $mdgriffith$elm_codegen$Internal$Compiler$denode(pattern))))));
         };
-        var patternsPart = $the_sett$elm_pretty_printer$Pretty$join_fn($mdgriffith$elm_codegen$Internal$Write$doubleLines_a0, $elm$core$List$map_fn(prettyCase, caseBlock.gP));
+        var patternsPart = $the_sett$elm_pretty_printer$Pretty$join_fn($mdgriffith$elm_codegen$Internal$Write$doubleLines_a0, $elm$core$List$map_fn(prettyCase, caseBlock.gQ));
         var casePart = function () {
             var _v28 = $mdgriffith$elm_codegen$Internal$Write$prettyExpressionInner_fn(aliases, $mdgriffith$elm_codegen$Internal$Write$topContext, 4, $mdgriffith$elm_codegen$Internal$Compiler$denode(caseBlock.c));
             var caseExpression = _v28.a;
@@ -5815,8 +5815,8 @@
     var $mdgriffith$elm_codegen$Internal$Write$prettyFun_fn = function (aliases, fn) {
         return $the_sett$elm_pretty_printer$Pretty$join_fn($the_sett$elm_pretty_printer$Pretty$lines_a0, _List_fromArray([
             $mdgriffith$elm_codegen$Internal$Write$prettyMaybe_fn($mdgriffith$elm_codegen$Internal$Write$prettyDocumentation, $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, fn.a4)),
-            $mdgriffith$elm_codegen$Internal$Write$prettyMaybe_fn($mdgriffith$elm_codegen$Internal$Write$prettySignature(aliases), $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, fn.h2)),
-            $mdgriffith$elm_codegen$Internal$Write$prettyFunctionImplementation_fn(aliases, $mdgriffith$elm_codegen$Internal$Compiler$denode(fn.gZ))
+            $mdgriffith$elm_codegen$Internal$Write$prettyMaybe_fn($mdgriffith$elm_codegen$Internal$Write$prettySignature(aliases), $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, fn.h3)),
+            $mdgriffith$elm_codegen$Internal$Write$prettyFunctionImplementation_fn(aliases, $mdgriffith$elm_codegen$Internal$Compiler$denode(fn.g_))
         ]));
     }, $mdgriffith$elm_codegen$Internal$Write$prettyFun = F2($mdgriffith$elm_codegen$Internal$Write$prettyFun_fn);
     var $mdgriffith$elm_codegen$Internal$Write$prettyFunctionImplementation_fn = function (aliases, impl) {
@@ -6500,7 +6500,7 @@
         return $the_sett$elm_pretty_printer$Pretty$join_fn($the_sett$elm_pretty_printer$Pretty$words_a0, _List_fromArray([
             $the_sett$elm_pretty_printer$Pretty$string("effect module"),
             $mdgriffith$elm_codegen$Internal$Write$prettyModuleName($mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.aT)),
-            $mdgriffith$elm_codegen$Internal$Write$prettyMaybe_fn($elm$core$Basics$identity, A2(prettyCmdAndSub, $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, moduleData.gV), $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, moduleData.h8))),
+            $mdgriffith$elm_codegen$Internal$Write$prettyMaybe_fn($elm$core$Basics$identity, A2(prettyCmdAndSub, $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, moduleData.gW), $elm$core$Maybe$map_fn($mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe_a0, moduleData.h9))),
             $mdgriffith$elm_codegen$Internal$Write$prettyExposing($mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.cI))
         ]));
     };
@@ -6526,7 +6526,7 @@
     };
     var $mdgriffith$elm_codegen$Internal$Write$prepareLayout_fn = function (width, file) {
         return $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $mdgriffith$elm_codegen$Internal$Write$prettyDeclarations_fn(file.bt, file.aq), $elm_community$basics_extra$Basics$Extra$flip_fn($the_sett$elm_pretty_printer$Pretty$a_a0, $mdgriffith$elm_codegen$Internal$Write$importsPretty(file.d), function (doc) {
-            var _v0 = file.gW;
+            var _v0 = file.gX;
             if (_v0.$ === 1) {
                 return doc;
             }
@@ -6560,8 +6560,8 @@
                     var decDetails = decl.a;
                     var result = decDetails.ao(fileDetails.e);
                     return {
-                        aq: _List_Cons($mdgriffith$elm_codegen$Internal$Compiler$RenderedDecl($mdgriffith$elm_codegen$Internal$Render$addDocs_fn(decDetails.cp, result.gZ)), gathered.aq),
-                        aj: $mdgriffith$elm_codegen$Internal$Render$addExposed_fn(decDetails.aj, result.gZ, gathered.aj),
+                        aq: _List_Cons($mdgriffith$elm_codegen$Internal$Compiler$RenderedDecl($mdgriffith$elm_codegen$Internal$Render$addDocs_fn(decDetails.cp, result.g_)), gathered.aq),
+                        aj: $mdgriffith$elm_codegen$Internal$Render$addExposed_fn(decDetails.aj, result.g_, gathered.aj),
                         ak: function () {
                             var _v5 = decDetails.aj;
                             if (!_v5.$) {
@@ -6577,7 +6577,7 @@
                                 return gathered.au;
                             }
                             else {
-                                var _v6 = result.gZ;
+                                var _v6 = result.g_;
                                 if (_v6.$ === 3) {
                                     return true;
                                 }
@@ -6587,22 +6587,22 @@
                             }
                         }(),
                         d: _Utils_ap(result.ah, _Utils_ap(decDetails.d, gathered.d)),
-                        gx: function () {
-                            var _v7 = result.$9;
+                        gy: function () {
+                            var _v7 = result.io;
                             if (_v7.$ === 1) {
-                                return gathered.gx;
+                                return gathered.gy;
                             }
                             else {
                                 var warn = _v7.a;
-                                return _List_Cons(warn, gathered.gx);
+                                return _List_Cons(warn, gathered.gy);
                             }
                         }()
                     };
             }
-        }, { aq: _List_Nil, aj: _List_Nil, ak: _List_Nil, au: false, d: _List_Nil, gx: _List_Nil }, fileDetails.aq);
+        }, { aq: _List_Nil, aj: _List_Nil, ak: _List_Nil, au: false, d: _List_Nil, gy: _List_Nil }, fileDetails.aq);
         var body = $mdgriffith$elm_codegen$Internal$Write$pretty_fn($mdgriffith$elm_codegen$Internal$Write$write_a0, {
             bt: fileDetails.bt,
-            gW: function () {
+            gX: function () {
                 var _v0 = rendered.ak;
                 if (!_v0.b) {
                     return $elm$core$Maybe$Nothing;
@@ -6637,8 +6637,8 @@
         });
         return {
             cb: body,
-            hR: $elm$core$String$join_fn("/", fileDetails.aT) + ".elm",
-            gx: rendered.gx
+            hS: $elm$core$String$join_fn("/", fileDetails.aT) + ".elm",
+            gy: rendered.gy
         };
     }, $mdgriffith$elm_codegen$Internal$Render$render = F2($mdgriffith$elm_codegen$Internal$Render$render_fn);
     var $mdgriffith$elm_codegen$Internal$Index$Index_fn = function (a, b, c, d) {
@@ -7126,7 +7126,7 @@
         getField: while (true) {
             if (!fields.b) {
                 return $elm$core$Result$Err($mdgriffith$elm_codegen$Internal$Compiler$CouldNotFindField({
-                    g9: $elm$core$List$map_fn(A2($elm$core$Basics$composeR, $mdgriffith$elm_codegen$Internal$Compiler$denode, A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $mdgriffith$elm_codegen$Internal$Compiler$denode)), captured),
+                    ha: $elm$core$List$map_fn(A2($elm$core$Basics$composeR, $mdgriffith$elm_codegen$Internal$Compiler$denode, A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $mdgriffith$elm_codegen$Internal$Compiler$denode)), captured),
                     O: name
                 }));
             }
@@ -8147,7 +8147,7 @@
                     $elm$core$List$concat($elm$core$List$map_fn($elm$core$List$map($dillonkearns$elm_markdown$Markdown$Block$extractInlineText), rows))
                 ])));
             case 7:
-                var body = block.a.gM;
+                var body = block.a.gN;
                 return body;
             default:
                 return "";
@@ -8456,7 +8456,7 @@
         }
     };
     var $dillonkearns$elm_markdown$Markdown$Parser$deadEndToString = function (deadEnd) {
-        return "Problem at row " + ($elm$core$String$fromInt(deadEnd.h0) + ("\n" + $dillonkearns$elm_markdown$Markdown$Parser$problemToString(deadEnd.hT)));
+        return "Problem at row " + ($elm$core$String$fromInt(deadEnd.h1) + ("\n" + $dillonkearns$elm_markdown$Markdown$Parser$problemToString(deadEnd.hU)));
     };
     var $dillonkearns$elm_markdown$Markdown$Parser$deadEndsToString = function (deadEnds) {
         return $elm$core$String$join_fn("\n", $elm$core$List$map_fn($dillonkearns$elm_markdown$Markdown$Parser$deadEndToString, deadEnds));
@@ -8790,16 +8790,16 @@
         ]));
     };
     var $dillonkearns$elm_markdown$HtmlParser$attributes = $elm$parser$Parser$Advanced$map_fn(A2($elm$core$Dict$foldl, F3(function (key, value, accum) {
-        return _List_Cons({ k: key, ik: value }, accum);
+        return _List_Cons({ k: key, il: value }, accum);
     }), _List_Nil), $elm$parser$Parser$Advanced$loop_fn($elm$core$Dict$empty, $dillonkearns$elm_markdown$HtmlParser$attributesStep));
     var $elm$parser$Parser$Advanced$chompUntilEndOr = function (str) {
         return function (s) {
-            var _v0 = _Parser_findSubString_fn(str, s.g, s.h0, s.b4, s.bi);
+            var _v0 = _Parser_findSubString_fn(str, s.g, s.h1, s.b4, s.bi);
             var newOffset = _v0.a;
             var newRow = _v0.b;
             var newCol = _v0.c;
             var adjustedOffset = (newOffset < 0) ? $elm$core$String$length(s.bi) : newOffset;
-            return $elm$parser$Parser$Advanced$Good_fn(_Utils_cmp(s.g, adjustedOffset) < 0, 0, { b4: newCol, l: s.l, p: s.p, g: adjustedOffset, h0: newRow, bi: s.bi });
+            return $elm$parser$Parser$Advanced$Good_fn(_Utils_cmp(s.g, adjustedOffset) < 0, 0, { b4: newCol, l: s.l, p: s.p, g: adjustedOffset, h1: newRow, bi: s.bi });
         };
     };
     var $dillonkearns$elm_markdown$HtmlParser$cdata = $elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$Advanced$ignorer_fn($elm$parser$Parser$Advanced$succeed($elm$core$Basics$identity), $dillonkearns$elm_markdown$HtmlParser$symbol("<![CDATA[")), $elm$parser$Parser$Advanced$ignorer_fn($elm$parser$Parser$Advanced$getChompedString($elm$parser$Parser$Advanced$chompUntilEndOr("]]>")), $dillonkearns$elm_markdown$HtmlParser$symbol("]]>")));
@@ -8946,7 +8946,7 @@
     }, $dillonkearns$elm_markdown$Helpers$chompUntilLineEndOrEnd);
     var $dillonkearns$elm_markdown$Markdown$Parser$openBlockOrParagraphParser = $elm$parser$Parser$Advanced$ignorer_fn($dillonkearns$elm_markdown$Markdown$Parser$innerParagraphParser, $dillonkearns$elm_markdown$Helpers$lineEndOrEnd);
     var $dillonkearns$elm_markdown$Markdown$OrderedList$ListItem_fn = function (order, intended, marker, body) {
-        return { gM: body, ho: intended, hu: marker, hK: order };
+        return { gN: body, hp: intended, hv: marker, hL: order };
     }, $dillonkearns$elm_markdown$Markdown$OrderedList$ListItem = F4($dillonkearns$elm_markdown$Markdown$OrderedList$ListItem_fn);
     var $elm$parser$Parser$Advanced$getCol = function (s) {
         return $elm$parser$Parser$Advanced$Good_fn(false, s.b4, s);
@@ -9032,7 +9032,7 @@
     };
     var $dillonkearns$elm_markdown$Markdown$Parser$orderedListBlock = function (previousWasBody) {
         return $elm$parser$Parser$Advanced$map_fn(function (item) {
-            return $dillonkearns$elm_markdown$Markdown$RawBlock$OrderedListBlock_fn(true, item.ho, item.hu, item.hK, _List_Nil, item.gM);
+            return $dillonkearns$elm_markdown$Markdown$RawBlock$OrderedListBlock_fn(true, item.hp, item.hv, item.hL, _List_Nil, item.gN);
         }, $dillonkearns$elm_markdown$Markdown$OrderedList$parser(previousWasBody));
     };
     var $dillonkearns$elm_markdown$Markdown$Inline$CodeInline = function (a) {
@@ -9059,11 +9059,11 @@
         var _v1 = match.u;
         switch (_v1.$) {
             case 0:
-                return $dillonkearns$elm_markdown$Markdown$Inline$Text(match.fZ);
+                return $dillonkearns$elm_markdown$Markdown$Inline$Text(match.f_);
             case 1:
                 return $dillonkearns$elm_markdown$Markdown$Inline$HardLineBreak;
             case 2:
-                return $dillonkearns$elm_markdown$Markdown$Inline$CodeInline(match.fZ);
+                return $dillonkearns$elm_markdown$Markdown$Inline$CodeInline(match.f_);
             case 3:
                 var _v2 = _v1.a;
                 var text = _v2.a;
@@ -9096,14 +9096,14 @@
     };
     var $dillonkearns$elm_markdown$Markdown$InlineParser$Match = $elm$core$Basics$identity;
     var $dillonkearns$elm_markdown$Markdown$InlineParser$prepareChildMatch_fn = function (parentMatch, childMatch) {
-        return { m: childMatch.m - parentMatch.B, z: childMatch.z, s: childMatch.s - parentMatch.B, fZ: childMatch.fZ, G: childMatch.G - parentMatch.B, B: childMatch.B - parentMatch.B, u: childMatch.u };
+        return { m: childMatch.m - parentMatch.B, z: childMatch.z, s: childMatch.s - parentMatch.B, f_: childMatch.f_, G: childMatch.G - parentMatch.B, B: childMatch.B - parentMatch.B, u: childMatch.u };
     }, $dillonkearns$elm_markdown$Markdown$InlineParser$prepareChildMatch = F2($dillonkearns$elm_markdown$Markdown$InlineParser$prepareChildMatch_fn);
     var $dillonkearns$elm_markdown$Markdown$InlineParser$addChild_fn = function (parentMatch, childMatch) {
         return {
             m: parentMatch.m,
             z: _List_Cons($dillonkearns$elm_markdown$Markdown$InlineParser$prepareChildMatch_fn(parentMatch, childMatch), parentMatch.z),
             s: parentMatch.s,
-            fZ: parentMatch.fZ,
+            f_: parentMatch.f_,
             G: parentMatch.G,
             B: parentMatch.B,
             u: parentMatch.u
@@ -9115,7 +9115,7 @@
             m: match.m,
             z: $dillonkearns$elm_markdown$Markdown$InlineParser$organizeMatches(match.z),
             s: match.s,
-            fZ: match.fZ,
+            f_: match.f_,
             G: match.G,
             B: match.B,
             u: match.u
@@ -9175,11 +9175,11 @@
         return _String_contains_fn("&", string);
     };
     var $elm$regex$Regex$Match_fn = function (match, index, number, submatches) {
-        return { e: index, ax: match, hD: number, bk: submatches };
+        return { e: index, ax: match, hE: number, bk: submatches };
     }, $elm$regex$Regex$Match = F4($elm$regex$Regex$Match_fn);
     var $elm$regex$Regex$fromStringWith = _Regex_fromStringWith;
     var $elm$regex$Regex$fromString = function (string) {
-        return _Regex_fromStringWith_fn({ gO: false, hy: false }, string);
+        return _Regex_fromStringWith_fn({ gP: false, hz: false }, string);
     };
     var $elm$regex$Regex$never = _Regex_never;
     var $dillonkearns$elm_markdown$Markdown$Entity$decimalRegex = $elm$core$Maybe$withDefault_fn($elm$regex$Regex$never, $elm$regex$Regex$fromString("&#([0-9]{1,8});"));
@@ -9529,7 +9529,7 @@
             m: 0,
             z: _List_Nil,
             s: 0,
-            fZ: $dillonkearns$elm_markdown$Markdown$Helpers$formatStr(text),
+            f_: $dillonkearns$elm_markdown$Markdown$Helpers$formatStr(text),
             G: 0,
             B: 0,
             u: $dillonkearns$elm_markdown$Markdown$InlineParser$NormalType
@@ -9539,9 +9539,9 @@
         var matchModel = _v2;
         var updtMatch = {
             m: matchModel.m,
-            z: $dillonkearns$elm_markdown$Markdown$InlineParser$parseTextMatches_fn(matchModel.fZ, _List_Nil, matchModel.z),
+            z: $dillonkearns$elm_markdown$Markdown$InlineParser$parseTextMatches_fn(matchModel.f_, _List_Nil, matchModel.z),
             s: matchModel.s,
-            fZ: matchModel.fZ,
+            f_: matchModel.f_,
             G: matchModel.G,
             B: matchModel.B,
             u: matchModel.u
@@ -10087,8 +10087,8 @@
     var $dillonkearns$elm_markdown$Markdown$InlineParser$urlRegex = $elm$core$Maybe$withDefault_fn($elm$regex$Regex$never, $elm$regex$Regex$fromString("^([A-Za-z][A-Za-z0-9.+\\-]{1,31}:[^<>\\x00-\\x20]*)$"));
     var $dillonkearns$elm_markdown$Markdown$InlineParser$autolinkToMatch = function (_v0) {
         var match = _v0;
-        return _Regex_contains_fn($dillonkearns$elm_markdown$Markdown$InlineParser$urlRegex, match.fZ) ? $elm$core$Result$Ok(_Utils_update(match, {
-            u: $dillonkearns$elm_markdown$Markdown$InlineParser$AutolinkType(_Utils_Tuple2(match.fZ, $elm$core$Basics$composeR_fn($dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a0, $dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a1, match.fZ)))
+        return _Regex_contains_fn($dillonkearns$elm_markdown$Markdown$InlineParser$urlRegex, match.f_) ? $elm$core$Result$Ok(_Utils_update(match, {
+            u: $dillonkearns$elm_markdown$Markdown$InlineParser$AutolinkType(_Utils_Tuple2(match.f_, $elm$core$Basics$composeR_fn($dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a0, $dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a1, match.f_)))
         })) : $elm$core$Result$Err(match);
     };
     var $elm$regex$Regex$findAtMost = _Regex_findAtMost;
@@ -10122,8 +10122,8 @@
     }, $dillonkearns$elm_markdown$Markdown$InlineParser$prepareUrlAndTitle = F2($dillonkearns$elm_markdown$Markdown$InlineParser$prepareUrlAndTitle_fn);
     var $dillonkearns$elm_markdown$Markdown$InlineParser$refRegexToMatch_fn = function (matchModel, references, maybeRegexMatch) {
         var refLabel = function (str) {
-            return $elm$core$String$isEmpty(str) ? matchModel.fZ : str;
-        }($elm$core$Maybe$withDefault_fn(matchModel.fZ, $elm$core$Maybe$withDefault_fn($elm$core$Maybe$Nothing, $elm$core$Maybe$andThen_fn(A2($elm$core$Basics$composeR, function ($) {
+            return $elm$core$String$isEmpty(str) ? matchModel.f_ : str;
+        }($elm$core$Maybe$withDefault_fn(matchModel.f_, $elm$core$Maybe$withDefault_fn($elm$core$Maybe$Nothing, $elm$core$Maybe$andThen_fn(A2($elm$core$Basics$composeR, function ($) {
             return $.bk;
         }, $elm$core$List$head), maybeRegexMatch))));
         var _v0 = $elm$core$Dict$get_fn($elm$core$Basics$composeR_fn($dillonkearns$elm_markdown$Markdown$Helpers$prepareRefLabel_a0, $dillonkearns$elm_markdown$Markdown$Helpers$prepareRefLabel_a1, refLabel), references);
@@ -10248,8 +10248,8 @@
     var $dillonkearns$elm_markdown$Markdown$InlineParser$emailRegex = $elm$core$Maybe$withDefault_fn($elm$regex$Regex$never, $elm$regex$Regex$fromString("^([a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~\\-]+@[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*)$"));
     var $dillonkearns$elm_markdown$Markdown$InlineParser$emailAutolinkTypeToMatch = function (_v0) {
         var match = _v0;
-        return _Regex_contains_fn($dillonkearns$elm_markdown$Markdown$InlineParser$emailRegex, match.fZ) ? $elm$core$Result$Ok(_Utils_update(match, {
-            u: $dillonkearns$elm_markdown$Markdown$InlineParser$AutolinkType(_Utils_Tuple2(match.fZ, "mailto:" + $elm$core$Basics$composeR_fn($dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a0, $dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a1, match.fZ)))
+        return _Regex_contains_fn($dillonkearns$elm_markdown$Markdown$InlineParser$emailRegex, match.f_) ? $elm$core$Result$Ok(_Utils_update(match, {
+            u: $dillonkearns$elm_markdown$Markdown$InlineParser$AutolinkType(_Utils_Tuple2(match.f_, "mailto:" + $elm$core$Basics$composeR_fn($dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a0, $dillonkearns$elm_markdown$Markdown$InlineParser$encodeUrl_a1, match.f_)))
         })) : $elm$core$Result$Err(match);
     };
     var $dillonkearns$elm_markdown$Markdown$InlineParser$findTokenHelp_fn = function (innerTokens, isToken, tokens) {
@@ -10395,7 +10395,7 @@
     }, $dillonkearns$elm_markdown$Markdown$InlineParser$isStrikethroughTokenPair = F2($dillonkearns$elm_markdown$Markdown$InlineParser$isStrikethroughTokenPair_fn);
     var $dillonkearns$elm_markdown$Markdown$InlineParser$HardLineBreakType = { $: 1 };
     var $dillonkearns$elm_markdown$Markdown$InlineParser$tokenToMatch_fn = function (token, type_) {
-        return { m: token.e + token.dS, z: _List_Nil, s: token.e, fZ: "", G: 0, B: 0, u: type_ };
+        return { m: token.e + token.dS, z: _List_Nil, s: token.e, f_: "", G: 0, B: 0, u: type_ };
     }, $dillonkearns$elm_markdown$Markdown$InlineParser$tokenToMatch = F2($dillonkearns$elm_markdown$Markdown$InlineParser$tokenToMatch_fn);
     var $dillonkearns$elm_markdown$Markdown$InlineParser$lineBreakTTM_fn = function (remaining, matches) {
         lineBreakTTM: while (true) {
@@ -10911,12 +10911,12 @@
         var text = processText(_String_slice_fn(textStart, textEnd, rawText));
         var start = openToken.e;
         var end = closeToken.e + closeToken.dS;
-        var match = { m: end, z: _List_Nil, s: start, fZ: text, G: textEnd, B: textStart, u: type_ };
+        var match = { m: end, z: _List_Nil, s: start, f_: text, G: textEnd, B: textStart, u: type_ };
         var matches = $elm$core$List$map_fn(function (_v0) {
             var matchModel = _v0;
             return $dillonkearns$elm_markdown$Markdown$InlineParser$prepareChildMatch_fn(match, matchModel);
         }, $dillonkearns$elm_markdown$Markdown$InlineParser$tokensToMatches_fn(innerTokens, _List_Nil, references, rawText));
-        return { m: end, z: matches, s: start, fZ: text, G: textEnd, B: textStart, u: type_ };
+        return { m: end, z: matches, s: start, f_: text, G: textEnd, B: textStart, u: type_ };
     }, $dillonkearns$elm_markdown$Markdown$InlineParser$tokenPairToMatch = F7($dillonkearns$elm_markdown$Markdown$InlineParser$tokenPairToMatch_fn);
     var $dillonkearns$elm_markdown$Markdown$InlineParser$tokensToMatches_fn = function (tokens, matches, references, rawText) {
         return $dillonkearns$elm_markdown$Markdown$InlineParser$codeAutolinkTypeHtmlTagTTM_fn(tokens, _List_Nil, matches, references, rawText);
@@ -11007,7 +11007,7 @@
         }
     }, $dillonkearns$elm_markdown$Markdown$TableParser$parseHeader = F2($dillonkearns$elm_markdown$Markdown$TableParser$parseHeader_fn);
     var $dillonkearns$elm_markdown$Markdown$CodeBlock$CodeBlock_fn = function (language, body) {
-        return { gM: body, hr: language };
+        return { gN: body, hs: language };
     }, $dillonkearns$elm_markdown$Markdown$CodeBlock$CodeBlock = F2($dillonkearns$elm_markdown$Markdown$CodeBlock$CodeBlock_fn);
     var $dillonkearns$elm_markdown$Markdown$CodeBlock$infoString = function (fenceCharacter) {
         var toInfoString = F2(function (str, _v2) {
@@ -11161,24 +11161,24 @@
         var str = _v0.a;
         var expecting = _v0.b;
         return function (s) {
-            var _v1 = _Parser_findSubString_fn(str, s.g, s.h0, s.b4, s.bi);
+            var _v1 = _Parser_findSubString_fn(str, s.g, s.h1, s.b4, s.bi);
             var newOffset = _v1.a;
             var newRow = _v1.b;
             var newCol = _v1.c;
-            return newOffset === -1 ? $elm$parser$Parser$Advanced$Bad_fn(false, $elm$parser$Parser$Advanced$fromInfo_fn(newRow, newCol, expecting, s.l)) : $elm$parser$Parser$Advanced$Good_fn(_Utils_cmp(s.g, newOffset) < 0, 0, { b4: newCol, l: s.l, p: s.p, g: newOffset, h0: newRow, bi: s.bi });
+            return newOffset === -1 ? $elm$parser$Parser$Advanced$Bad_fn(false, $elm$parser$Parser$Advanced$fromInfo_fn(newRow, newCol, expecting, s.l)) : $elm$parser$Parser$Advanced$Good_fn(_Utils_cmp(s.g, newOffset) < 0, 0, { b4: newCol, l: s.l, p: s.p, g: newOffset, h1: newRow, bi: s.bi });
         };
     };
     var $dillonkearns$elm_markdown$Parser$Token$greaterThan = $elm$parser$Parser$Advanced$Token_fn(">", $elm$parser$Parser$Expecting("a `>`"));
     var $elm$parser$Parser$Advanced$Located_fn = function (row, col, context) {
-        return { b4: col, l: context, h0: row };
+        return { b4: col, l: context, h1: row };
     }, $elm$parser$Parser$Advanced$Located = F3($elm$parser$Parser$Advanced$Located_fn);
     var $elm$parser$Parser$Advanced$changeContext_fn = function (newContext, s) {
-        return { b4: s.b4, l: newContext, p: s.p, g: s.g, h0: s.h0, bi: s.bi };
+        return { b4: s.b4, l: newContext, p: s.p, g: s.g, h1: s.h1, bi: s.bi };
     }, $elm$parser$Parser$Advanced$changeContext = F2($elm$parser$Parser$Advanced$changeContext_fn);
     var $elm$parser$Parser$Advanced$inContext_fn = function (context, _v0) {
         var parse = _v0;
         return function (s0) {
-            var _v1 = parse($elm$parser$Parser$Advanced$changeContext_fn(_List_Cons($elm$parser$Parser$Advanced$Located_fn(s0.h0, s0.b4, context), s0.l), s0));
+            var _v1 = parse($elm$parser$Parser$Advanced$changeContext_fn(_List_Cons($elm$parser$Parser$Advanced$Located_fn(s0.h1, s0.b4, context), s0.l), s0));
             if (!_v1.$) {
                 var p = _v1.a;
                 var a = _v1.b;
@@ -11239,7 +11239,7 @@
         ])));
     }();
     var $dillonkearns$elm_markdown$Markdown$LinkReferenceDefinition$parser = $elm$parser$Parser$Advanced$inContext_fn("link reference definition", $elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$Advanced$keeper_fn($elm$parser$Parser$Advanced$ignorer_fn($elm$parser$Parser$Advanced$succeed(F3(function (label, destination, title) {
-        return _Utils_Tuple2(label, { g0: destination, ig: title });
+        return _Utils_Tuple2(label, { g1: destination, ih: title });
     })), $dillonkearns$elm_markdown$Whitespace$upToThreeSpaces), $elm$parser$Parser$Advanced$ignorer_fn($elm$parser$Parser$Advanced$ignorer_fn($elm$parser$Parser$Advanced$ignorer_fn($dillonkearns$elm_markdown$Markdown$LinkReferenceDefinition$labelParser, $elm$parser$Parser$Advanced$chompWhile($dillonkearns$elm_markdown$Whitespace$isSpaceOrTab)), $elm$parser$Parser$Advanced$oneOf(_List_fromArray([
         $dillonkearns$elm_markdown$Whitespace$lineEnd,
         $elm$parser$Parser$Advanced$succeed(0)
@@ -11347,13 +11347,13 @@
         }
     };
     var $dillonkearns$elm_markdown$Markdown$TableParser$delimiterRowParser = $elm$parser$Parser$Advanced$andThen_fn(function (delimiterRow) {
-        var trimmed = delimiterRow.a.gk;
+        var trimmed = delimiterRow.a.gl;
         var headers = delimiterRow.b;
         return $elm$core$List$isEmpty(headers) ? $elm$parser$Parser$Advanced$problem($elm$parser$Parser$Expecting("Must have at least one column in delimiter row.")) : ((($elm$core$List$length(headers) === 1) && (!(_String_startsWith_fn("|", trimmed) && _String_endsWith_fn("|", trimmed)))) ? $elm$parser$Parser$Advanced$problem($elm$parser$Parser$Problem("Tables with a single column must have pipes at the start and end of the delimiter row to avoid ambiguity.")) : $elm$parser$Parser$Advanced$succeed(delimiterRow));
     }, $elm$parser$Parser$Advanced$mapChompedString_fn_unwrapped(function (delimiterText, revDelimiterColumns) {
         return $dillonkearns$elm_markdown$Markdown$Table$TableDelimiterRow_fn({
             e1: delimiterText,
-            gk: $elm$core$String$trim(delimiterText)
+            gl: $elm$core$String$trim(delimiterText)
         }, $elm$core$List$map_fn($dillonkearns$elm_markdown$Markdown$TableParser$delimiterToAlignment, $elm$core$List$reverse(revDelimiterColumns)));
     }, $elm$parser$Parser$Advanced$loop_fn(_List_Nil, $dillonkearns$elm_markdown$Markdown$TableParser$delimiterRowHelp)));
     var $dillonkearns$elm_markdown$Markdown$Parser$tableDelimiterInOpenParagraph = $elm$parser$Parser$Advanced$map_fn($dillonkearns$elm_markdown$Markdown$RawBlock$TableDelimiter, $dillonkearns$elm_markdown$Markdown$TableParser$delimiterRowParser);
@@ -11576,9 +11576,9 @@
                     var completion = unparsedListItem.a;
                     var body = unparsedListItem.b;
                     return {
-                        gM: body,
-                        hu: listmarker,
-                        fW: $elm$core$Maybe$Just(function () {
+                        gN: body,
+                        hv: listmarker,
+                        fX: $elm$core$Maybe$Just(function () {
                             if (completion === 1) {
                                 return true;
                             }
@@ -11589,9 +11589,9 @@
                     };
                 case 1:
                     var body = unparsedListItem.a;
-                    return { gM: body, hu: listmarker, fW: $elm$core$Maybe$Nothing };
+                    return { gN: body, hv: listmarker, fX: $elm$core$Maybe$Nothing };
                 default:
-                    return { gM: "", hu: listmarker, fW: $elm$core$Maybe$Nothing };
+                    return { gN: "", hv: listmarker, fX: $elm$core$Maybe$Nothing };
             }
         });
         return $elm$parser$Parser$Advanced$map_fn(function (_v0) {
@@ -11679,13 +11679,13 @@
                         var closeListItems = _v93.c;
                         var openListItem = _v93.d;
                         var rest = _v91.b;
-                        var _v94 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem.gM);
+                        var _v94 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem.gN);
                         if (!_v94.$) {
                             var value = _v94.a;
                             var tight2 = $elm$core$List$member_fn($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, value.b) ? false : tight;
                             return $elm$parser$Parser$Advanced$succeed({
                                 a: _Utils_ap(state.a, value.a),
-                                b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended, _List_Cons({ gM: value.b, fW: openListItem.fW }, closeListItems), openListItem), rest)
+                                b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended, _List_Cons({ gN: value.b, fX: openListItem.fX }, closeListItems), openListItem), rest)
                             });
                         }
                         else {
@@ -11726,13 +11726,13 @@
                                     var closeListItems = _v97.c;
                                     var openListItem = _v97.d;
                                     var rest = _v96.b;
-                                    var _v98 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem.gM);
+                                    var _v98 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem.gN);
                                     if (!_v98.$) {
                                         var value = _v98.a;
                                         var tight2 = $elm$core$List$member_fn($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, value.b) ? false : tight;
                                         return $elm$parser$Parser$Advanced$succeed({
                                             a: _Utils_ap(state.a, value.a),
-                                            b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended, _List_Cons({ gM: value.b, fW: openListItem.fW }, closeListItems), openListItem), rest)
+                                            b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended, _List_Cons({ gN: value.b, fX: openListItem.fX }, closeListItems), openListItem), rest)
                                         });
                                     }
                                     else {
@@ -11794,8 +11794,8 @@
                             return $elm$parser$Parser$Advanced$succeed({
                                 a: state.a,
                                 b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$CodeBlock({
-                                    gM: $dillonkearns$elm_markdown$Markdown$Parser$joinStringsPreserveAll_fn(block2.gM, block1.gM),
-                                    hr: $elm$core$Maybe$Nothing
+                                    gN: $dillonkearns$elm_markdown$Markdown$Parser$joinStringsPreserveAll_fn(block2.gN, block1.gN),
+                                    hs: $elm$core$Maybe$Nothing
                                 }), rest)
                             });
                         }
@@ -11941,16 +11941,16 @@
                             case 3:
                                 var intended2 = newRawBlock.b;
                                 var openListItem1 = newRawBlock.d;
-                                if (_Utils_eq(openListItem2.hu, openListItem1.hu)) {
-                                    var _v59 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gM);
+                                if (_Utils_eq(openListItem2.hv, openListItem1.hv)) {
+                                    var _v59 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gN);
                                     if (!_v59.$) {
                                         var value = _v59.a;
                                         return $elm$core$List$member_fn($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, value.b) ? $elm$parser$Parser$Advanced$succeed({
                                             a: _Utils_ap(state.a, value.a),
-                                            b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(false, intended2, _List_Cons({ gM: value.b, fW: openListItem2.fW }, closeListItems2), openListItem1), rest)
+                                            b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(false, intended2, _List_Cons({ gN: value.b, fX: openListItem2.fX }, closeListItems2), openListItem1), rest)
                                         }) : $elm$parser$Parser$Advanced$succeed({
                                             a: _Utils_ap(state.a, value.a),
-                                            b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended2, _List_Cons({ gM: value.b, fW: openListItem2.fW }, closeListItems2), openListItem1), rest)
+                                            b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended2, _List_Cons({ gN: value.b, fX: openListItem2.fX }, closeListItems2), openListItem1), rest)
                                         });
                                     }
                                     else {
@@ -11959,13 +11959,13 @@
                                     }
                                 }
                                 else {
-                                    var _v60 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gM);
+                                    var _v60 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gN);
                                     if (!_v60.$) {
                                         var value = _v60.a;
                                         var tight2 = $elm$core$List$member_fn($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, value.b) ? false : tight;
                                         return $elm$parser$Parser$Advanced$succeed({
                                             a: _Utils_ap(state.a, value.a),
-                                            b: _List_Cons(newRawBlock, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended1, _List_Cons({ gM: value.b, fW: openListItem2.fW }, closeListItems2), openListItem1), rest))
+                                            b: _List_Cons(newRawBlock, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended1, _List_Cons({ gN: value.b, fX: openListItem2.fX }, closeListItems2), openListItem1), rest))
                                         });
                                     }
                                     else {
@@ -11978,17 +11978,17 @@
                                 return $elm$parser$Parser$Advanced$succeed({
                                     a: state.a,
                                     b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended1, closeListItems2, _Utils_update(openListItem2, {
-                                        gM: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("\n", openListItem2.gM, body1)
+                                        gN: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("\n", openListItem2.gN, body1)
                                     })), rest)
                                 });
                             default:
-                                var _v61 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gM);
+                                var _v61 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gN);
                                 if (!_v61.$) {
                                     var value = _v61.a;
                                     var tight2 = $elm$core$List$member_fn($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, value.b) ? false : tight;
                                     return $elm$parser$Parser$Advanced$succeed({
                                         a: _Utils_ap(state.a, value.a),
-                                        b: _List_Cons(newRawBlock, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended1, _List_Cons({ gM: value.b, fW: openListItem2.fW }, closeListItems2), openListItem2), rest))
+                                        b: _List_Cons(newRawBlock, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight2, intended1, _List_Cons({ gN: value.b, fX: openListItem2.fX }, closeListItems2), openListItem2), rest))
                                     });
                                 }
                                 else {
@@ -12180,20 +12180,20 @@
                                     var closeListItems2 = _v88.c;
                                     var openListItem2 = _v88.d;
                                     var rest = _v87.b;
-                                    var _v89 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gM);
+                                    var _v89 = $elm$parser$Parser$Advanced$run_fn($dillonkearns$elm_markdown$Markdown$Parser$cyclic$rawBlockParser(), openListItem2.gN);
                                     if (!_v89.$) {
                                         var value = _v89.a;
                                         if (newRawBlock.$ === 3) {
                                             var openListItem = newRawBlock.d;
                                             return $elm$parser$Parser$Advanced$succeed({
                                                 a: _Utils_ap(state.a, value.a),
-                                                b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(false, intended1, _List_Cons({ gM: value.b, fW: openListItem2.fW }, closeListItems2), openListItem), rest)
+                                                b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(false, intended1, _List_Cons({ gN: value.b, fX: openListItem2.fX }, closeListItems2), openListItem), rest)
                                             });
                                         }
                                         else {
                                             return $elm$parser$Parser$Advanced$succeed({
                                                 a: _Utils_ap(state.a, value.a),
-                                                b: _List_Cons(newRawBlock, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended1, _List_Cons({ gM: value.b, fW: openListItem2.fW }, closeListItems2), openListItem2), rest)))
+                                                b: _List_Cons(newRawBlock, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended1, _List_Cons({ gN: value.b, fX: openListItem2.fX }, closeListItems2), openListItem2), rest)))
                                             });
                                         }
                                     }
@@ -12224,8 +12224,8 @@
     var $dillonkearns$elm_markdown$Markdown$Parser$inlineParseHelper_fn = function (referencesDict, _v36) {
         var unparsedInlines = _v36;
         var mappedReferencesDict = $elm$core$Dict$fromList($elm$core$List$map_fn($elm$core$Tuple$mapSecond(function (_v37) {
-            var destination = _v37.g0;
-            var title = _v37.ig;
+            var destination = _v37.g1;
+            var title = _v37.ih;
             return _Utils_Tuple2(destination, title);
         }), referencesDict));
         return $elm$core$List$map_fn($dillonkearns$elm_markdown$Markdown$Parser$mapInline, $dillonkearns$elm_markdown$Markdown$InlineParser$parse_fn(mappedReferencesDict, unparsedInlines));
@@ -12453,7 +12453,7 @@
                     return $dillonkearns$elm_markdown$Markdown$Block$ListItem_fn(blocksTask, blocks);
                 });
                 return $dillonkearns$elm_markdown$Markdown$Parser$ParsedBlock($dillonkearns$elm_markdown$Markdown$Block$UnorderedList_fn($dillonkearns$elm_markdown$Markdown$Parser$isTightBoolToListDisplay(tight), $elm$core$List$reverse($elm$core$List$map_fn(function (item) {
-                    return A2(parseItem, item.fW, item.gM);
+                    return A2(parseItem, item.fX, item.gN);
                 }, unparsedItems))));
             case 4:
                 var tight = rawBlock.a;
@@ -12492,7 +12492,7 @@
                 }
             case 6:
                 var codeBlockBody = rawBlock.a;
-                return $dillonkearns$elm_markdown$Markdown$Parser$ParsedBlock($dillonkearns$elm_markdown$Markdown$Block$CodeBlock({ gM: codeBlockBody, hr: $elm$core$Maybe$Nothing }));
+                return $dillonkearns$elm_markdown$Markdown$Parser$ParsedBlock($dillonkearns$elm_markdown$Markdown$Block$CodeBlock({ gN: codeBlockBody, hs: $elm$core$Maybe$Nothing }));
             case 8:
                 var _v22 = rawBlock.a;
                 var header = _v22.a;
@@ -12552,14 +12552,14 @@
                                 var completeOrMergeUnorderedListBlockBlankLine = F2(function (state, newString) {
                                     return _Utils_update(state, {
                                         b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended, closeListItems, _Utils_update(openListItem, {
-                                            gM: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("", openListItem.gM, newString)
+                                            gN: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("", openListItem.gN, newString)
                                         })), rest))
                                     });
                                 });
                                 var completeOrMergeUnorderedListBlock = F2(function (state, newString) {
                                     return _Utils_update(state, {
                                         b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended, closeListItems, _Utils_update(openListItem, {
-                                            gM: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("\n", openListItem.gM, newString)
+                                            gN: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("\n", openListItem.gN, newString)
                                         })), rest)
                                     });
                                 });
@@ -12623,18 +12623,18 @@
                                             var completeOrMergeUnorderedListBlockBlankLine = F2(function (state, newString) {
                                                 return _Utils_update(state, {
                                                     b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$BlankLine, _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended, closeListItems, _Utils_update(openListItem, {
-                                                        gM: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("", openListItem.gM, newString)
+                                                        gN: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("", openListItem.gN, newString)
                                                     })), rest))
                                                 });
                                             });
                                             var completeOrMergeUnorderedListBlock = F2(function (state, newString) {
                                                 return _Utils_update(state, {
                                                     b: _List_Cons($dillonkearns$elm_markdown$Markdown$RawBlock$UnorderedListBlock_fn(tight, intended, closeListItems, _Utils_update(openListItem, {
-                                                        gM: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("\n", openListItem.gM, newString)
+                                                        gN: $dillonkearns$elm_markdown$Markdown$Parser$joinRawStringsWith_fn("\n", openListItem.gN, newString)
                                                     })), rest)
                                                 });
                                             });
-                                            return ($elm$core$String$trim(openListItem.gM) === "") ? $elm$parser$Parser$Advanced$map_fn(function (block) {
+                                            return ($elm$core$String$trim(openListItem.gN) === "") ? $elm$parser$Parser$Advanced$map_fn(function (block) {
                                                 return $elm$parser$Parser$Advanced$Loop(block);
                                             }, $elm$parser$Parser$Advanced$andThen_fn($dillonkearns$elm_markdown$Markdown$Parser$completeOrMergeBlocks(revStmts), $dillonkearns$elm_markdown$Markdown$Parser$cyclic$mergeableBlockNotAfterOpenBlockOrParagraphParser())) : $elm$parser$Parser$Advanced$oneOf(_List_fromArray([
                                                 $elm$parser$Parser$Advanced$map_fn(function (block) {
@@ -12971,13 +12971,329 @@
             };
         };
     };
-    var $stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue_fn = function (a, b) {
-        return { $: 3, a: a, b: b };
-    }, $stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue = F2($stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue_fn);
+    var $author$project$Press$Model$FullConfig = 3;
+    var $author$project$Press$Model$SubscriptionConfig = 1;
+    var $author$project$Press$Model$TestConfig = 4;
+    var $author$project$Press$Model$UpdateConfig = 2;
+    var $author$project$Press$Model$ViewConfig = 0;
+    var $mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp_fn = function (f, existing, remaining, accumulator) {
+        uniqueHelp: while (true) {
+            if (!remaining.b) {
+                return $elm$core$List$reverse(accumulator);
+            }
+            else {
+                var first = remaining.a;
+                var rest = remaining.b;
+                var computedFirst = f(first);
+                if ($elm$core$List$member_fn(computedFirst, existing)) {
+                    var $temp$f = f, $temp$existing = existing, $temp$remaining = rest, $temp$accumulator = accumulator;
+                    f = $temp$f;
+                    existing = $temp$existing;
+                    remaining = $temp$remaining;
+                    accumulator = $temp$accumulator;
+                    continue uniqueHelp;
+                }
+                else {
+                    var $temp$f = f, $temp$existing = _List_Cons(computedFirst, existing), $temp$remaining = rest, $temp$accumulator = _List_Cons(first, accumulator);
+                    f = $temp$f;
+                    existing = $temp$existing;
+                    remaining = $temp$remaining;
+                    accumulator = $temp$accumulator;
+                    continue uniqueHelp;
+                }
+            }
+        }
+    }, $mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp = F4($mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp_fn);
+    var $mdgriffith$elm_codegen$Internal$Compiler$unique = function (list) {
+        return $mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp_fn($elm$core$Basics$identity, _List_Nil, list, _List_Nil);
+    };
+    var $mdgriffith$elm_codegen$Internal$Compiler$getGenerics = function (_v0) {
+        var details = _v0;
+        return $mdgriffith$elm_codegen$Internal$Compiler$unique($mdgriffith$elm_codegen$Internal$Compiler$getGenericsHelper(details.i));
+    };
+    var $mdgriffith$elm_codegen$Internal$Compiler$addAlias_fn = function (mod, name, ann, aliasCache) {
+        var annDetails = ann;
+        return $elm$core$Dict$insert_fn($mdgriffith$elm_codegen$Internal$Compiler$formatAliasKey_fn(mod, name), {
+            aB: annDetails.i,
+            bm: $mdgriffith$elm_codegen$Internal$Compiler$getGenerics(ann)
+        }, aliasCache);
+    }, $mdgriffith$elm_codegen$Internal$Compiler$addAlias = F4($mdgriffith$elm_codegen$Internal$Compiler$addAlias_fn);
+    var $mdgriffith$elm_codegen$Internal$Compiler$getAliases = function (_v0) {
+        var ann = _v0;
+        return ann.bt;
+    };
     var $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports = function (_v0) {
         var details = _v0;
         return details.d;
     };
+    var $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation = function (_v0) {
+        var details = _v0;
+        return details.i;
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$alias_fn = function (mod, name, vars, target) {
+        return {
+            bt: $mdgriffith$elm_codegen$Internal$Compiler$addAlias_fn(mod, name, target, $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
+                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Internal$Compiler$getAliases(ann), aliases);
+            }, $mdgriffith$elm_codegen$Internal$Compiler$getAliases(target), vars)),
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(_Utils_Tuple2(mod, $mdgriffith$elm_codegen$Internal$Format$formatType(name))), $elm$core$List$map_fn(A2($elm$core$Basics$composeL, $mdgriffith$elm_codegen$Internal$Compiler$nodify, $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation), vars)),
+            d: function () {
+                if (!mod.b) {
+                    return $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, vars);
+                }
+                else {
+                    return _Utils_ap(_List_fromArray([mod]), $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, vars));
+                }
+            }()
+        };
+    }, $mdgriffith$elm_codegen$Elm$Annotation$alias = F4($mdgriffith$elm_codegen$Elm$Annotation$alias_fn);
+    var $author$project$Gen$App$Engine$Page$moduleName_ = _List_fromArray(["App", "Engine", "Page"]);
+    var $mdgriffith$elm_codegen$Elm$Annotation$getAliases = function (_v0) {
+        var ann = _v0;
+        return ann.bt;
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn = function (mod, name, args) {
+        return {
+            bt: $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
+                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
+            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, args),
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(_Utils_Tuple2(mod, $mdgriffith$elm_codegen$Internal$Format$formatType(name))), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation, args))),
+            d: _List_Cons(mod, $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, args))
+        };
+    }, $mdgriffith$elm_codegen$Elm$Annotation$namedWith = F3($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn);
+    var $mdgriffith$elm_codegen$Elm$Annotation$var = function (a) {
+        return {
+            bt: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases,
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$GenericType($mdgriffith$elm_codegen$Internal$Format$formatValue(a)),
+            d: _List_Nil
+        };
+    };
+    var $author$project$Gen$App$Engine$Page$annotation_ = {
+        aO: F2(function (initArg0, initArg1) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$App$Engine$Page$moduleName_, "Init", _List_fromArray([initArg0, initArg1]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "InitPlan", _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("msg"),
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
+            ])));
+        }),
+        dy: F2(function (initPlanArg0, initPlanArg1) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Engine", "Page"]), "InitPlan", _List_fromArray([initPlanArg0, initPlanArg1]));
+        }),
+        bc: F4(function (pageArg0, pageArg1, pageArg2, pageArg3) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Engine", "Page"]), "Page", _List_fromArray([pageArg0, pageArg1, pageArg2, pageArg3]));
+        })
+    };
+    var $author$project$Gen$App$State$annotation_ = {
+        gO: function (cacheArg0) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "State"]), "Cache", _List_fromArray([cacheArg0]));
+        }
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$typed_fn = function (mod, name, args) {
+        return {
+            bt: $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
+                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
+            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, args),
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(_Utils_Tuple2(mod, name)), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation, args))),
+            d: $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, args)
+        };
+    }, $mdgriffith$elm_codegen$Elm$Annotation$typed = F3($mdgriffith$elm_codegen$Elm$Annotation$typed_fn);
+    var $mdgriffith$elm_codegen$Elm$Annotation$int = $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "Int", _List_Nil);
+    var $mdgriffith$elm_codegen$Elm$Annotation$maybe = function (maybeArg) {
+        return $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "Maybe", _List_fromArray([maybeArg]));
+    };
+    var $author$project$Gen$Url$moduleName_ = _List_fromArray(["Url"]);
+    var $mdgriffith$elm_codegen$Elm$Annotation$record = function (fields) {
+        return {
+            bt: $elm$core$List$foldl_fn_unwrapped(function (_v0, aliases) {
+                var ann = _v0.b;
+                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
+            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, fields),
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Record($elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn(function (_v1) {
+                var name = _v1.a;
+                var ann = _v1.b;
+                return _Utils_Tuple2($mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Format$formatValue(name)), $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(ann)));
+            }, fields))),
+            d: $elm$core$List$concatMap_fn(A2($elm$core$Basics$composeR, $elm$core$Tuple$second, $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports), fields)
+        };
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$string = $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "String", _List_Nil);
+    var $author$project$Gen$Url$annotation_ = {
+        bf: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Url"]), "Protocol", _List_Nil),
+        af: $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$Url$moduleName_, "Url", _List_Nil, $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
+            _Utils_Tuple2("protocol", $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Url"]), "Protocol", _List_Nil)),
+            _Utils_Tuple2("host", $mdgriffith$elm_codegen$Elm$Annotation$string),
+            _Utils_Tuple2("port_", $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$int)),
+            _Utils_Tuple2("path", $mdgriffith$elm_codegen$Elm$Annotation$string),
+            _Utils_Tuple2("query", $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string)),
+            _Utils_Tuple2("fragment", $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string))
+        ])))
+    };
+    var $author$project$Press$Model$appMsg = $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Msg", _List_fromArray([
+        $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+    ]));
+    var $author$project$Press$Model$routePath = _List_fromArray(["App", "Route"]);
+    var $author$project$Press$Model$routeType = $mdgriffith$elm_codegen$Elm$Annotation$named_fn($author$project$Press$Model$routePath, "Route");
+    var $author$project$Gen$App$Effect$annotation_ = {
+        g5: function (effectArg0) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Effect"]), "Effect", _List_fromArray([effectArg0]));
+        }
+    };
+    var $author$project$Gen$App$Sub$annotation_ = {
+        h8: function (subArg0) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Sub"]), "Sub", _List_fromArray([subArg0]));
+        }
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$list = function (inner) {
+        return $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "List", _List_fromArray([inner]));
+    };
+    var $author$project$Gen$Browser$moduleName_ = _List_fromArray(["Browser"]);
+    var $author$project$Gen$Browser$annotation_ = {
+        aK: function (documentArg0) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$Browser$moduleName_, "Document", _List_fromArray([documentArg0]), $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
+                _Utils_Tuple2("title", $mdgriffith$elm_codegen$Elm$Annotation$string),
+                _Utils_Tuple2("body", $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Html"]), "Html", _List_fromArray([
+                    $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+                ]))))
+            ])));
+        },
+        gt: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Browser"]), "UrlRequest", _List_Nil)
+    };
+    var $author$project$Gen$Browser$Navigation$annotation_ = {
+        hr: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Browser", "Navigation"]), "Key", _List_Nil)
+    };
+    var $author$project$Gen$Json$Encode$annotation_ = {
+        il: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Json", "Encode"]), "Value", _List_Nil)
+    };
+    var $author$project$Gen$Platform$Cmd$annotation_ = {
+        gS: function (cmdArg0) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Cmd"]), "Cmd", _List_fromArray([cmdArg0]));
+        }
+    };
+    var $author$project$Gen$Platform$Sub$annotation_ = {
+        h8: function (subArg0) {
+            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Sub"]), "Sub", _List_fromArray([subArg0]));
+        }
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$extensible_fn = function (base, fields) {
+        return {
+            bt: $elm$core$List$foldl_fn_unwrapped(function (_v0, aliases) {
+                var ann = _v0.b;
+                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
+            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, fields),
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$GenericRecord_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Format$formatValue(base)), $mdgriffith$elm_codegen$Internal$Compiler$nodify($elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn(function (_v1) {
+                var name = _v1.a;
+                var ann = _v1.b;
+                return _Utils_Tuple2($mdgriffith$elm_codegen$Internal$Compiler$nodify(name), $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(ann)));
+            }, fields)))),
+            d: $elm$core$List$concatMap_fn(A2($elm$core$Basics$composeR, $elm$core$Tuple$second, $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports), fields)
+        };
+    }, $mdgriffith$elm_codegen$Elm$Annotation$extensible = F2($mdgriffith$elm_codegen$Elm$Annotation$extensible_fn);
+    var $mdgriffith$elm_codegen$Elm$Annotation$function_fn = function (anns, _return) {
+        return {
+            bt: $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
+                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
+            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, _List_Cons(_return, anns)),
+            i: $elm$core$List$foldr_fn(F2(function (ann, fn) {
+                return $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$FunctionTypeAnnotation_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(ann), $mdgriffith$elm_codegen$Internal$Compiler$nodify(fn));
+            }), $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(_return), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation, anns)),
+            d: _Utils_ap($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports(_return), $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, anns))
+        };
+    }, $mdgriffith$elm_codegen$Elm$Annotation$function = F2($mdgriffith$elm_codegen$Elm$Annotation$function_fn);
+    var $author$project$Press$Model$sharedType = $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Shared"]), "Shared");
+    var $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn = function (one, two) {
+        return {
+            bt: $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(one), $mdgriffith$elm_codegen$Elm$Annotation$getAliases(two)),
+            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Tupled($elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, _List_fromArray([
+                $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(one),
+                $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(two)
+            ]))),
+            d: _Utils_ap($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports(one), $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports(two))
+        };
+    }, $mdgriffith$elm_codegen$Elm$Annotation$tuple = F2($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn);
+    var $author$project$Press$Model$toConfig = function (configType) {
+        return ((configType === 3) ? $mdgriffith$elm_codegen$Elm$Annotation$record : $mdgriffith$elm_codegen$Elm$Annotation$extensible("config"))($elm$core$List$filterMap_fn(function (_v0) {
+            var allowed = _v0.a;
+            var name = _v0.b;
+            var val = _v0.c;
+            return ($elm$core$List$member_fn(configType, allowed) || (configType === 3)) ? $elm$core$Maybe$Just(_Utils_Tuple2(name, val)) : $elm$core$Maybe$Nothing;
+        }, _List_fromArray([
+            _Utils_Tuple3(_List_fromArray([4]), "init", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Json$Encode$annotation_.il]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$var("model"), $author$project$Gen$App$Effect$annotation_.g5($mdgriffith$elm_codegen$Elm$Annotation$var("msg"))))),
+            _Utils_Tuple3(_List_fromArray([2, 4]), "update", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("msg"),
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
+            ]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$var("model"), $author$project$Gen$App$Effect$annotation_.g5($mdgriffith$elm_codegen$Elm$Annotation$var("msg"))))),
+            _Utils_Tuple3(_List_fromArray([1]), "subscriptions", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
+            ]), $author$project$Gen$App$Sub$annotation_.h8($mdgriffith$elm_codegen$Elm$Annotation$var("msg")))),
+            _Utils_Tuple3(_List_fromArray([0, 4]), "view", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                    $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+                ]), $author$project$Press$Model$appMsg),
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
+                $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "View", _List_fromArray([$author$project$Press$Model$appMsg]))
+            ]), $author$project$Gen$Browser$annotation_.aK($author$project$Press$Model$appMsg))),
+            _Utils_Tuple3(_List_Nil, "toCmd", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
+                    _Utils_Tuple2("navKey", $author$project$Gen$Browser$Navigation$annotation_.hr),
+                    _Utils_Tuple2("toApp", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                        $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+                    ]), $author$project$Press$Model$appMsg)),
+                    _Utils_Tuple2("dropPageCache", $author$project$Press$Model$appMsg),
+                    _Utils_Tuple2("preload", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$routeType]), $author$project$Press$Model$appMsg)),
+                    _Utils_Tuple2("reinitializeCurrentPage", $author$project$Press$Model$appMsg)
+                ])),
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
+                $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$appMsg)
+            ]), $author$project$Gen$Platform$Cmd$annotation_.gS($author$project$Press$Model$appMsg))),
+            _Utils_Tuple3(_List_fromArray([1]), "toSub", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
+                $author$project$Gen$App$Sub$annotation_.h8($author$project$Press$Model$appMsg)
+            ]), $author$project$Gen$Platform$Sub$annotation_.h8($author$project$Press$Model$appMsg))),
+            _Utils_Tuple3(_List_fromArray([0, 2, 1, 4]), "toShared", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
+            ]), $author$project$Press$Model$sharedType))
+        ])));
+    };
+    var $mdgriffith$elm_codegen$Elm$Annotation$unit = { bt: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Unit, d: _List_Nil };
+    var $author$project$Press$Model$types = {
+        gO: $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Cache"),
+        g5: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Effect", _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+        ])),
+        hd: $author$project$Press$Model$toConfig(3),
+        c1: $author$project$Press$Model$toConfig(1),
+        he: $author$project$Press$Model$toConfig(4),
+        hf: $author$project$Press$Model$toConfig(2),
+        hg: $author$project$Press$Model$toConfig(0),
+        em: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Model", _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$Annotation$var("key"),
+            $mdgriffith$elm_codegen$Elm$Annotation$var("model")
+        ])),
+        hw: $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
+            _Utils_Tuple2("key", $mdgriffith$elm_codegen$Elm$Annotation$var("key")),
+            _Utils_Tuple2("url", $author$project$Gen$Url$annotation_.af),
+            _Utils_Tuple2("currentRoute", $mdgriffith$elm_codegen$Elm$Annotation$maybe($author$project$Press$Model$routeType)),
+            _Utils_Tuple2("states", $author$project$Gen$App$State$annotation_.gO($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State"))),
+            _Utils_Tuple2("frame", $mdgriffith$elm_codegen$Elm$Annotation$var("frame"))
+        ])),
+        hy: $author$project$Press$Model$appMsg,
+        eJ: A2($author$project$Gen$App$Engine$Page$annotation_.aO, $author$project$Press$Model$appMsg, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")),
+        eK: $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "PageModel"),
+        hO: $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "PageMsg"),
+        fi: $author$project$Press$Model$routePath,
+        W: $author$project$Press$Model$routeType,
+        h9: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Subscription", _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+        ])),
+        aZ: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Model", _List_fromArray([
+            $mdgriffith$elm_codegen$Elm$Annotation$unit,
+            $mdgriffith$elm_codegen$Elm$Annotation$var("model")
+        ])),
+        bl: function (string) {
+            return "To" + string;
+        }
+    };
+    var $stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue_fn = function (a, b) {
+        return { $: 3, a: a, b: b };
+    }, $stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue = F2($stil4m$elm_syntax$Elm$Syntax$Expression$FunctionOrValue_fn);
     var $mdgriffith$elm_codegen$Internal$Index$indexToString = function (_v0) {
         var top = _v0.a;
         var tail = _v0.b;
@@ -13124,13 +13440,13 @@
         };
     };
     var $author$project$Press$Generate$Directory$toSourceDirectoryReference_fn = function (route, assets, src) {
-        var srcPath = $elm$core$String$join_fn("/", $elm$core$List$filter_fn(A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty), $elm$core$String$split_fn("/", $author$project$Path$removeExtension($author$project$Path$relative_fn(assets.gJ, src.hR)))));
-        var headers = $elm$core$List$map_fn($mdgriffith$elm_codegen$Elm$string, $author$project$Press$Generate$Directory$getHeaders(src.h3));
+        var srcPath = $elm$core$String$join_fn("/", $elm$core$List$filter_fn(A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty), $elm$core$String$split_fn("/", $author$project$Path$removeExtension($author$project$Path$relative_fn(assets.gK, src.hS)))));
+        var headers = $elm$core$List$map_fn($mdgriffith$elm_codegen$Elm$string, $author$project$Press$Generate$Directory$getHeaders(src.h4));
         return $elm$core$String$isEmpty(srcPath) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$record(_List_fromArray([
             _Utils_Tuple2("title", $elm$core$Maybe$withDefault_fn($mdgriffith$elm_codegen$Elm$string(srcPath), $elm$core$List$head(headers))),
             _Utils_Tuple2("route", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
-                i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["Route"]), "Route")),
-                j: _List_fromArray(["Route"]),
+                i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$named_fn($author$project$Press$Model$types.fi, "Route")),
+                j: $author$project$Press$Model$types.fi,
                 k: route.ds
             }), _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
@@ -13186,10 +13502,10 @@
                 return _List_Nil;
             }
             else {
-                var base = _v1.a.gJ;
+                var base = _v1.a.gK;
                 var files = _v1.a.cQ;
                 return $elm$core$List$map_fn(function (source) {
-                    return $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn($elm$core$String$join_fn("_", $elm$core$List$filter_fn(A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty), $elm$core$String$split_fn("/", $author$project$Path$removeExtension($author$project$Path$relative_fn(base, source.hR))))), $mdgriffith$elm_codegen$Elm$string(source.h3)));
+                    return $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn($elm$core$String$join_fn("_", $elm$core$List$filter_fn(A2($elm$core$Basics$composeL, $elm$core$Basics$not, $elm$core$String$isEmpty), $elm$core$String$split_fn("/", $author$project$Path$removeExtension($author$project$Path$relative_fn(base, source.hS))))), $mdgriffith$elm_codegen$Elm$string(source.h4)));
                 }, files);
             }
         }, routes);
@@ -13209,45 +13525,6 @@
             $author$project$Press$Generate$Directory$generateSourceReference(routes)
         ]));
     };
-    var $mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp_fn = function (f, existing, remaining, accumulator) {
-        uniqueHelp: while (true) {
-            if (!remaining.b) {
-                return $elm$core$List$reverse(accumulator);
-            }
-            else {
-                var first = remaining.a;
-                var rest = remaining.b;
-                var computedFirst = f(first);
-                if ($elm$core$List$member_fn(computedFirst, existing)) {
-                    var $temp$f = f, $temp$existing = existing, $temp$remaining = rest, $temp$accumulator = accumulator;
-                    f = $temp$f;
-                    existing = $temp$existing;
-                    remaining = $temp$remaining;
-                    accumulator = $temp$accumulator;
-                    continue uniqueHelp;
-                }
-                else {
-                    var $temp$f = f, $temp$existing = _List_Cons(computedFirst, existing), $temp$remaining = rest, $temp$accumulator = _List_Cons(first, accumulator);
-                    f = $temp$f;
-                    existing = $temp$existing;
-                    remaining = $temp$remaining;
-                    accumulator = $temp$accumulator;
-                    continue uniqueHelp;
-                }
-            }
-        }
-    }, $mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp = F4($mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp_fn);
-    var $mdgriffith$elm_codegen$Internal$Compiler$unique = function (list) {
-        return $mdgriffith$elm_codegen$Internal$Compiler$uniqueHelp_fn($elm$core$Basics$identity, _List_Nil, list, _List_Nil);
-    };
-    var $mdgriffith$elm_codegen$Internal$Compiler$getGenerics = function (_v0) {
-        var details = _v0;
-        return $mdgriffith$elm_codegen$Internal$Compiler$unique($mdgriffith$elm_codegen$Internal$Compiler$getGenericsHelper(details.i));
-    };
-    var $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation = function (_v0) {
-        var details = _v0;
-        return details.i;
-    };
     var $mdgriffith$elm_codegen$Elm$alias_fn = function (name, innerAnnotation) {
         return $mdgriffith$elm_codegen$Internal$Compiler$Declaration({
             cp: $elm$core$Maybe$Nothing,
@@ -13257,94 +13534,23 @@
             ao: function (index) {
                 return {
                     ah: _List_Nil,
-                    gZ: $stil4m$elm_syntax$Elm$Syntax$Declaration$AliasDeclaration({
+                    g_: $stil4m$elm_syntax$Elm$Syntax$Declaration$AliasDeclaration({
                         a4: $elm$core$Maybe$Nothing,
                         da: $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify, $mdgriffith$elm_codegen$Internal$Compiler$getGenerics(innerAnnotation)),
                         k: $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Format$formatType(name)),
                         a0: $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(innerAnnotation))
                     }),
-                    $9: $elm$core$Maybe$Nothing
+                    io: $elm$core$Maybe$Nothing
                 };
             }
         });
     }, $mdgriffith$elm_codegen$Elm$alias = F2($mdgriffith$elm_codegen$Elm$alias_fn);
-    var $mdgriffith$elm_codegen$Elm$Annotation$getAliases = function (_v0) {
-        var ann = _v0;
-        return ann.bt;
-    };
-    var $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn = function (mod, name, args) {
-        return {
-            bt: $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
-                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
-            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, args),
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(_Utils_Tuple2(mod, $mdgriffith$elm_codegen$Internal$Format$formatType(name))), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation, args))),
-            d: _List_Cons(mod, $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, args))
-        };
-    }, $mdgriffith$elm_codegen$Elm$Annotation$namedWith = F3($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn);
     var $author$project$Gen$App$PageError$annotation_ = {
         aL: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "PageError"]), "Error", _List_Nil)
     };
-    var $mdgriffith$elm_codegen$Internal$Compiler$addAlias_fn = function (mod, name, ann, aliasCache) {
-        var annDetails = ann;
-        return $elm$core$Dict$insert_fn($mdgriffith$elm_codegen$Internal$Compiler$formatAliasKey_fn(mod, name), {
-            aB: annDetails.i,
-            bm: $mdgriffith$elm_codegen$Internal$Compiler$getGenerics(ann)
-        }, aliasCache);
-    }, $mdgriffith$elm_codegen$Internal$Compiler$addAlias = F4($mdgriffith$elm_codegen$Internal$Compiler$addAlias_fn);
-    var $mdgriffith$elm_codegen$Internal$Compiler$getAliases = function (_v0) {
-        var ann = _v0;
-        return ann.bt;
-    };
-    var $mdgriffith$elm_codegen$Elm$Annotation$alias_fn = function (mod, name, vars, target) {
-        return {
-            bt: $mdgriffith$elm_codegen$Internal$Compiler$addAlias_fn(mod, name, target, $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
-                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Internal$Compiler$getAliases(ann), aliases);
-            }, $mdgriffith$elm_codegen$Internal$Compiler$getAliases(target), vars)),
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(_Utils_Tuple2(mod, $mdgriffith$elm_codegen$Internal$Format$formatType(name))), $elm$core$List$map_fn(A2($elm$core$Basics$composeL, $mdgriffith$elm_codegen$Internal$Compiler$nodify, $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation), vars)),
-            d: function () {
-                if (!mod.b) {
-                    return $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, vars);
-                }
-                else {
-                    return _Utils_ap(_List_fromArray([mod]), $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, vars));
-                }
-            }()
-        };
-    }, $mdgriffith$elm_codegen$Elm$Annotation$alias = F4($mdgriffith$elm_codegen$Elm$Annotation$alias_fn);
     var $author$project$Gen$App$View$moduleName_ = _List_fromArray(["App", "View"]);
-    var $mdgriffith$elm_codegen$Elm$Annotation$record = function (fields) {
-        return {
-            bt: $elm$core$List$foldl_fn_unwrapped(function (_v0, aliases) {
-                var ann = _v0.b;
-                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
-            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, fields),
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Record($elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn(function (_v1) {
-                var name = _v1.a;
-                var ann = _v1.b;
-                return _Utils_Tuple2($mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Format$formatValue(name)), $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(ann)));
-            }, fields))),
-            d: $elm$core$List$concatMap_fn(A2($elm$core$Basics$composeR, $elm$core$Tuple$second, $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports), fields)
-        };
-    };
-    var $mdgriffith$elm_codegen$Elm$Annotation$typed_fn = function (mod, name, args) {
-        return {
-            bt: $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
-                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
-            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, args),
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(_Utils_Tuple2(mod, name)), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation, args))),
-            d: $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, args)
-        };
-    }, $mdgriffith$elm_codegen$Elm$Annotation$typed = F3($mdgriffith$elm_codegen$Elm$Annotation$typed_fn);
-    var $mdgriffith$elm_codegen$Elm$Annotation$string = $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "String", _List_Nil);
-    var $mdgriffith$elm_codegen$Elm$Annotation$var = function (a) {
-        return {
-            bt: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases,
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$GenericType($mdgriffith$elm_codegen$Internal$Format$formatValue(a)),
-            d: _List_Nil
-        };
-    };
     var $author$project$Gen$App$View$annotation_ = {
-        im: function (viewArg0) {
+        $9: function (viewArg0) {
             return $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$App$View$moduleName_, "View", _List_fromArray([viewArg0]), $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
                 _Utils_Tuple2("title", $mdgriffith$elm_codegen$Elm$Annotation$string),
                 _Utils_Tuple2("body", $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Html"]), "Html", _List_fromArray([
@@ -13353,65 +13559,6 @@
             ])));
         }
     };
-    var $mdgriffith$elm_codegen$Elm$Annotation$list = function (inner) {
-        return $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "List", _List_fromArray([inner]));
-    };
-    var $author$project$Gen$Browser$moduleName_ = _List_fromArray(["Browser"]);
-    var $author$project$Gen$Browser$annotation_ = {
-        aK: function (documentArg0) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$Browser$moduleName_, "Document", _List_fromArray([documentArg0]), $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-                _Utils_Tuple2("title", $mdgriffith$elm_codegen$Elm$Annotation$string),
-                _Utils_Tuple2("body", $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Html"]), "Html", _List_fromArray([
-                    $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
-                ]))))
-            ])));
-        },
-        gs: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Browser"]), "UrlRequest", _List_Nil)
-    };
-    var $author$project$Gen$Browser$Navigation$annotation_ = {
-        hq: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Browser", "Navigation"]), "Key", _List_Nil)
-    };
-    var $author$project$Gen$Json$Encode$annotation_ = {
-        ik: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Json", "Encode"]), "Value", _List_Nil)
-    };
-    var $mdgriffith$elm_codegen$Elm$Annotation$int = $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "Int", _List_Nil);
-    var $mdgriffith$elm_codegen$Elm$Annotation$maybe = function (maybeArg) {
-        return $mdgriffith$elm_codegen$Elm$Annotation$typed_fn(_List_Nil, "Maybe", _List_fromArray([maybeArg]));
-    };
-    var $author$project$Gen$Url$moduleName_ = _List_fromArray(["Url"]);
-    var $author$project$Gen$Url$annotation_ = {
-        bf: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Url"]), "Protocol", _List_Nil),
-        af: $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$Url$moduleName_, "Url", _List_Nil, $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-            _Utils_Tuple2("protocol", $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Url"]), "Protocol", _List_Nil)),
-            _Utils_Tuple2("host", $mdgriffith$elm_codegen$Elm$Annotation$string),
-            _Utils_Tuple2("port_", $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$int)),
-            _Utils_Tuple2("path", $mdgriffith$elm_codegen$Elm$Annotation$string),
-            _Utils_Tuple2("query", $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string)),
-            _Utils_Tuple2("fragment", $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string))
-        ])))
-    };
-    var $mdgriffith$elm_codegen$Elm$Annotation$function_fn = function (anns, _return) {
-        return {
-            bt: $elm$core$List$foldl_fn_unwrapped(function (ann, aliases) {
-                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
-            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, _List_Cons(_return, anns)),
-            i: $elm$core$List$foldr_fn(F2(function (ann, fn) {
-                return $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$FunctionTypeAnnotation_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify(ann), $mdgriffith$elm_codegen$Internal$Compiler$nodify(fn));
-            }), $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(_return), $elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation, anns)),
-            d: _Utils_ap($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports(_return), $elm$core$List$concatMap_fn($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, anns))
-        };
-    }, $mdgriffith$elm_codegen$Elm$Annotation$function = F2($mdgriffith$elm_codegen$Elm$Annotation$function_fn);
-    var $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn = function (one, two) {
-        return {
-            bt: $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(one), $mdgriffith$elm_codegen$Elm$Annotation$getAliases(two)),
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Tupled($elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, _List_fromArray([
-                $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(one),
-                $mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(two)
-            ]))),
-            d: _Utils_ap($mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports(one), $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports(two))
-        };
-    }, $mdgriffith$elm_codegen$Elm$Annotation$tuple = F2($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn);
-    var $mdgriffith$elm_codegen$Elm$Annotation$unit = { bt: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Unit, d: _List_Nil };
     var $author$project$Gen$Browser$call_ = {
         bz: function (applicationArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
@@ -13526,7 +13673,7 @@
                 k: "element"
             }), _List_fromArray([elementArg]));
         },
-        fn: function (sandboxArg) {
+        fo: function (sandboxArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
@@ -13874,7 +14021,7 @@
                         else {
                             return $elm$core$Result$Err(_List_fromArray([
                                 $mdgriffith$elm_codegen$Internal$Compiler$CouldNotFindField({
-                                    g9: $elm$core$List$map_fn(A2($elm$core$Basics$composeR, $mdgriffith$elm_codegen$Internal$Compiler$denode, A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $mdgriffith$elm_codegen$Internal$Compiler$denode)), fields),
+                                    ha: $elm$core$List$map_fn(A2($elm$core$Basics$composeR, $mdgriffith$elm_codegen$Internal$Compiler$denode, A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $mdgriffith$elm_codegen$Internal$Compiler$denode)), fields),
                                     O: fieldName
                                 })
                             ]));
@@ -13890,7 +14037,7 @@
                         else {
                             return $elm$core$Result$Err(_List_fromArray([
                                 $mdgriffith$elm_codegen$Internal$Compiler$CouldNotFindField({
-                                    g9: $elm$core$List$map_fn(A2($elm$core$Basics$composeR, $mdgriffith$elm_codegen$Internal$Compiler$denode, A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $mdgriffith$elm_codegen$Internal$Compiler$denode)), $mdgriffith$elm_codegen$Internal$Compiler$denode(fields)),
+                                    ha: $elm$core$List$map_fn(A2($elm$core$Basics$composeR, $mdgriffith$elm_codegen$Internal$Compiler$denode, A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $mdgriffith$elm_codegen$Internal$Compiler$denode)), $mdgriffith$elm_codegen$Internal$Compiler$denode(fields)),
                                     O: fieldName
                                 })
                             ]));
@@ -13973,20 +14120,6 @@
             $mdgriffith$elm_codegen$Elm$list(batchArg)
         ]));
     };
-    var $mdgriffith$elm_codegen$Elm$Annotation$extensible_fn = function (base, fields) {
-        return {
-            bt: $elm$core$List$foldl_fn_unwrapped(function (_v0, aliases) {
-                var ann = _v0.b;
-                return $elm$core$Dict$union_fn($mdgriffith$elm_codegen$Elm$Annotation$getAliases(ann), aliases);
-            }, $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, fields),
-            i: $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$GenericRecord_fn($mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Format$formatValue(base)), $mdgriffith$elm_codegen$Internal$Compiler$nodify($elm$core$List$map_fn($mdgriffith$elm_codegen$Internal$Compiler$nodifyAll_a0, $elm$core$List$map_fn(function (_v1) {
-                var name = _v1.a;
-                var ann = _v1.b;
-                return _Utils_Tuple2($mdgriffith$elm_codegen$Internal$Compiler$nodify(name), $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Compiler$getInnerAnnotation(ann)));
-            }, fields)))),
-            d: $elm$core$List$concatMap_fn(A2($elm$core$Basics$composeR, $elm$core$Tuple$second, $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports), fields)
-        };
-    }, $mdgriffith$elm_codegen$Elm$Annotation$extensible = F2($mdgriffith$elm_codegen$Elm$Annotation$extensible_fn);
     var $author$project$Gen$App$Effect$call_ = {
         bG: function (backArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
@@ -14073,7 +14206,7 @@
                 k: "replaceUrl"
             }), _List_fromArray([replaceUrlArg]));
         },
-        f4: F2(function (toCmdArg, toCmdArg0) {
+        f5: F2(function (toCmdArg, toCmdArg0) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$extensible_fn("options", _List_fromArray([
@@ -14229,7 +14362,7 @@
                     }
                 }
             }(),
-            gP: _List_Cons(_Utils_Tuple2($mdgriffith$elm_codegen$Internal$Compiler$nodify(pattern), $mdgriffith$elm_codegen$Internal$Compiler$nodify(exp.c)), accum.gP),
+            gQ: _List_Cons(_Utils_Tuple2($mdgriffith$elm_codegen$Internal$Compiler$nodify(pattern), $mdgriffith$elm_codegen$Internal$Compiler$nodify(exp.c)), accum.gQ),
             d: _Utils_ap(accum.d, exp.d),
             e: accum.e
         };
@@ -14245,7 +14378,7 @@
         var _v0 = $mdgriffith$elm_codegen$Internal$Compiler$toExpressionDetails_fn(index, mainExpression);
         var branchIndex = _v0.a;
         var mainExpressionDetails = _v0.b;
-        var caseExp = $elm$core$List$foldl_fn($mdgriffith$elm_codegen$Elm$Case$captureCaseHelper(mainExpressionTypeModule), { i: $elm$core$Maybe$Nothing, gP: _List_Nil, d: _List_Nil, e: branchIndex }, branches);
+        var caseExp = $elm$core$List$foldl_fn($mdgriffith$elm_codegen$Elm$Case$captureCaseHelper(mainExpressionTypeModule), { i: $elm$core$Maybe$Nothing, gQ: _List_Nil, d: _List_Nil, e: branchIndex }, branches);
         return _Utils_Tuple2(mainExpressionDetails, _Utils_update(caseExp, {
             i: function () {
                 var _v1 = caseExp.i;
@@ -14297,7 +14430,7 @@
                     }
                 }(),
                 c: $stil4m$elm_syntax$Elm$Syntax$Expression$CaseExpression({
-                    gP: $elm$core$List$reverse(gathered.gP),
+                    gQ: $elm$core$List$reverse(gathered.gQ),
                     c: $mdgriffith$elm_codegen$Internal$Compiler$nodify(expr.c)
                 }),
                 d: _Utils_ap(expr.d, gathered.d)
@@ -14306,11 +14439,7 @@
     }, $mdgriffith$elm_codegen$Elm$Case$maybe = F2($mdgriffith$elm_codegen$Elm$Case$maybe_fn);
     var $mdgriffith$elm_codegen$Elm$nothing = $mdgriffith$elm_codegen$Elm$maybe($elm$core$Maybe$Nothing);
     var $author$project$Press$Generate$Engine$parseUrl = function (url) {
-        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
-            i: $elm$core$Maybe$Nothing,
-            j: _List_fromArray(["Route"]),
-            k: "parse"
-        }), _List_fromArray([url]));
+        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: $author$project$Press$Model$types.fi, k: "parse" }), _List_fromArray([url]));
     };
     var $stil4m$elm_syntax$Elm$Syntax$Expression$LetExpression = function (a) {
         return { $: 15, a: a };
@@ -14477,137 +14606,6 @@
             };
         }, sourceLet);
     }, $mdgriffith$elm_codegen$Elm$Let$tuple = F4($mdgriffith$elm_codegen$Elm$Let$tuple_fn);
-    var $author$project$Press$Model$FullConfig = 3;
-    var $author$project$Press$Model$SubscriptionConfig = 1;
-    var $author$project$Press$Model$TestConfig = 4;
-    var $author$project$Press$Model$UpdateConfig = 2;
-    var $author$project$Press$Model$ViewConfig = 0;
-    var $author$project$Gen$App$Engine$Page$moduleName_ = _List_fromArray(["App", "Engine", "Page"]);
-    var $author$project$Gen$App$Engine$Page$annotation_ = {
-        aO: F2(function (initArg0, initArg1) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$alias_fn($author$project$Gen$App$Engine$Page$moduleName_, "Init", _List_fromArray([initArg0, initArg1]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "InitPlan", _List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$var("msg"),
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
-            ])));
-        }),
-        dy: F2(function (initPlanArg0, initPlanArg1) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Engine", "Page"]), "InitPlan", _List_fromArray([initPlanArg0, initPlanArg1]));
-        }),
-        bc: F4(function (pageArg0, pageArg1, pageArg2, pageArg3) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Engine", "Page"]), "Page", _List_fromArray([pageArg0, pageArg1, pageArg2, pageArg3]));
-        })
-    };
-    var $author$project$Gen$App$State$annotation_ = {
-        gN: function (cacheArg0) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "State"]), "Cache", _List_fromArray([cacheArg0]));
-        }
-    };
-    var $author$project$Press$Model$appMsg = $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Msg", _List_fromArray([
-        $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
-    ]));
-    var $author$project$Press$Model$routeType = $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["Route"]), "Route");
-    var $author$project$Gen$App$Effect$annotation_ = {
-        g4: function (effectArg0) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Effect"]), "Effect", _List_fromArray([effectArg0]));
-        }
-    };
-    var $author$project$Gen$App$Sub$annotation_ = {
-        h7: function (subArg0) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Sub"]), "Sub", _List_fromArray([subArg0]));
-        }
-    };
-    var $author$project$Gen$Platform$Cmd$annotation_ = {
-        gR: function (cmdArg0) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Cmd"]), "Cmd", _List_fromArray([cmdArg0]));
-        }
-    };
-    var $author$project$Gen$Platform$Sub$annotation_ = {
-        h7: function (subArg0) {
-            return $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Sub"]), "Sub", _List_fromArray([subArg0]));
-        }
-    };
-    var $author$project$Press$Model$sharedType = $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Shared"]), "Shared");
-    var $author$project$Press$Model$toConfig = function (configType) {
-        return ((configType === 3) ? $mdgriffith$elm_codegen$Elm$Annotation$record : $mdgriffith$elm_codegen$Elm$Annotation$extensible("config"))($elm$core$List$filterMap_fn(function (_v0) {
-            var allowed = _v0.a;
-            var name = _v0.b;
-            var val = _v0.c;
-            return ($elm$core$List$member_fn(configType, allowed) || (configType === 3)) ? $elm$core$Maybe$Just(_Utils_Tuple2(name, val)) : $elm$core$Maybe$Nothing;
-        }, _List_fromArray([
-            _Utils_Tuple3(_List_fromArray([4]), "init", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Json$Encode$annotation_.ik]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$var("model"), $author$project$Gen$App$Effect$annotation_.g4($mdgriffith$elm_codegen$Elm$Annotation$var("msg"))))),
-            _Utils_Tuple3(_List_fromArray([2, 4]), "update", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$var("msg"),
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
-            ]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$var("model"), $author$project$Gen$App$Effect$annotation_.g4($mdgriffith$elm_codegen$Elm$Annotation$var("msg"))))),
-            _Utils_Tuple3(_List_fromArray([1]), "subscriptions", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
-            ]), $author$project$Gen$App$Sub$annotation_.h7($mdgriffith$elm_codegen$Elm$Annotation$var("msg")))),
-            _Utils_Tuple3(_List_fromArray([0, 4]), "view", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                    $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
-                ]), $author$project$Press$Model$appMsg),
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
-                $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "View", _List_fromArray([$author$project$Press$Model$appMsg]))
-            ]), $author$project$Gen$Browser$annotation_.aK($author$project$Press$Model$appMsg))),
-            _Utils_Tuple3(_List_Nil, "toCmd", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-                    _Utils_Tuple2("navKey", $author$project$Gen$Browser$Navigation$annotation_.hq),
-                    _Utils_Tuple2("toApp", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                        $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
-                    ]), $author$project$Press$Model$appMsg)),
-                    _Utils_Tuple2("dropPageCache", $author$project$Press$Model$appMsg),
-                    _Utils_Tuple2("preload", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$routeType]), $author$project$Press$Model$appMsg)),
-                    _Utils_Tuple2("reinitializeCurrentPage", $author$project$Press$Model$appMsg)
-                ])),
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
-                $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$appMsg)
-            ]), $author$project$Gen$Platform$Cmd$annotation_.gR($author$project$Press$Model$appMsg))),
-            _Utils_Tuple3(_List_fromArray([1]), "toSub", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
-                $author$project$Gen$App$Sub$annotation_.h7($author$project$Press$Model$appMsg)
-            ]), $author$project$Gen$Platform$Sub$annotation_.h7($author$project$Press$Model$appMsg))),
-            _Utils_Tuple3(_List_fromArray([0, 2, 1, 4]), "toShared", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$var("model")
-            ]), $author$project$Press$Model$sharedType))
-        ])));
-    };
-    var $author$project$Press$Model$types = {
-        gN: $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Cache"),
-        g4: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Effect", _List_fromArray([
-            $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
-        ])),
-        hc: $author$project$Press$Model$toConfig(3),
-        c1: $author$project$Press$Model$toConfig(1),
-        hd: $author$project$Press$Model$toConfig(4),
-        he: $author$project$Press$Model$toConfig(2),
-        hf: $author$project$Press$Model$toConfig(0),
-        em: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Model", _List_fromArray([
-            $mdgriffith$elm_codegen$Elm$Annotation$var("key"),
-            $mdgriffith$elm_codegen$Elm$Annotation$var("model")
-        ])),
-        hv: $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-            _Utils_Tuple2("key", $mdgriffith$elm_codegen$Elm$Annotation$var("key")),
-            _Utils_Tuple2("url", $author$project$Gen$Url$annotation_.af),
-            _Utils_Tuple2("currentRoute", $mdgriffith$elm_codegen$Elm$Annotation$maybe($author$project$Press$Model$routeType)),
-            _Utils_Tuple2("states", $author$project$Gen$App$State$annotation_.gN($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State"))),
-            _Utils_Tuple2("frame", $mdgriffith$elm_codegen$Elm$Annotation$var("frame"))
-        ])),
-        hx: $author$project$Press$Model$appMsg,
-        eJ: A2($author$project$Gen$App$Engine$Page$annotation_.aO, $author$project$Press$Model$appMsg, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")),
-        eK: $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "PageModel"),
-        hN: $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "PageMsg"),
-        W: $author$project$Press$Model$routeType,
-        h8: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Subscription", _List_fromArray([
-            $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
-        ])),
-        aZ: $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Model", _List_fromArray([
-            $mdgriffith$elm_codegen$Elm$Annotation$unit,
-            $mdgriffith$elm_codegen$Elm$Annotation$var("model")
-        ])),
-        bl: function (string) {
-            return "To" + string;
-        }
-    };
     var $mdgriffith$elm_codegen$Elm$val = function (name) {
         return $mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: _List_Nil, k: name });
     };
@@ -14691,19 +14689,19 @@
         return $mdgriffith$elm_codegen$Internal$Compiler$exposeWith_fn({
             as: true,
             at: $elm$core$Maybe$Just("App")
-        }, $mdgriffith$elm_codegen$Elm$declaration_fn("app", $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hc)), function (config) {
+        }, $mdgriffith$elm_codegen$Elm$declaration_fn("app", $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hd)), function (config) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "App", _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
                 $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
             ])), $author$project$Gen$Browser$call_.bz($mdgriffith$elm_codegen$Elm$record(_List_fromArray([
-                _Utils_Tuple2("init", $mdgriffith$elm_codegen$Elm$fn3_fn_unwrapped(_Utils_Tuple2("flags", $elm$core$Maybe$Just($author$project$Gen$Json$Encode$annotation_.ik)), _Utils_Tuple2("url", $elm$core$Maybe$Just($author$project$Gen$Url$annotation_.af)), _Utils_Tuple2("key", $elm$core$Maybe$Just($author$project$Gen$Browser$Navigation$annotation_.hq)), function (flags, url, key) {
+                _Utils_Tuple2("init", $mdgriffith$elm_codegen$Elm$fn3_fn_unwrapped(_Utils_Tuple2("flags", $elm$core$Maybe$Just($author$project$Gen$Json$Encode$annotation_.il)), _Utils_Tuple2("url", $elm$core$Maybe$Just($author$project$Gen$Url$annotation_.af)), _Utils_Tuple2("key", $elm$core$Maybe$Just($author$project$Gen$Browser$Navigation$annotation_.hr)), function (flags, url, key) {
                     return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("newModel", "effect", $author$project$Press$Generate$Engine$init_fn(getPageInit, loadPage, config, flags, url, key), $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v0) {
                         var newModel = _v0.a;
                         var effect = _v0.b;
                         return $mdgriffith$elm_codegen$Elm$tuple_fn(newModel, $author$project$Press$Model$toCmd_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("key", newModel), $mdgriffith$elm_codegen$Elm$get_fn("frame", newModel), effect));
                     })));
                 })),
-                _Utils_Tuple2("update", $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("msg", $elm$core$Maybe$Just($author$project$Press$Model$types.hx)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (msg, model) {
+                _Utils_Tuple2("update", $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("msg", $elm$core$Maybe$Just($author$project$Press$Model$types.hy)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (msg, model) {
                     return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("newModel", "effect", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("update"), _List_fromArray([config, msg, model])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v1) {
                         var newModel = _v1.a;
                         var effect = _v1.b;
@@ -14736,8 +14734,8 @@
             ao: function (index) {
                 return {
                     ah: _List_Nil,
-                    gZ: $stil4m$elm_syntax$Elm$Syntax$Declaration$CustomTypeDeclaration({
-                        gX: $elm$core$List$map_fn(function (_v1) {
+                    g_: $stil4m$elm_syntax$Elm$Syntax$Declaration$CustomTypeDeclaration({
+                        gY: $elm$core$List$map_fn(function (_v1) {
                             var varName = _v1.a;
                             var vars = _v1.b;
                             return $mdgriffith$elm_codegen$Internal$Compiler$nodify({
@@ -14752,7 +14750,7 @@
                         }, variants))),
                         k: $mdgriffith$elm_codegen$Internal$Compiler$nodify($mdgriffith$elm_codegen$Internal$Format$formatType(name))
                     }),
-                    $9: $elm$core$Maybe$Nothing
+                    io: $elm$core$Maybe$Nothing
                 };
             }
         });
@@ -14826,7 +14824,7 @@
                     }
                 }(),
                 c: $stil4m$elm_syntax$Elm$Syntax$Expression$CaseExpression({
-                    gP: $elm$core$List$reverse(gathered.gP),
+                    gQ: $elm$core$List$reverse(gathered.gQ),
                     c: $mdgriffith$elm_codegen$Internal$Compiler$nodify(expr.c)
                 }),
                 d: _Utils_ap(expr.d, gathered.d)
@@ -14852,8 +14850,8 @@
         return {
             R: call(_List_Nil),
             T: call,
-            gZ: $mdgriffith$elm_codegen$Elm$declaration_fn(name, funcExp),
-            ik: valueFrom
+            g_: $mdgriffith$elm_codegen$Elm$declaration_fn(name, funcExp),
+            il: valueFrom
         };
     }, $mdgriffith$elm_codegen$Elm$Declare$fn3 = F5($mdgriffith$elm_codegen$Elm$Declare$fn3_fn);
     var $author$project$Gen$App$State$get_fn = function (getArg, getArg0) {
@@ -15060,7 +15058,7 @@
             j: _List_fromArray(["App", "Engine", "Page"]),
             k: "page"
         }),
-        f7: $mdgriffith$elm_codegen$Elm$value({
+        f8: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Page", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("shared"),
@@ -15105,7 +15103,7 @@
             j: _List_fromArray(["App", "Engine", "Page"]),
             k: "toInternalDetails"
         }),
-        gB: $mdgriffith$elm_codegen$Elm$value({
+        gC: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("shared")
@@ -15149,13 +15147,13 @@
                         if (_v2.$ === 17) {
                             var lamb = _v2.a;
                             return $mdgriffith$elm_codegen$Internal$Compiler$nodify($stil4m$elm_syntax$Elm$Syntax$Expression$LetFunction({
-                                gZ: $mdgriffith$elm_codegen$Internal$Compiler$nodify({
+                                g_: $mdgriffith$elm_codegen$Internal$Compiler$nodify({
                                     a3: lamb.S,
                                     c: lamb.c,
                                     k: $mdgriffith$elm_codegen$Internal$Compiler$nodify(name)
                                 }),
                                 a4: $elm$core$Maybe$Nothing,
-                                h2: $elm$core$Maybe$Nothing
+                                h3: $elm$core$Maybe$Nothing
                             }));
                         }
                         else {
@@ -15172,12 +15170,12 @@
         }, sourceLet);
     }, $mdgriffith$elm_codegen$Elm$Let$value = F3($mdgriffith$elm_codegen$Elm$Let$value_fn);
     var $author$project$Press$Model$withPageHelper_fn = function (pageConfig, fieldName, fn) {
-        return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageDetails", $mdgriffith$elm_codegen$Elm$apply_fn($author$project$Gen$App$Engine$Page$values_.f7, _List_fromArray([pageConfig])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageDetails) {
+        return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageDetails", $mdgriffith$elm_codegen$Elm$apply_fn($author$project$Gen$App$Engine$Page$values_.f8, _List_fromArray([pageConfig])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageDetails) {
             return fn($mdgriffith$elm_codegen$Elm$get_fn(fieldName, pageDetails));
         })));
     }, $author$project$Press$Model$withPageHelper = F3($author$project$Press$Model$withPageHelper_fn);
     var $author$project$Press$Model$getPageInit = function (routes) {
-        return $mdgriffith$elm_codegen$Elm$Declare$fn3_fn("getPageInit", _Utils_Tuple2("route", $elm$core$Maybe$Just($author$project$Press$Model$types.W)), _Utils_Tuple2("shared", $elm$core$Maybe$Just($author$project$Press$Model$sharedType)), _Utils_Tuple2("cache", $elm$core$Maybe$Just($author$project$Gen$App$State$annotation_.gN($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")))), F3(function (route, shared, cache) {
+        return $mdgriffith$elm_codegen$Elm$Declare$fn3_fn("getPageInit", _Utils_Tuple2("route", $elm$core$Maybe$Just($author$project$Press$Model$types.W)), _Utils_Tuple2("shared", $elm$core$Maybe$Just($author$project$Press$Model$sharedType)), _Utils_Tuple2("cache", $elm$core$Maybe$Just($author$project$Gen$App$State$annotation_.gO($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")))), F3(function (route, shared, cache) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Press$Model$types.eJ, $mdgriffith$elm_codegen$Elm$Case$custom_fn(route, $author$project$Press$Model$types.W, $elm$core$List$map_fn(function (routeInfo) {
                 var stateKey = routeInfo.ds;
                 var pageMsgTypeName = $author$project$Press$Model$types.bl(routeInfo.ds);
@@ -15324,7 +15322,7 @@
                 k: "remove"
             }), _List_fromArray([removeArg, removeArg0]));
         }),
-        fv: F2(function (setCurrentArg, setCurrentArg0) {
+        fw: F2(function (setCurrentArg, setCurrentArg0) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$string,
@@ -15449,8 +15447,8 @@
         return {
             R: call(_List_Nil),
             T: call,
-            gZ: $mdgriffith$elm_codegen$Elm$declaration_fn(name, funcExp),
-            ik: valueFrom
+            g_: $mdgriffith$elm_codegen$Elm$declaration_fn(name, funcExp),
+            il: valueFrom
         };
     }, $mdgriffith$elm_codegen$Elm$Declare$fn4 = F6($mdgriffith$elm_codegen$Elm$Declare$fn4_fn);
     var $author$project$Gen$App$Effect$none = $mdgriffith$elm_codegen$Elm$value({
@@ -15500,12 +15498,12 @@
     }, $mdgriffith$elm_codegen$Elm$verifyFieldsHelper = F2($mdgriffith$elm_codegen$Elm$verifyFieldsHelper_fn);
     var $mdgriffith$elm_codegen$Elm$verifyFields_fn = function (updatedFields, existingFields) {
         return $mdgriffith$elm_codegen$Elm$verifyFieldsHelper_fn(existingFields, updatedFields) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Internal$Compiler$RecordUpdateIncorrectFields({
-            gH: $elm$core$List$map_fn(function (_v0) {
+            gI: $elm$core$List$map_fn(function (_v0) {
                 var fieldName = _v0.a;
                 var fieldInference = _v0.b;
                 return _Utils_Tuple2(fieldName, fieldInference.u);
             }, updatedFields),
-            g9: $elm$core$List$map_fn(function (_v1) {
+            ha: $elm$core$List$map_fn(function (_v1) {
                 var _v2 = _v1.b;
                 var _v3 = _v2.a;
                 var fieldName = _v3.b;
@@ -15634,12 +15632,8 @@
         });
     }, $mdgriffith$elm_codegen$Elm$updateRecord = F2($mdgriffith$elm_codegen$Elm$updateRecord_fn);
     var $author$project$Press$Model$loadPage = function (routes) {
-        return $mdgriffith$elm_codegen$Elm$Declare$fn4_fn("loadPage", _Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.he)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), _Utils_Tuple2("route", $elm$core$Maybe$Just($author$project$Press$Model$types.W)), _Utils_Tuple2("initialization", $elm$core$Maybe$Just($author$project$Press$Model$types.eJ)), F4(function (config, model, route, initialization) {
-            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.em, $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)), $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageId", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
-                i: $elm$core$Maybe$Nothing,
-                j: _List_fromArray(["Route"]),
-                k: "toId"
-            }), _List_fromArray([route])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageId) {
+        return $mdgriffith$elm_codegen$Elm$Declare$fn4_fn("loadPage", _Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hf)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), _Utils_Tuple2("route", $elm$core$Maybe$Just($author$project$Press$Model$types.W)), _Utils_Tuple2("initialization", $elm$core$Maybe$Just($author$project$Press$Model$types.eJ)), F4(function (config, model, route, initialization) {
+            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.em, $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)), $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageId", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: $author$project$Press$Model$types.fi, k: "toId" }), _List_fromArray([route])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageId) {
                 return $mdgriffith$elm_codegen$Elm$Case$custom_fn(initialization, $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Engine", "Page"]), "InitPlan", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("msg"),
                     $mdgriffith$elm_codegen$Elm$Annotation$var("model")
@@ -15652,18 +15646,18 @@
                     }()),
                     $mdgriffith$elm_codegen$Elm$Case$branch1_fn("Error", _Utils_Tuple2("err", $author$project$Gen$App$PageError$annotation_.aL), function (err) {
                         var updatedModel = $mdgriffith$elm_codegen$Elm$updateRecord_fn(_List_fromArray([
-                            _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fv, pageId, A3($author$project$Gen$App$State$call_.dD, pageId, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: _List_Nil, k: "PageError_" }), _List_fromArray([err])), $mdgriffith$elm_codegen$Elm$get_fn("states", model))))
+                            _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fw, pageId, A3($author$project$Gen$App$State$call_.dD, pageId, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: _List_Nil, k: "PageError_" }), _List_fromArray([err])), $mdgriffith$elm_codegen$Elm$get_fn("states", model))))
                         ]), model);
                         return $mdgriffith$elm_codegen$Elm$tuple_fn(updatedModel, $author$project$Gen$App$Effect$none);
                     }),
-                    $mdgriffith$elm_codegen$Elm$Case$branch2_fn_unwrapped("Loaded", _Utils_Tuple2("newPage", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")), _Utils_Tuple2("pageEffect", $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)), function (newPage, pageEffect) {
+                    $mdgriffith$elm_codegen$Elm$Case$branch2_fn_unwrapped("Loaded", _Utils_Tuple2("newPage", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")), _Utils_Tuple2("pageEffect", $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)), function (newPage, pageEffect) {
                         return $mdgriffith$elm_codegen$Elm$tuple_fn($mdgriffith$elm_codegen$Elm$updateRecord_fn(_List_fromArray([
-                            _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fv, pageId, A3($author$project$Gen$App$State$call_.dD, pageId, newPage, $mdgriffith$elm_codegen$Elm$get_fn("states", model))))
+                            _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fw, pageId, A3($author$project$Gen$App$State$call_.dD, pageId, newPage, $mdgriffith$elm_codegen$Elm$get_fn("states", model))))
                         ]), model), pageEffect);
                     }),
                     $mdgriffith$elm_codegen$Elm$Case$branch1_fn("LoadFrom", _Utils_Tuple2("pageEffect", $author$project$Press$Model$types.eJ), function (pageEffect) {
                         var updatedModel = $mdgriffith$elm_codegen$Elm$updateRecord_fn(_List_fromArray([
-                            _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fv, pageId, A3($author$project$Gen$App$State$call_.dD, pageId, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: _List_Nil, k: "PageLoading_" }), _List_fromArray([route])), $mdgriffith$elm_codegen$Elm$get_fn("states", model))))
+                            _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fw, pageId, A3($author$project$Gen$App$State$call_.dD, pageId, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: _List_Nil, k: "PageLoading_" }), _List_fromArray([route])), $mdgriffith$elm_codegen$Elm$get_fn("states", model))))
                         ]), model);
                         return $mdgriffith$elm_codegen$Elm$tuple_fn(updatedModel, A2($author$project$Gen$App$Effect$call_.d_, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("Loaded"), _List_fromArray([route])), pageEffect));
                     })
@@ -15672,12 +15666,8 @@
         }));
     };
     var $author$project$Press$Model$preloadPage = function (routes) {
-        return $mdgriffith$elm_codegen$Elm$Declare$fn4_fn("preloadPage", _Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.he)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), _Utils_Tuple2("route", $elm$core$Maybe$Just($author$project$Press$Model$types.W)), _Utils_Tuple2("initialization", $elm$core$Maybe$Just($author$project$Press$Model$types.eJ)), F4(function (config, model, route, initialization) {
-            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.em, $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)), $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageId", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
-                i: $elm$core$Maybe$Nothing,
-                j: _List_fromArray(["Route"]),
-                k: "toId"
-            }), _List_fromArray([route])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageId) {
+        return $mdgriffith$elm_codegen$Elm$Declare$fn4_fn("preloadPage", _Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hf)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), _Utils_Tuple2("route", $elm$core$Maybe$Just($author$project$Press$Model$types.W)), _Utils_Tuple2("initialization", $elm$core$Maybe$Just($author$project$Press$Model$types.eJ)), F4(function (config, model, route, initialization) {
+            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.em, $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)), $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageId", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: $author$project$Press$Model$types.fi, k: "toId" }), _List_fromArray([route])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageId) {
                 return $mdgriffith$elm_codegen$Elm$Case$custom_fn(initialization, $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["App", "Engine", "Page"]), "InitPlan", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("msg"),
                     $mdgriffith$elm_codegen$Elm$Annotation$var("model")
@@ -15689,7 +15679,7 @@
                         ]), model);
                         return $mdgriffith$elm_codegen$Elm$tuple_fn(updatedModel, $author$project$Gen$App$Effect$none);
                     }),
-                    $mdgriffith$elm_codegen$Elm$Case$branch2_fn_unwrapped("Loaded", _Utils_Tuple2("newPage", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")), _Utils_Tuple2("pageEffect", $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)), function (newPage, pageEffect) {
+                    $mdgriffith$elm_codegen$Elm$Case$branch2_fn_unwrapped("Loaded", _Utils_Tuple2("newPage", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State")), _Utils_Tuple2("pageEffect", $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)), function (newPage, pageEffect) {
                         return $mdgriffith$elm_codegen$Elm$tuple_fn($mdgriffith$elm_codegen$Elm$updateRecord_fn(_List_fromArray([
                             _Utils_Tuple2("states", A3($author$project$Gen$App$State$call_.dD, pageId, newPage, $mdgriffith$elm_codegen$Elm$get_fn("states", model)))
                         ]), model), pageEffect);
@@ -15749,7 +15739,7 @@
                 k: "map"
             }), _List_fromArray([mapArg, mapArg0]));
         }),
-        gb: function (toSubscriptionArg) {
+        gc: function (toSubscriptionArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Sub", _List_fromArray([
@@ -15800,7 +15790,7 @@
         });
     }, $author$project$Press$Generate$Engine$routeToSubscription = F3($author$project$Press$Generate$Engine$routeToSubscription_fn);
     var $author$project$Press$Generate$Engine$subscriptions = function (routes) {
-        return $mdgriffith$elm_codegen$Elm$declaration_fn("subscriptions", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.c1, $author$project$Press$Model$types.em]), $author$project$Gen$Platform$Sub$annotation_.h7($author$project$Press$Model$types.hx)), $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.c1)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (config, model) {
+        return $mdgriffith$elm_codegen$Elm$declaration_fn("subscriptions", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.c1, $author$project$Press$Model$types.em]), $author$project$Gen$Platform$Sub$annotation_.h8($author$project$Press$Model$types.hy)), $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.c1)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (config, model) {
             return $author$project$Gen$Platform$Sub$batch(_List_fromArray([
                 $author$project$Press$Model$toSub_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("frame", model), A2($author$project$Gen$App$Sub$call_.d_, $mdgriffith$elm_codegen$Elm$val("Global"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("subscriptions", config), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$get_fn("frame", model)
@@ -15822,12 +15812,12 @@
         return $mdgriffith$elm_codegen$Internal$Compiler$exposeWith_fn({
             as: true,
             at: $elm$core$Maybe$Just("Testing")
-        }, $mdgriffith$elm_codegen$Elm$declaration_fn("test", $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hd)), function (config) {
+        }, $mdgriffith$elm_codegen$Elm$declaration_fn("test", $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.he)), function (config) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Test", _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("model"),
                 $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
             ])), $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
-                _Utils_Tuple2("init", $mdgriffith$elm_codegen$Elm$fn3_fn_unwrapped(_Utils_Tuple2("flags", $elm$core$Maybe$Just($author$project$Gen$Json$Encode$annotation_.ik)), _Utils_Tuple2("url", $elm$core$Maybe$Just($author$project$Gen$Url$annotation_.af)), _Utils_Tuple2("key", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$unit)), function (flags, url, key) {
+                _Utils_Tuple2("init", $mdgriffith$elm_codegen$Elm$fn3_fn_unwrapped(_Utils_Tuple2("flags", $elm$core$Maybe$Just($author$project$Gen$Json$Encode$annotation_.il)), _Utils_Tuple2("url", $elm$core$Maybe$Just($author$project$Gen$Url$annotation_.af)), _Utils_Tuple2("key", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$unit)), function (flags, url, key) {
                     return $author$project$Press$Generate$Engine$init_fn(getPageInit, loadPage, config, flags, url, key);
                 })),
                 _Utils_Tuple2("view", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("view"), _List_fromArray([config]))),
@@ -15841,11 +15831,11 @@
         as: true,
         at: $elm$core$Maybe$Just("Testing")
     }, $mdgriffith$elm_codegen$Elm$alias_fn("Test", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
-        _Utils_Tuple2("init", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Json$Encode$annotation_.ik, $author$project$Gen$Url$annotation_.af, $mdgriffith$elm_codegen$Elm$Annotation$unit]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.aZ, $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)))),
-        _Utils_Tuple2("view", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.aZ]), $author$project$Gen$Browser$annotation_.aK($author$project$Press$Model$types.hx))),
-        _Utils_Tuple2("update", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.hx, $author$project$Press$Model$types.aZ]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.aZ, $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)))),
-        _Utils_Tuple2("onUrlRequest", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Browser$annotation_.gs]), $author$project$Press$Model$types.hx)),
-        _Utils_Tuple2("onUrlChange", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Url$annotation_.af]), $author$project$Press$Model$types.hx))
+        _Utils_Tuple2("init", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Json$Encode$annotation_.il, $author$project$Gen$Url$annotation_.af, $mdgriffith$elm_codegen$Elm$Annotation$unit]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.aZ, $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)))),
+        _Utils_Tuple2("view", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.aZ]), $author$project$Gen$Browser$annotation_.aK($author$project$Press$Model$types.hy))),
+        _Utils_Tuple2("update", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.hy, $author$project$Press$Model$types.aZ]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.aZ, $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)))),
+        _Utils_Tuple2("onUrlRequest", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Browser$annotation_.gt]), $author$project$Press$Model$types.hy)),
+        _Utils_Tuple2("onUrlChange", $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Gen$Url$annotation_.af]), $author$project$Press$Model$types.hy))
     ]))));
     var $author$project$Gen$App$State$clearCurrent = function (clearCurrentArg) {
         return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
@@ -15911,9 +15901,9 @@
         }, routes);
     }, $author$project$Press$Model$updatePageBranches = F4($author$project$Press$Model$updatePageBranches_fn);
     var $author$project$Press$Generate$Engine$update_fn = function (routes, getPageInit, loadPage, preloadPage) {
-        return $mdgriffith$elm_codegen$Elm$declaration_fn("update", $mdgriffith$elm_codegen$Elm$fn3_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.he)), _Utils_Tuple2("msg", $elm$core$Maybe$Just($author$project$Press$Model$types.hx)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (config, msg, model) {
-            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.em, $author$project$Gen$App$Effect$annotation_.g4($author$project$Press$Model$types.hx)), $mdgriffith$elm_codegen$Elm$Case$custom_fn(msg, $author$project$Press$Model$types.hx, _Utils_ap(_List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Case$branch1_fn("UrlRequested", _Utils_Tuple2("request", $author$project$Gen$Browser$annotation_.gs), function (request) {
+        return $mdgriffith$elm_codegen$Elm$declaration_fn("update", $mdgriffith$elm_codegen$Elm$fn3_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hf)), _Utils_Tuple2("msg", $elm$core$Maybe$Just($author$project$Press$Model$types.hy)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (config, msg, model) {
+            return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($author$project$Press$Model$types.em, $author$project$Gen$App$Effect$annotation_.g5($author$project$Press$Model$types.hy)), $mdgriffith$elm_codegen$Elm$Case$custom_fn(msg, $author$project$Press$Model$types.hy, _Utils_ap(_List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Case$branch1_fn("UrlRequested", _Utils_Tuple2("request", $author$project$Gen$Browser$annotation_.gt), function (request) {
                     return $mdgriffith$elm_codegen$Elm$Case$custom_fn(request, $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Browser"]), "UrlRequest", _List_Nil), _List_fromArray([
                         $mdgriffith$elm_codegen$Elm$Case$branch1_fn("Internal", _Utils_Tuple2("url", $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Url"]), "Url", _List_Nil)), function (url) {
                             return $mdgriffith$elm_codegen$Elm$tuple_fn(model, $author$project$Gen$App$Effect$call_.eZ($author$project$Gen$Url$toString(url)));
@@ -15927,15 +15917,11 @@
                     var parsed = $author$project$Press$Generate$Engine$parseUrl(url);
                     return $mdgriffith$elm_codegen$Elm$Case$maybe_fn(parsed, {
                         dM: $elm$core$Tuple$pair_fn("newRoute", function (newRoute) {
-                            var id = $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
-                                i: $elm$core$Maybe$Nothing,
-                                j: _List_fromArray(["Route"]),
-                                k: "toId"
-                            }), _List_fromArray([newRoute]));
+                            var id = $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({ i: $elm$core$Maybe$Nothing, j: $author$project$Press$Model$types.fi, k: "toId" }), _List_fromArray([newRoute]));
                             var updatedModel = $mdgriffith$elm_codegen$Elm$updateRecord_fn(_List_fromArray([
                                 _Utils_Tuple2("url", url),
                                 _Utils_Tuple2("currentRoute", $mdgriffith$elm_codegen$Elm$just(newRoute)),
-                                _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fv, id, $mdgriffith$elm_codegen$Elm$get_fn("states", model)))
+                                _Utils_Tuple2("states", A2($author$project$Gen$App$State$call_.fw, id, $mdgriffith$elm_codegen$Elm$get_fn("states", model)))
                             ]), model);
                             return A4(loadPage.R, config, updatedModel, newRoute, A3(getPageInit.R, newRoute, $author$project$Press$Model$toShared_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("frame", model)), $mdgriffith$elm_codegen$Elm$get_fn("states", model)));
                         }),
@@ -16009,7 +15995,7 @@
         return function (index) {
             var _v0 = $mdgriffith$elm_codegen$Elm$Case$captureCase_fn(mainExpression, _List_Nil, $mdgriffith$elm_codegen$Internal$Index$dive(index), _List_fromArray([
                 function (branchIndex) {
-                    var _v1 = branches.hE;
+                    var _v1 = branches.hF;
                     var okNameStr = _v1.a;
                     var toOk = _v1.b;
                     var ok = $mdgriffith$elm_codegen$Internal$Compiler$toVarMaybeType_fn(branchIndex, okNameStr, $elm$core$Maybe$Nothing);
@@ -16018,7 +16004,7 @@
                     ])), toOk(ok.v));
                 },
                 function (branchIndex) {
-                    var _v2 = branches.g8;
+                    var _v2 = branches.g9;
                     var errNameStr = _v2.a;
                     var toErr = _v2.b;
                     var err = $mdgriffith$elm_codegen$Internal$Compiler$toVarMaybeType_fn(branchIndex, errNameStr, $elm$core$Maybe$Nothing);
@@ -16041,7 +16027,7 @@
                     }
                 }(),
                 c: $stil4m$elm_syntax$Elm$Syntax$Expression$CaseExpression({
-                    gP: $elm$core$List$reverse(gathered.gP),
+                    gQ: $elm$core$List$reverse(gathered.gQ),
                     c: $mdgriffith$elm_codegen$Internal$Compiler$nodify(expr.c)
                 }),
                 d: _Utils_ap(expr.d, gathered.d)
@@ -16059,10 +16045,10 @@
                     pageState
                 ])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageViewResult) {
                     return $mdgriffith$elm_codegen$Elm$Case$result_fn(pageViewResult, {
-                        g8: _Utils_Tuple2("pageError", function (pageError) {
+                        g9: _Utils_Tuple2("pageError", function (pageError) {
                             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("Error"), _List_fromArray([pageError]));
                         }),
-                        hE: _Utils_Tuple2("pageViewSuccess", function (pageViewSuccess) {
+                        hF: _Utils_Tuple2("pageViewSuccess", function (pageViewSuccess) {
                             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("View"), _List_fromArray([
                                 A2($author$project$Gen$App$View$call_.d_, $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("innerMsg", $elm$core$Maybe$Nothing), function (innerMsg) {
                                     return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val(pageMsgTypeName), _List_fromArray([innerMsg]));
@@ -16075,9 +16061,9 @@
         });
     }, $author$project$Press$Generate$Engine$routeToView = F3($author$project$Press$Generate$Engine$routeToView_fn);
     var $author$project$Press$Generate$Engine$view = function (routes) {
-        return $mdgriffith$elm_codegen$Elm$declaration_fn("view", $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hf)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (config, model) {
+        return $mdgriffith$elm_codegen$Elm$declaration_fn("view", $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.hg)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types.em)), function (config, model) {
             var frameView = function (pageView) {
-                return $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Gen$Browser$annotation_.aK($author$project$Press$Model$types.hx), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("view", config), _List_fromArray([
+                return $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Gen$Browser$annotation_.aK($author$project$Press$Model$types.hy), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("view", config), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$val("Global"),
                     $mdgriffith$elm_codegen$Elm$get_fn("frame", model),
                     pageView
@@ -16106,9 +16092,9 @@
                 as: true,
                 at: $elm$core$Maybe$Just("App")
             }, $mdgriffith$elm_codegen$Elm$alias_fn("App", $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Program", _List_fromArray([
-                $author$project$Gen$Json$Encode$annotation_.ik,
+                $author$project$Gen$Json$Encode$annotation_.il,
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Model", _List_fromArray([
-                    $author$project$Gen$Browser$Navigation$annotation_.hq,
+                    $author$project$Gen$Browser$Navigation$annotation_.hr,
                     $mdgriffith$elm_codegen$Elm$Annotation$var("model")
                 ])),
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Msg", _List_fromArray([
@@ -16118,7 +16104,7 @@
             $author$project$Press$Generate$Engine$app_fn(routes, getPageInit, loadPage),
             $author$project$Press$Generate$Engine$testAlias,
             $author$project$Press$Generate$Engine$test_fn(getPageInit, loadPage),
-            $mdgriffith$elm_codegen$Elm$alias_fn("Model", $author$project$Press$Model$types.hv),
+            $mdgriffith$elm_codegen$Elm$alias_fn("Model", $author$project$Press$Model$types.hw),
             $mdgriffith$elm_codegen$Elm$customType_fn("State", function () {
                 var routeVariants = $elm$core$List$map_fn(function (route) {
                     return $mdgriffith$elm_codegen$Elm$Variant_fn(route.ds, _List_fromArray([
@@ -16135,7 +16121,7 @@
                 $mdgriffith$elm_codegen$Elm$Variant_fn("Loading", _List_fromArray([$author$project$Press$Model$types.W])),
                 $mdgriffith$elm_codegen$Elm$Variant_fn("Error", _List_fromArray([$author$project$Gen$App$PageError$annotation_.aL])),
                 $mdgriffith$elm_codegen$Elm$Variant_fn("View", _List_fromArray([
-                    $author$project$Gen$App$View$annotation_.im($mdgriffith$elm_codegen$Elm$Annotation$var("appMsg"))
+                    $author$project$Gen$App$View$annotation_.$9($mdgriffith$elm_codegen$Elm$Annotation$var("appMsg"))
                 ]))
             ]))),
             function () {
@@ -16145,7 +16131,7 @@
                     ]));
                 }, routes);
                 return $mdgriffith$elm_codegen$Elm$customType_fn("Msg", _Utils_ap(_List_fromArray([
-                    $mdgriffith$elm_codegen$Elm$Variant_fn("UrlRequested", _List_fromArray([$author$project$Gen$Browser$annotation_.gs])),
+                    $mdgriffith$elm_codegen$Elm$Variant_fn("UrlRequested", _List_fromArray([$author$project$Gen$Browser$annotation_.gt])),
                     $mdgriffith$elm_codegen$Elm$Variant_fn("UrlChanged", _List_fromArray([$author$project$Gen$Url$annotation_.af])),
                     $mdgriffith$elm_codegen$Elm$variant("PageCacheCleared"),
                     $mdgriffith$elm_codegen$Elm$Variant_fn("Preload", _List_fromArray([$author$project$Press$Model$types.W])),
@@ -16157,9 +16143,9 @@
                 ]), pageVariants));
             }(),
             $author$project$Press$Generate$Engine$update_fn(routes, getPageInit, loadPage, preloadPage),
-            getPageInit.gZ,
-            loadPage.gZ,
-            preloadPage.gZ,
+            getPageInit.g_,
+            loadPage.g_,
+            preloadPage.g_,
             $author$project$Press$Generate$Engine$view(routes),
             $author$project$Press$Generate$Engine$subscriptions(routes)
         ]));
@@ -16176,9 +16162,9 @@
                 return function (branchIndex) {
                     return _Utils_Tuple3(branchIndex, $stil4m$elm_syntax$Elm$Syntax$Pattern$StringPattern(caseString), caseExpression);
                 };
-            }, branches.gP), _List_fromArray([
+            }, branches.gQ), _List_fromArray([
                 function (branchIndex) {
-                    return _Utils_Tuple3(branchIndex, $stil4m$elm_syntax$Elm$Syntax$Pattern$AllPattern, branches.hM);
+                    return _Utils_Tuple3(branchIndex, $stil4m$elm_syntax$Elm$Syntax$Pattern$AllPattern, branches.hN);
                 }
             ]));
             var _v0 = $mdgriffith$elm_codegen$Elm$Case$captureCase_fn(mainExpression, _List_Nil, $mdgriffith$elm_codegen$Internal$Index$dive(index), allBranches);
@@ -16196,7 +16182,7 @@
                     }
                 }(),
                 c: $stil4m$elm_syntax$Elm$Syntax$Expression$CaseExpression({
-                    gP: $elm$core$List$reverse(gathered.gP),
+                    gQ: $elm$core$List$reverse(gathered.gQ),
                     c: $mdgriffith$elm_codegen$Internal$Compiler$nodify(expr.c)
                 }),
                 d: _Utils_ap(expr.d, gathered.d)
@@ -16212,8 +16198,8 @@
             else {
                 var assets = _v1.a;
                 return $elm$core$List$map_fn(function (file) {
-                    var serverUrlString = $author$project$Path$join_fn(assets.gK, $author$project$Path$relative_fn(assets.gJ, file.hR));
-                    var appUrlString = $author$project$Path$removeExtension($author$project$Path$relative_fn(assets.gJ, file.hR));
+                    var serverUrlString = $author$project$Path$join_fn(assets.gL, $author$project$Path$relative_fn(assets.gK, file.hS));
+                    var appUrlString = $author$project$Path$removeExtension($author$project$Path$relative_fn(assets.gK, file.hS));
                     return _Utils_Tuple2(appUrlString, $mdgriffith$elm_codegen$Elm$just($mdgriffith$elm_codegen$Elm$string(serverUrlString)));
                 }, assets.cQ);
             }
@@ -16224,7 +16210,7 @@
         else {
             return _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$declaration_fn("lookupAsset", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string)), $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("path", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$string)), function (path) {
-                    return $mdgriffith$elm_codegen$Elm$Case$string_fn(path, { gP: branches, hM: $mdgriffith$elm_codegen$Elm$nothing });
+                    return $mdgriffith$elm_codegen$Elm$Case$string_fn(path, { gQ: branches, hN: $mdgriffith$elm_codegen$Elm$nothing });
                 })))
             ]);
         }
@@ -16247,12 +16233,22 @@
     var $author$project$Press$Generate$Route$hasNoParams = function (params) {
         return $elm$core$Set$isEmpty(params.az) && (!params.a7);
     };
+    var $author$project$Press$Model$hasVars = function (pieces) {
+        return $elm$core$List$any_fn(function (piece) {
+            if (!piece.$) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }, pieces);
+    };
     var $author$project$Press$Generate$Route$paramType = function (route) {
         var _v0 = route.af;
-        var queryParams = _v0.hV;
+        var queryParams = _v0.hW;
         var includePathTail = _v0.aN;
-        var path = _v0.hR;
-        if ($author$project$Press$Generate$Route$hasNoParams(queryParams) && ((!includePathTail) && _Utils_eq(route.bD, $elm$core$Maybe$Nothing))) {
+        var path = _v0.hS;
+        if ($author$project$Press$Generate$Route$hasNoParams(queryParams) && ((!includePathTail) && (_Utils_eq(route.bD, $elm$core$Maybe$Nothing) && (!$author$project$Press$Model$hasVars(path))))) {
             return $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil);
         }
         else {
@@ -16347,7 +16343,7 @@
             j: _List_fromArray(["Dict"]),
             k: "diff"
         }),
-        g6: $mdgriffith$elm_codegen$Elm$value({
+        g7: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Dict"]), "Dict", _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("k"),
                 $mdgriffith$elm_codegen$Elm$Annotation$var("v")
@@ -16570,7 +16566,7 @@
             j: _List_fromArray(["Dict"]),
             k: "remove"
         }),
-        fw: $mdgriffith$elm_codegen$Elm$value({
+        fx: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("comparable"),
                 $mdgriffith$elm_codegen$Elm$Annotation$var("v")
@@ -16581,7 +16577,7 @@
             j: _List_fromArray(["Dict"]),
             k: "singleton"
         }),
-        fx: $mdgriffith$elm_codegen$Elm$value({
+        fy: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Dict"]), "Dict", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("k"),
@@ -16591,7 +16587,7 @@
             j: _List_fromArray(["Dict"]),
             k: "size"
         }),
-        f8: $mdgriffith$elm_codegen$Elm$value({
+        f9: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Dict"]), "Dict", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("k"),
@@ -16601,7 +16597,7 @@
             j: _List_fromArray(["Dict"]),
             k: "toList"
         }),
-        gq: $mdgriffith$elm_codegen$Elm$value({
+        gr: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Dict"]), "Dict", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("comparable"),
@@ -16618,7 +16614,7 @@
             j: _List_fromArray(["Dict"]),
             k: "union"
         }),
-        ij: $mdgriffith$elm_codegen$Elm$value({
+        ik: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("comparable"),
                 $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
@@ -16635,7 +16631,7 @@
             j: _List_fromArray(["Dict"]),
             k: "update"
         }),
-        gt: $mdgriffith$elm_codegen$Elm$value({
+        gu: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Dict"]), "Dict", _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("k"),
@@ -16680,15 +16676,15 @@
             $mdgriffith$elm_codegen$Internal$Compiler$exposeWith_fn({
                 as: true,
                 at: $elm$core$Maybe$Just("Encodings")
-            }, $mdgriffith$elm_codegen$Elm$declaration_fn("toUrl", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
+            }, $mdgriffith$elm_codegen$Elm$declaration_fn("toString", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")
             ]), $mdgriffith$elm_codegen$Elm$Annotation$string), $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("route", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route"))), function (route) {
                 return $mdgriffith$elm_codegen$Elm$Case$custom_fn(route, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route"), $elm$core$List$map_fn(function (individualRoute) {
                     return $mdgriffith$elm_codegen$Elm$Case$branch1_fn(individualRoute.ds, _Utils_Tuple2("params", $author$project$Press$Generate$Route$paramType(individualRoute)), function (params) {
                         var _v0 = individualRoute.af;
-                        var path = _v0.hR;
+                        var path = _v0.hS;
                         var includePathTail = _v0.aN;
-                        var queryParams = _v0.hV;
+                        var queryParams = _v0.hW;
                         return $author$project$Press$Generate$Route$renderPath_fn(path, includePathTail, queryParams, params);
                     });
                 }, routes));
@@ -16817,7 +16813,7 @@
                 k: "map5"
             }), _List_fromArray([map5Arg, map5Arg0, map5Arg1, map5Arg2, map5Arg3, map5Arg4]));
         }),
-        gA: F2(function (withDefaultArg, withDefaultArg0) {
+        gB: F2(function (withDefaultArg, withDefaultArg0) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("a"),
@@ -17081,91 +17077,91 @@
                 k: "right"
             }), _List_fromArray([rightArg, rightArg0]));
         }),
-        fy: F3(function (sliceArg, sliceArg0, sliceArg1) {
+        fz: F3(function (sliceArg, sliceArg0, sliceArg1) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$string)),
                 j: _List_fromArray(["String"]),
                 k: "slice"
             }), _List_fromArray([sliceArg, sliceArg0, sliceArg1]));
         }),
-        fF: F2(function (splitArg, splitArg0) {
+        fG: F2(function (splitArg, splitArg0) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$string))),
                 j: _List_fromArray(["String"]),
                 k: "split"
             }), _List_fromArray([splitArg, splitArg0]));
         }),
-        fH: F2(function (startsWithArg, startsWithArg0) {
+        fI: F2(function (startsWithArg, startsWithArg0) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$bool)),
                 j: _List_fromArray(["String"]),
                 k: "startsWith"
             }), _List_fromArray([startsWithArg, startsWithArg0]));
         }),
-        f5: function (toFloatArg) {
+        f6: function (toFloatArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$float))),
                 j: _List_fromArray(["String"]),
                 k: "toFloat"
             }), _List_fromArray([toFloatArg]));
         },
-        f6: function (toIntArg) {
+        f7: function (toIntArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$int))),
                 j: _List_fromArray(["String"]),
                 k: "toInt"
             }), _List_fromArray([toIntArg]));
         },
-        f8: function (toListArg) {
+        f9: function (toListArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$char))),
                 j: _List_fromArray(["String"]),
                 k: "toList"
             }), _List_fromArray([toListArg]));
         },
-        f9: function (toLowerArg) {
+        ga: function (toLowerArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$string)),
                 j: _List_fromArray(["String"]),
                 k: "toLower"
             }), _List_fromArray([toLowerArg]));
         },
-        gc: function (toUpperArg) {
+        gd: function (toUpperArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$string)),
                 j: _List_fromArray(["String"]),
                 k: "toUpper"
             }), _List_fromArray([toUpperArg]));
         },
-        gh: function (trimArg) {
+        gi: function (trimArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$string)),
                 j: _List_fromArray(["String"]),
                 k: "trim"
             }), _List_fromArray([trimArg]));
         },
-        gi: function (trimLeftArg) {
+        gj: function (trimLeftArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$string)),
                 j: _List_fromArray(["String"]),
                 k: "trimLeft"
             }), _List_fromArray([trimLeftArg]));
         },
-        gj: function (trimRightArg) {
+        gk: function (trimRightArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$string)),
                 j: _List_fromArray(["String"]),
                 k: "trimRight"
             }), _List_fromArray([trimRightArg]));
         },
-        gp: function (unconsArg) {
+        gq: function (unconsArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$char, $mdgriffith$elm_codegen$Elm$Annotation$string)))),
                 j: _List_fromArray(["String"]),
                 k: "uncons"
             }), _List_fromArray([unconsArg]));
         },
-        gC: function (wordsArg) {
+        gD: function (wordsArg) {
             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
                 i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$string]), $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$string))),
                 j: _List_fromArray(["String"]),
@@ -17189,7 +17185,7 @@
     var $mdgriffith$elm_codegen$Elm$Case$Branch$CustomType = $elm$core$Basics$identity;
     var $mdgriffith$elm_codegen$Elm$Case$Branch$customType_fn = function (name, initial) {
         return function (index) {
-            return { gJ: name, e: index, eP: _List_Nil, ik: initial };
+            return { gK: name, e: index, eP: _List_Nil, il: initial };
         };
     }, $mdgriffith$elm_codegen$Elm$Case$Branch$customType = F2($mdgriffith$elm_codegen$Elm$Case$Branch$customType_fn);
     var $mdgriffith$elm_codegen$Elm$Case$Branch$reverseAndNodify = function (items) {
@@ -17203,8 +17199,8 @@
             var custom = toCustomType(index);
             return _Utils_Tuple3(custom.e, $stil4m$elm_syntax$Elm$Syntax$Pattern$NamedPattern_fn({
                 aT: _List_Nil,
-                k: $mdgriffith$elm_codegen$Internal$Format$formatType(custom.gJ)
-            }, $mdgriffith$elm_codegen$Elm$Case$Branch$reverseAndNodify(custom.eP)), custom.ik);
+                k: $mdgriffith$elm_codegen$Internal$Format$formatType(custom.gK)
+            }, $mdgriffith$elm_codegen$Elm$Case$Branch$reverseAndNodify(custom.eP)), custom.il);
         };
     };
     var $mdgriffith$elm_codegen$Elm$Case$Branch$withParam_fn = function (_v0, _v1) {
@@ -17217,10 +17213,10 @@
             var val = _v2.c;
             var custom = toCustomType(newIndex);
             return {
-                gJ: custom.gJ,
+                gK: custom.gK,
                 e: custom.e,
                 eP: _List_Cons(pattern, custom.eP),
-                ik: custom.ik(val)
+                il: custom.il(val)
             };
         };
     }, $mdgriffith$elm_codegen$Elm$Case$Branch$withParam = F2($mdgriffith$elm_codegen$Elm$Case$Branch$withParam_fn);
@@ -17249,7 +17245,7 @@
     var $mdgriffith$elm_codegen$Elm$Case$Branch$list = function (_v0) {
         var patterns = _v0.eP;
         var gather = _v0.c9;
-        var startWith = _v0.fG;
+        var startWith = _v0.fH;
         var _finally = _v0.cT;
         return $mdgriffith$elm_codegen$Elm$Case$Branch$map_fn(_finally, function (startIndex) {
             var _v1 = $elm$core$List$foldl_fn_unwrapped(function (branch, _v2) {
@@ -17275,8 +17271,8 @@
     var $mdgriffith$elm_codegen$Elm$Case$Branch$listWithRemaining = function (_v0) {
         var patterns = _v0.eP;
         var gather = _v0.c9;
-        var startWith = _v0.fG;
-        var remaining = _v0.h_;
+        var startWith = _v0.fH;
+        var remaining = _v0.h$;
         var _finally = _v0.cT;
         return function (startIndex) {
             var _v1 = remaining;
@@ -17600,21 +17596,21 @@
             j: _List_fromArray(["List"]),
             k: "reverse"
         }),
-        fw: $mdgriffith$elm_codegen$Elm$value({
+        fx: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$var("a")
             ]), $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("a")))),
             j: _List_fromArray(["List"]),
             k: "singleton"
         }),
-        fA: $mdgriffith$elm_codegen$Elm$value({
+        fB: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("comparable"))
             ]), $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("comparable")))),
             j: _List_fromArray(["List"]),
             k: "sort"
         }),
-        fB: $mdgriffith$elm_codegen$Elm$value({
+        fC: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("a")
@@ -17624,7 +17620,7 @@
             j: _List_fromArray(["List"]),
             k: "sortBy"
         }),
-        fC: $mdgriffith$elm_codegen$Elm$value({
+        fD: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                     $mdgriffith$elm_codegen$Elm$Annotation$var("a"),
@@ -17635,21 +17631,21 @@
             j: _List_fromArray(["List"]),
             k: "sortWith"
         }),
-        fO: $mdgriffith$elm_codegen$Elm$value({
+        fP: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("number"))
             ]), $mdgriffith$elm_codegen$Elm$Annotation$var("number"))),
             j: _List_fromArray(["List"]),
             k: "sum"
         }),
-        fU: $mdgriffith$elm_codegen$Elm$value({
+        fV: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("a"))
             ]), $mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("a"))))),
             j: _List_fromArray(["List"]),
             k: "tail"
         }),
-        fV: $mdgriffith$elm_codegen$Elm$value({
+        fW: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$int,
                 $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("a"))
@@ -17657,7 +17653,7 @@
             j: _List_fromArray(["List"]),
             k: "take"
         }),
-        gr: $mdgriffith$elm_codegen$Elm$value({
+        gs: $mdgriffith$elm_codegen$Elm$value({
             i: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$var("a"), $mdgriffith$elm_codegen$Elm$Annotation$var("b")))
             ]), $mdgriffith$elm_codegen$Elm$Annotation$tuple_fn($mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("a")), $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$var("b"))))),
@@ -17671,7 +17667,7 @@
             cT: F2(function (pathFields, remaining) {
                 var queryParamFields = $elm$core$Set$foldl_fn_unwrapped(function (queryField, gathered) {
                     return _List_Cons(_Utils_Tuple2(queryField, A2($author$project$Gen$Maybe$call_.bv, $author$project$Gen$List$values_.dj, $author$project$Gen$Dict$get_fn($mdgriffith$elm_codegen$Elm$string(queryField), $mdgriffith$elm_codegen$Elm$get_fn("queryParameters", appUrl)))), gathered);
-                }, _List_Nil, pattern.hV.az);
+                }, _List_Nil, pattern.hW.az);
                 var fields = _Utils_ap(pathFields, queryParamFields);
                 var _v1 = page.bD;
                 if (_v1.$ === 1) {
@@ -17697,14 +17693,14 @@
             c9: F2(function (fields, gathered) {
                 return _Utils_ap(fields, gathered);
             }),
-            eP: $elm$core$List$map_fn($author$project$Press$Generate$Route$toTokenPattern, pattern.hR),
-            h_: $mdgriffith$elm_codegen$Elm$Case$Branch$var("andPathTail"),
-            fG: _List_Nil
+            eP: $elm$core$List$map_fn($author$project$Press$Generate$Route$toTokenPattern, pattern.hS),
+            h$: $mdgriffith$elm_codegen$Elm$Case$Branch$var("andPathTail"),
+            fH: _List_Nil
         }) : $mdgriffith$elm_codegen$Elm$Case$Branch$list({
             cT: function (pathFields) {
                 var queryParamFields = $elm$core$Set$foldl_fn_unwrapped(function (queryField, gathered) {
                     return _List_Cons(_Utils_Tuple2(queryField, A2($author$project$Gen$Maybe$call_.bv, $author$project$Gen$List$values_.dj, $author$project$Gen$Dict$get_fn($mdgriffith$elm_codegen$Elm$string(queryField), $mdgriffith$elm_codegen$Elm$get_fn("queryParameters", appUrl)))), gathered);
-                }, _List_Nil, pattern.hV.az);
+                }, _List_Nil, pattern.hW.az);
                 var fields = _Utils_ap(pathFields, queryParamFields);
                 return $mdgriffith$elm_codegen$Elm$just($mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val(page.ds), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$record(fields)
@@ -17713,8 +17709,8 @@
             c9: F2(function (fields, gathered) {
                 return _Utils_ap(fields, gathered);
             }),
-            eP: $elm$core$List$map_fn($author$project$Press$Generate$Route$toTokenPattern, pattern.hR),
-            fG: _List_Nil
+            eP: $elm$core$List$map_fn($author$project$Press$Generate$Route$toTokenPattern, pattern.hS),
+            fH: _List_Nil
         });
     }, $author$project$Press$Generate$Route$urlToPatterns = F3($author$project$Press$Generate$Route$urlToPatterns_fn);
     var $author$project$Press$Generate$Route$toBranchPattern_fn = function (appUrl, page) {
@@ -17783,7 +17779,7 @@
     };
     var $author$project$Press$Generate$Route$getParamVariableList = function (page) {
         var _v0 = page.af;
-        var path = _v0.hR;
+        var path = _v0.hS;
         return $elm$core$List$filterMap_fn(function (piece) {
             if (!piece.$) {
                 return $elm$core$Maybe$Nothing;
@@ -17819,7 +17815,7 @@
         ]);
     };
     var $author$project$Press$Generate$Route$generate = function (routes) {
-        return $mdgriffith$elm_codegen$Elm$fileWith_fn(_List_fromArray(["Route"]), {
+        return $mdgriffith$elm_codegen$Elm$fileWith_fn($author$project$Press$Model$types.fi, {
             bt: _List_Nil,
             cp: function (groups) {
                 return $elm$core$List$map_fn($mdgriffith$elm_codegen$Elm$docs, _List_sortBy_fn(function (doc) {
@@ -17953,7 +17949,7 @@
     var $author$project$Press$Model$hasCollisions_fn = function (_v0, _v1) {
         var one = _v0;
         var two = _v1;
-        return $author$project$Press$Model$hasCollisionsHelp_fn(one, one.hR, two, two.hR);
+        return $author$project$Press$Model$hasCollisionsHelp_fn(one, one.hS, two, two.hS);
     }, $author$project$Press$Model$hasCollisions = F2($author$project$Press$Model$hasCollisions_fn);
     var $author$project$Press$Generate$validatePageRoutes_fn = function (allPages, page) {
         var otherRoutes = $elm$core$List$concatMap_fn($author$project$Press$Model$getRoutes, $elm$core$List$filter_fn(function (p) {
@@ -17966,7 +17962,7 @@
         else {
             var collisions = _v0;
             return _List_fromArray([
-                { gJ: page, gU: collisions }
+                { gK: page, gV: collisions }
             ]);
         }
     }, $author$project$Press$Generate$validatePageRoutes = F2($author$project$Press$Generate$validatePageRoutes_fn);
@@ -17998,7 +17994,7 @@
     var $author$project$Gen$CodeGen$Generate$onFailureSend = _Platform_outgoingPort("onFailureSend", $elm$json$Json$Encode$list(function ($) {
         return $elm$json$Json$Encode$object(_List_fromArray([
             _Utils_Tuple2("description", $elm$json$Json$Encode$string($.aJ)),
-            _Utils_Tuple2("title", $elm$json$Json$Encode$string($.ig))
+            _Utils_Tuple2("title", $elm$json$Json$Encode$string($.ih))
         ]));
     }));
     var $author$project$Gen$CodeGen$Generate$error = function (errs) {
@@ -18007,13 +18003,13 @@
     var $author$project$Gen$CodeGen$Generate$onSuccessSend = _Platform_outgoingPort("onSuccessSend", $elm$json$Json$Encode$list(function ($) {
         return $elm$json$Json$Encode$object(_List_fromArray([
             _Utils_Tuple2("contents", $elm$json$Json$Encode$string($.cb)),
-            _Utils_Tuple2("path", $elm$json$Json$Encode$string($.hR)),
+            _Utils_Tuple2("path", $elm$json$Json$Encode$string($.hS)),
             _Utils_Tuple2("warnings", $elm$json$Json$Encode$list(function ($) {
                 return $elm$json$Json$Encode$object(_List_fromArray([
-                    _Utils_Tuple2("declaration", $elm$json$Json$Encode$string($.gZ)),
-                    _Utils_Tuple2("warning", $elm$json$Json$Encode$string($.$9))
+                    _Utils_Tuple2("declaration", $elm$json$Json$Encode$string($.g_)),
+                    _Utils_Tuple2("warning", $elm$json$Json$Encode$string($.io))
                 ]));
-            })($.gx))
+            })($.gy))
         ]));
     }));
     var $author$project$Gen$CodeGen$Generate$files = function (list) {
@@ -18034,7 +18030,7 @@
                     var _v0 = f(flags);
                     if (!_v0.$) {
                         var result = _v0.a;
-                        return $elm$core$Platform$Cmd$batch(_Utils_ap($elm$core$List$map_fn($author$project$Gen$CodeGen$Generate$info, result.hn), _List_fromArray([
+                        return $elm$core$Platform$Cmd$batch(_Utils_ap($elm$core$List$map_fn($author$project$Gen$CodeGen$Generate$info, result.ho), _List_fromArray([
                             $author$project$Gen$CodeGen$Generate$files(result.cQ)
                         ])));
                     }
@@ -18044,10 +18040,10 @@
                     }
                 }());
             },
-            h9: function (_v1) {
+            ia: function (_v1) {
                 return $elm$core$Platform$Sub$none;
             },
-            ij: F2(function (_v2, model) {
+            ik: F2(function (_v2, model) {
                 return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
             })
         });
@@ -18059,7 +18055,7 @@
             var _v1 = $author$project$Press$Generate$generate(input);
             if (!_v1.$) {
                 var output = _v1.a;
-                return $elm$core$Result$Ok({ cQ: output, hn: _List_Nil });
+                return $elm$core$Result$Ok({ cQ: output, ho: _List_Nil });
             }
             else {
                 var errorList = _v1.a;
@@ -18071,7 +18067,7 @@
             return $elm$core$Result$Err(_List_fromArray([
                 {
                     aJ: $elm$json$Json$Decode$errorToString(e),
-                    ig: "Error decoding flags"
+                    ih: "Error decoding flags"
                 }
             ]));
         }

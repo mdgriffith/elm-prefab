@@ -38,7 +38,7 @@ import Set exposing (Set)
 
 generate : List Press.Model.Page -> Elm.File
 generate routes =
-    Elm.fileWith [ "Route" ]
+    Elm.fileWith types.routePath
         { docs =
             \groups ->
                 groups
@@ -274,7 +274,7 @@ assetLookup routes =
 
 urlEncoder : List Page -> List Elm.Declaration
 urlEncoder routes =
-    [ Elm.declaration "toUrl"
+    [ Elm.declaration "toString"
         (Elm.fn ( "route", Just (Type.named [] "Route") )
             (\route ->
                 Elm.Case.custom route

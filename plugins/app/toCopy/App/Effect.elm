@@ -23,13 +23,13 @@ port module App.Effect exposing
 
 -}
 
+import App.Route
 import Browser
 import Browser.Dom
 import Browser.Navigation
 import Html
 import Http
 import Json.Encode
-import Route
 import Task
 
 
@@ -58,7 +58,7 @@ load =
     Load
 
 
-preload : Route.Route -> Effect msg
+preload : App.Route.Route -> Effect msg
 preload =
     Preload
 
@@ -87,7 +87,7 @@ type Effect msg
     | PushUrl String
     | ReplaceUrl String
       -- Loading
-    | Preload Route.Route
+    | Preload App.Route.Route
     | Load String
     | Reload
       -- History navigation
@@ -103,7 +103,7 @@ type Effect msg
 port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
 
 
-toCmd : { options | navKey : Browser.Navigation.Key, preload : Route.Route -> msg } -> Effect msg -> Cmd msg
+toCmd : { options | navKey : Browser.Navigation.Key, preload : App.Route.Route -> msg } -> Effect msg -> Cmd msg
 toCmd options effect =
     case effect of
         None ->

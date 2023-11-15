@@ -208,7 +208,7 @@ parseUrl : Elm.Expression -> Elm.Expression
 parseUrl url =
     Elm.apply
         (Elm.value
-            { importFrom = [ "Route" ]
+            { importFrom = types.routePath
             , name = "parse"
             , annotation = Nothing
             }
@@ -446,7 +446,7 @@ update routes getPageInit loadPage preloadPage =
                                                 id =
                                                     Elm.apply
                                                         (Elm.value
-                                                            { importFrom = [ "Route" ]
+                                                            { importFrom = types.routePath
                                                             , name = "toId"
                                                             , annotation = Nothing
                                                             }

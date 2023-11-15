@@ -116,9 +116,9 @@ toSourceDirectoryReference route assets src =
                 , ( "route"
                   , Elm.apply
                         (Elm.value
-                            { importFrom = [ "Route" ]
+                            { importFrom = types.routePath
                             , name = route.id
-                            , annotation = Just (Type.named [ "Route" ] "Route")
+                            , annotation = Just (Type.named types.routePath "Route")
                             }
                         )
                         [ Elm.record

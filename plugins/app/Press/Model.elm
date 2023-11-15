@@ -128,21 +128,6 @@ getRoutes page =
     page.url :: page.deprecatedUrls
 
 
-appMsg : Type.Annotation
-appMsg =
-    Type.namedWith [] "Msg" [ Type.var "msg" ]
-
-
-sharedType : Type.Annotation
-sharedType =
-    Type.named [ "App", "Shared" ] "Shared"
-
-
-routeType : Type.Annotation
-routeType =
-    Type.named [ "Route" ] "Route"
-
-
 type ConfigType
     = ViewConfig
     | SubscriptionConfig
@@ -245,9 +230,29 @@ toConfig configType =
         )
 
 
+appMsg : Type.Annotation
+appMsg =
+    Type.namedWith [] "Msg" [ Type.var "msg" ]
+
+
+sharedType : Type.Annotation
+sharedType =
+    Type.named [ "App", "Shared" ] "Shared"
+
+
+routePath =
+    [ "App", "Route" ]
+
+
+routeType : Type.Annotation
+routeType =
+    Type.named routePath "Route"
+
+
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
+    , routePath = routePath
     , routeType = routeType
     , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
     , testModel = Type.namedWith [] "Model" [ Type.unit, Type.var "model" ]
@@ -442,7 +447,7 @@ loadPage routes =
                 |> Elm.Let.value "pageId"
                     (Elm.apply
                         (Elm.value
-                            { importFrom = [ "Route" ]
+                            { importFrom = types.routePath
                             , name = "toId"
                             , annotation = Nothing
                             }
@@ -559,7 +564,7 @@ preloadPage routes =
                 |> Elm.Let.value "pageId"
                     (Elm.apply
                         (Elm.value
-                            { importFrom = [ "Route" ]
+                            { importFrom = types.routePath
                             , name = "toId"
                             , annotation = Nothing
                             }
