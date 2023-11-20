@@ -91,6 +91,7 @@ generate options =
         , Elm.alias "Model" types.modelRecord
         , viewRegionAlias options.viewRegions
         , setRegion options.viewRegions
+        , toAllRegions options.viewRegions
         , renderRegions options.viewRegions
 
         -- , dropRegion options.viewRegions
@@ -282,6 +283,35 @@ setRegion regions =
                         )
                         allRegions
                     )
+            )
+        )
+
+
+toAllRegions : Press.Model.ViewRegions -> Elm.Declaration
+toAllRegions regions =
+    let
+        allRegions =
+            ( "Primary", Press.Model.One ) :: regions.regions
+    in
+    Elm.declaration "toAllRegions"
+        (Elm.fn
+            ( "viewRegions", Just types.regionsRecord )
+            (\viewRegions ->
+                allRegions
+                    |> List.map
+                        (\( typename, regionType ) ->
+                            case regionType of
+                                Press.Model.One ->
+                                    Elm.get typename viewRegions
+                                        |> Gen.Maybe.map (\x -> Elm.list [ x ])
+                                        |> Gen.Maybe.withDefault (Elm.list [])
+
+                                Press.Model.Many ->
+                                    Elm.get typename viewRegions
+                        )
+                    |> Elm.list
+                    |> Gen.List.call_.concat
+                    |> Elm.withType (Type.list Type.string)
             )
         )
 
@@ -933,25 +963,22 @@ subscriptions routes =
                         [ Elm.get "frame" model ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
-                    , Elm.Case.maybe (Gen.App.State.current (Elm.get "states" model))
-                        { nothing = Gen.Platform.Sub.none
-                        , just =
-                            ( "currentState"
-                            , \current ->
-                                Elm.Case.custom current
-                                    types.pageModel
-                                    (Elm.Case.branch1 "PageError_"
-                                        ( "pageError", Gen.App.PageError.annotation_.error )
-                                        (\err -> Gen.Platform.Sub.none)
-                                        :: Elm.Case.branch1 "PageLoading_"
-                                            ( "pageRoute", types.routeType )
-                                            (\pageRoute -> Gen.Platform.Sub.none)
-                                        :: List.map
-                                            (routeToSubscription config model)
-                                            routes
-                                    )
+                    , Elm.apply (Elm.val "toAllRegions")
+                        [ Elm.get "regions" model ]
+                        |> Gen.List.call_.filterMap
+                            (Elm.fn
+                                ( "pageId", Just Type.string )
+                                (\pageId ->
+                                    Elm.Case.maybe (Gen.App.State.call_.get pageId (Elm.get "states" model))
+                                        { nothing = Elm.nothing
+                                        , just =
+                                            ( "pageState"
+                                            , pageModelToSubscription config model routes
+                                            )
+                                        }
+                                )
                             )
-                        }
+                        |> Gen.Platform.Sub.call_.batch
                     ]
             )
             |> Elm.withType
@@ -961,6 +988,21 @@ subscriptions routes =
                     ]
                     (Gen.Platform.Sub.annotation_.sub types.msg)
                 )
+        )
+
+
+pageModelToSubscription config model routes current =
+    Elm.Case.custom current
+        types.pageModel
+        (Elm.Case.branch1 "PageError_"
+            ( "pageError", Gen.App.PageError.annotation_.error )
+            (\err -> Gen.Platform.Sub.none)
+            :: Elm.Case.branch1 "PageLoading_"
+                ( "pageRoute", types.routeType )
+                (\pageRoute -> Gen.Platform.Sub.none)
+            :: List.map
+                (routeToSubscription config model)
+                routes
         )
 
 
