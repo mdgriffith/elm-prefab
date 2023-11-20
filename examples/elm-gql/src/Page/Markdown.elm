@@ -15,7 +15,7 @@ import Html
 
 {-| -}
 type alias Model =
-     { src : String, path : List String }
+    { src : String, path : List String }
 
 
 {-| -}
@@ -33,7 +33,7 @@ page =
         , update = \shared msg model -> ( model, App.Effect.none )
         , subscriptions = \shared model -> App.Sub.none
         , view =
-            \shared model ->
+            \region shared model ->
                 { title = "Markdown"
                 , body =
                     Html.text model.src

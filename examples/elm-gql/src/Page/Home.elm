@@ -41,7 +41,7 @@ page =
         , update = \shared msg model -> ( model, Effect.none )
         , subscriptions = \shared model -> App.Sub.none
         , view =
-            \shared model ->
+            \region shared model ->
                 { title = "test"
                 , body =
                     Html.text model
