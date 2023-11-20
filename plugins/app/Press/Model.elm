@@ -252,16 +252,10 @@ toConfig configType =
               )
             , ( [ ViewConfig, TestConfig ]
               , "view"
-                --   Type.function
-                --         [ Type.function [ Type.var "msg" ] appMsg
-                --         , Type.var "model"
-                --         , Type.namedWith [] "View" [ appMsg ]
-                --         ]
-                --         (Gen.Browser.annotation_.document appMsg)
               , Type.function
                     [ Type.function [ Type.var "msg" ] appMsg
                     , Type.var "model"
-                    , Type.namedWith [ "App", "View", "Region" ]
+                    , Type.namedWith [ "App", "View" ]
                         "Regions"
                         [ Type.namedWith []
                             "View"
@@ -273,21 +267,7 @@ toConfig configType =
             , ( []
               , "toCmd"
               , Type.function
-                    [ Type.record
-                        [ ( "navKey", Gen.Browser.Navigation.annotation_.key )
-                        , ( "toApp"
-                          , Type.function [ Type.var "msg" ] appMsg
-                          )
-                        , ( "dropPageCache"
-                          , appMsg
-                          )
-                        , ( "preload"
-                          , Type.function [ routeType ] appMsg
-                          )
-                        , ( "reinitializeCurrentPage"
-                          , appMsg
-                          )
-                        ]
+                    [ Type.namedWith [] "CmdOptions" [ Type.var "msg" ]
                     , Type.var "model"
                     , Gen.App.Effect.annotation_.effect appMsg
                     ]
@@ -339,8 +319,20 @@ stateCache =
     Gen.App.State.annotation_.cache (Type.named [] "State")
 
 
+regionOperation =
+    Type.named [ "App", "View", "Id" ] "Operation"
+
+
 regionViewType =
-    Type.namedWith [ "App", "View", "Region" ] "Regions"
+    Type.namedWith [ "App", "View" ] "Regions"
+
+
+regionIdType =
+    Type.named [ "App", "View", "Id" ] "Id"
+
+
+regionType =
+    Type.named [ "App", "View", "Id" ] "Region"
 
 
 types =
@@ -356,10 +348,31 @@ types =
             appMsg
             (Type.named [] "State")
     , regionsRecord = regionsRecord
-    , regionIdType = Type.named [ "App", "View", "Regions", "Id" ] "Id"
+    , regionIdType = regionIdType
     , regionViewType = regionViewType
+    , regionOperation = regionOperation
+    , regionType = regionType
     , stateCache = stateCache
     , renderedView = regionViewType [ Type.namedWith [] "View" [ appMsg ] ]
+    , cmdOptions =
+        Type.record
+            [ ( "navKey", Gen.Browser.Navigation.annotation_.key )
+            , ( "toApp"
+              , Type.function [ Type.var "msg" ] appMsg
+              )
+            , ( "dropPageCache"
+              , appMsg
+              )
+            , ( "preload"
+              , Type.function [ routeType ] appMsg
+              )
+            , ( "regionUpdate"
+              , Type.function [ regionOperation ] appMsg
+              )
+            , ( "reinitializeCurrentPage"
+              , appMsg
+              )
+            ]
     , modelRecord =
         Type.record
             [ ( "key", Type.var "key" )
@@ -407,6 +420,7 @@ toCmd config navKey frameModel effect =
             [ ( "navKey", navKey )
             , ( "toApp", Elm.val "Global" )
             , ( "dropPageCache", Elm.val "PageCacheCleared" )
+            , ( "regionUpdate", Elm.val "ViewUpdated" )
             , ( "preload", Elm.val "Preload" )
             , ( "reinitializeCurrentPage", Elm.val "PageReinitializeRequested" )
             ]
@@ -491,7 +505,7 @@ loadPage routes =
                                             , ( "regions"
                                               , Elm.apply (Elm.val "setRegion")
                                                     [ Elm.value
-                                                        { importFrom = [ "App", "View", "Regions", "Id" ]
+                                                        { importFrom = [ "App", "View", "Id" ]
                                                         , name = "Primary"
                                                         , annotation = Nothing
                                                         }
@@ -519,7 +533,7 @@ loadPage routes =
                                         , ( "regions"
                                           , Elm.apply (Elm.val "setRegion")
                                                 [ Elm.value
-                                                    { importFrom = [ "App", "View", "Regions", "Id" ]
+                                                    { importFrom = [ "App", "View", "Id" ]
                                                     , name = "Primary"
                                                     , annotation = Nothing
                                                     }
@@ -555,7 +569,7 @@ loadPage routes =
                                             , ( "regions"
                                               , Elm.apply (Elm.val "setRegion")
                                                     [ Elm.value
-                                                        { importFrom = [ "App", "View", "Regions", "Id" ]
+                                                        { importFrom = [ "App", "View", "Id" ]
                                                         , name = "Primary"
                                                         , annotation = Nothing
                                                         }

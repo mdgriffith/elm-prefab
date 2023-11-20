@@ -1,8 +1,13 @@
-module App.View exposing (View, map)
+module App.View exposing
+    ( View, map
+    , Regions
+    )
 
 {-|
 
 @docs View, map
+
+@docs Regions
 
 -}
 
@@ -19,4 +24,16 @@ map : (a -> b) -> View a -> View b
 map fn myView =
     { title = myView.title
     , body = Html.map fn myView.body
+    }
+
+
+
+{- Regions -}
+
+
+{-| -}
+type alias Regions view =
+    { primary : view
+    , nav : Maybe view
+    , detail : List view
     }

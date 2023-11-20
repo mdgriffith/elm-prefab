@@ -17,7 +17,7 @@ import App.PageError
 import App.Shared
 import App.Sub
 import App.View
-import App.View.Regions.Id
+import App.View.Id
 
 
 {-| -}
@@ -30,7 +30,7 @@ page :
     { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
     , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
     , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
-    , view : App.View.Regions.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
+    , view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
     }
     -> Page params msg model
 page =
@@ -47,7 +47,7 @@ authenticated :
     { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
     , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
     , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
-    , view : App.View.Regions.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
+    , view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
     }
     -> Page params msg model
 authenticated options =

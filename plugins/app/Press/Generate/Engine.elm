@@ -6,6 +6,7 @@ import Elm
 import Elm.Annotation as Type
 import Elm.Case
 import Elm.Let
+import Elm.Op
 import Gen.App.Effect
 import Gen.App.PageError
 import Gen.App.State
@@ -85,16 +86,26 @@ generate options =
                 { group = Just "App"
                 , exposeConstructor = True
                 }
+        , Elm.alias "CmdOptions" types.cmdOptions
+            |> Elm.exposeWith
+                { group = Just "App"
+                , exposeConstructor = True
+                }
         , app options getPageInit loadPage
         , testAlias
         , test options getPageInit loadPage
         , Elm.alias "Model" types.modelRecord
         , viewRegionAlias options.viewRegions
-        , setRegion options.viewRegions
-        , toAllRegions options.viewRegions
-        , renderRegions options.viewRegions
+        , runRegionOperation getPageInit preloadPage options.viewRegions
 
-        -- , dropRegion options.viewRegions
+        -- Region management
+        , setRegion options.viewRegions
+        , setRegionItem options.viewRegions
+        , clearRegion options.viewRegions
+        , clearRegionAt options.viewRegions
+        , toAllPageIds options.viewRegions
+        , allRegionsDeclaration options.viewRegions
+        , renderRegions options.viewRegions
         , Elm.customType "State"
             (let
                 routeVariants =
@@ -140,6 +151,9 @@ msgType routes =
          , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
          , Elm.variant "PageCacheCleared"
          , Elm.variantWith "Preload" [ types.routeType ]
+
+         --  , Elm.variantWith "LoadAt" [ types.routeType, types.regionType ]
+         , Elm.variantWith "ViewUpdated" [ types.regionOperation ]
          , Elm.variant "PageReinitializeRequested"
          , Elm.variantWith "Global" [ Type.var "msg" ]
          , Elm.variantWith "Loaded"
@@ -195,10 +209,13 @@ renderRegions regions =
                     |> List.map
                         (\( fieldName, regionType ) ->
                             let
+                                idName =
+                                    capitalize fieldName ++ "Id"
+
                                 regionId =
                                     Elm.value
-                                        { importFrom = [ "App", "View", "Regions", "Id" ]
-                                        , name = capitalize fieldName
+                                        { importFrom = [ "App", "View", "Id" ]
+                                        , name = idName
                                         , annotation = Just types.regionIdType
                                         }
                             in
@@ -235,14 +252,24 @@ renderRegions regions =
 
                                 Press.Model.Many ->
                                     Elm.get fieldName viewRegions
-                                        |> Gen.List.call_.filterMap
-                                            (Elm.apply
-                                                (Elm.val "viewPageModel")
-                                                [ shared
-                                                , state
-                                                , regionId
-                                                ]
+                                        |> Gen.List.call_.indexedMap
+                                            (Elm.fn2
+                                                ( "index", Just Type.int )
+                                                ( "pageId", Just Type.string )
+                                                (\index pageId ->
+                                                    Elm.apply
+                                                        (Elm.val "viewPageModel")
+                                                        [ shared
+                                                        , state
+                                                        , Elm.apply regionId
+                                                            [ index
+                                                            ]
+                                                        , pageId
+                                                        ]
+                                                )
                                             )
+                                        |> Gen.List.call_.filterMap
+                                            (Elm.fn ( "x", Nothing ) identity)
                             )
                         )
                     |> Elm.record
@@ -251,6 +278,192 @@ renderRegions regions =
         )
 
 
+runRegionOperation getPageInit preloadPage regions =
+    let
+        allRegions =
+            ( "Primary", Press.Model.One ) :: regions.regions
+    in
+    Elm.declaration "runRegionOperation"
+        (Elm.fn3
+            ( "config", Just types.frameUpdate )
+            ( "operation", Just types.regionOperation )
+            ( "model", Just types.model )
+            (\config operation model ->
+                Elm.Case.custom operation
+                    types.regionOperation
+                    [ Elm.Case.branch2 "Push"
+                        ( "region", types.regionType )
+                        ( "route", types.routeType )
+                        (\region routeToLoad ->
+                            let
+                                shared =
+                                    Press.Model.toShared config (Elm.get "frame" model)
+
+                                pageId =
+                                    Elm.apply
+                                        (Elm.value
+                                            { importFrom = types.routePath
+                                            , name = "toId"
+                                            , annotation = Nothing
+                                            }
+                                        )
+                                        [ routeToLoad ]
+                            in
+                            Elm.Let.letIn
+                                (\newModel ->
+                                    getPageInit.call routeToLoad
+                                        shared
+                                        (Elm.get "states" newModel)
+                                        |> preloadPage.call config newModel routeToLoad
+                                )
+                                |> Elm.Let.value "modelWithRegionSet"
+                                    (Elm.updateRecord
+                                        [ ( "regions"
+                                          , Elm.apply (Elm.val "setRegion")
+                                                [ region
+                                                , pageId
+                                                , Elm.get "regions" model
+                                                ]
+                                          )
+                                        ]
+                                        model
+                                    )
+                                |> Elm.Let.toExpression
+                        )
+                    , Elm.Case.branch2 "PushTo"
+                        ( "regionId", types.regionIdType )
+                        ( "route", types.routeType )
+                        (\regionId routeToLoad ->
+                            let
+                                shared =
+                                    Press.Model.toShared config (Elm.get "frame" model)
+
+                                pageId =
+                                    Elm.apply
+                                        (Elm.value
+                                            { importFrom = types.routePath
+                                            , name = "toId"
+                                            , annotation = Nothing
+                                            }
+                                        )
+                                        [ routeToLoad ]
+                            in
+                            Elm.Let.letIn
+                                (\newModel ->
+                                    getPageInit.call routeToLoad
+                                        shared
+                                        (Elm.get "states" newModel)
+                                        |> preloadPage.call config newModel routeToLoad
+                                )
+                                |> Elm.Let.value "modelWithRegionSet"
+                                    (Elm.updateRecord
+                                        [ ( "regions"
+                                          , Elm.apply (Elm.val "setRegionItem")
+                                                [ regionId
+                                                , pageId
+                                                , Elm.get "regions" model
+                                                , Elm.bool False
+                                                ]
+                                          )
+                                        ]
+                                        model
+                                    )
+                                |> Elm.Let.toExpression
+                        )
+                    , Elm.Case.branch2 "ReplaceAt"
+                        ( "regionId", types.regionIdType )
+                        ( "route", types.routeType )
+                        (\regionId routeToLoad ->
+                            let
+                                shared =
+                                    Press.Model.toShared config (Elm.get "frame" model)
+
+                                pageId =
+                                    Elm.apply
+                                        (Elm.value
+                                            { importFrom = types.routePath
+                                            , name = "toId"
+                                            , annotation = Nothing
+                                            }
+                                        )
+                                        [ routeToLoad ]
+                            in
+                            Elm.Let.letIn
+                                (\newModel ->
+                                    getPageInit.call routeToLoad
+                                        shared
+                                        (Elm.get "states" newModel)
+                                        |> preloadPage.call config newModel routeToLoad
+                                )
+                                |> Elm.Let.value "modelWithRegionSet"
+                                    (Elm.updateRecord
+                                        [ ( "regions"
+                                          , Elm.apply (Elm.val "setRegionItem")
+                                                [ regionId
+                                                , pageId
+                                                , Elm.get "regions" model
+                                                , Elm.bool True
+                                                ]
+                                          )
+                                        ]
+                                        model
+                                    )
+                                |> Elm.Let.toExpression
+                        )
+                    , Elm.Case.branch0 "Clear"
+                        (Elm.tuple
+                            (Elm.updateRecord
+                                [ ( "regions"
+                                  , Gen.List.call_.foldl
+                                        (Elm.val "clearRegion")
+                                        (Elm.get "regions" model)
+                                        (Elm.val "allRegions")
+                                  )
+                                ]
+                                model
+                            )
+                            Gen.App.Effect.none
+                        )
+                    , Elm.Case.branch1 "ClearRegion"
+                        ( "region", types.regionType )
+                        (\region ->
+                            Elm.tuple
+                                (Elm.updateRecord
+                                    [ ( "regions"
+                                      , Elm.apply (Elm.val "clearRegion")
+                                            [ region
+                                            , Elm.get "regions" model
+                                            ]
+                                      )
+                                    ]
+                                    model
+                                )
+                                Gen.App.Effect.none
+                        )
+                    , Elm.Case.branch1 "ClearView"
+                        ( "regionId", types.regionIdType )
+                        (\regionId ->
+                            Elm.tuple
+                                (Elm.updateRecord
+                                    [ ( "regions"
+                                      , Elm.apply (Elm.val "clearRegionAt")
+                                            [ regionId
+                                            , Elm.get "regions" model
+                                            ]
+                                      )
+                                    ]
+                                    model
+                                )
+                                Gen.App.Effect.none
+                        )
+                    ]
+                    |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))
+            )
+        )
+
+
+{-| Clear a region and set the new content
+-}
 setRegion : Press.Model.ViewRegions -> Elm.Declaration
 setRegion regions =
     let
@@ -259,12 +472,12 @@ setRegion regions =
     in
     Elm.declaration "setRegion"
         (Elm.fn3
-            ( "regionId", Just types.regionIdType )
+            ( "region", Just types.regionType )
             ( "contentId", Just Type.string )
             ( "viewRegions", Just types.regionsRecord )
-            (\id contentId viewRegions ->
-                Elm.Case.custom id
-                    types.regionIdType
+            (\region contentId viewRegions ->
+                Elm.Case.custom region
+                    types.regionType
                     (List.map
                         (\( field, regionType ) ->
                             Elm.Case.branch0 field
@@ -287,13 +500,213 @@ setRegion regions =
         )
 
 
-toAllRegions : Press.Model.ViewRegions -> Elm.Declaration
-toAllRegions regions =
+{-| Given a specific region ID, insert a new page id at that
+-}
+setRegionItem : Press.Model.ViewRegions -> Elm.Declaration
+setRegionItem regions =
     let
         allRegions =
             ( "Primary", Press.Model.One ) :: regions.regions
     in
-    Elm.declaration "toAllRegions"
+    Elm.declaration "setRegionItem"
+        (Elm.fn4
+            ( "regionId", Just types.regionIdType )
+            ( "contentId", Just Type.string )
+            ( "viewRegions", Just types.regionsRecord )
+            ( "replaceExisting", Just Type.bool )
+            (\regionId newPageId viewRegions replaceExisting ->
+                Elm.Case.custom regionId
+                    types.regionIdType
+                    (List.map
+                        (\( field, regionType ) ->
+                            case regionType of
+                                Press.Model.One ->
+                                    Elm.Case.branch0 (toRegionIdType field)
+                                        (Elm.updateRecord
+                                            [ ( field
+                                              , Elm.just newPageId
+                                              )
+                                            ]
+                                            viewRegions
+                                        )
+
+                                Press.Model.Many ->
+                                    Elm.Case.branch1 (toRegionIdType field)
+                                        ( "index", Type.int )
+                                        (\index ->
+                                            Elm.ifThen (Elm.Op.lte index (Elm.int 0))
+                                                -- Add to the beginning
+                                                (Elm.updateRecord
+                                                    [ ( field
+                                                      , Elm.Op.cons newPageId (Elm.get field viewRegions)
+                                                      )
+                                                    ]
+                                                    viewRegions
+                                                )
+                                                (Elm.ifThen (Elm.Op.gt index (Gen.List.call_.length (Elm.get field viewRegions)))
+                                                    -- Add to the end
+                                                    (Elm.updateRecord
+                                                        [ ( field
+                                                          , Elm.Op.append
+                                                                (Elm.get field viewRegions)
+                                                                (Elm.list [ newPageId ])
+                                                          )
+                                                        ]
+                                                        viewRegions
+                                                    )
+                                                    -- Add at the index, pushing whatever back
+                                                    (Elm.updateRecord
+                                                        [ ( field
+                                                          , Elm.get field viewRegions
+                                                                |> Gen.List.call_.indexedMap
+                                                                    (Elm.fn2
+                                                                        ( "itemIndex", Just Type.int )
+                                                                        ( "pageId", Just Type.string )
+                                                                        (\itemIndex pageId ->
+                                                                            Elm.ifThen (Elm.Op.equal itemIndex index)
+                                                                                (Elm.list [ newPageId, pageId ])
+                                                                                (Elm.list [ pageId ])
+                                                                        )
+                                                                    )
+                                                                |> Gen.List.call_.concat
+                                                          )
+                                                        ]
+                                                        viewRegions
+                                                    )
+                                                )
+                                        )
+                        )
+                        allRegions
+                    )
+                    |> Elm.withType types.regionsRecord
+            )
+        )
+
+
+clearRegion : Press.Model.ViewRegions -> Elm.Declaration
+clearRegion regions =
+    let
+        allRegions =
+            ( "Primary", Press.Model.One ) :: regions.regions
+    in
+    Elm.declaration "clearRegion"
+        (Elm.fn2
+            ( "region", Just types.regionType )
+            ( "viewRegions", Just types.regionsRecord )
+            (\region viewRegions ->
+                Elm.Case.custom region
+                    types.regionType
+                    (List.map
+                        (\( field, regionType ) ->
+                            Elm.Case.branch0 field
+                                (Elm.updateRecord
+                                    [ ( field
+                                      , case regionType of
+                                            Press.Model.One ->
+                                                Elm.nothing
+
+                                            Press.Model.Many ->
+                                                Elm.list []
+                                      )
+                                    ]
+                                    viewRegions
+                                )
+                        )
+                        allRegions
+                    )
+            )
+        )
+
+
+toRegionIdType base =
+    capitalize base ++ "Id"
+
+
+clearRegionAt : Press.Model.ViewRegions -> Elm.Declaration
+clearRegionAt regions =
+    let
+        allRegions =
+            ( "Primary", Press.Model.One ) :: regions.regions
+    in
+    Elm.declaration "clearRegionAt"
+        (Elm.fn2
+            ( "regionId", Just types.regionIdType )
+            ( "viewRegions", Just types.regionsRecord )
+            (\regionId viewRegions ->
+                Elm.Case.custom regionId
+                    types.regionIdType
+                    (List.map
+                        (\( field, regionType ) ->
+                            case regionType of
+                                Press.Model.One ->
+                                    Elm.Case.branch0 (toRegionIdType field)
+                                        (Elm.updateRecord
+                                            [ ( field
+                                              , Elm.nothing
+                                              )
+                                            ]
+                                            viewRegions
+                                        )
+
+                                Press.Model.Many ->
+                                    Elm.Case.branch1 (toRegionIdType field)
+                                        ( "index", Type.int )
+                                        (\index ->
+                                            -- Add at the index, pushing whatever back
+                                            Elm.updateRecord
+                                                [ ( field
+                                                  , Elm.get field viewRegions
+                                                        |> Gen.List.call_.indexedMap
+                                                            (Elm.fn2
+                                                                ( "itemIndex", Just Type.int )
+                                                                ( "pageId", Just Type.string )
+                                                                (\itemIndex pageId ->
+                                                                    Elm.ifThen (Elm.Op.equal itemIndex index)
+                                                                        (Elm.list [])
+                                                                        (Elm.list [ pageId ])
+                                                                )
+                                                            )
+                                                        |> Gen.List.call_.concat
+                                                  )
+                                                ]
+                                                viewRegions
+                                        )
+                        )
+                        allRegions
+                    )
+                    |> Elm.withType types.regionsRecord
+            )
+        )
+
+
+allRegionsDeclaration : Press.Model.ViewRegions -> Elm.Declaration
+allRegionsDeclaration regions =
+    let
+        allRegions =
+            ( "Primary", Press.Model.One ) :: regions.regions
+    in
+    Elm.declaration "allRegions"
+        (Elm.list
+            (regions.regions
+                |> List.map
+                    (\( regionName, _ ) ->
+                        Elm.value
+                            { importFrom = [ "App", "View", "Id" ]
+                            , name = capitalize regionName
+                            , annotation = Just types.regionType
+                            }
+                    )
+            )
+        )
+
+
+toAllPageIds : Press.Model.ViewRegions -> Elm.Declaration
+toAllPageIds regions =
+    let
+        allRegions =
+            ( "Primary", Press.Model.One ) :: regions.regions
+    in
+    Elm.declaration "toAllPageIds"
         (Elm.fn
             ( "viewRegions", Just types.regionsRecord )
             (\viewRegions ->
@@ -314,29 +727,6 @@ toAllRegions regions =
                     |> Elm.withType (Type.list Type.string)
             )
         )
-
-
-
--- dropRegion : Press.Model.ViewRegions -> Elm.Declaration
--- dropRegion regions =
---     let
---         mainField =
---             ( "primary", Type.maybe Type.string )
---         regionFields =
---             regions.regions
---                 |> List.map
---                     (\( field, regionType ) ->
---                         ( field
---                         , case regionType of
---                             Press.Model.One ->
---                                 Type.maybe Type.string
---                             Press.Model.Many ->
---                                 Type.list Type.string
---                         )
---                     )
---     in
---     Elm.alias "dropRegion"
---         (Type.record (mainField :: regionFields))
 
 
 viewRegionAlias : Press.Model.ViewRegions -> Elm.Declaration
@@ -693,7 +1083,7 @@ update routes getPageInit loadPage preloadPage =
                                     Tuple.pair "newRoute" <|
                                         \newRoute ->
                                             let
-                                                id =
+                                                pageId =
                                                     Elm.apply
                                                         (Elm.value
                                                             { importFrom = types.routePath
@@ -710,17 +1100,17 @@ update routes getPageInit loadPage preloadPage =
                                                         , ( "regions"
                                                           , Elm.apply (Elm.val "setRegion")
                                                                 [ Elm.value
-                                                                    { importFrom = [ "App", "View", "Regions", "Id" ]
+                                                                    { importFrom = [ "App", "View", "Id" ]
                                                                     , name = "Primary"
                                                                     , annotation = Nothing
                                                                     }
-                                                                , id
+                                                                , pageId
                                                                 , Elm.get "regions" model
                                                                 ]
                                                           )
                                                         , ( "states"
                                                           , Elm.get "states" model
-                                                                |> Gen.App.State.call_.setCurrent id
+                                                                |> Gen.App.State.call_.setCurrent pageId
                                                           )
                                                         ]
                                                         model
@@ -773,6 +1163,15 @@ update routes getPageInit loadPage preloadPage =
                                 (Press.Model.toShared config (Elm.get "frame" model))
                                 (Elm.get "states" model)
                                 |> preloadPage.call config model routeToPreload
+                        )
+                     , Elm.Case.branch1 "ViewUpdated"
+                        ( "operation", types.regionOperation )
+                        (\regionOperation ->
+                            Elm.apply (Elm.val "runRegionOperation")
+                                [ config
+                                , regionOperation
+                                , model
+                                ]
                         )
                      , Elm.Case.branch1 "Global"
                         ( "frameMsg", Type.var "frameMsg" )
@@ -963,7 +1362,7 @@ subscriptions routes =
                         [ Elm.get "frame" model ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
-                    , Elm.apply (Elm.val "toAllRegions")
+                    , Elm.apply (Elm.val "toAllPageIds")
                         [ Elm.get "regions" model ]
                         |> Gen.List.call_.filterMap
                             (Elm.fn
@@ -973,7 +1372,8 @@ subscriptions routes =
                                         { nothing = Elm.nothing
                                         , just =
                                             ( "pageState"
-                                            , pageModelToSubscription config model routes
+                                            , \pageState ->
+                                                Elm.just (pageModelToSubscription config model routes pageState)
                                             )
                                         }
                                 )
