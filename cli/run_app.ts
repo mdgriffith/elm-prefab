@@ -107,9 +107,50 @@ export const generator = (options: any) => {
 
       await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
         pages: elmFiles,
+        regions: placeholderViewRegions,
       });
     },
   };
+};
+
+const placeholderViewRegions = {
+  moduleName: "Main",
+  definition: {
+    name: "Regions",
+    type: {
+      signature: "{ main : view, nav : Maybe view, detail : List view }",
+      components: {
+        Regions: {
+          source: {
+            pkg: "author/project",
+            module: "Main",
+          },
+          definition: {
+            type: "alias",
+            comment: null,
+            name: "Regions",
+            args: [],
+            signature: "{ main : view, nav : Maybe view, detail : List view }",
+            fields: {
+              detail: "List view",
+              primary: "view",
+              nav: "Maybe view",
+            },
+          },
+        },
+      },
+    },
+    region: {
+      start: {
+        line: 19,
+        column: 1,
+      },
+      end: {
+        line: 23,
+        column: 6,
+      },
+    },
+  },
 };
 
 /*

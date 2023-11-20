@@ -34,6 +34,7 @@ import Gen.App.Sub
 import Gen.App.View
 import Gen.Html
 import Gen.Html.Attributes
+import Gen.Maybe
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.String
@@ -670,11 +671,14 @@ init mod additional =
             ( "maybeModel", Just (Elm.Annotation.maybe (Elm.Annotation.named [] "Model")) )
             (\params shared maybeModel ->
                 Gen.App.Page.init
-                    (Elm.record
-                        (additional.focus.init
-                            :: additional.example.init
-                            ++ toInitFields mod
+                    (Gen.Maybe.withDefault
+                        (Elm.record
+                            (additional.focus.init
+                                :: additional.example.init
+                                ++ toInitFields mod
+                            )
                         )
+                        maybeModel
                     )
                     |> Elm.withType
                         (Gen.App.Page.annotation_.init

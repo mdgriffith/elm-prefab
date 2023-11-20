@@ -19,7 +19,78 @@ import Gen.Json.Encode
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.Url
+import Json.Decode
 import Set exposing (Set)
+
+
+type alias Model =
+    { pages : List Page
+    , viewRegions : ViewRegions
+    }
+
+
+type alias ViewRegions =
+    { regions : List ( String, RegionType )
+    }
+
+
+type RegionType
+    = One
+    | Many
+
+
+decodeViewRegions : Json.Decode.Decoder ViewRegions
+decodeViewRegions =
+    Json.Decode.map
+        (\regions ->
+            { regions = regions
+            }
+        )
+        (Json.Decode.at [ "definition", "type", "components", "Regions", "definition", "fields" ]
+            (Json.Decode.keyValuePairs Json.Decode.string
+                |> Json.Decode.andThen
+                    decodeRegionType
+            )
+        )
+
+
+decodeRegionType : List ( String, String ) -> Json.Decode.Decoder (List ( String, RegionType ))
+decodeRegionType strs =
+    let
+        viewTypes =
+            List.foldr
+                (\( field, val ) result ->
+                    case result of
+                        Err err ->
+                            Err err
+
+                        Ok foundTypes ->
+                            case val of
+                                "Maybe view" ->
+                                    Ok (( field, One ) :: foundTypes)
+
+                                "List view" ->
+                                    Ok (( field, Many ) :: foundTypes)
+
+                                "view" ->
+                                    if field == "primary" then
+                                        Ok foundTypes
+
+                                    else
+                                        Err "Only `primary` can be a view region of type `view`"
+
+                                _ ->
+                                    Err "Disallowed view region type"
+                )
+                (Ok [])
+                strs
+    in
+    case viewTypes of
+        Err err ->
+            Json.Decode.fail err
+
+        Ok found ->
+            Json.Decode.succeed found
 
 
 type alias Page =
@@ -181,10 +252,21 @@ toConfig configType =
               )
             , ( [ ViewConfig, TestConfig ]
               , "view"
+                --   Type.function
+                --         [ Type.function [ Type.var "msg" ] appMsg
+                --         , Type.var "model"
+                --         , Type.namedWith [] "View" [ appMsg ]
+                --         ]
+                --         (Gen.Browser.annotation_.document appMsg)
               , Type.function
                     [ Type.function [ Type.var "msg" ] appMsg
                     , Type.var "model"
-                    , Type.namedWith [] "View" [ appMsg ]
+                    , Type.namedWith [ "App", "View", "Region" ]
+                        "Regions"
+                        [ Type.namedWith []
+                            "View"
+                            [ appMsg ]
+                        ]
                     ]
                     (Gen.Browser.annotation_.document appMsg)
               )
@@ -249,9 +331,22 @@ routeType =
     Type.named routePath "Route"
 
 
+regionsRecord =
+    Type.named [] "ViewRegions"
+
+
+stateCache =
+    Gen.App.State.annotation_.cache (Type.named [] "State")
+
+
+regionViewType =
+    Type.namedWith [ "App", "View", "Region" ] "Regions"
+
+
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
+    , sharedType = sharedType
     , routePath = routePath
     , routeType = routeType
     , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
@@ -260,14 +355,20 @@ types =
         Gen.App.Engine.Page.annotation_.init
             appMsg
             (Type.named [] "State")
+    , regionsRecord = regionsRecord
+    , regionIdType = Type.named [ "App", "View", "Regions", "Id" ] "Id"
+    , regionViewType = regionViewType
+    , stateCache = stateCache
+    , renderedView = regionViewType [ Type.namedWith [] "View" [ appMsg ] ]
     , modelRecord =
         Type.record
             [ ( "key", Type.var "key" )
             , ( "url", Gen.Url.annotation_.url )
             , ( "currentRoute", Type.maybe routeType )
             , ( "states"
-              , Gen.App.State.annotation_.cache (Type.named [] "State")
+              , stateCache
               )
+            , ( "regions", regionsRecord )
             , ( "frame", Type.var "frame" )
             ]
     , frame =

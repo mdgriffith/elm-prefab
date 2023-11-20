@@ -25,8 +25,8 @@ main =
         , update = \_ model -> ( model, App.Effect.none )
         , subscriptions = \_ -> App.Sub.none
         , view =
-            \fromFrameMsg model innerView ->
-                case innerView of
+            \fromFrameMsg model regions ->
+                case regions.primary of
                     App.Engine.NotFound _ ->
                         { title = "Not found"
                         , body =
