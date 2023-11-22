@@ -4,6 +4,7 @@ import * as AppToCopy from "./templates/app/toCopy";
 import * as Options from "./options";
 import * as path from "path";
 import * as fs from "fs";
+import * as ChildProcess from "child_process";
 
 const AppGenerator = require("./generators/app");
 
@@ -104,6 +105,11 @@ export const generator = (options: any) => {
           throw new Error(`${moduleName}:  page config not found`);
         }
       }
+
+      const explanation = await executeElmDevOperation(
+        "explain App.View.Regions"
+      );
+      console.log(explanation);
 
       await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
         pages: elmFiles,
@@ -227,3 +233,32 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     }
   }
 };
+
+// Call Elm Dev
+
+const elmDevCommand = "/Users/mattgriffith/.local/bin/elm-dev";
+
+function executeElmDevOperation(operation: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    ChildProcess.exec(
+      `${elmDevCommand} ${operation}`,
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(`Error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          reject(`Stderr: ${stderr}`);
+          return;
+        }
+        try {
+          const parsedOutput = JSON.parse(stdout);
+          resolve(parsedOutput);
+        } catch (parseError) {
+          // @ts-ignore
+          reject(`Error parsing JSON: ${parseError.message}`);
+        }
+      }
+    );
+  });
+}
