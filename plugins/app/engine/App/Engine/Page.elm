@@ -1,7 +1,7 @@
 module App.Engine.Page exposing
     ( Page, page
     , Init, init, initWith, notFound, loadFrom, error
-    , withGuard
+    , withGuard, withKey
     , InitPlan(..), toInternalDetails, mapInitPlan
     )
 
@@ -11,7 +11,7 @@ module App.Engine.Page exposing
 
 @docs Init, init, initWith, notFound, loadFrom, error
 
-@docs withGuard
+@docs withGuard, withKey
 
 
 # Internal Details
@@ -32,7 +32,8 @@ import App.View.Id
 
 type Page shared params msg model
     = Page
-        { init : params -> shared -> Maybe model -> Init msg model
+        { toKey : Maybe (params -> String)
+        , init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg
         , view : App.View.Id.Id -> shared -> model -> Result App.PageError.Error (App.View.View msg)
@@ -49,7 +50,8 @@ page :
     -> Page App.Shared.Shared params msg model
 page options =
     Page
-        { init = options.init
+        { toKey = Nothing
+        , init = options.init
         , update = options.update
         , subscriptions = options.subscriptions
         , view =
@@ -59,13 +61,20 @@ page options =
 
 
 {-| -}
+withKey : (params -> String) -> Page shared params msg model -> Page shared params msg model
+withKey toKey (Page options) =
+    Page { options | toKey = Just toKey }
+
+
+{-| -}
 withGuard :
     (shared -> Result App.PageError.Error newShared)
     -> Page newShared params msg model
     -> Page shared params msg model
 withGuard toShared (Page options) =
     Page
-        { init =
+        { toKey = options.toKey
+        , init =
             \params shared maybeModel ->
                 case toShared shared of
                     Err err ->
@@ -173,7 +182,8 @@ error pageError =
 toInternalDetails :
     Page shared params msg model
     ->
-        { init : params -> shared -> Maybe model -> Init msg model
+        { toKey : Maybe (params -> String)
+        , init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg
         , view : App.View.Id.Id -> shared -> model -> Result App.PageError.Error (App.View.View msg)

@@ -7,6 +7,8 @@ module App.Page exposing
 
 @docs Page, page, authenticated
 
+@docs withKey
+
 @docs Init, init, initWith, notFound, loadFrom, error
 
 -}
@@ -35,6 +37,12 @@ page :
     -> Page params msg model
 page =
     App.Engine.Page.page
+
+
+{-| -}
+withKey : (params -> String) -> Authenticated shared params msg model -> Authenticated shared params msg model
+withKey =
+    App.Engine.Page.withKey
 
 
 {-| -}
