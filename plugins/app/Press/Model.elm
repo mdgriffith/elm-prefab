@@ -26,7 +26,111 @@ import Set exposing (Set)
 type alias Model =
     { pages : List Page
     , viewRegions : ViewRegions
+    , pageUsages : List PageUsage
     }
+
+
+type alias PageUsage =
+    { id : String
+    , moduleName : List String
+    , value : String
+    , paramType : String
+    }
+
+
+decodePageUsages : Json.Decode.Decoder (List PageUsage)
+decodePageUsages =
+    Json.Decode.field "usages"
+        (Json.Decode.list
+            (Json.Decode.field "module"
+                (Json.Decode.map
+                    (String.split ".")
+                    Json.Decode.string
+                )
+                |> Json.Decode.andThen
+                    (\modName ->
+                        Json.Decode.field "usedBy"
+                            (Json.Decode.list (decodeUsage modName)
+                                |> Json.Decode.map (List.filterMap identity)
+                            )
+                    )
+            )
+        )
+        |> Json.Decode.map List.concat
+
+
+decodeUsage : List String -> Json.Decode.Decoder (Maybe PageUsage)
+decodeUsage modName =
+    Json.Decode.field "isConcrete" Json.Decode.bool
+        |> Json.Decode.andThen
+            (\isConcrete ->
+                if isConcrete then
+                    Json.Decode.map2
+                        (\name paramType ->
+                            Just
+                                { id =
+                                    List.reverse modName
+                                        |> List.head
+                                        |> Maybe.withDefault name
+                                , moduleName = modName
+                                , value = name
+                                , paramType = paramType
+                                }
+                        )
+                        (Json.Decode.field "name" Json.Decode.string)
+                        (Json.Decode.at [ "type", "components" ]
+                            (Json.Decode.index 2
+                                (Json.Decode.oneOf
+                                    [ Json.Decode.field "definition" Json.Decode.string
+                                        |> Json.Decode.map (\_ -> "{}")
+                                    , Json.Decode.field "definition" (Json.Decode.keyValuePairs Json.Decode.string)
+                                        |> Json.Decode.map
+                                            (\fields ->
+                                                let
+                                                    body =
+                                                        List.map
+                                                            (\( fieldName, value ) ->
+                                                                fieldName ++ " : " ++ value
+                                                            )
+                                                            fields
+                                                            |> String.join ", "
+                                                in
+                                                "{ "
+                                                    ++ body
+                                                    ++ " }"
+                                            )
+                                    , Json.Decode.at [ "definition", "type" ] Json.Decode.string
+                                        |> Json.Decode.andThen
+                                            (\typeString ->
+                                                if typeString == "alias" then
+                                                    Json.Decode.at [ "definition", "fields" ] (Json.Decode.keyValuePairs Json.Decode.string)
+                                                        |> Json.Decode.map
+                                                            (\fields ->
+                                                                let
+                                                                    body =
+                                                                        List.map
+                                                                            (\( fieldName, value ) ->
+                                                                                fieldName ++ " : " ++ value
+                                                                            )
+                                                                            fields
+                                                                            |> String.join ", "
+                                                                in
+                                                                "{ "
+                                                                    ++ body
+                                                                    ++ " }"
+                                                            )
+
+                                                else
+                                                    Json.Decode.fail "Unknown type"
+                                            )
+                                    ]
+                                )
+                            )
+                        )
+
+                else
+                    Json.Decode.succeed Nothing
+            )
 
 
 type alias ViewRegions =
@@ -46,10 +150,14 @@ decodeViewRegions =
             { regions = regions
             }
         )
-        (Json.Decode.at [ "definition", "type", "components", "Regions", "definition", "fields" ]
-            (Json.Decode.keyValuePairs Json.Decode.string
-                |> Json.Decode.andThen
-                    decodeRegionType
+        (Json.Decode.at [ "definition", "type", "components" ]
+            (Json.Decode.index 0
+                (Json.Decode.at [ "definition", "fields" ]
+                    (Json.Decode.keyValuePairs Json.Decode.string
+                        |> Json.Decode.andThen
+                            decodeRegionType
+                    )
+                )
             )
         )
 
@@ -226,6 +334,7 @@ toConfig configType =
               , "init"
               , Type.function
                     [ Gen.Json.Encode.annotation_.value
+                    , Gen.Url.annotation_.url
                     ]
                     (Type.tuple
                         (Type.var "model")
@@ -288,6 +397,21 @@ toConfig configType =
                     ]
                     sharedType
               )
+            , ( [ TestConfig ]
+              , "onUrlChange"
+              , Type.function
+                    [ Gen.Url.annotation_.url
+                    ]
+                    (Type.var "msg")
+              )
+            , ( [ TestConfig
+                ]
+              , "onUrlRequest"
+              , Type.function
+                    [ Gen.Browser.annotation_.urlRequest
+                    ]
+                    (Type.var "msg")
+              )
             ]
         )
 
@@ -335,12 +459,17 @@ regionType =
     Type.named [ "App", "View", "Id" ] "Region"
 
 
+pageIdType =
+    Type.named [ "App", "Page", "Id" ] "Id"
+
+
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
     , sharedType = sharedType
     , routePath = routePath
     , routeType = routeType
+    , pageId = pageIdType
     , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
     , testModel = Type.namedWith [] "Model" [ Type.unit, Type.var "model" ]
     , pageLoadResult =
@@ -364,20 +493,16 @@ types =
               , appMsg
               )
             , ( "preload"
-              , Type.function [ routeType ] appMsg
+              , Type.function [ pageIdType ] appMsg
               )
             , ( "regionUpdate"
               , Type.function [ regionOperation ] appMsg
-              )
-            , ( "reinitializeCurrentPage"
-              , appMsg
               )
             ]
     , modelRecord =
         Type.record
             [ ( "key", Type.var "key" )
             , ( "url", Gen.Url.annotation_.url )
-            , ( "currentRoute", Type.maybe routeType )
             , ( "states"
               , stateCache
               )
@@ -422,7 +547,6 @@ toCmd config navKey frameModel effect =
             , ( "dropPageCache", Elm.val "PageCacheCleared" )
             , ( "regionUpdate", Elm.val "ViewUpdated" )
             , ( "preload", Elm.val "Preload" )
-            , ( "reinitializeCurrentPage", Elm.val "PageReinitializeRequested" )
             ]
         , frameModel
         , effect
@@ -445,7 +569,7 @@ setState key val model =
 
 
 loadPage :
-    List Page
+    List PageUsage
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -457,7 +581,7 @@ loadPage routes =
     Elm.Declare.fn4 "loadPage"
         ( "config", Just types.frameUpdate )
         ( "model", Just types.model )
-        ( "route", Just types.routeType )
+        ( "pageid", Just types.pageId )
         ( "initialization", Just types.pageLoadResult )
         (\config model route initialization ->
             Elm.Let.letIn
@@ -594,12 +718,7 @@ loadPage routes =
                 )
                 |> Elm.Let.value "pageId"
                     (Elm.apply
-                        (Elm.value
-                            { importFrom = types.routePath
-                            , name = "toId"
-                            , annotation = Nothing
-                            }
-                        )
+                        (Elm.val "toPageKey")
                         [ route ]
                     )
                 |> Elm.Let.toExpression
@@ -608,7 +727,7 @@ loadPage routes =
 
 
 preloadPage :
-    List Page
+    List PageUsage
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -620,9 +739,9 @@ preloadPage routes =
     Elm.Declare.fn4 "preloadPage"
         ( "config", Just types.frameUpdate )
         ( "model", Just types.model )
-        ( "route", Just types.routeType )
+        ( "pageId", Just types.pageId )
         ( "initialization", Just types.pageLoadResult )
-        (\config model route initialization ->
+        (\config model pageIdToPreload initialization ->
             Elm.Let.letIn
                 (\pageId ->
                     Elm.Case.custom initialization
@@ -691,7 +810,7 @@ preloadPage routes =
                                                                 , annotation = Nothing
                                                                 }
                                                             )
-                                                            [ route ]
+                                                            [ pageIdToPreload ]
                                                         )
                                               )
                                             ]
@@ -702,22 +821,17 @@ preloadPage routes =
                                         |> Gen.App.Effect.call_.map
                                             (Elm.apply
                                                 (Elm.val "Loaded")
-                                                [ route
+                                                [ pageIdToPreload
                                                 ]
                                             )
                                     )
                             )
                         ]
                 )
-                |> Elm.Let.value "pageId"
+                |> Elm.Let.value "pageKey"
                     (Elm.apply
-                        (Elm.value
-                            { importFrom = types.routePath
-                            , name = "toId"
-                            , annotation = Nothing
-                            }
-                        )
-                        [ route ]
+                        (Elm.val "toPageKey")
+                        [ pageIdToPreload ]
                     )
                 |> Elm.Let.toExpression
                 |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))
@@ -725,7 +839,7 @@ preloadPage routes =
 
 
 getPageInit :
-    List Page
+    List PageUsage
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -735,12 +849,12 @@ getPageInit :
         }
 getPageInit routes =
     Elm.Declare.fn3 "getPageInit"
-        ( "route", Just types.routeType )
+        ( "pageId", Just types.pageId )
         ( "shared", Just sharedType )
         ( "cache", Just (Gen.App.State.annotation_.cache (Type.named [] "State")) )
-        (\route shared cache ->
-            Elm.Case.custom route
-                types.routeType
+        (\pageId shared cache ->
+            Elm.Case.custom pageId
+                types.pageId
                 (routes
                     |> List.map
                         (\routeInfo ->
@@ -764,14 +878,14 @@ getPageInit routes =
                             Elm.Case.branch1 routeInfo.id
                                 ( "params", Type.unit )
                                 (\params ->
-                                    withPageHelper pageConfig
-                                        "init"
-                                        (\pageInit ->
+                                    Elm.Let.letIn
+                                        (\pageDetails keyString ->
                                             Elm.apply
-                                                pageInit
+                                                (Elm.get "init" pageDetails)
                                                 [ params
                                                 , shared
-                                                , getPage stateKey
+                                                , getPage keyString
+                                                    stateKey
                                                     cache
                                                     { nothing = Elm.nothing
                                                     , just = Elm.just
@@ -782,11 +896,25 @@ getPageInit routes =
                                                         Gen.App.Engine.Page.values_.mapInitPlan
                                                         [ Elm.record
                                                             [ ( "onModel", Elm.val stateKey )
-                                                            , ( "onMsg", Elm.val pageMsgTypeName )
+                                                            , ( "onMsg"
+                                                              , Elm.apply
+                                                                    (Elm.val pageMsgTypeName)
+                                                                    [ keyString ]
+                                                              )
                                                             ]
                                                         ]
                                                     )
                                         )
+                                        |> Elm.Let.value "pageDetails"
+                                            (Elm.apply
+                                                Gen.App.Engine.Page.values_.toInternalDetails
+                                                [ pageConfig ]
+                                            )
+                                        |> Elm.Let.value "keyString"
+                                            (Elm.apply (Elm.val "toPageKey")
+                                                [ pageId ]
+                                            )
+                                        |> Elm.Let.toExpression
                                 )
                         )
                 )
@@ -810,13 +938,13 @@ withPageHelper pageConfig fieldName fn =
 
 
 updatePageBranches :
-    List Page
+    List PageUsage
     -> Elm.Expression
     -> Elm.Expression
     -> Elm.Expression
     -> List Elm.Case.Branch
-updatePageBranches routes config shared model =
-    routes
+updatePageBranches pages config shared model =
+    pages
         |> List.map
             (\route ->
                 let
@@ -829,10 +957,12 @@ updatePageBranches routes config shared model =
                     pageMsgTypeName =
                         types.toPageMsg route.id
                 in
-                Elm.Case.branch1 pageMsgTypeName
+                Elm.Case.branch2 pageMsgTypeName
+                    ( "pageId", Type.string )
                     ( "pageMsg", Type.named pageModule "Msg" )
-                    (\pageMsg ->
-                        getPage stateKey
+                    (\pageId pageMsg ->
+                        getPage pageId
+                            stateKey
                             (Elm.get "states" model)
                             { nothing = Elm.tuple model Gen.App.Effect.none
                             , just =
@@ -859,18 +989,22 @@ updatePageBranches routes config shared model =
                                         (\( innerPageModel, pageEffect ) ->
                                             let
                                                 pageModel =
-                                                    Elm.apply
-                                                        (Elm.val stateKey)
+                                                    Elm.apply (Elm.val stateKey)
                                                         [ innerPageModel ]
                                             in
                                             Elm.tuple
                                                 (model
                                                     |> Elm.updateRecord
-                                                        [ ( "states", setState (Elm.string stateKey) pageModel model )
+                                                        [ ( "states", setState pageId pageModel model )
                                                         ]
                                                 )
                                                 (pageEffect
-                                                    |> Gen.App.Effect.call_.map (Elm.val pageMsgTypeName)
+                                                    |> Gen.App.Effect.call_.map
+                                                        (Elm.apply
+                                                            (Elm.val pageMsgTypeName)
+                                                            [ pageId
+                                                            ]
+                                                        )
                                                 )
                                         )
                                         |> Elm.Let.tuple "updatedPage" "pageEffect" updated
@@ -881,22 +1015,23 @@ updatePageBranches routes config shared model =
 
 
 getPage :
-    String
+    Elm.Expression
+    -> String
     -> Elm.Expression
     ->
         { just : Elm.Expression -> Elm.Expression
         , nothing : Elm.Expression
         }
     -> Elm.Expression
-getPage key states onFound =
-    Elm.Case.maybe (Gen.App.State.get key states)
+getPage pageId pageConstructor states onFound =
+    Elm.Case.maybe (Gen.App.State.call_.get pageId states)
         { nothing = onFound.nothing
         , just =
             Tuple.pair "foundPage" <|
                 \foundPage ->
                     Elm.Case.custom foundPage
                         types.pageModel
-                        [ Elm.Case.branch1 key
+                        [ Elm.Case.branch1 pageConstructor
                             ( "page", types.pageModel )
                             onFound.just
                         , Elm.Case.otherwise

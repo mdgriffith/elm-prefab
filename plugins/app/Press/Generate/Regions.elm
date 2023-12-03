@@ -70,9 +70,9 @@ generateRegionIndex viewRegions =
                 , group = Nothing
                 }
         , Elm.customType "Operation"
-            [ Elm.variantWith "Push" [ region, route ]
-            , Elm.variantWith "PushTo" [ id, route ]
-            , Elm.variantWith "ReplaceAt" [ id, route ]
+            [ Elm.variantWith "Push" [ region, Press.Model.types.pageId ]
+            , Elm.variantWith "PushTo" [ id, Press.Model.types.pageId ]
+            , Elm.variantWith "ReplaceAt" [ id, Press.Model.types.pageId ]
             , Elm.variantWith "Clear" []
             , Elm.variantWith "ClearRegion" [ region ]
             , Elm.variantWith "ClearView" [ id ]

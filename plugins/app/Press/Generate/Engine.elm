@@ -5,9 +5,11 @@ module Press.Generate.Engine exposing (generate)
 import Elm
 import Elm.Annotation as Type
 import Elm.Case
+import Elm.Declare
 import Elm.Let
 import Elm.Op
 import Gen.App.Effect
+import Gen.App.Engine.Page
 import Gen.App.PageError
 import Gen.App.State
 import Gen.App.Sub
@@ -61,17 +63,14 @@ pageRecordType =
 generate : Press.Model.Model -> Elm.File
 generate options =
     let
-        routes =
-            options.pages
-
         loadPage =
-            Press.Model.loadPage routes
+            Press.Model.loadPage options.pageUsages
 
         preloadPage =
-            Press.Model.preloadPage routes
+            Press.Model.preloadPage options.pageUsages
 
         getPageInit =
-            Press.Model.getPageInit routes
+            Press.Model.getPageInit options.pageUsages
     in
     Elm.file [ "App", "Engine" ]
         [ Elm.alias "App"
@@ -91,6 +90,7 @@ generate options =
                 { group = Just "App"
                 , exposeConstructor = True
                 }
+        , toPageKey options
         , app options getPageInit loadPage
         , testAlias
         , test options getPageInit loadPage
@@ -109,7 +109,7 @@ generate options =
         , Elm.customType "State"
             (let
                 routeVariants =
-                    routes
+                    options.pageUsages
                         |> List.map
                             (\route ->
                                 Elm.variantWith
@@ -119,19 +119,79 @@ generate options =
                             )
              in
              Elm.variantWith "PageError_" [ Gen.App.PageError.annotation_.error ]
-                :: Elm.variantWith "PageLoading_" [ types.routeType ]
+                :: Elm.variantWith "PageLoading_" [ types.pageId ]
                 :: routeVariants
             )
         , viewType
         , viewPageModel options
         , msgType options.pages
-        , update routes getPageInit loadPage preloadPage
+        , update options.pageUsages getPageInit loadPage preloadPage
         , getPageInit.declaration
         , loadPage.declaration
         , preloadPage.declaration
-        , view routes
-        , subscriptions routes
+        , view options.pageUsages
+        , subscriptions options.pageUsages
         ]
+
+
+toPageKey options =
+    let
+        routes =
+            options.pages
+    in
+    .declaration <|
+        Elm.Declare.fn "toPageKey"
+            ( "pageId", Just types.pageId )
+            (\pageId ->
+                Elm.Case.custom pageId
+                    types.pageId
+                    (routes
+                        |> List.map
+                            (\routeInfo ->
+                                let
+                                    stateKey =
+                                        routeInfo.id
+
+                                    pageModule =
+                                        routeInfo.moduleName
+
+                                    pageMsgTypeName =
+                                        types.toPageMsg routeInfo.id
+
+                                    pageConfig =
+                                        Elm.value
+                                            { importFrom = pageModule
+                                            , name = "page"
+                                            , annotation = Nothing
+                                            }
+                                in
+                                Elm.Case.branch1 routeInfo.id
+                                    ( "params", Type.unit )
+                                    (\params ->
+                                        Elm.Let.letIn
+                                            (\pageDetails ->
+                                                Elm.Case.maybe (Elm.get "toKey" pageDetails)
+                                                    { nothing = Elm.string stateKey
+                                                    , just =
+                                                        ( "toKey"
+                                                        , \toKey ->
+                                                            Elm.Op.append
+                                                                (Elm.string stateKey)
+                                                                (Elm.apply toKey [ params ])
+                                                        )
+                                                    }
+                                            )
+                                            |> Elm.Let.value "pageDetails"
+                                                (Elm.apply
+                                                    Gen.App.Engine.Page.values_.toInternalDetails
+                                                    [ pageConfig ]
+                                                )
+                                            |> Elm.Let.toExpression
+                                    )
+                            )
+                    )
+                    |> Elm.withType Type.string
+            )
 
 
 msgType routes =
@@ -142,22 +202,20 @@ msgType routes =
                     (\route ->
                         Elm.variantWith
                             (types.toPageMsg route.id)
-                            [ Type.named route.moduleName "Msg"
+                            [ Type.string
+                            , Type.named route.moduleName "Msg"
                             ]
                     )
     in
     Elm.customType "Msg"
-        ([ Elm.variantWith "UrlRequested" [ Gen.Browser.annotation_.urlRequest ]
-         , Elm.variantWith "UrlChanged" [ Gen.Url.annotation_.url ]
-         , Elm.variant "PageCacheCleared"
-         , Elm.variantWith "Preload" [ types.routeType ]
+        ([ Elm.variant "PageCacheCleared"
+         , Elm.variantWith "Preload" [ types.pageId ]
 
          --  , Elm.variantWith "LoadAt" [ types.routeType, types.regionType ]
          , Elm.variantWith "ViewUpdated" [ types.regionOperation ]
-         , Elm.variant "PageReinitializeRequested"
          , Elm.variantWith "Global" [ Type.var "msg" ]
          , Elm.variantWith "Loaded"
-            [ types.routeType
+            [ types.pageId
             , types.pageLoadResult
             ]
          ]
@@ -168,7 +226,7 @@ msgType routes =
 viewType =
     Elm.customType "View"
         [ Elm.variantWith "NotFound" [ Gen.Url.annotation_.url ]
-        , Elm.variantWith "Loading" [ types.routeType ]
+        , Elm.variantWith "Loading" [ types.pageId ]
         , Elm.variantWith "Error" [ Gen.App.PageError.annotation_.error ]
         , Elm.variantWith "View"
             [ Gen.App.View.annotation_.view (Type.var "appMsg")
@@ -293,28 +351,23 @@ runRegionOperation getPageInit preloadPage regions =
                     types.regionOperation
                     [ Elm.Case.branch2 "Push"
                         ( "region", types.regionType )
-                        ( "route", types.routeType )
-                        (\region routeToLoad ->
+                        ( "pageId", types.pageId )
+                        (\region pageIdToLoad ->
                             let
                                 shared =
                                     Press.Model.toShared config (Elm.get "frame" model)
 
                                 pageId =
                                     Elm.apply
-                                        (Elm.value
-                                            { importFrom = types.routePath
-                                            , name = "toId"
-                                            , annotation = Nothing
-                                            }
-                                        )
-                                        [ routeToLoad ]
+                                        (Elm.val "toPageKey")
+                                        [ pageIdToLoad ]
                             in
                             Elm.Let.letIn
                                 (\newModel ->
-                                    getPageInit.call routeToLoad
+                                    getPageInit.call pageIdToLoad
                                         shared
                                         (Elm.get "states" newModel)
-                                        |> preloadPage.call config newModel routeToLoad
+                                        |> preloadPage.call config newModel pageIdToLoad
                                 )
                                 |> Elm.Let.value "modelWithRegionSet"
                                     (Elm.updateRecord
@@ -332,28 +385,23 @@ runRegionOperation getPageInit preloadPage regions =
                         )
                     , Elm.Case.branch2 "PushTo"
                         ( "regionId", types.regionIdType )
-                        ( "route", types.routeType )
-                        (\regionId routeToLoad ->
+                        ( "route", types.pageId )
+                        (\regionId pageIdToLoad ->
                             let
                                 shared =
                                     Press.Model.toShared config (Elm.get "frame" model)
 
                                 pageId =
                                     Elm.apply
-                                        (Elm.value
-                                            { importFrom = types.routePath
-                                            , name = "toId"
-                                            , annotation = Nothing
-                                            }
-                                        )
-                                        [ routeToLoad ]
+                                        (Elm.val "toPageKey")
+                                        [ pageIdToLoad ]
                             in
                             Elm.Let.letIn
                                 (\newModel ->
-                                    getPageInit.call routeToLoad
+                                    getPageInit.call pageIdToLoad
                                         shared
                                         (Elm.get "states" newModel)
-                                        |> preloadPage.call config newModel routeToLoad
+                                        |> preloadPage.call config newModel pageIdToLoad
                                 )
                                 |> Elm.Let.value "modelWithRegionSet"
                                     (Elm.updateRecord
@@ -372,28 +420,23 @@ runRegionOperation getPageInit preloadPage regions =
                         )
                     , Elm.Case.branch2 "ReplaceAt"
                         ( "regionId", types.regionIdType )
-                        ( "route", types.routeType )
-                        (\regionId routeToLoad ->
+                        ( "pageId", types.pageId )
+                        (\regionId pageIdToLoad ->
                             let
                                 shared =
                                     Press.Model.toShared config (Elm.get "frame" model)
 
                                 pageId =
                                     Elm.apply
-                                        (Elm.value
-                                            { importFrom = types.routePath
-                                            , name = "toId"
-                                            , annotation = Nothing
-                                            }
-                                        )
-                                        [ routeToLoad ]
+                                        (Elm.val "toPageKey")
+                                        [ pageIdToLoad ]
                             in
                             Elm.Let.letIn
                                 (\newModel ->
-                                    getPageInit.call routeToLoad
+                                    getPageInit.call pageIdToLoad
                                         shared
                                         (Elm.get "states" newModel)
-                                        |> preloadPage.call config newModel routeToLoad
+                                        |> preloadPage.call config newModel pageIdToLoad
                                 )
                                 |> Elm.Let.value "modelWithRegionSet"
                                     (Elm.updateRecord
@@ -780,7 +823,11 @@ testAlias =
     Elm.alias "Test"
         (Type.record
             [ ( "init"
-              , Type.function [ Gen.Json.Encode.annotation_.value, Gen.Url.annotation_.url, Type.unit ]
+              , Type.function
+                    [ Gen.Json.Encode.annotation_.value
+                    , Gen.Url.annotation_.url
+                    , Type.unit
+                    ]
                     (Type.tuple types.testModel (Gen.App.Effect.annotation_.effect types.msg))
               )
             , ( "view", Type.function [ types.testModel ] (Gen.Browser.annotation_.document types.msg) )
@@ -822,8 +869,26 @@ test options getPageInit loadPage =
                       )
                     , ( "view", Elm.apply (Elm.val "view") [ config ] )
                     , ( "update", Elm.apply (Elm.val "update") [ config ] )
-                    , ( "onUrlRequest", Elm.val "UrlRequested" )
-                    , ( "onUrlChange", Elm.val "UrlChanged" )
+                    , ( "onUrlChange"
+                      , Elm.fn ( "url", Just Gen.Url.annotation_.url )
+                            (\url ->
+                                Elm.apply (Elm.val "Global")
+                                    [ Elm.apply
+                                        (Elm.get "onUrlChange" config)
+                                        [ url ]
+                                    ]
+                            )
+                      )
+                    , ( "onUrlRequest"
+                      , Elm.fn ( "urlRequest", Just Gen.Browser.annotation_.urlRequest )
+                            (\urlRequest ->
+                                Elm.apply (Elm.val "Global")
+                                    [ Elm.apply
+                                        (Elm.get "onUrlRequest" config)
+                                        [ urlRequest ]
+                                    ]
+                            )
+                      )
                     ]
                     |> Elm.withType (Type.namedWith [] "Test" [ Type.var "model", Type.var "msg" ])
             )
@@ -834,22 +899,10 @@ test options getPageInit loadPage =
             }
 
 
-parseUrl : Elm.Expression -> Elm.Expression
-parseUrl url =
-    Elm.apply
-        (Elm.value
-            { importFrom = types.routePath
-            , name = "parse"
-            , annotation = Nothing
-            }
-        )
-        [ url ]
-
-
 app options getPageInit loadPage =
     let
         routes =
-            options.pages
+            options.pageUsages
     in
     Elm.declaration "app"
         (Elm.fn
@@ -902,8 +955,26 @@ app options getPageInit loadPage =
                           )
                         , ( "view", Elm.apply (Elm.val "view") [ config ] )
                         , ( "subscriptions", Elm.apply (Elm.val "subscriptions") [ config ] )
-                        , ( "onUrlChange", Elm.val "UrlChanged" )
-                        , ( "onUrlRequest", Elm.val "UrlRequested" )
+                        , ( "onUrlChange"
+                          , Elm.fn ( "url", Just Gen.Url.annotation_.url )
+                                (\url ->
+                                    Elm.apply (Elm.val "Global")
+                                        [ Elm.apply
+                                            (Elm.get "onUrlChange" config)
+                                            [ url ]
+                                        ]
+                                )
+                          )
+                        , ( "onUrlRequest"
+                          , Elm.fn ( "urlRequest", Just Gen.Browser.annotation_.urlRequest )
+                                (\urlRequest ->
+                                    Elm.apply (Elm.val "Global")
+                                        [ Elm.apply
+                                            (Elm.get "onUrlRequest" config)
+                                            [ urlRequest ]
+                                        ]
+                                )
+                          )
                         ]
                     )
                     |> Elm.withType (Type.namedWith [] "App" [ Type.var "model", Type.var "msg" ])
@@ -921,6 +992,7 @@ init options getPageInit loadPage config flags url key =
             Elm.apply
                 (Elm.get "init" config)
                 [ flags
+                , url
                 ]
     in
     Elm.Let.letIn
@@ -930,71 +1002,30 @@ init options getPageInit loadPage config flags url key =
                     frameEffect
                         |> Gen.App.Effect.call_.map (Elm.val "Global")
             in
-            Elm.Case.maybe (parseUrl url)
-                { nothing =
-                    let
-                        model =
-                            Elm.record
-                                [ ( "key", key )
-                                , ( "url", url )
-                                , ( "currentRoute", Elm.nothing )
-                                , ( "regions"
-                                  , initViewRegions options.viewRegions
-                                  )
-                                , ( "frame", frameModel )
-                                , ( "states"
-                                  , Gen.App.State.init
-                                  )
-                                ]
-                                |> Elm.withType types.model
-                    in
-                    Elm.tuple model
-                        globalFrameEffect
-                , just =
-                    ( "route"
-                    , \route ->
-                        let
-                            model =
-                                Elm.record
-                                    [ ( "key", key )
-                                    , ( "url", url )
-                                    , ( "currentRoute", Elm.just route )
-                                    , ( "regions"
-                                      , initViewRegions options.viewRegions
-                                      )
-                                    , ( "frame", frameModel )
-                                    , ( "states"
-                                      , Gen.App.State.init
-                                      )
-                                    ]
-                                    |> Elm.withType types.model
-
-                            initialized =
-                                getPageInit.call route (Press.Model.toShared config frameModel) Gen.App.State.init
-                                    |> loadPage.call config model route
-                        in
-                        Elm.Let.letIn
-                            (\( newModel, effect ) ->
-                                Elm.tuple newModel
-                                    (Gen.App.Effect.batch
-                                        [ globalFrameEffect
-                                        , effect
-                                        ]
-                                    )
-                            )
-                            |> Elm.Let.tuple "newModel"
-                                "effect"
-                                initialized
-                            |> Elm.Let.toExpression
-                    )
-                }
+            let
+                model =
+                    Elm.record
+                        [ ( "key", key )
+                        , ( "url", url )
+                        , ( "regions"
+                          , initViewRegions options.viewRegions
+                          )
+                        , ( "frame", frameModel )
+                        , ( "states"
+                          , Gen.App.State.init
+                          )
+                        ]
+                        |> Elm.withType types.model
+            in
+            Elm.tuple model
+                globalFrameEffect
         )
         |> Elm.Let.tuple "frameModel" "frameEffect" frameInitialized
         |> Elm.Let.toExpression
 
 
 update :
-    List Page
+    List PageUsage
     ->
         { a
             | call :
@@ -1031,101 +1062,11 @@ update routes getPageInit loadPage preloadPage =
             (\config msg model ->
                 Elm.Case.custom msg
                     types.msg
-                    ([ Elm.Case.branch1 "UrlRequested"
-                        ( "request", Gen.Browser.annotation_.urlRequest )
-                        (\request ->
-                            Elm.Case.custom request
-                                (Type.namedWith [ "Browser" ] "UrlRequest" [])
-                                [ Elm.Case.branch1
-                                    "Internal"
-                                    ( "url", Type.namedWith [ "Url" ] "Url" [] )
-                                    (\url ->
-                                        Elm.tuple model
-                                            (Gen.App.Effect.call_.pushUrl
-                                                (Gen.Url.toString url)
-                                            )
-                                    )
-                                , Elm.Case.branch1
-                                    "External"
-                                    ( "url", Type.string )
-                                    (\url ->
-                                        Elm.tuple model
-                                            (Gen.App.Effect.call_.load
-                                                url
-                                            )
-                                    )
-                                ]
-                        )
-                     , Elm.Case.branch1 "UrlChanged"
-                        ( "url", Gen.Url.annotation_.url )
-                        (\url ->
-                            let
-                                parsed =
-                                    parseUrl url
-                            in
-                            Elm.Case.maybe parsed
-                                { nothing =
-                                    let
-                                        updatedModel =
-                                            Elm.updateRecord
-                                                [ ( "states"
-                                                  , Elm.get "states" model
-                                                        |> Gen.App.State.clearCurrent
-                                                  )
-                                                , ( "url", url )
-                                                , ( "currentRoute", Elm.nothing )
-                                                ]
-                                                model
-                                    in
-                                    Elm.tuple updatedModel
-                                        Gen.App.Effect.none
-                                , just =
-                                    Tuple.pair "newRoute" <|
-                                        \newRoute ->
-                                            let
-                                                pageId =
-                                                    Elm.apply
-                                                        (Elm.value
-                                                            { importFrom = types.routePath
-                                                            , name = "toId"
-                                                            , annotation = Nothing
-                                                            }
-                                                        )
-                                                        [ newRoute ]
-
-                                                updatedModel =
-                                                    Elm.updateRecord
-                                                        [ ( "url", url )
-                                                        , ( "currentRoute", Elm.just newRoute )
-                                                        , ( "regions"
-                                                          , Elm.apply (Elm.val "setRegion")
-                                                                [ Elm.value
-                                                                    { importFrom = [ "App", "View", "Id" ]
-                                                                    , name = "Primary"
-                                                                    , annotation = Nothing
-                                                                    }
-                                                                , pageId
-                                                                , Elm.get "regions" model
-                                                                ]
-                                                          )
-                                                        , ( "states"
-                                                          , Elm.get "states" model
-                                                                |> Gen.App.State.call_.setCurrent pageId
-                                                          )
-                                                        ]
-                                                        model
-                                            in
-                                            getPageInit.call newRoute
-                                                (Press.Model.toShared config (Elm.get "frame" model))
-                                                (Elm.get "states" model)
-                                                |> loadPage.call config updatedModel newRoute
-                                }
-                        )
-                     , Elm.Case.branch2 "Loaded"
-                        ( "route", types.routeType )
+                    ([ Elm.Case.branch2 "Loaded"
+                        ( "pageId", types.pageId )
                         ( "loaded", types.pageLoadResult )
-                        (\route initialization ->
-                            loadPage.call config model route initialization
+                        (\pageId initialization ->
+                            loadPage.call config model pageId initialization
                         )
 
                      --
@@ -1141,23 +1082,8 @@ update routes getPageInit loadPage preloadPage =
                             )
                             Gen.App.Effect.none
                         )
-                     , Elm.Case.branch0 "PageReinitializeRequested"
-                        (Elm.Case.maybe (Elm.get "currentRoute" model)
-                            { just =
-                                ( "current"
-                                , \currentRoute ->
-                                    getPageInit.call currentRoute
-                                        (Press.Model.toShared config (Elm.get "frame" model))
-                                        (Elm.get "states" model)
-                                        |> loadPage.call config model currentRoute
-                                )
-                            , nothing =
-                                Elm.tuple model
-                                    Gen.App.Effect.none
-                            }
-                        )
                      , Elm.Case.branch1 "Preload"
-                        ( "route", types.routeType )
+                        ( "route", types.pageId )
                         (\routeToPreload ->
                             getPageInit.call routeToPreload
                                 (Press.Model.toShared config (Elm.get "frame" model))
@@ -1209,7 +1135,7 @@ update routes getPageInit loadPage preloadPage =
         )
 
 
-view : List Page -> Elm.Declaration
+view : List PageUsage -> Elm.Declaration
 view routes =
     Elm.declaration "view"
         (Elm.fn2
@@ -1270,13 +1196,13 @@ viewPageModel options =
                                                 [ err ]
                                         )
                                         :: Elm.Case.branch1 "PageLoading_"
-                                            ( "pageRoute", types.routeType )
-                                            (\pageRoute ->
+                                            ( "pageid", types.pageId )
+                                            (\pageid ->
                                                 Elm.apply
                                                     (Elm.val "Loading")
-                                                    [ pageRoute ]
+                                                    [ pageid ]
                                             )
-                                        :: List.map (routeToView shared regionId) routes
+                                        :: List.map (routeToView shared regionId pageId) routes
                                     )
                         )
                     }
@@ -1285,7 +1211,7 @@ viewPageModel options =
         )
 
 
-routeToView shared regionId route =
+routeToView shared regionId pageId route =
     let
         stateKey =
             route.id
@@ -1328,7 +1254,8 @@ routeToView shared regionId route =
                                                     (\innerMsg ->
                                                         Elm.apply
                                                             (Elm.val pageMsgTypeName)
-                                                            [ innerMsg
+                                                            [ pageId
+                                                            , innerMsg
                                                             ]
                                                     )
                                                 )
@@ -1349,7 +1276,7 @@ routeToView shared regionId route =
         )
 
 
-subscriptions : List Page -> Elm.Declaration
+subscriptions : List PageUsage -> Elm.Declaration
 subscriptions routes =
     Elm.declaration "subscriptions"
         (Elm.fn2
@@ -1373,7 +1300,7 @@ subscriptions routes =
                                         , just =
                                             ( "pageState"
                                             , \pageState ->
-                                                Elm.just (pageModelToSubscription config model routes pageState)
+                                                Elm.just (pageModelToSubscription config model routes pageState pageId)
                                             )
                                         }
                                 )
@@ -1391,22 +1318,22 @@ subscriptions routes =
         )
 
 
-pageModelToSubscription config model routes current =
+pageModelToSubscription config model routes current pageId =
     Elm.Case.custom current
         types.pageModel
         (Elm.Case.branch1 "PageError_"
             ( "pageError", Gen.App.PageError.annotation_.error )
             (\err -> Gen.Platform.Sub.none)
             :: Elm.Case.branch1 "PageLoading_"
-                ( "pageRoute", types.routeType )
-                (\pageRoute -> Gen.Platform.Sub.none)
+                ( "pageId", types.pageId )
+                (\_ -> Gen.Platform.Sub.none)
             :: List.map
-                (routeToSubscription config model)
+                (routeToSubscription config model pageId)
                 routes
         )
 
 
-routeToSubscription config model route =
+routeToSubscription config model pageId route =
     let
         stateKey =
             route.id
@@ -1434,6 +1361,9 @@ routeToSubscription config model route =
                             [ Press.Model.toShared config (Elm.get "frame" model)
                             , pageState
                             ]
-                            |> Gen.App.Sub.call_.map (Elm.val pageMsgTypeName)
+                            |> Gen.App.Sub.call_.map
+                                (Elm.apply (Elm.val pageMsgTypeName)
+                                    [ pageId ]
+                                )
                     )
         )

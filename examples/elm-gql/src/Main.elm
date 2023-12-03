@@ -18,7 +18,7 @@ main : App.Engine.App { shared : { authenticated : App.Shared.Authenticated } } 
 main =
     App.Engine.app
         { init =
-            \flags ->
+            \flags url ->
                 ( { shared = { authenticated = App.Shared.Authenticated } }
                 , App.Effect.none
                 )
@@ -57,4 +57,6 @@ main =
         , toCmd = \options model effect -> App.Effect.toCmd options effect
         , toSub = \model sub -> App.Sub.toSubscription sub
         , toShared = .shared
+        , onUrlChange = \_ -> ()
+        , onUrlRequest = \_ -> ()
         }

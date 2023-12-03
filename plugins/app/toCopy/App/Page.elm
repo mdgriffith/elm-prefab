@@ -22,7 +22,6 @@ import App.View
 import App.View.Id
 
 
-{-| -}
 type alias Page params msg model =
     App.Engine.Page.Page App.Shared.Shared params msg model
 
@@ -40,14 +39,9 @@ page =
 
 
 {-| -}
-withKey : (params -> String) -> Authenticated shared params msg model -> Authenticated shared params msg model
+withKey : (params -> String) -> Page params msg model -> Page App.Shared.Shared params msg model
 withKey =
     App.Engine.Page.withKey
-
-
-{-| -}
-type alias Authenticated shared params msg model =
-    App.Engine.Page.Page shared params msg model
 
 
 {-| -}

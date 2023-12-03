@@ -10,10 +10,16 @@ module Page.Home exposing
 -}
 
 import App.Effect as Effect
+import App.Engine.Page
 import App.Page
+import App.Shared
 import App.Sub
 import Browser
 import Html
+
+
+type alias Params =
+    {}
 
 
 {-| -}
@@ -22,8 +28,9 @@ type alias Model =
 
 
 {-| -}
-type alias Msg =
-    {}
+type Msg
+    = NoOp
+    | Show App.Shared.Shared
 
 
 {-| -}
@@ -32,13 +39,20 @@ type MyType
     | Second String
 
 
-{-| -}
+page : App.Page.Page Params Msg Model
 page =
     App.Page.page
         { init =
             \params shared maybeCached ->
                 App.Page.init "HEllo!"
-        , update = \shared msg model -> ( model, Effect.none )
+        , update =
+            \shared msg model ->
+                case msg of
+                    NoOp ->
+                        ( model, Effect.none )
+
+                    Show html ->
+                        ( model, Effect.none )
         , subscriptions = \shared model -> App.Sub.none
         , view =
             \region shared model ->

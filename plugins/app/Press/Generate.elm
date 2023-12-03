@@ -48,6 +48,7 @@ import Parser exposing ((|.), (|=))
 import Path
 import Press.Generate.Directory
 import Press.Generate.Engine
+import Press.Generate.PageId
 import Press.Generate.Regions
 import Press.Generate.Route
 import Press.Model exposing (..)
@@ -83,11 +84,13 @@ generate options =
     case errors of
         [] ->
             Ok
-                (Press.Generate.Regions.generate options
-                    :: Press.Generate.Engine.generate options
-                    :: Press.Generate.Route.generate options.pages
-                    :: Press.Generate.Directory.generate options.pages
-                )
+                [ Press.Generate.PageId.generate options
+                , Press.Generate.Regions.generate options
+                , Press.Generate.Engine.generate options
+
+                -- :: Press.Generate.Route.generate options.pages
+                -- :: Press.Generate.Directory.generate options.pages
+                ]
 
         _ ->
             Err errors
@@ -128,9 +131,10 @@ type alias Options =
 
 decode : Json.Decode.Decoder Options
 decode =
-    Json.Decode.map2 Press.Model.Model
+    Json.Decode.map3 Press.Model.Model
         (Json.Decode.field "pages" (Json.Decode.list decodePage))
         (Json.Decode.field "regions" Press.Model.decodeViewRegions)
+        (Json.Decode.field "pageUsages" Press.Model.decodePageUsages)
 
 
 decodePage : Json.Decode.Decoder Page

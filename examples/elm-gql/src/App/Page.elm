@@ -5,7 +5,7 @@ module App.Page exposing
 
 {-|
 
-@docs Page, page, authenticated
+@docs Page, page, authenticated, Page
 
 @docs Init, init, initWith, notFound, loadFrom, error
 
@@ -20,7 +20,6 @@ import App.View
 import App.View.Id
 
 
-{-| -}
 type alias Page params msg model =
     App.Engine.Page.Page App.Shared.Shared params msg model
 
@@ -32,14 +31,9 @@ page :
     , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
     , view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
     }
-    -> Page params msg model
+    -> App.Engine.Page.Page App.Shared.Shared params msg model
 page =
     App.Engine.Page.page
-
-
-{-| -}
-type alias Authenticated shared params msg model =
-    App.Engine.Page.Page shared params msg model
 
 
 {-| -}

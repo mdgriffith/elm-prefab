@@ -7,10 +7,16 @@ module Page.Markdown exposing (Model, Msg, page)
 -}
 
 import App.Effect
+import App.Engine.Page
 import App.Page
+import App.Shared
 import App.Sub
 import Browser
 import Html
+
+
+type alias Params =
+    { src : String, path : List String }
 
 
 {-| -}
@@ -23,8 +29,7 @@ type alias Msg =
     {}
 
 
-{-| -}
-page : App.Page.Page { src : String, path : List String } Msg Model
+page : App.Engine.Page.Page App.Shared.Shared Params Msg Model
 page =
     App.Page.page
         { init =
