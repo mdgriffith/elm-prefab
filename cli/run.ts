@@ -6,6 +6,7 @@ import * as Options from "./options";
 import * as App from "./run_app";
 import * as Theme from "./run_theme";
 import * as Interactive from "./run_interactive";
+import * as Routes from "./run_routes";
 
 type GenerateOptions = {
   src: string;
@@ -49,6 +50,9 @@ program
       if (config.hasOwnProperty(pluginName)) {
         switch (pluginName) {
           case "src":
+            break;
+          case "routes":
+            plugins.push(Routes.generator(config.routes));
             break;
           case "theme":
             plugins.push(Theme.generator(config.theme));

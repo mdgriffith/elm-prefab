@@ -1,4 +1,4 @@
-module Press.Generate.Route exposing (generate)
+module Generate.Route exposing (generate)
 
 import Elm
 import Elm.Annotation as Type
@@ -6,8 +6,6 @@ import Elm.Case
 import Elm.Case.Branch as Branch
 import Elm.Let
 import Elm.Op
-import Gen.App.Markdown
-import Gen.App.State
 import Gen.AppUrl
 import Gen.Browser
 import Gen.Browser.Navigation
@@ -27,18 +25,15 @@ import Gen.Url
 import Gen.Url.Parser
 import Gen.Url.Parser.Query
 import Json.Decode
-import Markdown.Block as Block
-import Markdown.Parser
+import Model
 import Parser exposing ((|.), (|=))
 import Path
-import Press.Generate.Engine
-import Press.Model exposing (..)
 import Set exposing (Set)
 
 
-generate : List Press.Model.Page -> Elm.File
+generate : List Model.Page -> Elm.File
 generate routes =
-    Elm.fileWith types.routePath
+    Elm.fileWith [ "App", "Route" ]
         { docs =
             \groups ->
                 groups
@@ -97,16 +92,30 @@ generate routes =
         )
 
 
-hasNoParams : QueryParams -> Bool
+hasVars : List Model.UrlPiece -> Bool
+hasVars pieces =
+    List.any
+        (\piece ->
+            case piece of
+                Model.Token _ ->
+                    False
+
+                Model.Variable _ ->
+                    True
+        )
+        pieces
+
+
+hasNoParams : Model.QueryParams -> Bool
 hasNoParams params =
     Set.isEmpty params.specificFields
         && not params.includeCatchAll
 
 
-paramType : Page -> Type.Annotation
+paramType : Model.Page -> Type.Annotation
 paramType route =
     let
-        (UrlPattern { queryParams, includePathTail, path }) =
+        (Model.UrlPattern { queryParams, includePathTail, path }) =
             route.url
     in
     if hasNoParams queryParams && not includePathTail && route.assets == Nothing && not (hasVars path) then
@@ -140,10 +149,10 @@ paramType route =
                 , List.filterMap
                     (\piece ->
                         case piece of
-                            Token _ ->
+                            Model.Token _ ->
                                 Nothing
 
-                            Variable name ->
+                            Model.Variable name ->
                                 Just ( name, Type.string )
                     )
                     path
@@ -159,7 +168,7 @@ paramType route =
             )
 
 
-urlToId : List Page -> List Elm.Declaration
+urlToId : List Model.Page -> List Elm.Declaration
 urlToId routes =
     [ Elm.declaration "toId"
         (Elm.fn ( "route", Just (Type.named [] "Route") )
@@ -205,23 +214,23 @@ urlToId routes =
     ]
 
 
-getParamVariableList : Page -> List String
+getParamVariableList : Model.Page -> List String
 getParamVariableList page =
     case page.url of
-        UrlPattern { path } ->
+        Model.UrlPattern { path } ->
             List.filterMap
                 (\piece ->
                     case piece of
-                        Token _ ->
+                        Model.Token _ ->
                             Nothing
 
-                        Variable name ->
+                        Model.Variable name ->
                             Just name
                 )
                 path
 
 
-assetLookup : List Page -> List Elm.Declaration
+assetLookup : List Model.Page -> List Elm.Declaration
 assetLookup routes =
     let
         branches =
@@ -272,7 +281,7 @@ assetLookup routes =
             ]
 
 
-urlEncoder : List Page -> List Elm.Declaration
+urlEncoder : List Model.Page -> List Elm.Declaration
 urlEncoder routes =
     [ Elm.declaration "toString"
         (Elm.fn ( "route", Just (Type.named [] "Route") )
@@ -286,7 +295,7 @@ urlEncoder routes =
                                     ( "params", paramType individualRoute )
                                     (\params ->
                                         let
-                                            (UrlPattern { path, includePathTail, queryParams }) =
+                                            (Model.UrlPattern { path, includePathTail, queryParams }) =
                                                 individualRoute.url
                                         in
                                         renderPath path includePathTail queryParams params
@@ -304,7 +313,7 @@ urlEncoder routes =
     ]
 
 
-renderPath : List UrlPiece -> Bool -> QueryParams -> Elm.Expression -> Elm.Expression
+renderPath : List Model.UrlPiece -> Bool -> Model.QueryParams -> Elm.Expression -> Elm.Expression
 renderPath path includePathTail queryParams paramValues =
     let
         base =
@@ -312,10 +321,10 @@ renderPath path includePathTail queryParams paramValues =
                 |> List.map
                     (\piece ->
                         case piece of
-                            Token token ->
+                            Model.Token token ->
                                 Elm.string token
 
-                            Variable var ->
+                            Model.Variable var ->
                                 Elm.get var paramValues
                     )
                 |> Elm.list
@@ -407,7 +416,7 @@ wrapList fields =
                 )
 
 
-sameRoute : List Page -> Elm.Declaration
+sameRoute : List Model.Page -> Elm.Declaration
 sameRoute routes =
     if List.length routes <= 1 then
         Elm.declaration "sameRouteBase"
@@ -460,7 +469,7 @@ sameRoute routes =
                 }
 
 
-urlParser : List Page -> List Elm.Declaration
+urlParser : List Model.Page -> List Elm.Declaration
 urlParser routes =
     [ Elm.declaration "parse"
         (Elm.fn ( "url", Just Gen.Url.annotation_.url )
@@ -503,7 +512,7 @@ getList field appUrlParams =
     ]
 
 
-parseAppUrl : List Page -> Elm.Declaration
+parseAppUrl : List Model.Page -> Elm.Declaration
 parseAppUrl routes =
     Elm.declaration "parseAppUrl"
         (Elm.fn
@@ -522,13 +531,13 @@ parseAppUrl routes =
         )
 
 
-toBranchPattern : Elm.Expression -> Page -> Branch.Pattern Elm.Expression
+toBranchPattern : Elm.Expression -> Model.Page -> Branch.Pattern Elm.Expression
 toBranchPattern appUrl page =
     urlToPatterns appUrl page page.url
 
 
-urlToPatterns : Elm.Expression -> Page -> UrlPattern -> Branch.Pattern Elm.Expression
-urlToPatterns appUrl page (UrlPattern pattern) =
+urlToPatterns : Elm.Expression -> Model.Page -> Model.UrlPattern -> Branch.Pattern Elm.Expression
+urlToPatterns appUrl page (Model.UrlPattern pattern) =
     if pattern.includePathTail then
         Branch.listWithRemaining
             { patterns = List.map toTokenPattern pattern.path
@@ -626,13 +635,13 @@ urlToPatterns appUrl page (UrlPattern pattern) =
             }
 
 
-toTokenPattern : UrlPiece -> Branch.Pattern (List ( String, Elm.Expression ))
+toTokenPattern : Model.UrlPiece -> Branch.Pattern (List ( String, Elm.Expression ))
 toTokenPattern token =
     case token of
-        Token string ->
+        Model.Token string ->
             Branch.string string []
 
-        Variable varname ->
+        Model.Variable varname ->
             Branch.var varname
                 |> Branch.map
                     (\var ->

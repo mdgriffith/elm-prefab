@@ -24,8 +24,7 @@ import Set exposing (Set)
 
 
 type alias Model =
-    { pages : List Page
-    , viewRegions : ViewRegions
+    { viewRegions : ViewRegions
     , pageUsages : List PageUsage
     }
 

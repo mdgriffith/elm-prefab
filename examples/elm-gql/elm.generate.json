@@ -1,7 +1,8 @@
 {
-  "app": {
-    "Page.Home": "/old-homepage-2/:id/*?{search}",
-    "Page.Markdown": {
+  "app": {},
+  "routes": {
+    "Home": "/old-homepage-2/:id/*?{search}",
+    "Markdown": {
       "dir": "guide",
       "url": "/guides/*",
       "urlOnServer": "/assets/guides/"

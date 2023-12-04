@@ -50,7 +50,6 @@ import Press.Generate.Directory
 import Press.Generate.Engine
 import Press.Generate.PageId
 import Press.Generate.Regions
-import Press.Generate.Route
 import Press.Model exposing (..)
 import Set exposing (Set)
 
@@ -77,23 +76,14 @@ errorToDetails error =
 
 generate : Options -> Result (List Error) (List Elm.File)
 generate options =
-    let
-        errors =
-            validateRoutes options.pages
-    in
-    case errors of
-        [] ->
-            Ok
-                [ Press.Generate.PageId.generate options
-                , Press.Generate.Regions.generate options
-                , Press.Generate.Engine.generate options
+    Ok
+        [ Press.Generate.PageId.generate options
+        , Press.Generate.Regions.generate options
+        , Press.Generate.Engine.generate options
 
-                -- :: Press.Generate.Route.generate options.pages
-                -- :: Press.Generate.Directory.generate options.pages
-                ]
-
-        _ ->
-            Err errors
+        -- :: Press.Generate.Route.generate options.pages
+        -- :: Press.Generate.Directory.generate options.pages
+        ]
 
 
 validateRoutes : List Page -> List Error
@@ -131,173 +121,6 @@ type alias Options =
 
 decode : Json.Decode.Decoder Options
 decode =
-    Json.Decode.map3 Press.Model.Model
-        (Json.Decode.field "pages" (Json.Decode.list decodePage))
+    Json.Decode.map2 Press.Model.Model
         (Json.Decode.field "regions" Press.Model.decodeViewRegions)
         (Json.Decode.field "pageUsages" Press.Model.decodePageUsages)
-
-
-decodePage : Json.Decode.Decoder Page
-decodePage =
-    Json.Decode.map6 Page
-        (Json.Decode.field "id" (Json.Decode.map (String.join "_") (Json.Decode.list Json.Decode.string)))
-        (Json.Decode.field "moduleName" (Json.Decode.list Json.Decode.string))
-        (Json.Decode.field "url" decodeUrlPattern)
-        (Json.Decode.field "deprecatedUrls" (Json.Decode.list decodeUrlPattern))
-        (Json.Decode.field "source" Json.Decode.string)
-        (Json.Decode.field "assets" (Json.Decode.maybe decodeDirectory))
-
-
-decodeUrlPattern : Json.Decode.Decoder UrlPattern
-decodeUrlPattern =
-    Json.Decode.string
-        |> Json.Decode.andThen
-            (\string ->
-                case Parser.run parseUrlPattern string of
-                    Ok urlPattern ->
-                        Json.Decode.succeed urlPattern
-
-                    Err err ->
-                        Json.Decode.fail ("I don't understand this route:" ++ string)
-            )
-
-
-{-| Parses a format like
-
-    /users/:id/*?{search}
-
-Which parses
-
-  - id into a string
-  - \* into a list of strings
-  - and `search` into a list of strings from ?search
-
--}
-parseUrlPattern : Parser.Parser UrlPattern
-parseUrlPattern =
-    Parser.succeed
-        (\path queryParams ->
-            UrlPattern
-                { path = path.path
-                , includePathTail = path.includePathTail
-                , queryParams = queryParams
-                }
-        )
-        |= parsePath
-        |= parseQueryParams
-
-
-parseQueryParams : Parser.Parser QueryParams
-parseQueryParams =
-    Parser.oneOf
-        [ Parser.succeed
-            { includeCatchAll = False
-            , specificFields = Set.empty
-            }
-            |. Parser.end
-        , Parser.succeed (\params -> params)
-            |. Parser.symbol "?"
-            |. Parser.symbol "{"
-            |= Parser.oneOf
-                [ Parser.succeed
-                    { includeCatchAll = True
-                    , specificFields = Set.empty
-                    }
-                    |. Parser.symbol "**"
-                , Parser.loop
-                    { includeCatchAll = False
-                    , specificFields = Set.empty
-                    }
-                    (\params ->
-                        Parser.oneOf
-                            [ Parser.succeed
-                                (\fieldName ->
-                                    Parser.Loop { params | specificFields = Set.insert fieldName params.specificFields }
-                                )
-                                |= Parser.getChompedString
-                                    (Parser.succeed ()
-                                        |. Parser.chompIf Char.isAlpha
-                                        |. Parser.chompWhile Char.isAlpha
-                                    )
-                                |. Parser.chompWhile (\c -> c == ',')
-                            , Parser.succeed (Parser.Done params)
-                            ]
-                    )
-                ]
-            |. Parser.symbol "}"
-        ]
-
-
-isBlank : String -> Bool
-isBlank str =
-    String.isEmpty (String.trim str)
-
-
-parsePath :
-    Parser.Parser
-        { includePathTail : Bool
-        , path : List UrlPiece
-        }
-parsePath =
-    Parser.loop []
-        (\pieces ->
-            Parser.oneOf
-                [ Parser.succeed (\val -> val)
-                    |. Parser.symbol "/"
-                    |= Parser.oneOf
-                        [ Parser.succeed
-                            (Parser.Done
-                                { includePathTail = True
-                                , path = List.reverse pieces
-                                }
-                            )
-                            |. Parser.symbol "*"
-                        , Parser.succeed
-                            (\isVariable label ->
-                                if isBlank label then
-                                    Parser.Loop pieces
-
-                                else
-                                    Parser.Loop <|
-                                        if isVariable then
-                                            Variable label :: pieces
-
-                                        else
-                                            Token label :: pieces
-                            )
-                            |= Parser.oneOf
-                                [ Parser.succeed True
-                                    |. Parser.chompIf (\c -> c == ':')
-                                , Parser.succeed False
-                                ]
-                            |= Parser.getChompedString
-                                (Parser.chompWhile
-                                    (\c ->
-                                        not (List.member c [ '/', ':', '?' ])
-                                    )
-                                )
-                        ]
-                , Parser.succeed
-                    (Parser.Done
-                        { includePathTail = False
-                        , path = List.reverse pieces
-                        }
-                    )
-                ]
-        )
-
-
-decodeDirectory : Json.Decode.Decoder SourceDirectory
-decodeDirectory =
-    Json.Decode.map4 SourceDirectory
-        (Json.Decode.field "base" Json.Decode.string)
-        (Json.Decode.field "baseOnApp" Json.Decode.string)
-        (Json.Decode.field "baseOnServer" Json.Decode.string)
-        (Json.Decode.field "files" (Json.Decode.list decodeSource))
-
-
-decodeSource : Json.Decode.Decoder Source
-decodeSource =
-    Json.Decode.map2 Source
-        (Json.Decode.field "path" Json.Decode.string)
-        (Json.Decode.field "contents" Json.Decode.string)

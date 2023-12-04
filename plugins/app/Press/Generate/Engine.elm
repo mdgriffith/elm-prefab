@@ -123,8 +123,8 @@ generate options =
                 :: routeVariants
             )
         , viewType
-        , viewPageModel options
-        , msgType options.pages
+        , viewPageModel options.pageUsages
+        , msgType options.pageUsages
         , update options.pageUsages getPageInit loadPage preloadPage
         , getPageInit.declaration
         , loadPage.declaration
@@ -137,7 +137,7 @@ generate options =
 toPageKey options =
     let
         routes =
-            options.pages
+            options.pageUsages
     in
     .declaration <|
         Elm.Declare.fn "toPageKey"
@@ -194,6 +194,7 @@ toPageKey options =
             )
 
 
+msgType : List PageUsage -> Elm.Declaration
 msgType routes =
     let
         pageVariants =
@@ -1167,11 +1168,8 @@ view routes =
         )
 
 
-viewPageModel options =
-    let
-        routes =
-            options.pages
-    in
+viewPageModel : List PageUsage -> Elm.Declaration
+viewPageModel routes =
     Elm.declaration "viewPageModel"
         (Elm.fn4
             ( "shared", Just types.sharedType )
