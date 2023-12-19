@@ -33,7 +33,7 @@ map fn myView =
 
 {-| -}
 type alias Regions view =
-    { primary : view
+    { primary : Maybe view
     , nav : Maybe view
     , detail : List view
     }

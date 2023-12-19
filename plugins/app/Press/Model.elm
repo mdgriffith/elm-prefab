@@ -146,7 +146,7 @@ decodeViewRegions : Json.Decode.Decoder ViewRegions
 decodeViewRegions =
     Json.Decode.map
         (\regions ->
-            { regions = regions
+            { regions = List.reverse regions
             }
         )
         (Json.Decode.at [ "definition", "type", "components" ]
@@ -178,13 +178,6 @@ decodeRegionType strs =
 
                                 "List view" ->
                                     Ok (( field, Many ) :: foundTypes)
-
-                                "view" ->
-                                    if field == "primary" then
-                                        Ok foundTypes
-
-                                    else
-                                        Err "Only `primary` can be a view region of type `view`"
 
                                 _ ->
                                     Err "Disallowed view region type"
@@ -435,7 +428,7 @@ routeType =
 
 
 regionsRecord =
-    Type.named [] "ViewRegions"
+    Type.namedWith [ "App", "View" ] "Regions" [ Type.string ]
 
 
 stateCache =
@@ -443,7 +436,7 @@ stateCache =
 
 
 regionOperation =
-    Type.named [ "App", "View", "Id" ] "Operation"
+    Type.namedWith [ "App", "View", "Id" ] "Operation" [ pageIdType ]
 
 
 regionViewType =
@@ -567,6 +560,17 @@ setState key val model =
     Gen.App.State.call_.insert key val (Elm.get "states" model)
 
 
+setRegion region value regions =
+    Elm.apply
+        (Elm.value
+            { importFrom = [ "App", "View", "Id" ]
+            , name = "setRegion"
+            , annotation = Nothing
+            }
+        )
+        [ region, value, regions ]
+
+
 loadPage :
     List PageUsage
     ->
@@ -626,15 +630,15 @@ loadPage routes =
                                                     |> Gen.App.State.call_.setCurrent pageId
                                               )
                                             , ( "regions"
-                                              , Elm.apply (Elm.val "setRegion")
-                                                    [ Elm.value
+                                              , setRegion
+                                                    (Elm.value
                                                         { importFrom = [ "App", "View", "Id" ]
                                                         , name = "Primary"
                                                         , annotation = Nothing
                                                         }
-                                                    , pageId
-                                                    , Elm.get "regions" model
-                                                    ]
+                                                    )
+                                                    pageId
+                                                    (Elm.get "regions" model)
                                               )
                                             ]
                                             model
@@ -654,15 +658,15 @@ loadPage routes =
                                                 |> Gen.App.State.call_.setCurrent pageId
                                           )
                                         , ( "regions"
-                                          , Elm.apply (Elm.val "setRegion")
-                                                [ Elm.value
+                                          , setRegion
+                                                (Elm.value
                                                     { importFrom = [ "App", "View", "Id" ]
                                                     , name = "Primary"
                                                     , annotation = Nothing
                                                     }
-                                                , pageId
-                                                , Elm.get "regions" model
-                                                ]
+                                                )
+                                                pageId
+                                                (Elm.get "regions" model)
                                           )
                                         ]
                                         model
@@ -690,15 +694,15 @@ loadPage routes =
                                                     |> Gen.App.State.call_.setCurrent pageId
                                               )
                                             , ( "regions"
-                                              , Elm.apply (Elm.val "setRegion")
-                                                    [ Elm.value
+                                              , setRegion
+                                                    (Elm.value
                                                         { importFrom = [ "App", "View", "Id" ]
                                                         , name = "Primary"
                                                         , annotation = Nothing
                                                         }
-                                                    , pageId
-                                                    , Elm.get "regions" model
-                                                    ]
+                                                    )
+                                                    pageId
+                                                    (Elm.get "regions" model)
                                               )
                                             ]
                                             model

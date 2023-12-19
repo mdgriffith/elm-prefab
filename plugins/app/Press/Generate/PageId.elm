@@ -5,13 +5,13 @@ import Elm.Annotation as Type
 import Press.Model
 
 
-generate : Press.Model.Model -> Elm.File
-generate options =
-    generateRegionIndex options
+generate : List Press.Model.PageUsage -> Elm.File
+generate pageUsages =
+    generateRegionIndex pageUsages
 
 
-generateRegionIndex : Press.Model.Model -> Elm.File
-generateRegionIndex model =
+generateRegionIndex : List Press.Model.PageUsage -> Elm.File
+generateRegionIndex pageUsages =
     let
         -- Useful references
         region =
@@ -28,7 +28,7 @@ generateRegionIndex model =
         , aliases = []
         }
         [ Elm.customType "Id"
-            (model.pageUsages
+            (pageUsages
                 |> List.map pageToIdVariant
             )
             |> Elm.exposeWith

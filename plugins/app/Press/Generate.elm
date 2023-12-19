@@ -74,12 +74,13 @@ errorToDetails error =
             }
 
 
-generate : Options -> Result (List Error) (List Elm.File)
-generate options =
+generate : List PageUsage -> Result (List Error) (List Elm.File)
+generate pageUsages =
     Ok
-        [ Press.Generate.PageId.generate options
-        , Press.Generate.Regions.generate options
-        , Press.Generate.Engine.generate options
+        [ Press.Generate.PageId.generate pageUsages
+
+        -- , Press.Generate.Regions.generate options
+        , Press.Generate.Engine.generate pageUsages
 
         -- :: Press.Generate.Route.generate options.pages
         -- :: Press.Generate.Directory.generate options.pages

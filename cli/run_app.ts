@@ -5,6 +5,7 @@ import * as Options from "./options";
 import * as ChildProcess from "child_process";
 
 const AppGenerator = require("./generators/app");
+const AppView = require("./generators/app-view");
 
 export const generator = (options: any) => {
   return {
@@ -17,17 +18,21 @@ export const generator = (options: any) => {
     run: async (runOptions: Options.RunOptions) => {
       // Copy static files
       AppEngine.copyTo(runOptions.internalSrc, true);
-
       const viewRegions = await executeElmDevOperation(
         "explain App.View.Regions"
       );
 
-      const pages = await executeElmDevOperation(
-        "usage type App.Engine.Page.Page"
-      );
-
-      await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
+      await Generator.run(AppView.Elm.GenerateView, runOptions.internalSrc, {
         regions: JSON.parse(viewRegions),
+      });
+      // console.log("Generated view regions");
+
+      // const pages = await executeElmDevOperation(
+      //   "usage type App.Engine.Page.Page"
+      // );
+      // console.log("Found usage", pages);
+      const pages = JSON.stringify(placeholderPageUsages);
+      await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
         pageUsages: JSON.parse(pages),
       });
     },

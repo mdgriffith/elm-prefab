@@ -6,15 +6,16 @@ import Elm
 import Gen.CodeGen.Generate as Generate
 import Json.Decode
 import Press.Generate
+import Press.Model
 
 
 main : Program Json.Decode.Value () ()
 main =
     Generate.withFeedback
         (\flags ->
-            case Json.Decode.decodeValue Press.Generate.decode flags of
-                Ok input ->
-                    case Press.Generate.generate input of
+            case Json.Decode.decodeValue (Json.Decode.field "pageUsages" Press.Model.decodePageUsages) flags of
+                Ok pageUsages ->
+                    case Press.Generate.generate pageUsages of
                         Ok output ->
                             Ok
                                 { info = []
