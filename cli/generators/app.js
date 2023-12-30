@@ -3395,11 +3395,11 @@ var $mdgriffith$elm_codegen$Elm$Annotation$namedWith = F3(
 					A2($elm$core$List$concatMap, $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports, args))
 			});
 	});
-var $author$project$Gen$App$PageError$annotation_ = {
+var $author$project$Gen$App$Page$Error$annotation_ = {
 	error: A3(
 		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 		_List_fromArray(
-			['App', 'PageError']),
+			['App', 'Page', 'Error']),
 		'Error',
 		_List_Nil)
 };
@@ -8089,7 +8089,7 @@ var $author$project$Gen$App$Effect$call_ = {
 									A3(
 									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 									_List_fromArray(
-										['Route']),
+										['App', 'Route']),
 									'Route',
 									_List_Nil)
 								]),
@@ -8191,7 +8191,7 @@ var $author$project$Gen$App$Effect$call_ = {
 															A3(
 															$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 															_List_fromArray(
-																['Route']),
+																['App', 'Route']),
 															'Route',
 															_List_Nil)
 														]),
@@ -14201,7 +14201,7 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 							A3(
 							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 							_List_fromArray(
-								['App', 'PageError']),
+								['App', 'Page', 'Error']),
 							'Error',
 							_List_Nil)
 						]),
@@ -14477,6 +14477,12 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 												A3(
 												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 												_List_fromArray(
+													['App', 'View', 'Id']),
+												'Id',
+												_List_Nil),
+												A3(
+												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+												_List_fromArray(
 													['App', 'Shared']),
 												'Shared',
 												_List_Nil),
@@ -14535,6 +14541,22 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 					$mdgriffith$elm_codegen$Elm$Annotation$record(
 						_List_fromArray(
 							[
+								_Utils_Tuple2(
+								'toKey',
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_Nil,
+									'Maybe',
+									_List_fromArray(
+										[
+											A2(
+											$mdgriffith$elm_codegen$Elm$Annotation$function,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('params')
+												]),
+											$mdgriffith$elm_codegen$Elm$Annotation$string)
+										]))),
 								_Utils_Tuple2(
 								'init',
 								A2(
@@ -14607,6 +14629,12 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 									$mdgriffith$elm_codegen$Elm$Annotation$function,
 									_List_fromArray(
 										[
+											A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['App', 'View', 'Id']),
+											'Id',
+											_List_Nil),
 											$mdgriffith$elm_codegen$Elm$Annotation$var('shared'),
 											$mdgriffith$elm_codegen$Elm$Annotation$var('model')
 										]),
@@ -14619,7 +14647,7 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 												A3(
 												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 												_List_fromArray(
-													['App', 'PageError']),
+													['App', 'Page', 'Error']),
 												'Error',
 												_List_Nil),
 												A3(
@@ -14659,7 +14687,7 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 										A3(
 										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 										_List_fromArray(
-											['App', 'PageError']),
+											['App', 'Page', 'Error']),
 										'Error',
 										_List_Nil),
 										$mdgriffith$elm_codegen$Elm$Annotation$var('newShared')
@@ -14690,6 +14718,47 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 			importFrom: _List_fromArray(
 				['App', 'Engine', 'Page']),
 			name: 'withGuard'
+		}),
+	withKey: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('params')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$string),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Page',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('shared'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_Nil,
+						'Page',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('shared'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+							])))),
+			importFrom: _List_fromArray(
+				['App', 'Engine', 'Page']),
+			name: 'withKey'
 		})
 };
 var $author$project$Press$Model$getPageInit = function (pages) {
@@ -15303,7 +15372,7 @@ var $author$project$Press$Model$loadPage = function (routes) {
 												A3(
 												$mdgriffith$elm_codegen$Elm$Case$branch1,
 												'Error',
-												_Utils_Tuple2('err', $author$project$Gen$App$PageError$annotation_.error),
+												_Utils_Tuple2('err', $author$project$Gen$App$Page$Error$annotation_.error),
 												function (err) {
 													var updatedModel = A2(
 														$mdgriffith$elm_codegen$Elm$updateRecord,
@@ -15552,7 +15621,7 @@ var $author$project$Press$Model$preloadPage = function (routes) {
 												A3(
 												$mdgriffith$elm_codegen$Elm$Case$branch1,
 												'Error',
-												_Utils_Tuple2('err', $author$project$Gen$App$PageError$annotation_.error),
+												_Utils_Tuple2('err', $author$project$Gen$App$Page$Error$annotation_.error),
 												function (err) {
 													var updatedModel = A2(
 														$mdgriffith$elm_codegen$Elm$updateRecord,
@@ -17059,7 +17128,7 @@ var $author$project$Press$Generate$Engine$pageModelToSubscription = F5(
 				A3(
 					$mdgriffith$elm_codegen$Elm$Case$branch1,
 					'PageError_',
-					_Utils_Tuple2('pageError', $author$project$Gen$App$PageError$annotation_.error),
+					_Utils_Tuple2('pageError', $author$project$Gen$App$Page$Error$annotation_.error),
 					function (err) {
 						return $author$project$Gen$Platform$Sub$none;
 					}),
@@ -18162,7 +18231,7 @@ var $author$project$Press$Generate$Engine$viewPageModel = function (pages) {
 												A3(
 													$mdgriffith$elm_codegen$Elm$Case$branch1,
 													'PageError_',
-													_Utils_Tuple2('pageError', $author$project$Gen$App$PageError$annotation_.error),
+													_Utils_Tuple2('pageError', $author$project$Gen$App$Page$Error$annotation_.error),
 													function (err) {
 														return A2(
 															$mdgriffith$elm_codegen$Elm$apply,
@@ -18195,6 +18264,42 @@ var $author$project$Press$Generate$Engine$viewPageModel = function (pages) {
 var $author$project$Gen$App$View$moduleName_ = _List_fromArray(
 	['App', 'View']);
 var $author$project$Gen$App$View$annotation_ = {
+	regions: function (regionsArg0) {
+		return A4(
+			$mdgriffith$elm_codegen$Elm$Annotation$alias,
+			$author$project$Gen$App$View$moduleName_,
+			'Regions',
+			_List_fromArray(
+				[regionsArg0]),
+			$mdgriffith$elm_codegen$Elm$Annotation$record(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'primary',
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Maybe',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('view')
+								]))),
+						_Utils_Tuple2(
+						'nav',
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Maybe',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('view')
+								]))),
+						_Utils_Tuple2(
+						'detail',
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('view')))
+					])));
+	},
 	view: function (viewArg0) {
 		return A4(
 			$mdgriffith$elm_codegen$Elm$Annotation$alias,
@@ -18241,7 +18346,7 @@ var $author$project$Press$Generate$Engine$viewType = A2(
 				$mdgriffith$elm_codegen$Elm$variantWith,
 				'Error',
 				_List_fromArray(
-					[$author$project$Gen$App$PageError$annotation_.error])),
+					[$author$project$Gen$App$Page$Error$annotation_.error])),
 				A2(
 				$mdgriffith$elm_codegen$Elm$variantWith,
 				'View',
@@ -18330,7 +18435,7 @@ var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
 							$mdgriffith$elm_codegen$Elm$variantWith,
 							'PageError_',
 							_List_fromArray(
-								[$author$project$Gen$App$PageError$annotation_.error])),
+								[$author$project$Gen$App$Page$Error$annotation_.error])),
 						A2(
 							$elm$core$List$cons,
 							A2(

@@ -10,7 +10,7 @@ import Elm.Let
 import Elm.Op
 import Gen.App.Effect
 import Gen.App.Engine.Page
-import Gen.App.PageError
+import Gen.App.Page.Error
 import Gen.App.State
 import Gen.App.Sub
 import Gen.App.View
@@ -112,7 +112,7 @@ generate pageUsages =
                                     Nothing
                             )
              in
-             Elm.variantWith "PageError_" [ Gen.App.PageError.annotation_.error ]
+             Elm.variantWith "PageError_" [ Gen.App.Page.Error.annotation_.error ]
                 :: Elm.variantWith "PageLoading_" [ types.pageId ]
                 :: routeVariants
             )
@@ -241,7 +241,7 @@ viewType =
     Elm.customType "View"
         [ Elm.variantWith "NotFound" []
         , Elm.variantWith "Loading" [ types.pageId ]
-        , Elm.variantWith "Error" [ Gen.App.PageError.annotation_.error ]
+        , Elm.variantWith "Error" [ Gen.App.Page.Error.annotation_.error ]
         , Elm.variantWith "View"
             [ Gen.App.View.annotation_.view (Type.var "appMsg")
             ]
@@ -674,7 +674,7 @@ viewPageModel pages =
                             Elm.Case.custom current
                                 types.pageModel
                                 (Elm.Case.branch1 "PageError_"
-                                    ( "pageError", Gen.App.PageError.annotation_.error )
+                                    ( "pageError", Gen.App.Page.Error.annotation_.error )
                                     (\err ->
                                         Elm.apply
                                             (Elm.val "Error")
@@ -817,7 +817,7 @@ pageModelToSubscription config model pages current pageId =
     Elm.Case.custom current
         types.pageModel
         (Elm.Case.branch1 "PageError_"
-            ( "pageError", Gen.App.PageError.annotation_.error )
+            ( "pageError", Gen.App.Page.Error.annotation_.error )
             (\err -> Gen.Platform.Sub.none)
             :: Elm.Case.branch1 "PageLoading_"
                 ( "pageId", types.pageId )

@@ -14543,6 +14543,12 @@ var $author$project$Gen$App$Page$call_ = {
 														A3(
 														$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 														_List_fromArray(
+															['App', 'View', 'Id']),
+														'Id',
+														_List_Nil),
+														A3(
+														$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+														_List_fromArray(
 															['App', 'Shared']),
 														'Shared',
 														_List_Nil),
@@ -14589,7 +14595,7 @@ var $author$project$Gen$App$Page$call_ = {
 									A3(
 									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 									_List_fromArray(
-										['App', 'PageError']),
+										['App', 'Page', 'Error']),
 									'Error',
 									_List_Nil)
 								]),
@@ -14819,6 +14825,12 @@ var $author$project$Gen$App$Page$call_ = {
 												$mdgriffith$elm_codegen$Elm$Annotation$function,
 												_List_fromArray(
 													[
+														A3(
+														$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+														_List_fromArray(
+															['App', 'View', 'Id']),
+														'Id',
+														_List_Nil),
 														A3(
 														$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 														_List_fromArray(
@@ -15420,6 +15432,42 @@ var $author$project$Interactive$update = F3(
 var $author$project$Gen$App$View$moduleName_ = _List_fromArray(
 	['App', 'View']);
 var $author$project$Gen$App$View$annotation_ = {
+	regions: function (regionsArg0) {
+		return A4(
+			$mdgriffith$elm_codegen$Elm$Annotation$alias,
+			$author$project$Gen$App$View$moduleName_,
+			'Regions',
+			_List_fromArray(
+				[regionsArg0]),
+			$mdgriffith$elm_codegen$Elm$Annotation$record(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'primary',
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Maybe',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('view')
+								]))),
+						_Utils_Tuple2(
+						'nav',
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Maybe',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('view')
+								]))),
+						_Utils_Tuple2(
+						'detail',
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('view')))
+					])));
+	},
 	view: function (viewArg0) {
 		return A4(
 			$mdgriffith$elm_codegen$Elm$Annotation$alias,

@@ -5,7 +5,9 @@ module App.Page exposing
 
 {-|
 
-@docs Page, page, authenticated, Page
+@docs Page, page, authenticated
+
+@docs withKey
 
 @docs Init, init, initWith, notFound, loadFrom, error
 
@@ -13,7 +15,7 @@ module App.Page exposing
 
 import App.Effect
 import App.Engine.Page
-import App.PageError
+import App.Page.Error
 import App.Shared
 import App.Sub
 import App.View
@@ -31,9 +33,15 @@ page :
     , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
     , view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
     }
-    -> App.Engine.Page.Page App.Shared.Shared params msg model
+    -> Page params msg model
 page =
     App.Engine.Page.page
+
+
+{-| -}
+withKey : (params -> String) -> Page params msg model -> Page params msg model
+withKey =
+    App.Engine.Page.withKey
 
 
 {-| -}
@@ -53,7 +61,7 @@ authenticated options =
                         Ok shared
 
                     App.Shared.Unauthenticated ->
-                        Err App.PageError.Unauthenticated
+                        Err App.Page.Error.Unauthenticated
             )
 
 
@@ -86,6 +94,6 @@ loadFrom =
 
 
 {-| -}
-error : App.PageError.Error -> Init msg model
+error : App.Page.Error.Error -> Init msg model
 error =
     App.Engine.Page.error

@@ -23,7 +23,7 @@ These are used internally and you shouldn't need to worry about them!
 -}
 
 import App.Effect
-import App.PageError
+import App.Page.Error
 import App.Shared
 import App.Sub
 import App.View
@@ -36,7 +36,7 @@ type Page shared params msg model
         , init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg
-        , view : App.View.Id.Id -> shared -> model -> Result App.PageError.Error (App.View.View msg)
+        , view : App.View.Id.Id -> shared -> model -> Result App.Page.Error.Error (App.View.View msg)
         }
 
 
@@ -68,7 +68,7 @@ withKey toKey (Page options) =
 
 {-| -}
 withGuard :
-    (shared -> Result App.PageError.Error newShared)
+    (shared -> Result App.Page.Error.Error newShared)
     -> Page newShared params msg model
     -> Page shared params msg model
 withGuard toShared (Page options) =
@@ -117,7 +117,7 @@ type alias Init msg model =
 {-| -}
 type InitPlan msg model
     = NotFound
-    | Error App.PageError.Error
+    | Error App.Page.Error.Error
     | Loaded model (App.Effect.Effect msg)
     | LoadFrom (App.Effect.Effect (InitPlan msg model))
 
@@ -169,7 +169,7 @@ loadFrom effect =
 
 
 {-| -}
-error : App.PageError.Error -> Init msg model
+error : App.Page.Error.Error -> Init msg model
 error pageError =
     Error pageError
 
@@ -186,7 +186,7 @@ toInternalDetails :
         , init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg
-        , view : App.View.Id.Id -> shared -> model -> Result App.PageError.Error (App.View.View msg)
+        , view : App.View.Id.Id -> shared -> model -> Result App.Page.Error.Error (App.View.View msg)
         }
 toInternalDetails (Page details) =
     details

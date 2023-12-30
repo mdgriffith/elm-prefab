@@ -10,7 +10,7 @@ import Elm.Let
 import Elm.Op
 import Gen.App.Effect
 import Gen.App.Engine.Page
-import Gen.App.PageError
+import Gen.App.Page.Error
 import Gen.App.State
 import Gen.App.Sub
 import Gen.Browser
@@ -629,7 +629,7 @@ loadPage routes =
                                 Gen.App.Effect.none
                             )
                         , Elm.Case.branch1 "Error"
-                            ( "err", Gen.App.PageError.annotation_.error )
+                            ( "err", Gen.App.Page.Error.annotation_.error )
                             (\err ->
                                 let
                                     updatedModel =
@@ -777,7 +777,7 @@ preloadPage routes =
                                 Gen.App.Effect.none
                             )
                         , Elm.Case.branch1 "Error"
-                            ( "err", Gen.App.PageError.annotation_.error )
+                            ( "err", Gen.App.Page.Error.annotation_.error )
                             (\err ->
                                 let
                                     updatedModel =

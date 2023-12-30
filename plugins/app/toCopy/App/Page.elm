@@ -15,7 +15,7 @@ module App.Page exposing
 
 import App.Effect
 import App.Engine.Page
-import App.PageError
+import App.Page.Error
 import App.Shared
 import App.Sub
 import App.View
@@ -39,7 +39,7 @@ page =
 
 
 {-| -}
-withKey : (params -> String) -> Page params msg model -> Page App.Shared.Shared params msg model
+withKey : (params -> String) -> Page params msg model -> Page params msg model
 withKey =
     App.Engine.Page.withKey
 
@@ -61,7 +61,7 @@ authenticated options =
                         Ok shared
 
                     App.Shared.Unauthenticated ->
-                        Err App.PageError.Unauthenticated
+                        Err App.Page.Error.Unauthenticated
             )
 
 
@@ -94,6 +94,6 @@ loadFrom =
 
 
 {-| -}
-error : App.PageError.Error -> Init msg model
+error : App.Page.Error.Error -> Init msg model
 error =
     App.Engine.Page.error
