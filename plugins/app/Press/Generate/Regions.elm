@@ -205,7 +205,7 @@ update regions =
                     types.operation
                     [ Elm.Case.branch2 "Push"
                         ( "region", types.region )
-                        ( "pageId", Type.var "view" )
+                        ( "val", Type.var "view" )
                         (\region pageId ->
                             -- let
                             --     shared =
@@ -221,7 +221,8 @@ update regions =
                                     --     shared
                                     --     (Elm.get "states" newModel)
                                     --     |> preloadPage.call config newModel pageIdToLoad
-                                    Elm.tuple newModel noChanges
+                                    Elm.tuple newModel
+                                        (added pageId)
                                 )
                                 |> Elm.Let.value "modelWithRegionSet"
                                     (Elm.apply (Elm.val "setRegion")
@@ -234,7 +235,7 @@ update regions =
                         )
                     , Elm.Case.branch2 "PushTo"
                         ( "regionId", types.id )
-                        ( "route", Type.var "view" )
+                        ( "val", Type.var "view" )
                         (\regionId pageId ->
                             -- let
                             --     shared =
@@ -250,7 +251,8 @@ update regions =
                                     --     shared
                                     --     (Elm.get "states" newModel)
                                     --     |> preloadPage.call config newModel pageIdToLoad
-                                    Elm.tuple newModel noChanges
+                                    Elm.tuple newModel
+                                        (added pageId)
                                 )
                                 |> Elm.Let.value "modelWithRegionSet"
                                     (Elm.apply (Elm.val "setRegionItem")
@@ -264,7 +266,7 @@ update regions =
                         )
                     , Elm.Case.branch2 "ReplaceAt"
                         ( "regionId", types.id )
-                        ( "pageId", Press.Model.types.pageId )
+                        ( "val", Type.var "view" )
                         (\regionId pageId ->
                             -- let
                             --     shared =
@@ -280,7 +282,7 @@ update regions =
                                     --     shared
                                     --     (Elm.get "states" newModel)
                                     --     |> preloadPage.call config newModel pageIdToLoad
-                                    Elm.tuple newModel noChanges
+                                    Elm.tuple newModel (added pageId)
                                 )
                                 |> Elm.Let.value "modelWithRegionSet"
                                     (Elm.apply (Elm.val "setRegionItem")
@@ -331,7 +333,28 @@ update regions =
                         )
             )
         )
+        -- |> Elm.withType
+        --     (Type.function
+        --         [ types.operation
+        --         , types.regionRecord
+        --         ]
+        --         (Type.tuple types.regionRecord types.changes)
+        --     )
         |> Elm.expose
+
+
+added val =
+    Elm.record
+        [ ( "added", Elm.list [ val ] )
+        , ( "removed", Elm.list [] )
+        ]
+
+
+removed val =
+    Elm.record
+        [ ( "added", Elm.list [] )
+        , ( "removed", Elm.list [ val ] )
+        ]
 
 
 noChanges =

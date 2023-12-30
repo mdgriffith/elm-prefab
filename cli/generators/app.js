@@ -2479,6 +2479,14 @@ var $elm$core$Result$Err = function (a) {
 var $elm$core$Result$Ok = function (a) {
 	return {$: 'Ok', a: a};
 };
+var $elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
+};
+var $elm$core$Maybe$Nothing = {$: 'Nothing'};
+var $author$project$Press$Model$PageUsage = F5(
+	function (id, moduleName, value, paramType, elmModuleIsPresent) {
+		return {elmModuleIsPresent: elmModuleIsPresent, id: id, moduleName: moduleName, paramType: paramType, value: value};
+	});
 var $elm$json$Json$Decode$Failure = F2(
 	function (a, b) {
 		return {$: 'Failure', a: a, b: b};
@@ -2496,10 +2504,6 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 };
 var $elm$core$Basics$False = {$: 'False'};
 var $elm$core$Basics$add = _Basics_add;
-var $elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
-};
-var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$String$all = _String_all;
 var $elm$core$Basics$and = _Basics_and;
 var $elm$core$Basics$append = _Utils_append;
@@ -2868,7 +2872,76 @@ var $elm$core$Result$isOk = function (result) {
 		return false;
 	}
 };
-var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$map = _Json_map1;
+var $elm$json$Json$Decode$map5 = _Json_map5;
+var $elm$json$Json$Decode$null = _Json_decodeNull;
+var $elm$json$Json$Decode$oneOf = _Json_oneOf;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Press$Model$decodePageUsages = $elm$json$Json$Decode$list(
+	A6(
+		$elm$json$Json$Decode$map5,
+		$author$project$Press$Model$PageUsage,
+		A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$string),
+		A2(
+			$elm$json$Json$Decode$field,
+			'moduleName',
+			$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+		A2($elm$json$Json$Decode$field, 'value', $elm$json$Json$Decode$string),
+		A2(
+			$elm$json$Json$Decode$field,
+			'paramType',
+			$elm$json$Json$Decode$oneOf(
+				_List_fromArray(
+					[
+						A2($elm$json$Json$Decode$map, $elm$core$Maybe$Just, $elm$json$Json$Decode$string),
+						$elm$json$Json$Decode$null($elm$core$Maybe$Nothing)
+					]))),
+		A2($elm$json$Json$Decode$field, 'elmModuleIsPresent', $elm$json$Json$Decode$bool)));
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $author$project$Press$Generate$errorToDetails = function (error) {
+	var collision = error.a;
+	return {description: '', title: 'Route collision'};
+};
+var $stil4m$elm_syntax$Elm$Syntax$Declaration$AliasDeclaration = function (a) {
+	return {$: 'AliasDeclaration', a: a};
+};
+var $mdgriffith$elm_codegen$Internal$Compiler$Declaration = function (a) {
+	return {$: 'Declaration', a: a};
+};
+var $mdgriffith$elm_codegen$Internal$Compiler$NotExposed = {$: 'NotExposed'};
+var $elm$core$String$length = _String_length;
+var $elm$core$String$slice = _String_slice;
+var $elm$core$String$dropLeft = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(
+			$elm$core$String$slice,
+			n,
+			$elm$core$String$length(string),
+			string);
+	});
+var $elm$core$String$left = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
+	});
+var $elm$core$String$toUpper = _String_toUpper;
+var $mdgriffith$elm_codegen$Internal$Format$formatType = function (str) {
+	return _Utils_ap(
+		$elm$core$String$toUpper(
+			A2($elm$core$String$left, 1, str)),
+		A2($elm$core$String$dropLeft, 1, str));
+};
+var $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports = function (_v0) {
+	var details = _v0.a;
+	return details.imports;
+};
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
 var $elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -2935,25 +3008,6 @@ var $elm$core$List$append = F2(
 var $elm$core$List$concat = function (lists) {
 	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
-var $elm$json$Json$Decode$bool = _Json_decodeBool;
-var $elm$json$Json$Decode$fail = _Json_fail;
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$json$Json$Decode$index = _Json_decodeIndex;
-var $elm$json$Json$Decode$keyValuePairs = _Json_decodeKeyValuePairs;
-var $elm$json$Json$Decode$map = _Json_map1;
 var $elm$core$List$map = F2(
 	function (f, xs) {
 		return A3(
@@ -2967,200 +3021,6 @@ var $elm$core$List$map = F2(
 				}),
 			_List_Nil,
 			xs);
-	});
-var $elm$json$Json$Decode$map2 = _Json_map2;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
-var $elm$json$Json$Decode$string = _Json_decodeString;
-var $elm$json$Json$Decode$succeed = _Json_succeed;
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
-var $author$project$Press$Model$decodeUsage = function (modName) {
-	return A2(
-		$elm$json$Json$Decode$andThen,
-		function (isConcrete) {
-			return isConcrete ? A3(
-				$elm$json$Json$Decode$map2,
-				F2(
-					function (name, paramType) {
-						return $elm$core$Maybe$Just(
-							{
-								id: A2(
-									$elm$core$Maybe$withDefault,
-									name,
-									$elm$core$List$head(
-										$elm$core$List$reverse(modName))),
-								moduleName: modName,
-								paramType: paramType,
-								value: name
-							});
-					}),
-				A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
-				A2(
-					$elm$json$Json$Decode$at,
-					_List_fromArray(
-						['type', 'components']),
-					A2(
-						$elm$json$Json$Decode$index,
-						2,
-						$elm$json$Json$Decode$oneOf(
-							_List_fromArray(
-								[
-									A2(
-									$elm$json$Json$Decode$map,
-									function (_v0) {
-										return '{}';
-									},
-									A2($elm$json$Json$Decode$field, 'definition', $elm$json$Json$Decode$string)),
-									A2(
-									$elm$json$Json$Decode$map,
-									function (fields) {
-										var body = A2(
-											$elm$core$String$join,
-											', ',
-											A2(
-												$elm$core$List$map,
-												function (_v1) {
-													var fieldName = _v1.a;
-													var value = _v1.b;
-													return fieldName + (' : ' + value);
-												},
-												fields));
-										return '{ ' + (body + ' }');
-									},
-									A2(
-										$elm$json$Json$Decode$field,
-										'definition',
-										$elm$json$Json$Decode$keyValuePairs($elm$json$Json$Decode$string))),
-									A2(
-									$elm$json$Json$Decode$andThen,
-									function (typeString) {
-										return (typeString === 'alias') ? A2(
-											$elm$json$Json$Decode$map,
-											function (fields) {
-												var body = A2(
-													$elm$core$String$join,
-													', ',
-													A2(
-														$elm$core$List$map,
-														function (_v2) {
-															var fieldName = _v2.a;
-															var value = _v2.b;
-															return fieldName + (' : ' + value);
-														},
-														fields));
-												return '{ ' + (body + ' }');
-											},
-											A2(
-												$elm$json$Json$Decode$at,
-												_List_fromArray(
-													['definition', 'fields']),
-												$elm$json$Json$Decode$keyValuePairs($elm$json$Json$Decode$string))) : $elm$json$Json$Decode$fail('Unknown type');
-									},
-									A2(
-										$elm$json$Json$Decode$at,
-										_List_fromArray(
-											['definition', 'type']),
-										$elm$json$Json$Decode$string))
-								]))))) : $elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing);
-		},
-		A2($elm$json$Json$Decode$field, 'isConcrete', $elm$json$Json$Decode$bool));
-};
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
-var $elm$core$Basics$identity = function (x) {
-	return x;
-};
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $author$project$Press$Model$decodePageUsages = A2(
-	$elm$json$Json$Decode$map,
-	$elm$core$List$concat,
-	A2(
-		$elm$json$Json$Decode$field,
-		'usages',
-		$elm$json$Json$Decode$list(
-			A2(
-				$elm$json$Json$Decode$andThen,
-				function (modName) {
-					return A2(
-						$elm$json$Json$Decode$field,
-						'usedBy',
-						A2(
-							$elm$json$Json$Decode$map,
-							$elm$core$List$filterMap($elm$core$Basics$identity),
-							$elm$json$Json$Decode$list(
-								$author$project$Press$Model$decodeUsage(modName))));
-				},
-				A2(
-					$elm$json$Json$Decode$field,
-					'module',
-					A2(
-						$elm$json$Json$Decode$map,
-						$elm$core$String$split('.'),
-						$elm$json$Json$Decode$string))))));
-var $elm$json$Json$Decode$decodeValue = _Json_run;
-var $author$project$Press$Generate$errorToDetails = function (error) {
-	var collision = error.a;
-	return {description: '', title: 'Route collision'};
-};
-var $stil4m$elm_syntax$Elm$Syntax$Declaration$AliasDeclaration = function (a) {
-	return {$: 'AliasDeclaration', a: a};
-};
-var $mdgriffith$elm_codegen$Internal$Compiler$Declaration = function (a) {
-	return {$: 'Declaration', a: a};
-};
-var $mdgriffith$elm_codegen$Internal$Compiler$NotExposed = {$: 'NotExposed'};
-var $elm$core$String$length = _String_length;
-var $elm$core$String$slice = _String_slice;
-var $elm$core$String$dropLeft = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3(
-			$elm$core$String$slice,
-			n,
-			$elm$core$String$length(string),
-			string);
-	});
-var $elm$core$String$left = F2(
-	function (n, string) {
-		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
-	});
-var $elm$core$String$toUpper = _String_toUpper;
-var $mdgriffith$elm_codegen$Internal$Format$formatType = function (str) {
-	return _Utils_ap(
-		$elm$core$String$toUpper(
-			A2($elm$core$String$left, 1, str)),
-		A2($elm$core$String$dropLeft, 1, str));
-};
-var $mdgriffith$elm_codegen$Internal$Compiler$getAnnotationImports = function (_v0) {
-	var details = _v0.a;
-	return details.imports;
-};
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
 	});
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
@@ -3233,6 +3093,9 @@ var $mdgriffith$elm_codegen$Internal$Compiler$getGenericsHelper = function (ann)
 						$mdgriffith$elm_codegen$Internal$Compiler$denode(two)
 					]));
 	}
+};
+var $elm$core$Basics$identity = function (x) {
+	return x;
 };
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
@@ -4937,6 +4800,15 @@ var $mdgriffith$elm_codegen$Internal$Compiler$restrictFurther = F2(
 							_List_fromArray(
 								[restriction, newRestriction]));
 				}
+		}
+	});
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
 		}
 	});
 var $mdgriffith$elm_codegen$Internal$Compiler$getRestrictionsHelper = F3(
@@ -8804,7 +8676,7 @@ var $author$project$Press$Model$regionsRecord = A3(
 		['App', 'View']),
 	'Regions',
 	_List_fromArray(
-		[$mdgriffith$elm_codegen$Elm$Annotation$string]));
+		[$author$project$Press$Model$pageIdType]));
 var $author$project$Press$Model$routePath = _List_fromArray(
 	['App', 'Route']);
 var $author$project$Press$Model$routeType = A2($mdgriffith$elm_codegen$Elm$Annotation$named, $author$project$Press$Model$routePath, 'Route');
@@ -8870,6 +8742,24 @@ var $author$project$Gen$Platform$Sub$annotation_ = {
 				[subArg0]));
 	}
 };
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
 var $author$project$Press$Model$toConfig = function (configType) {
 	return (_Utils_eq(configType, $author$project$Press$Model$FullConfig) ? $mdgriffith$elm_codegen$Elm$Annotation$record : $mdgriffith$elm_codegen$Elm$Annotation$extensible('config'))(
 		A2(
@@ -9077,7 +8967,6 @@ var $author$project$Press$Model$types = {
 				_Utils_Tuple2(
 				'key',
 				$mdgriffith$elm_codegen$Elm$Annotation$var('key')),
-				_Utils_Tuple2('url', $author$project$Gen$Url$annotation_.url),
 				_Utils_Tuple2('states', $author$project$Press$Model$stateCache),
 				_Utils_Tuple2('regions', $author$project$Press$Model$regionsRecord),
 				_Utils_Tuple2(
@@ -9280,7 +9169,6 @@ var $author$project$Press$Generate$Engine$init = F6(
 								_List_fromArray(
 									[
 										_Utils_Tuple2('key', key),
-										_Utils_Tuple2('url', url),
 										_Utils_Tuple2('regions', $author$project$Press$Generate$Regions$values.empty),
 										_Utils_Tuple2('frame', frameModel),
 										_Utils_Tuple2('states', $author$project$Gen$App$State$init)
@@ -13463,6 +13351,22 @@ var $stil4m$elm_syntax$Elm$Syntax$Pattern$NamedPattern = F2(
 	function (a, b) {
 		return {$: 'NamedPattern', a: a, b: b};
 	});
+var $mdgriffith$elm_codegen$Elm$Case$branch0 = F2(
+	function (name, exp) {
+		return $mdgriffith$elm_codegen$Internal$Branch$Branch(
+			function (index) {
+				return _Utils_Tuple3(
+					index,
+					A2(
+						$stil4m$elm_syntax$Elm$Syntax$Pattern$NamedPattern,
+						{
+							moduleName: _List_Nil,
+							name: $mdgriffith$elm_codegen$Internal$Format$formatType(name)
+						},
+						_List_Nil),
+					exp);
+			});
+	});
 var $mdgriffith$elm_codegen$Internal$Compiler$toVarWithType = F3(
 	function (index, desiredName, _v0) {
 		var ann = _v0.a;
@@ -14119,6 +14023,22 @@ var $mdgriffith$elm_codegen$Elm$just = function (content) {
 	return $mdgriffith$elm_codegen$Elm$maybe(
 		$elm$core$Maybe$Just(content));
 };
+var $author$project$Gen$App$Engine$Page$notFound = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_Nil,
+				'Init',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+						$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+					]))),
+		importFrom: _List_fromArray(
+			['App', 'Engine', 'Page']),
+		name: 'notFound'
+	});
 var $mdgriffith$elm_codegen$Elm$nothing = $mdgriffith$elm_codegen$Elm$maybe($elm$core$Maybe$Nothing);
 var $mdgriffith$elm_codegen$Elm$Op$BinOp = F3(
 	function (a, b, c) {
@@ -14772,7 +14692,7 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 			name: 'withGuard'
 		})
 };
-var $author$project$Press$Model$getPageInit = function (routes) {
+var $author$project$Press$Model$getPageInit = function (pages) {
 	return A5(
 		$mdgriffith$elm_codegen$Elm$Declare$fn3,
 		'getPageInit',
@@ -14798,95 +14718,108 @@ var $author$project$Press$Model$getPageInit = function (routes) {
 						$author$project$Press$Model$types.pageId,
 						A2(
 							$elm$core$List$map,
-							function (routeInfo) {
-								var stateKey = routeInfo.id;
-								var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(routeInfo.id);
-								var pageModule = routeInfo.moduleName;
-								var pageConfig = $mdgriffith$elm_codegen$Elm$value(
-									{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'});
-								return A3(
-									$mdgriffith$elm_codegen$Elm$Case$branch1,
-									routeInfo.id,
-									_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
-									function (params) {
-										return $mdgriffith$elm_codegen$Elm$Let$toExpression(
-											A3(
-												$mdgriffith$elm_codegen$Elm$Let$value,
-												'keyString',
-												A2(
-													$mdgriffith$elm_codegen$Elm$apply,
-													$mdgriffith$elm_codegen$Elm$val('toPageKey'),
-													_List_fromArray(
-														[pageId])),
+							function (pageInfo) {
+								if (pageInfo.elmModuleIsPresent) {
+									var toBranch = function (fn) {
+										var _v0 = pageInfo.paramType;
+										if (_v0.$ === 'Nothing') {
+											return A2(
+												$mdgriffith$elm_codegen$Elm$Case$branch0,
+												pageInfo.id,
+												fn(
+													$mdgriffith$elm_codegen$Elm$record(_List_Nil)));
+										} else {
+											var paramType = _v0.a;
+											return A3(
+												$mdgriffith$elm_codegen$Elm$Case$branch1,
+												pageInfo.id,
+												_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
+												fn);
+										}
+									};
+									var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(pageInfo.id);
+									var pageModule = pageInfo.moduleName;
+									var pageConfig = $mdgriffith$elm_codegen$Elm$value(
+										{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'});
+									return toBranch(
+										function (params) {
+											return $mdgriffith$elm_codegen$Elm$Let$toExpression(
 												A3(
 													$mdgriffith$elm_codegen$Elm$Let$value,
-													'pageDetails',
+													'pageKey',
 													A2(
 														$mdgriffith$elm_codegen$Elm$apply,
-														$author$project$Gen$App$Engine$Page$values_.toInternalDetails,
+														$mdgriffith$elm_codegen$Elm$val('toPageKey'),
 														_List_fromArray(
-															[pageConfig])),
-													$mdgriffith$elm_codegen$Elm$Let$letIn(
-														F2(
-															function (pageDetails, keyString) {
-																return A2(
-																	$mdgriffith$elm_codegen$Elm$Op$pipe,
-																	A2(
-																		$mdgriffith$elm_codegen$Elm$apply,
-																		$author$project$Gen$App$Engine$Page$values_.mapInitPlan,
-																		_List_fromArray(
-																			[
-																				$mdgriffith$elm_codegen$Elm$record(
-																				_List_fromArray(
-																					[
-																						_Utils_Tuple2(
-																						'onModel',
-																						$mdgriffith$elm_codegen$Elm$val(stateKey)),
-																						_Utils_Tuple2(
-																						'onMsg',
-																						A2(
-																							$mdgriffith$elm_codegen$Elm$apply,
-																							$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
-																							_List_fromArray(
-																								[keyString])))
-																					]))
-																			])),
-																	A2(
-																		$mdgriffith$elm_codegen$Elm$apply,
-																		A2($mdgriffith$elm_codegen$Elm$get, 'init', pageDetails),
-																		_List_fromArray(
-																			[
-																				params,
-																				shared,
-																				A4(
-																				$author$project$Press$Model$getPage,
-																				keyString,
-																				stateKey,
-																				cache,
-																				{just: $mdgriffith$elm_codegen$Elm$just, nothing: $mdgriffith$elm_codegen$Elm$nothing})
-																			])));
-															})))));
-									});
+															[pageId])),
+													A3(
+														$mdgriffith$elm_codegen$Elm$Let$value,
+														'pageDetails',
+														A2(
+															$mdgriffith$elm_codegen$Elm$apply,
+															$author$project$Gen$App$Engine$Page$values_.toInternalDetails,
+															_List_fromArray(
+																[pageConfig])),
+														$mdgriffith$elm_codegen$Elm$Let$letIn(
+															F2(
+																function (pageDetails, pageKey) {
+																	return A2(
+																		$mdgriffith$elm_codegen$Elm$Op$pipe,
+																		A2(
+																			$mdgriffith$elm_codegen$Elm$apply,
+																			$author$project$Gen$App$Engine$Page$values_.mapInitPlan,
+																			_List_fromArray(
+																				[
+																					$mdgriffith$elm_codegen$Elm$record(
+																					_List_fromArray(
+																						[
+																							_Utils_Tuple2(
+																							'onModel',
+																							$mdgriffith$elm_codegen$Elm$val(pageInfo.id)),
+																							_Utils_Tuple2(
+																							'onMsg',
+																							A2(
+																								$mdgriffith$elm_codegen$Elm$apply,
+																								$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
+																								_List_fromArray(
+																									[pageId])))
+																						]))
+																				])),
+																		A2(
+																			$mdgriffith$elm_codegen$Elm$apply,
+																			A2($mdgriffith$elm_codegen$Elm$get, 'init', pageDetails),
+																			_List_fromArray(
+																				[
+																					params,
+																					shared,
+																					A4(
+																					$author$project$Press$Model$getPage,
+																					pageKey,
+																					pageInfo.id,
+																					cache,
+																					{just: $mdgriffith$elm_codegen$Elm$just, nothing: $mdgriffith$elm_codegen$Elm$nothing})
+																				])));
+																})))));
+										});
+								} else {
+									var _v1 = pageInfo.paramType;
+									if (_v1.$ === 'Nothing') {
+										return A2($mdgriffith$elm_codegen$Elm$Case$branch0, pageInfo.id, $author$project$Gen$App$Engine$Page$notFound);
+									} else {
+										var paramType = _v1.a;
+										return A3(
+											$mdgriffith$elm_codegen$Elm$Case$branch1,
+											pageInfo.id,
+											_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
+											function (params) {
+												return $author$project$Gen$App$Engine$Page$notFound;
+											});
+									}
+								}
 							},
-							routes)));
+							pages)));
 			}));
 };
-var $mdgriffith$elm_codegen$Elm$Case$branch0 = F2(
-	function (name, exp) {
-		return $mdgriffith$elm_codegen$Internal$Branch$Branch(
-			function (index) {
-				return _Utils_Tuple3(
-					index,
-					A2(
-						$stil4m$elm_syntax$Elm$Syntax$Pattern$NamedPattern,
-						{
-							moduleName: _List_Nil,
-							name: $mdgriffith$elm_codegen$Internal$Format$formatType(name)
-						},
-						_List_Nil),
-					exp);
-			});
-	});
 var $mdgriffith$elm_codegen$Elm$Case$branch2 = F4(
 	function (name, _v0, _v1, toExp) {
 		var oneName = _v0.a;
@@ -15310,13 +15243,13 @@ var $author$project$Press$Model$loadPage = function (routes) {
 			'model',
 			$elm$core$Maybe$Just($author$project$Press$Model$types.model)),
 		_Utils_Tuple2(
-			'pageid',
+			'pageId',
 			$elm$core$Maybe$Just($author$project$Press$Model$types.pageId)),
 		_Utils_Tuple2(
 			'initialization',
 			$elm$core$Maybe$Just($author$project$Press$Model$types.pageLoadResult)),
 		F4(
-			function (config, model, route, initialization) {
+			function (config, model, pageId, initialization) {
 				return A2(
 					$mdgriffith$elm_codegen$Elm$withType,
 					A2(
@@ -15326,14 +15259,14 @@ var $author$project$Press$Model$loadPage = function (routes) {
 					$mdgriffith$elm_codegen$Elm$Let$toExpression(
 						A3(
 							$mdgriffith$elm_codegen$Elm$Let$value,
-							'pageId',
+							'pageKey',
 							A2(
 								$mdgriffith$elm_codegen$Elm$apply,
 								$mdgriffith$elm_codegen$Elm$val('toPageKey'),
 								_List_fromArray(
-									[route])),
+									[pageId])),
 							$mdgriffith$elm_codegen$Elm$Let$letIn(
-								function (pageId) {
+								function (pageKey) {
 									return A3(
 										$mdgriffith$elm_codegen$Elm$Case$custom,
 										initialization,
@@ -15361,7 +15294,7 @@ var $author$project$Press$Model$loadPage = function (routes) {
 																'states',
 																A2(
 																	$author$project$Gen$App$State$call_.remove,
-																	pageId,
+																	pageKey,
 																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
 															]),
 														model);
@@ -15380,10 +15313,10 @@ var $author$project$Press$Model$loadPage = function (routes) {
 																'states',
 																A2(
 																	$author$project$Gen$App$State$call_.setCurrent,
-																	pageId,
+																	pageKey,
 																	A3(
 																		$author$project$Gen$App$State$call_.insert,
-																		pageId,
+																		pageKey,
 																		A2(
 																			$mdgriffith$elm_codegen$Elm$apply,
 																			$mdgriffith$elm_codegen$Elm$value(
@@ -15429,10 +15362,10 @@ var $author$project$Press$Model$loadPage = function (routes) {
 																		'states',
 																		A2(
 																			$author$project$Gen$App$State$call_.setCurrent,
-																			pageId,
+																			pageKey,
 																			A3(
 																				$author$project$Gen$App$State$call_.insert,
-																				pageId,
+																				pageKey,
 																				newPage,
 																				A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))),
 																		_Utils_Tuple2(
@@ -15465,16 +15398,16 @@ var $author$project$Press$Model$loadPage = function (routes) {
 																'states',
 																A2(
 																	$author$project$Gen$App$State$call_.setCurrent,
-																	pageId,
+																	pageKey,
 																	A3(
 																		$author$project$Gen$App$State$call_.insert,
-																		pageId,
+																		pageKey,
 																		A2(
 																			$mdgriffith$elm_codegen$Elm$apply,
 																			$mdgriffith$elm_codegen$Elm$value(
 																				{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageLoading_'}),
 																			_List_fromArray(
-																				[route])),
+																				[pageId])),
 																		A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))),
 																_Utils_Tuple2(
 																'regions',
@@ -15500,7 +15433,7 @@ var $author$project$Press$Model$loadPage = function (routes) {
 																$mdgriffith$elm_codegen$Elm$apply,
 																$mdgriffith$elm_codegen$Elm$val('Loaded'),
 																_List_fromArray(
-																	[route])),
+																	[pageId])),
 															pageEffect));
 												})
 											]));
@@ -15515,20 +15448,21 @@ var $mdgriffith$elm_codegen$Elm$variant = function (name) {
 	return A2($mdgriffith$elm_codegen$Elm$Variant, name, _List_Nil);
 };
 var $mdgriffith$elm_codegen$Elm$variantWith = $mdgriffith$elm_codegen$Elm$Variant;
-var $author$project$Press$Generate$Engine$msgType = function (routes) {
+var $author$project$Press$Generate$Engine$msgType = function (pageUsages) {
 	var pageVariants = A2(
-		$elm$core$List$map,
-		function (route) {
-			return A2(
-				$mdgriffith$elm_codegen$Elm$variantWith,
-				$author$project$Press$Model$types.toPageMsg(route.id),
-				_List_fromArray(
-					[
-						$mdgriffith$elm_codegen$Elm$Annotation$string,
-						A2($mdgriffith$elm_codegen$Elm$Annotation$named, route.moduleName, 'Msg')
-					]));
+		$elm$core$List$filterMap,
+		function (pageInfo) {
+			return pageInfo.elmModuleIsPresent ? $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$variantWith,
+					$author$project$Press$Model$types.toPageMsg(pageInfo.id),
+					_List_fromArray(
+						[
+							$author$project$Press$Model$types.pageId,
+							A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageInfo.moduleName, 'Msg')
+						]))) : $elm$core$Maybe$Nothing;
 		},
-		routes);
+		pageUsages);
 	return A2(
 		$mdgriffith$elm_codegen$Elm$customType,
 		'Msg',
@@ -15569,16 +15503,16 @@ var $author$project$Press$Model$preloadPage = function (routes) {
 			'config',
 			$elm$core$Maybe$Just($author$project$Press$Model$types.frameUpdate)),
 		_Utils_Tuple2(
-			'model',
-			$elm$core$Maybe$Just($author$project$Press$Model$types.model)),
-		_Utils_Tuple2(
 			'pageId',
 			$elm$core$Maybe$Just($author$project$Press$Model$types.pageId)),
 		_Utils_Tuple2(
 			'initialization',
 			$elm$core$Maybe$Just($author$project$Press$Model$types.pageLoadResult)),
+		_Utils_Tuple2(
+			'model',
+			$elm$core$Maybe$Just($author$project$Press$Model$types.model)),
 		F4(
-			function (config, model, pageIdToPreload, initialization) {
+			function (config, pageIdToPreload, initialization, model) {
 				return A2(
 					$mdgriffith$elm_codegen$Elm$withType,
 					A2(
@@ -17066,51 +17000,56 @@ var $author$project$Press$Model$withPageHelper = F3(
 							A2($mdgriffith$elm_codegen$Elm$get, fieldName, pageDetails));
 					})));
 	});
-var $author$project$Press$Generate$Engine$routeToSubscription = F4(
-	function (config, model, pageId, route) {
-		var stateKey = route.id;
-		var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(route.id);
-		var pageModule = route.moduleName;
-		return A3(
-			$mdgriffith$elm_codegen$Elm$Case$branch1,
-			stateKey,
-			_Utils_Tuple2(
-				'pageModel',
-				A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageModule, 'Model')),
-			function (pageState) {
-				return A3(
-					$author$project$Press$Model$toSub,
-					config,
-					A2($mdgriffith$elm_codegen$Elm$get, 'frame', model),
-					A3(
-						$author$project$Press$Model$withPageHelper,
-						$mdgriffith$elm_codegen$Elm$value(
-							{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'}),
-						'subscriptions',
-						function (pageSubscriptions) {
-							return A2(
-								$author$project$Gen$App$Sub$call_.map,
-								A2(
-									$mdgriffith$elm_codegen$Elm$apply,
-									$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
-									_List_fromArray(
-										[pageId])),
-								A2(
-									$mdgriffith$elm_codegen$Elm$apply,
-									pageSubscriptions,
-									_List_fromArray(
-										[
-											A2(
-											$author$project$Press$Model$toShared,
-											config,
-											A2($mdgriffith$elm_codegen$Elm$get, 'frame', model)),
-											pageState
-										])));
-						}));
-			});
+var $author$project$Press$Generate$Engine$pageInfoToSubscriptioon = F4(
+	function (config, model, pageId, pageInfo) {
+		if (pageInfo.elmModuleIsPresent) {
+			var stateKey = pageInfo.id;
+			var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(pageInfo.id);
+			var pageModule = pageInfo.moduleName;
+			return $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Case$branch1,
+					stateKey,
+					_Utils_Tuple2(
+						'pageModel',
+						A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageModule, 'Model')),
+					function (pageState) {
+						return A3(
+							$author$project$Press$Model$toSub,
+							config,
+							A2($mdgriffith$elm_codegen$Elm$get, 'frame', model),
+							A3(
+								$author$project$Press$Model$withPageHelper,
+								$mdgriffith$elm_codegen$Elm$value(
+									{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'}),
+								'subscriptions',
+								function (pageSubscriptions) {
+									return A2(
+										$author$project$Gen$App$Sub$call_.map,
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
+											_List_fromArray(
+												[pageId])),
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											pageSubscriptions,
+											_List_fromArray(
+												[
+													A2(
+													$author$project$Press$Model$toShared,
+													config,
+													A2($mdgriffith$elm_codegen$Elm$get, 'frame', model)),
+													pageState
+												])));
+								}));
+					}));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
 	});
 var $author$project$Press$Generate$Engine$pageModelToSubscription = F5(
-	function (config, model, routes, current, pageId) {
+	function (config, model, pages, current, pageId) {
 		return A3(
 			$mdgriffith$elm_codegen$Elm$Case$custom,
 			current,
@@ -17134,11 +17073,11 @@ var $author$project$Press$Generate$Engine$pageModelToSubscription = F5(
 							return $author$project$Gen$Platform$Sub$none;
 						}),
 					A2(
-						$elm$core$List$map,
-						A3($author$project$Press$Generate$Engine$routeToSubscription, config, model, pageId),
-						routes))));
+						$elm$core$List$filterMap,
+						A3($author$project$Press$Generate$Engine$pageInfoToSubscriptioon, config, model, pageId),
+						pages))));
 	});
-var $author$project$Press$Generate$Engine$subscriptions = function (routes) {
+var $author$project$Press$Generate$Engine$subscriptions = function (pages) {
 	return A2(
 		$mdgriffith$elm_codegen$Elm$declaration,
 		'subscriptions',
@@ -17185,18 +17124,23 @@ var $author$project$Press$Generate$Engine$subscriptions = function (routes) {
 												'pageId',
 												$elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$string)),
 											function (pageId) {
+												var pageKey = A2(
+													$mdgriffith$elm_codegen$Elm$apply,
+													$mdgriffith$elm_codegen$Elm$val('toPageKey'),
+													_List_fromArray(
+														[pageId]));
 												return A2(
 													$mdgriffith$elm_codegen$Elm$Case$maybe,
 													A2(
 														$author$project$Gen$App$State$call_.get,
-														pageId,
+														pageKey,
 														A2($mdgriffith$elm_codegen$Elm$get, 'states', model)),
 													{
 														just: _Utils_Tuple2(
 															'pageState',
 															function (pageState) {
 																return $mdgriffith$elm_codegen$Elm$just(
-																	A5($author$project$Press$Generate$Engine$pageModelToSubscription, config, model, routes, pageState, pageId));
+																	A5($author$project$Press$Generate$Engine$pageModelToSubscription, config, model, pages, pageState, pageId));
 															}),
 														nothing: $mdgriffith$elm_codegen$Elm$nothing
 													});
@@ -17468,7 +17412,7 @@ var $mdgriffith$elm_codegen$Elm$string = function (literal) {
 			};
 		});
 };
-var $author$project$Press$Generate$Engine$toPageKey = function (routes) {
+var $author$project$Press$Generate$Engine$toPageKey = function (pages) {
 	return A3(
 		$mdgriffith$elm_codegen$Elm$Declare$fn,
 		'toPageKey',
@@ -17485,51 +17429,110 @@ var $author$project$Press$Generate$Engine$toPageKey = function (routes) {
 					$author$project$Press$Model$types.pageId,
 					A2(
 						$elm$core$List$map,
-						function (routeInfo) {
-							var stateKey = routeInfo.id;
-							var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(routeInfo.id);
-							var pageModule = routeInfo.moduleName;
-							var pageConfig = $mdgriffith$elm_codegen$Elm$value(
-								{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'});
-							return A3(
-								$mdgriffith$elm_codegen$Elm$Case$branch1,
-								routeInfo.id,
-								_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
-								function (params) {
-									return $mdgriffith$elm_codegen$Elm$Let$toExpression(
-										A3(
-											$mdgriffith$elm_codegen$Elm$Let$value,
-											'pageDetails',
-											A2(
-												$mdgriffith$elm_codegen$Elm$apply,
-												$author$project$Gen$App$Engine$Page$values_.toInternalDetails,
-												_List_fromArray(
-													[pageConfig])),
-											$mdgriffith$elm_codegen$Elm$Let$letIn(
-												function (pageDetails) {
-													return A2(
-														$mdgriffith$elm_codegen$Elm$Case$maybe,
-														A2($mdgriffith$elm_codegen$Elm$get, 'toKey', pageDetails),
-														{
-															just: _Utils_Tuple2(
-																'toKey',
-																function (toKey) {
-																	return A2(
-																		$mdgriffith$elm_codegen$Elm$Op$append,
-																		$mdgriffith$elm_codegen$Elm$string(stateKey),
-																		A2(
-																			$mdgriffith$elm_codegen$Elm$apply,
-																			toKey,
-																			_List_fromArray(
-																				[params])));
-																}),
-															nothing: $mdgriffith$elm_codegen$Elm$string(stateKey)
-														});
-												})));
-								});
+						function (pageInfo) {
+							var toBranch = function (fn) {
+								var _v0 = pageInfo.paramType;
+								if (_v0.$ === 'Nothing') {
+									return A2(
+										$mdgriffith$elm_codegen$Elm$Case$branch0,
+										pageInfo.id,
+										fn(
+											$mdgriffith$elm_codegen$Elm$record(_List_Nil)));
+								} else {
+									var paramType = _v0.a;
+									return A3(
+										$mdgriffith$elm_codegen$Elm$Case$branch1,
+										pageInfo.id,
+										_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
+										function (params) {
+											return fn(params);
+										});
+								}
+							};
+							if (pageInfo.elmModuleIsPresent) {
+								var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(pageInfo.id);
+								var pageModule = pageInfo.moduleName;
+								var pageConfig = $mdgriffith$elm_codegen$Elm$value(
+									{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'});
+								return toBranch(
+									function (params) {
+										return $mdgriffith$elm_codegen$Elm$Let$toExpression(
+											A3(
+												$mdgriffith$elm_codegen$Elm$Let$value,
+												'pageDetails',
+												A2(
+													$mdgriffith$elm_codegen$Elm$apply,
+													$author$project$Gen$App$Engine$Page$values_.toInternalDetails,
+													_List_fromArray(
+														[pageConfig])),
+												$mdgriffith$elm_codegen$Elm$Let$letIn(
+													function (pageDetails) {
+														return A2(
+															$mdgriffith$elm_codegen$Elm$Case$maybe,
+															A2($mdgriffith$elm_codegen$Elm$get, 'toKey', pageDetails),
+															{
+																just: _Utils_Tuple2(
+																	'toKey',
+																	function (toKey) {
+																		return A2(
+																			$mdgriffith$elm_codegen$Elm$Op$append,
+																			$mdgriffith$elm_codegen$Elm$string(pageInfo.id),
+																			A2(
+																				$mdgriffith$elm_codegen$Elm$apply,
+																				toKey,
+																				_List_fromArray(
+																					[params])));
+																	}),
+																nothing: $mdgriffith$elm_codegen$Elm$string(pageInfo.id)
+															});
+													})));
+									});
+							} else {
+								return toBranch(
+									function (params) {
+										return $mdgriffith$elm_codegen$Elm$string(pageInfo.id);
+									});
+							}
 						},
-						routes)));
+						pages)));
 		}).declaration;
+};
+var $author$project$Gen$App$Effect$batch = function (batchArg) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$apply,
+		$mdgriffith$elm_codegen$Elm$value(
+			{
+				annotation: $elm$core$Maybe$Just(
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$function,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$list(
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_Nil,
+									'Effect',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))
+							]),
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Effect',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								])))),
+				importFrom: _List_fromArray(
+					['App', 'Effect']),
+				name: 'batch'
+			}),
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$list(batchArg)
+			]));
 };
 var $author$project$Gen$App$State$drop = function (dropArg) {
 	return A2(
@@ -17576,78 +17579,88 @@ var $author$project$Press$Model$setState = F3(
 var $author$project$Press$Model$updatePageBranches = F4(
 	function (pages, config, shared, model) {
 		return A2(
-			$elm$core$List$map,
-			function (route) {
-				var stateKey = route.id;
-				var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(route.id);
-				var pageModule = route.moduleName;
-				return A4(
-					$mdgriffith$elm_codegen$Elm$Case$branch2,
-					pageMsgTypeName,
-					_Utils_Tuple2('pageId', $mdgriffith$elm_codegen$Elm$Annotation$string),
-					_Utils_Tuple2(
-						'pageMsg',
-						A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageModule, 'Msg')),
-					F2(
-						function (pageId, pageMsg) {
-							return A4(
-								$author$project$Press$Model$getPage,
-								pageId,
-								stateKey,
-								A2($mdgriffith$elm_codegen$Elm$get, 'states', model),
-								{
-									just: function (pageState) {
-										var updated = A3(
-											$author$project$Press$Model$withPageHelper,
-											$mdgriffith$elm_codegen$Elm$value(
-												{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'}),
-											'update',
-											function (pageUpdate) {
-												return A2(
-													$mdgriffith$elm_codegen$Elm$apply,
-													pageUpdate,
-													_List_fromArray(
-														[shared, pageMsg, pageState]));
-											});
-										return $mdgriffith$elm_codegen$Elm$Let$toExpression(
-											A4(
-												$mdgriffith$elm_codegen$Elm$Let$tuple,
-												'updatedPage',
-												'pageEffect',
-												updated,
-												$mdgriffith$elm_codegen$Elm$Let$letIn(
-													function (_v0) {
-														var innerPageModel = _v0.a;
-														var pageEffect = _v0.b;
-														var pageModel = A2(
-															$mdgriffith$elm_codegen$Elm$apply,
-															$mdgriffith$elm_codegen$Elm$val(stateKey),
-															_List_fromArray(
-																[innerPageModel]));
+			$elm$core$List$filterMap,
+			function (pageInfo) {
+				if (pageInfo.elmModuleIsPresent) {
+					var stateKey = pageInfo.id;
+					var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(pageInfo.id);
+					var pageModule = pageInfo.moduleName;
+					return $elm$core$Maybe$Just(
+						A4(
+							$mdgriffith$elm_codegen$Elm$Case$branch2,
+							pageMsgTypeName,
+							_Utils_Tuple2('pageId', $author$project$Press$Model$types.pageId),
+							_Utils_Tuple2(
+								'pageMsg',
+								A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageModule, 'Msg')),
+							F2(
+								function (pageId, pageMsg) {
+									var pageKey = A2(
+										$mdgriffith$elm_codegen$Elm$apply,
+										$mdgriffith$elm_codegen$Elm$val('toPageKey'),
+										_List_fromArray(
+											[pageId]));
+									return A4(
+										$author$project$Press$Model$getPage,
+										pageKey,
+										stateKey,
+										A2($mdgriffith$elm_codegen$Elm$get, 'states', model),
+										{
+											just: function (pageState) {
+												var updated = A3(
+													$author$project$Press$Model$withPageHelper,
+													$mdgriffith$elm_codegen$Elm$value(
+														{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'}),
+													'update',
+													function (pageUpdate) {
 														return A2(
-															$mdgriffith$elm_codegen$Elm$tuple,
-															A2(
-																$mdgriffith$elm_codegen$Elm$updateRecord,
-																_List_fromArray(
-																	[
-																		_Utils_Tuple2(
-																		'states',
-																		A3($author$project$Press$Model$setState, pageId, pageModel, model))
-																	]),
-																model),
-															A2(
-																$author$project$Gen$App$Effect$call_.map,
-																A2(
+															$mdgriffith$elm_codegen$Elm$apply,
+															pageUpdate,
+															_List_fromArray(
+																[shared, pageMsg, pageState]));
+													});
+												return $mdgriffith$elm_codegen$Elm$Let$toExpression(
+													A4(
+														$mdgriffith$elm_codegen$Elm$Let$tuple,
+														'updatedPage',
+														'pageEffect',
+														updated,
+														$mdgriffith$elm_codegen$Elm$Let$letIn(
+															function (_v0) {
+																var innerPageModel = _v0.a;
+																var pageEffect = _v0.b;
+																var pageModel = A2(
 																	$mdgriffith$elm_codegen$Elm$apply,
-																	$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
+																	$mdgriffith$elm_codegen$Elm$val(stateKey),
 																	_List_fromArray(
-																		[pageId])),
-																pageEffect));
-													})));
-									},
-									nothing: A2($mdgriffith$elm_codegen$Elm$tuple, model, $author$project$Gen$App$Effect$none)
-								});
-						}));
+																		[innerPageModel]));
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$tuple,
+																	A2(
+																		$mdgriffith$elm_codegen$Elm$updateRecord,
+																		_List_fromArray(
+																			[
+																				_Utils_Tuple2(
+																				'states',
+																				A3($author$project$Press$Model$setState, pageKey, pageModel, model))
+																			]),
+																		model),
+																	A2(
+																		$author$project$Gen$App$Effect$call_.map,
+																		A2(
+																			$mdgriffith$elm_codegen$Elm$apply,
+																			$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
+																			_List_fromArray(
+																				[pageId])),
+																		pageEffect));
+															})));
+											},
+											nothing: A2($mdgriffith$elm_codegen$Elm$tuple, model, $author$project$Gen$App$Effect$none)
+										});
+								})));
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
 			},
 			pages);
 	});
@@ -17710,21 +17723,17 @@ var $author$project$Press$Generate$Engine$update = F4(
 											A3(
 											$mdgriffith$elm_codegen$Elm$Case$branch1,
 											'Preload',
-											_Utils_Tuple2('route', $author$project$Press$Model$types.pageId),
-											function (routeToPreload) {
-												return A4(
-													preloadPage.call,
-													config,
-													model,
-													routeToPreload,
-													A3(
-														getPageInit.call,
-														routeToPreload,
-														A2(
-															$author$project$Press$Model$toShared,
-															config,
-															A2($mdgriffith$elm_codegen$Elm$get, 'frame', model)),
-														A2($mdgriffith$elm_codegen$Elm$get, 'states', model)));
+											_Utils_Tuple2('pageId', $author$project$Press$Model$types.pageId),
+											function (pageId) {
+												var pageInit = A3(
+													getPageInit.call,
+													pageId,
+													A2(
+														$author$project$Press$Model$toShared,
+														config,
+														A2($mdgriffith$elm_codegen$Elm$get, 'frame', model)),
+													A2($mdgriffith$elm_codegen$Elm$get, 'states', model));
+												return A4(preloadPage.call, config, pageId, pageInit, model);
 											}),
 											A3(
 											$mdgriffith$elm_codegen$Elm$Case$branch1,
@@ -17738,25 +17747,69 @@ var $author$project$Press$Generate$Engine$update = F4(
 														'regionDiff',
 														A2(
 															$author$project$Press$Generate$Regions$values.update,
-															A2(
-																$author$project$Press$Generate$Regions$values.mapOperation,
-																$mdgriffith$elm_codegen$Elm$val('toPageKey'),
-																regionOperation),
+															regionOperation,
 															A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)),
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
 															function (_v0) {
 																var newRegions = _v0.a;
 																var regionDiff = _v0.b;
-																return A2(
-																	$mdgriffith$elm_codegen$Elm$tuple,
+																return A3(
+																	$author$project$Gen$List$call_.foldl,
+																	A3(
+																		$mdgriffith$elm_codegen$Elm$fn2,
+																		_Utils_Tuple2('pageId', $elm$core$Maybe$Nothing),
+																		_Utils_Tuple2('inner', $elm$core$Maybe$Nothing),
+																		F2(
+																			function (pageId, existingTuple) {
+																				return $mdgriffith$elm_codegen$Elm$Let$toExpression(
+																					A4(
+																						$mdgriffith$elm_codegen$Elm$Let$tuple,
+																						'innerModel',
+																						'innerEffect',
+																						existingTuple,
+																						$mdgriffith$elm_codegen$Elm$Let$letIn(
+																							function (_v1) {
+																								var innerModel = _v1.a;
+																								var innerEffect = _v1.b;
+																								var pageInit = A3(
+																									getPageInit.call,
+																									pageId,
+																									A2(
+																										$author$project$Press$Model$toShared,
+																										config,
+																										A2($mdgriffith$elm_codegen$Elm$get, 'frame', innerModel)),
+																									A2($mdgriffith$elm_codegen$Elm$get, 'states', innerModel));
+																								var preloadedTuple = A4(preloadPage.call, config, pageId, pageInit, innerModel);
+																								return $mdgriffith$elm_codegen$Elm$Let$toExpression(
+																									A4(
+																										$mdgriffith$elm_codegen$Elm$Let$tuple,
+																										'preloadedModel',
+																										'preloadedEffect',
+																										preloadedTuple,
+																										$mdgriffith$elm_codegen$Elm$Let$letIn(
+																											function (_v2) {
+																												var preloadedModel = _v2.a;
+																												var preloadedEffect = _v2.b;
+																												return A2(
+																													$mdgriffith$elm_codegen$Elm$tuple,
+																													preloadedModel,
+																													$author$project$Gen$App$Effect$batch(
+																														_List_fromArray(
+																															[innerEffect, preloadedEffect])));
+																											})));
+																							})));
+																			})),
 																	A2(
-																		$mdgriffith$elm_codegen$Elm$updateRecord,
-																		_List_fromArray(
-																			[
-																				_Utils_Tuple2('regions', newRegions)
-																			]),
-																		model),
-																	$author$project$Gen$App$Effect$none);
+																		$mdgriffith$elm_codegen$Elm$tuple,
+																		A2(
+																			$mdgriffith$elm_codegen$Elm$updateRecord,
+																			_List_fromArray(
+																				[
+																					_Utils_Tuple2('regions', newRegions)
+																				]),
+																			model),
+																		$author$project$Gen$App$Effect$none),
+																	A2($mdgriffith$elm_codegen$Elm$get, 'added', regionDiff));
 															})));
 											}),
 											A3(
@@ -17781,9 +17834,9 @@ var $author$project$Press$Generate$Engine$update = F4(
 														'frameEffect',
 														updatedFrame,
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
-															function (_v1) {
-																var newFrame = _v1.a;
-																var frameEffect = _v1.b;
+															function (_v3) {
+																var newFrame = _v3.a;
+																var frameEffect = _v3.b;
 																return A2(
 																	$mdgriffith$elm_codegen$Elm$tuple,
 																	A2(
@@ -17986,76 +18039,81 @@ var $mdgriffith$elm_codegen$Elm$Case$result = F2(
 			});
 	});
 var $author$project$Press$Generate$Engine$routeToView = F4(
-	function (shared, regionId, pageId, route) {
-		var stateKey = route.id;
-		var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(route.id);
-		var pageModule = route.moduleName;
-		return A3(
-			$mdgriffith$elm_codegen$Elm$Case$branch1,
-			stateKey,
-			_Utils_Tuple2(
-				'pageModel',
-				A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageModule, 'Model')),
-			function (pageState) {
-				return A3(
-					$author$project$Press$Model$withPageHelper,
-					$mdgriffith$elm_codegen$Elm$value(
-						{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'}),
-					'view',
-					function (pageView) {
-						return $mdgriffith$elm_codegen$Elm$Let$toExpression(
-							A3(
-								$mdgriffith$elm_codegen$Elm$Let$value,
-								'pageViewResult',
-								A2(
-									$mdgriffith$elm_codegen$Elm$apply,
-									pageView,
-									_List_fromArray(
-										[regionId, shared, pageState])),
-								$mdgriffith$elm_codegen$Elm$Let$letIn(
-									function (pageViewResult) {
-										return A2(
-											$mdgriffith$elm_codegen$Elm$Case$result,
-											pageViewResult,
-											{
-												err: _Utils_Tuple2(
-													'pageError',
-													function (pageError) {
-														return A2(
-															$mdgriffith$elm_codegen$Elm$apply,
-															$mdgriffith$elm_codegen$Elm$val('Error'),
-															_List_fromArray(
-																[pageError]));
-													}),
-												ok: _Utils_Tuple2(
-													'pageViewSuccess',
-													function (pageViewSuccess) {
-														return A2(
-															$mdgriffith$elm_codegen$Elm$apply,
-															$mdgriffith$elm_codegen$Elm$val('View'),
-															_List_fromArray(
-																[
-																	A2(
-																	$author$project$Gen$App$View$call_.map,
-																	A2(
-																		$mdgriffith$elm_codegen$Elm$fn,
-																		_Utils_Tuple2('innerMsg', $elm$core$Maybe$Nothing),
-																		function (innerMsg) {
-																			return A2(
-																				$mdgriffith$elm_codegen$Elm$apply,
-																				$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
-																				_List_fromArray(
-																					[pageId, innerMsg]));
-																		}),
-																	pageViewSuccess)
-																]));
-													})
-											});
-									})));
-					});
-			});
+	function (shared, regionId, pageId, pageInfo) {
+		if (pageInfo.elmModuleIsPresent) {
+			var stateKey = pageInfo.id;
+			var pageMsgTypeName = $author$project$Press$Model$types.toPageMsg(pageInfo.id);
+			var pageModule = pageInfo.moduleName;
+			return $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Case$branch1,
+					stateKey,
+					_Utils_Tuple2(
+						'pageModel',
+						A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageModule, 'Model')),
+					function (pageState) {
+						return A3(
+							$author$project$Press$Model$withPageHelper,
+							$mdgriffith$elm_codegen$Elm$value(
+								{annotation: $elm$core$Maybe$Nothing, importFrom: pageModule, name: 'page'}),
+							'view',
+							function (pageView) {
+								return $mdgriffith$elm_codegen$Elm$Let$toExpression(
+									A3(
+										$mdgriffith$elm_codegen$Elm$Let$value,
+										'pageViewResult',
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											pageView,
+											_List_fromArray(
+												[regionId, shared, pageState])),
+										$mdgriffith$elm_codegen$Elm$Let$letIn(
+											function (pageViewResult) {
+												return A2(
+													$mdgriffith$elm_codegen$Elm$Case$result,
+													pageViewResult,
+													{
+														err: _Utils_Tuple2(
+															'pageError',
+															function (pageError) {
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$apply,
+																	$mdgriffith$elm_codegen$Elm$val('Error'),
+																	_List_fromArray(
+																		[pageError]));
+															}),
+														ok: _Utils_Tuple2(
+															'pageViewSuccess',
+															function (pageViewSuccess) {
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$apply,
+																	$mdgriffith$elm_codegen$Elm$val('View'),
+																	_List_fromArray(
+																		[
+																			A2(
+																			$author$project$Gen$App$View$call_.map,
+																			A2(
+																				$mdgriffith$elm_codegen$Elm$fn,
+																				_Utils_Tuple2('innerMsg', $elm$core$Maybe$Nothing),
+																				function (innerMsg) {
+																					return A2(
+																						$mdgriffith$elm_codegen$Elm$apply,
+																						$mdgriffith$elm_codegen$Elm$val(pageMsgTypeName),
+																						_List_fromArray(
+																							[pageId, innerMsg]));
+																				}),
+																			pageViewSuccess)
+																		]));
+															})
+													});
+											})));
+							});
+					}));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
 	});
-var $author$project$Press$Generate$Engine$viewPageModel = function (routes) {
+var $author$project$Press$Generate$Engine$viewPageModel = function (pages) {
 	return A2(
 		$mdgriffith$elm_codegen$Elm$declaration,
 		'viewPageModel',
@@ -18072,9 +18130,14 @@ var $author$project$Press$Generate$Engine$viewPageModel = function (routes) {
 				$elm$core$Maybe$Just($author$project$Press$Model$types.regionIdType)),
 			_Utils_Tuple2(
 				'pageId',
-				$elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$string)),
+				$elm$core$Maybe$Just($author$project$Press$Model$types.pageId)),
 			F4(
 				function (shared, states, regionId, pageId) {
+					var pageKey = A2(
+						$mdgriffith$elm_codegen$Elm$apply,
+						$mdgriffith$elm_codegen$Elm$val('toPageKey'),
+						_List_fromArray(
+							[pageId]));
 					return A2(
 						$mdgriffith$elm_codegen$Elm$withType,
 						A3(
@@ -18085,7 +18148,7 @@ var $author$project$Press$Generate$Engine$viewPageModel = function (routes) {
 								[$author$project$Press$Model$appMsg])),
 						A2(
 							$mdgriffith$elm_codegen$Elm$Case$maybe,
-							A2($author$project$Gen$App$State$call_.get, pageId, states),
+							A2($author$project$Gen$App$State$call_.get, pageKey, states),
 							{
 								just: _Utils_Tuple2(
 									'currentState',
@@ -18112,18 +18175,18 @@ var $author$project$Press$Generate$Engine$viewPageModel = function (routes) {
 													A3(
 														$mdgriffith$elm_codegen$Elm$Case$branch1,
 														'PageLoading_',
-														_Utils_Tuple2('pageid', $author$project$Press$Model$types.pageId),
-														function (pageid) {
+														_Utils_Tuple2('loadingPageId', $author$project$Press$Model$types.pageId),
+														function (loadingPageId) {
 															return A2(
 																$mdgriffith$elm_codegen$Elm$apply,
 																$mdgriffith$elm_codegen$Elm$val('Loading'),
 																_List_fromArray(
-																	[pageid]));
+																	[loadingPageId]));
 														}),
 													A2(
-														$elm$core$List$map,
+														$elm$core$List$filterMap,
 														A3($author$project$Press$Generate$Engine$routeToView, shared, regionId, pageId),
-														routes))));
+														pages))));
 									}),
 								nothing: $mdgriffith$elm_codegen$Elm$val('NotFound')
 							}));
@@ -18249,15 +18312,16 @@ var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
 				'State',
 				function () {
 					var routeVariants = A2(
-						$elm$core$List$map,
-						function (route) {
-							return A2(
-								$mdgriffith$elm_codegen$Elm$variantWith,
-								route.id,
-								_List_fromArray(
-									[
-										A2($mdgriffith$elm_codegen$Elm$Annotation$named, route.moduleName, 'Model')
-									]));
+						$elm$core$List$filterMap,
+						function (pageInfo) {
+							return pageInfo.elmModuleIsPresent ? $elm$core$Maybe$Just(
+								A2(
+									$mdgriffith$elm_codegen$Elm$variantWith,
+									pageInfo.id,
+									_List_fromArray(
+										[
+											A2($mdgriffith$elm_codegen$Elm$Annotation$named, pageInfo.moduleName, 'Model')
+										]))) : $elm$core$Maybe$Nothing;
 						},
 						pageUsages);
 					return A2(
@@ -18287,61 +18351,10 @@ var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
 				$author$project$Press$Generate$Engine$subscriptions(pageUsages)
 			]));
 };
-var $mdgriffith$elm_codegen$Internal$Index$startChecked = function (checked) {
-	return A4($mdgriffith$elm_codegen$Internal$Index$Index, 0, _List_Nil, $elm$core$Set$empty, checked);
-};
-var $mdgriffith$elm_codegen$Elm$fileWith = F3(
-	function (mod, options, decs) {
-		return A2(
-			$mdgriffith$elm_codegen$Internal$Render$render,
-			options.docs,
-			{
-				aliases: options.aliases,
-				declarations: decs,
-				index: $mdgriffith$elm_codegen$Internal$Index$startChecked(true),
-				moduleName: mod
-			});
-	});
-var $author$project$Press$Generate$PageId$pageToIdVariant = function (page) {
-	return A2(
-		$mdgriffith$elm_codegen$Elm$variantWith,
-		page.id,
-		_List_fromArray(
-			[
-				A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, page.paramType)
-			]));
-};
-var $author$project$Press$Generate$PageId$generateRegionIndex = function (pageUsages) {
-	var route = $author$project$Press$Model$types.routeType;
-	var region = A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'Region');
-	var id = A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'Id');
-	return A3(
-		$mdgriffith$elm_codegen$Elm$fileWith,
-		_List_fromArray(
-			['App', 'Page', 'Id']),
-		{
-			aliases: _List_Nil,
-			docs: $elm$core$List$map($mdgriffith$elm_codegen$Elm$docs)
-		},
-		_List_fromArray(
-			[
-				A2(
-				$mdgriffith$elm_codegen$Elm$exposeWith,
-				{exposeConstructor: true, group: $elm$core$Maybe$Nothing},
-				A2(
-					$mdgriffith$elm_codegen$Elm$customType,
-					'Id',
-					A2($elm$core$List$map, $author$project$Press$Generate$PageId$pageToIdVariant, pageUsages)))
-			]));
-};
-var $author$project$Press$Generate$PageId$generate = function (pageUsages) {
-	return $author$project$Press$Generate$PageId$generateRegionIndex(pageUsages);
-};
 var $author$project$Press$Generate$generate = function (pageUsages) {
 	return $elm$core$Result$Ok(
 		_List_fromArray(
 			[
-				$author$project$Press$Generate$PageId$generate(pageUsages),
 				$author$project$Press$Generate$Engine$generate(pageUsages)
 			]));
 };

@@ -33,12 +33,31 @@ type alias PageUsage =
     { id : String
     , moduleName : List String
     , value : String
-    , paramType : String
+    , paramType : Maybe String
+    , elmModuleIsPresent : Bool
     }
 
 
 decodePageUsages : Json.Decode.Decoder (List PageUsage)
 decodePageUsages =
+    Json.Decode.list
+        (Json.Decode.map5 PageUsage
+            (Json.Decode.field "id" Json.Decode.string)
+            (Json.Decode.field "moduleName" (Json.Decode.list Json.Decode.string))
+            (Json.Decode.field "value" Json.Decode.string)
+            (Json.Decode.field "paramType"
+                (Json.Decode.oneOf
+                    [ Json.Decode.map Just Json.Decode.string
+                    , Json.Decode.null Nothing
+                    ]
+                )
+            )
+            (Json.Decode.field "elmModuleIsPresent" Json.Decode.bool)
+        )
+
+
+decodePageUsagesOLD : Json.Decode.Decoder (List PageUsage)
+decodePageUsagesOLD =
     Json.Decode.field "usages"
         (Json.Decode.list
             (Json.Decode.field "module"
@@ -73,7 +92,8 @@ decodeUsage modName =
                                         |> Maybe.withDefault name
                                 , moduleName = modName
                                 , value = name
-                                , paramType = paramType
+                                , paramType = Just paramType
+                                , elmModuleIsPresent = True
                                 }
                         )
                         (Json.Decode.field "name" Json.Decode.string)
@@ -428,7 +448,7 @@ routeType =
 
 
 regionsRecord =
-    Type.namedWith [ "App", "View" ] "Regions" [ Type.string ]
+    Type.namedWith [ "App", "View" ] "Regions" [ pageIdType ]
 
 
 stateCache =
@@ -494,7 +514,6 @@ types =
     , modelRecord =
         Type.record
             [ ( "key", Type.var "key" )
-            , ( "url", Gen.Url.annotation_.url )
             , ( "states"
               , stateCache
               )
@@ -584,11 +603,11 @@ loadPage routes =
     Elm.Declare.fn4 "loadPage"
         ( "config", Just types.frameUpdate )
         ( "model", Just types.model )
-        ( "pageid", Just types.pageId )
+        ( "pageId", Just types.pageId )
         ( "initialization", Just types.pageLoadResult )
-        (\config model route initialization ->
+        (\config model pageId initialization ->
             Elm.Let.letIn
-                (\pageId ->
+                (\pageKey ->
                     Elm.Case.custom initialization
                         (Type.namedWith
                             [ "App", "Engine", "Page" ]
@@ -601,7 +620,7 @@ loadPage routes =
                                     Elm.updateRecord
                                         [ ( "states"
                                           , Elm.get "states" model
-                                                |> Gen.App.State.call_.remove pageId
+                                                |> Gen.App.State.call_.remove pageKey
                                           )
                                         ]
                                         model
@@ -617,7 +636,7 @@ loadPage routes =
                                         Elm.updateRecord
                                             [ ( "states"
                                               , Elm.get "states" model
-                                                    |> Gen.App.State.call_.insert pageId
+                                                    |> Gen.App.State.call_.insert pageKey
                                                         (Elm.apply
                                                             (Elm.value
                                                                 { importFrom = []
@@ -627,7 +646,7 @@ loadPage routes =
                                                             )
                                                             [ err ]
                                                         )
-                                                    |> Gen.App.State.call_.setCurrent pageId
+                                                    |> Gen.App.State.call_.setCurrent pageKey
                                               )
                                             , ( "regions"
                                               , setRegion
@@ -654,8 +673,8 @@ loadPage routes =
                                     (Elm.updateRecord
                                         [ ( "states"
                                           , Elm.get "states" model
-                                                |> Gen.App.State.call_.insert pageId newPage
-                                                |> Gen.App.State.call_.setCurrent pageId
+                                                |> Gen.App.State.call_.insert pageKey newPage
+                                                |> Gen.App.State.call_.setCurrent pageKey
                                           )
                                         , ( "regions"
                                           , setRegion
@@ -681,7 +700,7 @@ loadPage routes =
                                         Elm.updateRecord
                                             [ ( "states"
                                               , Elm.get "states" model
-                                                    |> Gen.App.State.call_.insert pageId
+                                                    |> Gen.App.State.call_.insert pageKey
                                                         (Elm.apply
                                                             (Elm.value
                                                                 { importFrom = []
@@ -689,9 +708,9 @@ loadPage routes =
                                                                 , annotation = Nothing
                                                                 }
                                                             )
-                                                            [ route ]
+                                                            [ pageId ]
                                                         )
-                                                    |> Gen.App.State.call_.setCurrent pageId
+                                                    |> Gen.App.State.call_.setCurrent pageKey
                                               )
                                             , ( "regions"
                                               , setRegion
@@ -712,17 +731,17 @@ loadPage routes =
                                         |> Gen.App.Effect.call_.map
                                             (Elm.apply
                                                 (Elm.val "Loaded")
-                                                [ route
+                                                [ pageId
                                                 ]
                                             )
                                     )
                             )
                         ]
                 )
-                |> Elm.Let.value "pageId"
+                |> Elm.Let.value "pageKey"
                     (Elm.apply
                         (Elm.val "toPageKey")
-                        [ route ]
+                        [ pageId ]
                     )
                 |> Elm.Let.toExpression
                 |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))
@@ -741,10 +760,10 @@ preloadPage :
 preloadPage routes =
     Elm.Declare.fn4 "preloadPage"
         ( "config", Just types.frameUpdate )
-        ( "model", Just types.model )
         ( "pageId", Just types.pageId )
         ( "initialization", Just types.pageLoadResult )
-        (\config model pageIdToPreload initialization ->
+        ( "model", Just types.model )
+        (\config pageIdToPreload initialization model ->
             Elm.Let.letIn
                 (\pageId ->
                     Elm.Case.custom initialization
@@ -850,7 +869,7 @@ getPageInit :
             List String -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
         , value : List String -> Elm.Expression
         }
-getPageInit routes =
+getPageInit pages =
     Elm.Declare.fn3 "getPageInit"
         ( "pageId", Just types.pageId )
         ( "shared", Just sharedType )
@@ -858,67 +877,87 @@ getPageInit routes =
         (\pageId shared cache ->
             Elm.Case.custom pageId
                 types.pageId
-                (routes
+                (pages
                     |> List.map
-                        (\routeInfo ->
-                            let
-                                stateKey =
-                                    routeInfo.id
+                        (\pageInfo ->
+                            if pageInfo.elmModuleIsPresent then
+                                let
+                                    pageModule =
+                                        pageInfo.moduleName
 
-                                pageModule =
-                                    routeInfo.moduleName
+                                    pageMsgTypeName =
+                                        types.toPageMsg pageInfo.id
 
-                                pageMsgTypeName =
-                                    types.toPageMsg routeInfo.id
+                                    pageConfig =
+                                        Elm.value
+                                            { importFrom = pageModule
+                                            , name = "page"
+                                            , annotation = Nothing
+                                            }
 
-                                pageConfig =
-                                    Elm.value
-                                        { importFrom = pageModule
-                                        , name = "page"
-                                        , annotation = Nothing
-                                        }
-                            in
-                            Elm.Case.branch1 routeInfo.id
-                                ( "params", Type.unit )
-                                (\params ->
-                                    Elm.Let.letIn
-                                        (\pageDetails keyString ->
-                                            Elm.apply
-                                                (Elm.get "init" pageDetails)
-                                                [ params
-                                                , shared
-                                                , getPage keyString
-                                                    stateKey
-                                                    cache
-                                                    { nothing = Elm.nothing
-                                                    , just = Elm.just
-                                                    }
-                                                ]
-                                                |> Elm.Op.pipe
-                                                    (Elm.apply
-                                                        Gen.App.Engine.Page.values_.mapInitPlan
-                                                        [ Elm.record
-                                                            [ ( "onModel", Elm.val stateKey )
-                                                            , ( "onMsg"
-                                                              , Elm.apply
-                                                                    (Elm.val pageMsgTypeName)
-                                                                    [ keyString ]
-                                                              )
+                                    toBranch fn =
+                                        case pageInfo.paramType of
+                                            Nothing ->
+                                                Elm.Case.branch0 pageInfo.id (fn (Elm.record []))
+
+                                            Just paramType ->
+                                                Elm.Case.branch1 pageInfo.id
+                                                    ( "params", Type.unit )
+                                                    fn
+                                in
+                                toBranch
+                                    (\params ->
+                                        Elm.Let.letIn
+                                            (\pageDetails pageKey ->
+                                                Elm.apply
+                                                    (Elm.get "init" pageDetails)
+                                                    [ params
+                                                    , shared
+                                                    , getPage pageKey
+                                                        pageInfo.id
+                                                        cache
+                                                        { nothing = Elm.nothing
+                                                        , just = Elm.just
+                                                        }
+                                                    ]
+                                                    |> Elm.Op.pipe
+                                                        (Elm.apply
+                                                            Gen.App.Engine.Page.values_.mapInitPlan
+                                                            [ Elm.record
+                                                                [ ( "onModel", Elm.val pageInfo.id )
+                                                                , ( "onMsg"
+                                                                  , Elm.apply
+                                                                        (Elm.val pageMsgTypeName)
+                                                                        [ pageId ]
+                                                                  )
+                                                                ]
                                                             ]
-                                                        ]
-                                                    )
-                                        )
-                                        |> Elm.Let.value "pageDetails"
-                                            (Elm.apply
-                                                Gen.App.Engine.Page.values_.toInternalDetails
-                                                [ pageConfig ]
+                                                        )
                                             )
-                                        |> Elm.Let.value "keyString"
-                                            (Elm.apply (Elm.val "toPageKey")
-                                                [ pageId ]
+                                            |> Elm.Let.value "pageDetails"
+                                                (Elm.apply
+                                                    Gen.App.Engine.Page.values_.toInternalDetails
+                                                    [ pageConfig ]
+                                                )
+                                            |> Elm.Let.value "pageKey"
+                                                (Elm.apply (Elm.val "toPageKey")
+                                                    [ pageId ]
+                                                )
+                                            |> Elm.Let.toExpression
+                                    )
+
+                            else
+                                case pageInfo.paramType of
+                                    Nothing ->
+                                        Elm.Case.branch0 pageInfo.id
+                                            Gen.App.Engine.Page.notFound
+
+                                    Just paramType ->
+                                        Elm.Case.branch1 pageInfo.id
+                                            ( "params", Type.unit )
+                                            (\params ->
+                                                Gen.App.Engine.Page.notFound
                                             )
-                                        |> Elm.Let.toExpression
-                                )
                         )
                 )
                 |> Elm.withType
@@ -948,72 +987,83 @@ updatePageBranches :
     -> List Elm.Case.Branch
 updatePageBranches pages config shared model =
     pages
-        |> List.map
-            (\route ->
-                let
-                    stateKey =
-                        route.id
+        |> List.filterMap
+            (\pageInfo ->
+                if pageInfo.elmModuleIsPresent then
+                    let
+                        stateKey =
+                            pageInfo.id
 
-                    pageModule =
-                        route.moduleName
+                        pageModule =
+                            pageInfo.moduleName
 
-                    pageMsgTypeName =
-                        types.toPageMsg route.id
-                in
-                Elm.Case.branch2 pageMsgTypeName
-                    ( "pageId", Type.string )
-                    ( "pageMsg", Type.named pageModule "Msg" )
-                    (\pageId pageMsg ->
-                        getPage pageId
-                            stateKey
-                            (Elm.get "states" model)
-                            { nothing = Elm.tuple model Gen.App.Effect.none
-                            , just =
-                                \pageState ->
-                                    let
-                                        updated =
-                                            withPageHelper
-                                                (Elm.value
-                                                    { importFrom = pageModule
-                                                    , name = "page"
-                                                    , annotation = Nothing
-                                                    }
-                                                )
-                                                "update"
-                                                (\pageUpdate ->
-                                                    Elm.apply pageUpdate
-                                                        [ shared
-                                                        , pageMsg
-                                                        , pageState
-                                                        ]
-                                                )
-                                    in
-                                    Elm.Let.letIn
-                                        (\( innerPageModel, pageEffect ) ->
+                        pageMsgTypeName =
+                            types.toPageMsg pageInfo.id
+                    in
+                    Just <|
+                        Elm.Case.branch2 pageMsgTypeName
+                            ( "pageId", types.pageId )
+                            ( "pageMsg", Type.named pageModule "Msg" )
+                            (\pageId pageMsg ->
+                                let
+                                    pageKey =
+                                        Elm.apply
+                                            (Elm.val "toPageKey")
+                                            [ pageId ]
+                                in
+                                getPage pageKey
+                                    stateKey
+                                    (Elm.get "states" model)
+                                    { nothing = Elm.tuple model Gen.App.Effect.none
+                                    , just =
+                                        \pageState ->
                                             let
-                                                pageModel =
-                                                    Elm.apply (Elm.val stateKey)
-                                                        [ innerPageModel ]
+                                                updated =
+                                                    withPageHelper
+                                                        (Elm.value
+                                                            { importFrom = pageModule
+                                                            , name = "page"
+                                                            , annotation = Nothing
+                                                            }
+                                                        )
+                                                        "update"
+                                                        (\pageUpdate ->
+                                                            Elm.apply pageUpdate
+                                                                [ shared
+                                                                , pageMsg
+                                                                , pageState
+                                                                ]
+                                                        )
                                             in
-                                            Elm.tuple
-                                                (model
-                                                    |> Elm.updateRecord
-                                                        [ ( "states", setState pageId pageModel model )
-                                                        ]
-                                                )
-                                                (pageEffect
-                                                    |> Gen.App.Effect.call_.map
-                                                        (Elm.apply
-                                                            (Elm.val pageMsgTypeName)
-                                                            [ pageId
-                                                            ]
+                                            Elm.Let.letIn
+                                                (\( innerPageModel, pageEffect ) ->
+                                                    let
+                                                        pageModel =
+                                                            Elm.apply (Elm.val stateKey)
+                                                                [ innerPageModel ]
+                                                    in
+                                                    Elm.tuple
+                                                        (model
+                                                            |> Elm.updateRecord
+                                                                [ ( "states", setState pageKey pageModel model )
+                                                                ]
+                                                        )
+                                                        (pageEffect
+                                                            |> Gen.App.Effect.call_.map
+                                                                (Elm.apply
+                                                                    (Elm.val pageMsgTypeName)
+                                                                    [ pageId
+                                                                    ]
+                                                                )
                                                         )
                                                 )
-                                        )
-                                        |> Elm.Let.tuple "updatedPage" "pageEffect" updated
-                                        |> Elm.Let.toExpression
-                            }
-                    )
+                                                |> Elm.Let.tuple "updatedPage" "pageEffect" updated
+                                                |> Elm.Let.toExpression
+                                    }
+                            )
+
+                else
+                    Nothing
             )
 
 

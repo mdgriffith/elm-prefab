@@ -2479,10 +2479,6 @@ var $elm$core$Result$Err = function (a) {
 var $elm$core$Result$Ok = function (a) {
 	return {$: 'Ok', a: a};
 };
-var $elm$core$Basics$apL = F2(
-	function (f, x) {
-		return f(x);
-	});
 var $elm$json$Json$Decode$Failure = F2(
 	function (a, b) {
 		return {$: 'Failure', a: a, b: b};
@@ -2738,6 +2734,10 @@ var $elm$core$Elm$JsArray$initialize = _JsArray_initialize;
 var $elm$core$Array$Leaf = function (a) {
 	return {$: 'Leaf', a: a};
 };
+var $elm$core$Basics$apL = F2(
+	function (f, x) {
+		return f(x);
+	});
 var $elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
@@ -13534,8 +13534,19 @@ var $author$project$Gen$Browser$Navigation$annotation_ = {
 		'Key',
 		_List_Nil)
 };
-var $author$project$Gen$Url$moduleName_ = _List_fromArray(
-	['Url']);
+var $author$project$Press$Model$appMsg = A3(
+	$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+	_List_Nil,
+	'Msg',
+	_List_fromArray(
+		[
+			$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+		]));
+var $author$project$Press$Model$pageIdType = A2(
+	$mdgriffith$elm_codegen$Elm$Annotation$named,
+	_List_fromArray(
+		['App', 'Page', 'Id']),
+	'Id');
 var $mdgriffith$elm_codegen$Elm$Annotation$record = function (fields) {
 	return $mdgriffith$elm_codegen$Internal$Compiler$Annotation(
 		{
@@ -13571,55 +13582,6 @@ var $mdgriffith$elm_codegen$Elm$Annotation$record = function (fields) {
 				fields)
 		});
 };
-var $author$project$Gen$Url$annotation_ = {
-	protocol: A3(
-		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-		_List_fromArray(
-			['Url']),
-		'Protocol',
-		_List_Nil),
-	url: A4(
-		$mdgriffith$elm_codegen$Elm$Annotation$alias,
-		$author$project$Gen$Url$moduleName_,
-		'Url',
-		_List_Nil,
-		$mdgriffith$elm_codegen$Elm$Annotation$record(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'protocol',
-					A3(
-						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-						_List_fromArray(
-							['Url']),
-						'Protocol',
-						_List_Nil)),
-					_Utils_Tuple2('host', $mdgriffith$elm_codegen$Elm$Annotation$string),
-					_Utils_Tuple2(
-					'port_',
-					$mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$int)),
-					_Utils_Tuple2('path', $mdgriffith$elm_codegen$Elm$Annotation$string),
-					_Utils_Tuple2(
-					'query',
-					$mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string)),
-					_Utils_Tuple2(
-					'fragment',
-					$mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string))
-				])))
-};
-var $author$project$Press$Model$appMsg = A3(
-	$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-	_List_Nil,
-	'Msg',
-	_List_fromArray(
-		[
-			$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
-		]));
-var $author$project$Press$Model$pageIdType = A2(
-	$mdgriffith$elm_codegen$Elm$Annotation$named,
-	_List_fromArray(
-		['App', 'Page', 'Id']),
-	'Id');
 var $author$project$Press$Model$regionIdType = A2(
 	$mdgriffith$elm_codegen$Elm$Annotation$named,
 	_List_fromArray(
@@ -13648,7 +13610,7 @@ var $author$project$Press$Model$regionsRecord = A3(
 		['App', 'View']),
 	'Regions',
 	_List_fromArray(
-		[$mdgriffith$elm_codegen$Elm$Annotation$string]));
+		[$author$project$Press$Model$pageIdType]));
 var $author$project$Press$Model$routePath = _List_fromArray(
 	['App', 'Route']);
 var $author$project$Press$Model$routeType = A2($mdgriffith$elm_codegen$Elm$Annotation$named, $author$project$Press$Model$routePath, 'Route');
@@ -13756,6 +13718,44 @@ var $author$project$Gen$Platform$Sub$annotation_ = {
 			_List_fromArray(
 				[subArg0]));
 	}
+};
+var $author$project$Gen$Url$moduleName_ = _List_fromArray(
+	['Url']);
+var $author$project$Gen$Url$annotation_ = {
+	protocol: A3(
+		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+		_List_fromArray(
+			['Url']),
+		'Protocol',
+		_List_Nil),
+	url: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Url$moduleName_,
+		'Url',
+		_List_Nil,
+		$mdgriffith$elm_codegen$Elm$Annotation$record(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'protocol',
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Url']),
+						'Protocol',
+						_List_Nil)),
+					_Utils_Tuple2('host', $mdgriffith$elm_codegen$Elm$Annotation$string),
+					_Utils_Tuple2(
+					'port_',
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$int)),
+					_Utils_Tuple2('path', $mdgriffith$elm_codegen$Elm$Annotation$string),
+					_Utils_Tuple2(
+					'query',
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string)),
+					_Utils_Tuple2(
+					'fragment',
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$string))
+				])))
 };
 var $mdgriffith$elm_codegen$Elm$Annotation$extensible = F2(
 	function (base, fields) {
@@ -14005,7 +14005,6 @@ var $author$project$Press$Model$types = {
 				_Utils_Tuple2(
 				'key',
 				$mdgriffith$elm_codegen$Elm$Annotation$var('key')),
-				_Utils_Tuple2('url', $author$project$Gen$Url$annotation_.url),
 				_Utils_Tuple2('states', $author$project$Press$Model$stateCache),
 				_Utils_Tuple2('regions', $author$project$Press$Model$regionsRecord),
 				_Utils_Tuple2(
@@ -15212,6 +15211,20 @@ var $author$project$Press$Generate$Regions$toList = function (regions) {
 									allRegions))));
 				})));
 };
+var $author$project$Press$Generate$Regions$added = function (val) {
+	return $mdgriffith$elm_codegen$Elm$record(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'added',
+				$mdgriffith$elm_codegen$Elm$list(
+					_List_fromArray(
+						[val]))),
+				_Utils_Tuple2(
+				'removed',
+				$mdgriffith$elm_codegen$Elm$list(_List_Nil))
+			]));
+};
 var $mdgriffith$elm_codegen$Elm$bool = function (on) {
 	return $mdgriffith$elm_codegen$Internal$Compiler$Expression(
 		function (_v0) {
@@ -15423,7 +15436,7 @@ var $author$project$Press$Generate$Regions$update = function (regions) {
 										'Push',
 										_Utils_Tuple2('region', $author$project$Press$Generate$Regions$types.region),
 										_Utils_Tuple2(
-											'pageId',
+											'val',
 											$mdgriffith$elm_codegen$Elm$Annotation$var('view')),
 										F2(
 											function (region, pageId) {
@@ -15438,7 +15451,10 @@ var $author$project$Press$Generate$Regions$update = function (regions) {
 																[region, pageId, model])),
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
 															function (newModel) {
-																return A2($mdgriffith$elm_codegen$Elm$tuple, newModel, $author$project$Press$Generate$Regions$noChanges);
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$tuple,
+																	newModel,
+																	$author$project$Press$Generate$Regions$added(pageId));
 															})));
 											})),
 										A4(
@@ -15446,7 +15462,7 @@ var $author$project$Press$Generate$Regions$update = function (regions) {
 										'PushTo',
 										_Utils_Tuple2('regionId', $author$project$Press$Generate$Regions$types.id),
 										_Utils_Tuple2(
-											'route',
+											'val',
 											$mdgriffith$elm_codegen$Elm$Annotation$var('view')),
 										F2(
 											function (regionId, pageId) {
@@ -15466,14 +15482,19 @@ var $author$project$Press$Generate$Regions$update = function (regions) {
 																])),
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
 															function (newModel) {
-																return A2($mdgriffith$elm_codegen$Elm$tuple, newModel, $author$project$Press$Generate$Regions$noChanges);
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$tuple,
+																	newModel,
+																	$author$project$Press$Generate$Regions$added(pageId));
 															})));
 											})),
 										A4(
 										$mdgriffith$elm_codegen$Elm$Case$branch2,
 										'ReplaceAt',
 										_Utils_Tuple2('regionId', $author$project$Press$Generate$Regions$types.id),
-										_Utils_Tuple2('pageId', $author$project$Press$Model$types.pageId),
+										_Utils_Tuple2(
+											'val',
+											$mdgriffith$elm_codegen$Elm$Annotation$var('view')),
 										F2(
 											function (regionId, pageId) {
 												return $mdgriffith$elm_codegen$Elm$Let$toExpression(
@@ -15492,7 +15513,10 @@ var $author$project$Press$Generate$Regions$update = function (regions) {
 																])),
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
 															function (newModel) {
-																return A2($mdgriffith$elm_codegen$Elm$tuple, newModel, $author$project$Press$Generate$Regions$noChanges);
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$tuple,
+																	newModel,
+																	$author$project$Press$Generate$Regions$added(pageId));
 															})));
 											})),
 										A2(
@@ -15674,7 +15698,6 @@ var $author$project$Press$Generate$Regions$generateRegionIndex = function (viewR
 var $author$project$Press$Generate$Regions$generate = function (viewRegions) {
 	return $author$project$Press$Generate$Regions$generateRegionIndex(viewRegions);
 };
-var $elm$core$Debug$log = _Debug_log;
 var $elm$json$Json$Decode$value = _Json_decodeValue;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$json$Json$Encode$list = F2(
@@ -15793,10 +15816,7 @@ var $author$project$Gen$CodeGen$Generate$withFeedback = function (f) {
 };
 var $author$project$GenerateView$main = $author$project$Gen$CodeGen$Generate$withFeedback(
 	function (flags) {
-		var _v0 = A2(
-			$elm$core$Debug$log,
-			'Decoded',
-			A2($elm$json$Json$Decode$decodeValue, $author$project$GenerateView$decoder, flags));
+		var _v0 = A2($elm$json$Json$Decode$decodeValue, $author$project$GenerateView$decoder, flags);
 		if (_v0.$ === 'Ok') {
 			var viewRegions = _v0.a;
 			return $elm$core$Result$Ok(

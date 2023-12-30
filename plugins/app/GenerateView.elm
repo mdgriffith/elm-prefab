@@ -18,7 +18,7 @@ main : Program Json.Decode.Value () ()
 main =
     Generate.withFeedback
         (\flags ->
-            case Debug.log "Decoded" <| Json.Decode.decodeValue decoder flags of
+            case Json.Decode.decodeValue decoder flags of
                 Ok viewRegions ->
                     Ok
                         { info = []

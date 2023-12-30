@@ -48,7 +48,6 @@ import Parser exposing ((|.), (|=))
 import Path
 import Press.Generate.Directory
 import Press.Generate.Engine
-import Press.Generate.PageId
 import Press.Generate.Regions
 import Press.Model exposing (..)
 import Set exposing (Set)
@@ -76,15 +75,7 @@ errorToDetails error =
 
 generate : List PageUsage -> Result (List Error) (List Elm.File)
 generate pageUsages =
-    Ok
-        [ Press.Generate.PageId.generate pageUsages
-
-        -- , Press.Generate.Regions.generate options
-        , Press.Generate.Engine.generate pageUsages
-
-        -- :: Press.Generate.Route.generate options.pages
-        -- :: Press.Generate.Directory.generate options.pages
-        ]
+    Ok [ Press.Generate.Engine.generate pageUsages ]
 
 
 validateRoutes : List Page -> List Error

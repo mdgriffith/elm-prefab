@@ -27,28 +27,35 @@ main =
         , view =
             \fromFrameMsg model regions ->
                 case regions.primary of
-                    App.Engine.NotFound _ ->
+                    Nothing ->
                         { title = "Not found"
                         , body =
                             [ Html.text "not found"
                             ]
                         }
 
-                    App.Engine.Error pageError ->
+                    Just App.Engine.NotFound ->
+                        { title = "Not found"
+                        , body =
+                            [ Html.text "not found"
+                            ]
+                        }
+
+                    Just (App.Engine.Error pageError) ->
                         { title = "Unauthorized"
                         , body =
                             [ Html.text "Unauthorized"
                             ]
                         }
 
-                    App.Engine.Loading _ ->
+                    Just (App.Engine.Loading _) ->
                         { title = "Loading"
                         , body =
                             [ Html.text "loading"
                             ]
                         }
 
-                    App.Engine.View page ->
+                    Just (App.Engine.View page) ->
                         { title = page.title
                         , body =
                             [ page.body

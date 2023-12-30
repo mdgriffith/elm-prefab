@@ -3,6 +3,8 @@ import * as AppEngine from "./templates/app/engine";
 import * as AppToCopy from "./templates/app/toCopy";
 import * as Options from "./options";
 import * as ChildProcess from "child_process";
+import * as fs from "fs";
+import * as path from "path";
 
 const AppGenerator = require("./generators/app");
 const AppView = require("./generators/app-view");
@@ -23,276 +25,139 @@ export const generator = (options: any) => {
       );
 
       await Generator.run(AppView.Elm.GenerateView, runOptions.internalSrc, {
-        regions: JSON.parse(viewRegions),
+        regions: viewRegions,
       });
-      // console.log("Generated view regions");
 
-      // const pages = await executeElmDevOperation(
-      //   "usage type App.Engine.Page.Page"
-      // );
-      // console.log("Found usage", pages);
-      const pages = JSON.stringify(placeholderPageUsages);
+      const pageIds = await executeElmDevOperation("explain App.Page.Id.Id");
+
+      const pages = pageIdsToPageUsages(pageIds);
+
+      const verifiedPages = verifyElmFilesExist(
+        path.join("src", "Page"),
+        pages
+      );
+
+      // const pages = placeholderPageUsages;
       await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
-        pageUsages: JSON.parse(pages),
+        pageUsages: verifiedPages,
       });
     },
   };
 };
 
-const placeholderPageUsages = {
-  usages: [
-    {
-      module: "App.Page",
-      usedBy: [
+type PageUsage = {
+  id: string;
+  moduleName: string[];
+  value: string;
+  paramType: string | null;
+  elmModuleIsPresent: boolean;
+};
+
+const logError = (title: string, body: string) => {
+  console.log(`\n\n${title}\n\n${body}\n\n`);
+};
+
+const verifyElmFilesExist = (dir: string, pages: PageUsage[]): PageUsage[] => {
+  try {
+    const elmFiles = fs
+      .readdirSync(dir)
+      .filter((file) => path.extname(file) === ".elm");
+    const elmFileNames = elmFiles.map((file) => path.basename(file, ".elm"));
+
+    // Check for PageUsage entries without a corresponding file
+    pages.forEach((page) => {
+      if (!elmFileNames.includes(page.id)) {
+        logError(
+          `Missing Elm Page`,
+          `I found Page.Id.${page.id}, but wasn't able to find a corresponding .elm file for it in src/Page!
+For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`
+        );
+      } else {
+        page.elmModuleIsPresent = true;
+      }
+    });
+
+    // Check for .elm files not referenced in PageUsage
+    elmFileNames.forEach((fileName) => {
+      if (!pages.some((page) => page.id === fileName)) {
+        logError(
+          `Unused Elm Page`,
+          `I found ${fileName}.elm, but there is no entry in Page.Id for it, so it's not used.  I'd recommend adding a new entry to Page.Id for it, or delete the file!`
+        );
+      }
+    });
+    return pages;
+  } catch (error) {
+    console.error("Error verifying Elm files:", error);
+    return pages;
+  }
+};
+
+const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
+  // pageIds.definition.type.c
+  const pages: PageUsage[] = [];
+  if (!pageIds.definition.type.definition.variants) {
+    console.log(
+      "I wasn't able to find any variants for `App.Page.Id.Id`, is it a normal custom type?"
+    );
+    process.exit(1);
+  }
+  for (const variant of pageIds.definition.type.definition.variants) {
+    pages.push({
+      id: variant.name,
+      moduleName: ["Page", variant.name],
+      value: "page",
+      paramType: variant.args.length === 0 ? null : variant.args[0],
+      elmModuleIsPresent: false,
+    });
+  }
+  return pages;
+};
+
+const placeHolderPageIds = {
+  moduleName: "App.Page.Id",
+  definition: {
+    name: "Id",
+    type: {
+      signature: "Id",
+      definition: {
+        type: "union",
+        variants: [
+          {
+            name: "Home",
+            args: ["HomeParams"],
+          },
+        ],
+      },
+      components: [
         {
-          region: {
-            start: {
-              line: 43,
-              column: 1,
-            },
-            end: {
-              line: 43,
-              column: 14,
-            },
+          source: {
+            pkg: "author/project",
+            module: "App.Page.Id",
           },
-          name: "authenticated",
-          isConcrete: false,
-          type: {
-            signature:
-              "{ init : params -> App.Shared.Shared -> Maybe model -> Init msg model, update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg } -> App.Engine.Page.Page App.Shared.Shared params msg model",
-            components: [
-              {
-                signature:
-                  "{ init : params -> App.Shared.Shared -> Maybe model -> Init msg model, update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg } -> App.Engine.Page.Page App.Shared.Shared params msg model",
-                definition:
-                  "{ init : params -> App.Shared.Shared -> Maybe model -> Init msg model, update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg } -> App.Engine.Page.Page App.Shared.Shared params msg model",
-              },
-            ],
-          },
-        },
-        {
-          region: {
-            start: {
-              line: 31,
-              column: 1,
-            },
-            end: {
-              line: 31,
-              column: 5,
-            },
-          },
-          name: "page",
-          isConcrete: false,
-          type: {
-            signature:
-              "{ init : params -> App.Shared.Shared -> Maybe model -> Init msg model, update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg } -> App.Engine.Page.Page App.Shared.Shared params msg model",
-            components: [
-              {
-                signature:
-                  "{ init : params -> App.Shared.Shared -> Maybe model -> Init msg model, update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg } -> App.Engine.Page.Page App.Shared.Shared params msg model",
-                definition:
-                  "{ init : params -> App.Shared.Shared -> Maybe model -> Init msg model, update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg } -> App.Engine.Page.Page App.Shared.Shared params msg model",
-              },
-            ],
-          },
-        },
-      ],
-    },
-    {
-      module: "Page.Home",
-      usedBy: [
-        {
-          region: {
-            start: {
-              line: 38,
-              column: 1,
-            },
-            end: {
-              line: 38,
-              column: 5,
-            },
-          },
-          name: "page",
-          isConcrete: true,
-          type: {
-            signature:
-              "App.Engine.Page.Page App.Shared.Shared params Msg String",
-            components: [
-              {
-                signature:
-                  "App.Engine.Page.Page App.Shared.Shared params Msg String",
-                definition: {
-                  type: "union",
-                  comment: null,
-                  module: "App.Engine.Page",
-                  name: "Page",
-                  args: [
-                    {
-                      name: "shared",
-                      type: "App.Shared.Shared",
-                    },
-                    {
-                      name: "params",
-                      type: "params",
-                    },
-                    {
-                      name: "msg",
-                      type: "Msg",
-                    },
-                    {
-                      name: "model",
-                      type: "String",
-                    },
-                  ],
-                  variants: [
-                    {
-                      name: "Page",
-                      args: [
-                        "{ toKey : Maybe (params -> String), init : params -> shared -> Maybe model -> App.Engine.Page.Init msg model, update : shared -> msg -> model -> ( model, Effect.Effect msg ), subscriptions : shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> shared -> model -> Result App.PageError.Error (App.View.View msg) }",
-                      ],
-                    },
-                  ],
-                },
-              },
-              {
-                signature: "App.Shared.Shared",
-                definition: {
-                  type: "alias",
-                  comment: null,
-                  module: "App.Shared",
-                  name: "Shared",
-                  args: [],
-                  signature: "{ authenticated : App.Shared.Authenticated }",
-                  fields: {
-                    authenticated: "App.Shared.Authenticated",
-                  },
-                },
-              },
-              {
-                signature: "params",
-                definition: "params",
-              },
-              {
-                signature: "Msg",
-                definition: {
-                  type: "union",
-                  comment: " ",
-                  module: "Page.Home",
-                  name: "Msg",
-                  args: [],
-                  variants: [
-                    {
-                      name: "NoOp",
-                      args: [],
-                    },
-                    {
-                      name: "Show",
-                      args: ["App.Shared.Shared"],
-                    },
-                  ],
-                },
-              },
-              {
-                signature: "String",
-                definition: "String",
-              },
-            ],
+          definition: {
+            type: "alias",
+            comment: null,
+            module: "App.Page.Id",
+            name: "HomeParams",
+            args: [],
+            signature: "{}",
+            fields: {},
           },
         },
       ],
     },
-    {
-      module: "Page.Markdown",
-      usedBy: [
-        {
-          region: {
-            start: {
-              line: 31,
-              column: 1,
-            },
-            end: {
-              line: 31,
-              column: 5,
-            },
-          },
-          name: "page",
-          isConcrete: true,
-          type: {
-            signature:
-              "App.Engine.Page.Page App.Shared.Shared { a | src : String } msg { a | src : String }",
-            components: [
-              {
-                signature:
-                  "App.Engine.Page.Page App.Shared.Shared { a | src : String } msg { a | src : String }",
-                definition: {
-                  type: "union",
-                  comment: null,
-                  module: "App.Engine.Page",
-                  name: "Page",
-                  args: [
-                    {
-                      name: "shared",
-                      type: "App.Shared.Shared",
-                    },
-                    {
-                      name: "params",
-                      type: "{ a | src : String }",
-                    },
-                    {
-                      name: "msg",
-                      type: "msg",
-                    },
-                    {
-                      name: "model",
-                      type: "{ a | src : String }",
-                    },
-                  ],
-                  variants: [
-                    {
-                      name: "Page",
-                      args: [
-                        "{ toKey : Maybe (params -> String), init : params -> shared -> Maybe model -> App.Engine.Page.Init msg model, update : shared -> msg -> model -> ( model, App.Effect.Effect msg ), subscriptions : shared -> model -> App.Sub.Sub msg, view : App.View.Id.Id -> shared -> model -> Result App.PageError.Error (App.View.View msg) }",
-                      ],
-                    },
-                  ],
-                },
-              },
-              {
-                signature: "App.Shared.Shared",
-                definition: {
-                  type: "alias",
-                  comment: null,
-                  module: "App.Shared",
-                  name: "Shared",
-                  args: [],
-                  signature: "{ authenticated : App.Shared.Authenticated }",
-                  fields: {
-                    authenticated: "App.Shared.Authenticated",
-                  },
-                },
-              },
-              {
-                signature: "{ a | src : String }",
-                definition: {
-                  src: "String",
-                },
-              },
-              {
-                signature: "msg",
-                definition: "msg",
-              },
-              {
-                signature: "{ a | src : String }",
-                definition: {
-                  src: "String",
-                },
-              },
-            ],
-          },
-        },
-      ],
+    region: {
+      start: {
+        line: 6,
+        column: 1,
+      },
+      end: {
+        line: 7,
+        column: 22,
+      },
     },
-  ],
+  },
 };
 
 const placeholderViewRegions = {
