@@ -8,6 +8,7 @@ import * as path from "path";
 
 const AppGenerator = require("./generators/app");
 const AppView = require("./generators/app-view");
+const Page = require("./templates/app/page");
 
 export const generator = (options: any) => {
   return {
@@ -72,6 +73,9 @@ const verifyElmFilesExist = (dir: string, pages: PageUsage[]): PageUsage[] => {
           `I found Page.Id.${page.id}, but wasn't able to find a corresponding .elm file for it in src/Page!
 For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`
         );
+        const pageContent = Page.toBody(new Map([["{{name}}", page.id]]));
+
+        fs.writeFileSync(path.join(dir, `${page.id}.elm`), pageContent, "utf8");
       } else {
         page.elmModuleIsPresent = true;
       }

@@ -22,6 +22,32 @@ const toCopyFile = (path, contents) => `
   }
 `;
 
+const toSingleTypescriptFile = (body) => `
+
+function makeReplacements(replacements: Map<string, string>, source: string): string {
+  let result = source;
+
+  replacements.forEach((value, key) => {
+      // Use a global regular expression for replacement
+      const regex = new RegExp(key, 'g');
+      result = result.replace(regex, value);
+  });
+
+  return result;
+}
+
+export const toBody = (replacements: Map<string, string>) => { 
+  return makeReplacements(replacements, ${body})
+}
+`;
+
+const copyFile = (file, targetFilePath) => {
+  const targetDir = path.dirname(targetFilePath);
+  let body = JSON.stringify(fs.readFileSync(`./${file}`).toString());
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.writeFileSync(targetFilePath, toSingleTypescriptFile(body));
+};
+
 const copyDir = (dir, targetFilePath) => {
   const files = getFilesRecursively(dir);
 
@@ -66,7 +92,10 @@ const getFilesRecursively = (filepath) => {
 };
 
 //
-copyDir("plugins/app/engine", "./cli/templates/app/engine.ts");
-copyDir("plugins/app/toCopy", "./cli/templates/app/toCopy.ts");
+copyDir("plugins/app/templates/engine", "./cli/templates/app/engine.ts");
+copyDir("plugins/app/templates/toCopy", "./cli/templates/app/toCopy.ts");
+copyFile("plugins/app/templates/extra/Page.elm", "./cli/templates/app/page.ts");
+
+//
 copyDir("plugins/theme/engine", "./cli/templates/theme/engine.ts");
 copyDir("plugins/theme/js", "./cli/templates/theme/js.ts");
