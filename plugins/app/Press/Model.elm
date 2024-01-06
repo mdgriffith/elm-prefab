@@ -590,6 +590,11 @@ setRegion region value regions =
         [ region, value, regions ]
 
 
+{-|
+
+    Only handles state loading
+
+-}
 loadPage :
     List PageUsage
     ->
@@ -646,18 +651,6 @@ loadPage routes =
                                                             )
                                                             [ err ]
                                                         )
-                                                    |> Gen.App.State.call_.setCurrent pageKey
-                                              )
-                                            , ( "regions"
-                                              , setRegion
-                                                    (Elm.value
-                                                        { importFrom = [ "App", "View", "Id" ]
-                                                        , name = "Primary"
-                                                        , annotation = Nothing
-                                                        }
-                                                    )
-                                                    pageId
-                                                    (Elm.get "regions" model)
                                               )
                                             ]
                                             model
@@ -674,18 +667,6 @@ loadPage routes =
                                         [ ( "states"
                                           , Elm.get "states" model
                                                 |> Gen.App.State.call_.insert pageKey newPage
-                                                |> Gen.App.State.call_.setCurrent pageKey
-                                          )
-                                        , ( "regions"
-                                          , setRegion
-                                                (Elm.value
-                                                    { importFrom = [ "App", "View", "Id" ]
-                                                    , name = "Primary"
-                                                    , annotation = Nothing
-                                                    }
-                                                )
-                                                pageId
-                                                (Elm.get "regions" model)
                                           )
                                         ]
                                         model
@@ -710,18 +691,6 @@ loadPage routes =
                                                             )
                                                             [ pageId ]
                                                         )
-                                                    |> Gen.App.State.call_.setCurrent pageKey
-                                              )
-                                            , ( "regions"
-                                              , setRegion
-                                                    (Elm.value
-                                                        { importFrom = [ "App", "View", "Id" ]
-                                                        , name = "Primary"
-                                                        , annotation = Nothing
-                                                        }
-                                                    )
-                                                    pageId
-                                                    (Elm.get "regions" model)
                                               )
                                             ]
                                             model

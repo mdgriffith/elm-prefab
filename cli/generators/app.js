@@ -15037,20 +15037,6 @@ var $author$project$Gen$App$Effect$none = $mdgriffith$elm_codegen$Elm$value(
 			['App', 'Effect']),
 		name: 'none'
 	});
-var $author$project$Press$Model$setRegion = F3(
-	function (region, value, regions) {
-		return A2(
-			$mdgriffith$elm_codegen$Elm$apply,
-			$mdgriffith$elm_codegen$Elm$value(
-				{
-					annotation: $elm$core$Maybe$Nothing,
-					importFrom: _List_fromArray(
-						['App', 'View', 'Id']),
-					name: 'setRegion'
-				}),
-			_List_fromArray(
-				[region, value, regions]));
-	});
 var $stil4m$elm_syntax$Elm$Syntax$Expression$RecordUpdateExpression = F2(
 	function (a, b) {
 		return {$: 'RecordUpdateExpression', a: a, b: b};
@@ -15380,32 +15366,16 @@ var $author$project$Press$Model$loadPage = function (routes) {
 															[
 																_Utils_Tuple2(
 																'states',
-																A2(
-																	$author$project$Gen$App$State$call_.setCurrent,
-																	pageKey,
-																	A3(
-																		$author$project$Gen$App$State$call_.insert,
-																		pageKey,
-																		A2(
-																			$mdgriffith$elm_codegen$Elm$apply,
-																			$mdgriffith$elm_codegen$Elm$value(
-																				{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageError_'}),
-																			_List_fromArray(
-																				[err])),
-																		A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))),
-																_Utils_Tuple2(
-																'regions',
 																A3(
-																	$author$project$Press$Model$setRegion,
-																	$mdgriffith$elm_codegen$Elm$value(
-																		{
-																			annotation: $elm$core$Maybe$Nothing,
-																			importFrom: _List_fromArray(
-																				['App', 'View', 'Id']),
-																			name: 'Primary'
-																		}),
-																	pageId,
-																	A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)))
+																	$author$project$Gen$App$State$call_.insert,
+																	pageKey,
+																	A2(
+																		$mdgriffith$elm_codegen$Elm$apply,
+																		$mdgriffith$elm_codegen$Elm$value(
+																			{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageError_'}),
+																		_List_fromArray(
+																			[err])),
+																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
 															]),
 														model);
 													return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, $author$project$Gen$App$Effect$none);
@@ -15429,27 +15399,11 @@ var $author$project$Press$Model$loadPage = function (routes) {
 																	[
 																		_Utils_Tuple2(
 																		'states',
-																		A2(
-																			$author$project$Gen$App$State$call_.setCurrent,
-																			pageKey,
-																			A3(
-																				$author$project$Gen$App$State$call_.insert,
-																				pageKey,
-																				newPage,
-																				A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))),
-																		_Utils_Tuple2(
-																		'regions',
 																		A3(
-																			$author$project$Press$Model$setRegion,
-																			$mdgriffith$elm_codegen$Elm$value(
-																				{
-																					annotation: $elm$core$Maybe$Nothing,
-																					importFrom: _List_fromArray(
-																						['App', 'View', 'Id']),
-																					name: 'Primary'
-																				}),
-																			pageId,
-																			A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)))
+																			$author$project$Gen$App$State$call_.insert,
+																			pageKey,
+																			newPage,
+																			A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
 																	]),
 																model),
 															pageEffect);
@@ -15465,32 +15419,16 @@ var $author$project$Press$Model$loadPage = function (routes) {
 															[
 																_Utils_Tuple2(
 																'states',
-																A2(
-																	$author$project$Gen$App$State$call_.setCurrent,
-																	pageKey,
-																	A3(
-																		$author$project$Gen$App$State$call_.insert,
-																		pageKey,
-																		A2(
-																			$mdgriffith$elm_codegen$Elm$apply,
-																			$mdgriffith$elm_codegen$Elm$value(
-																				{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageLoading_'}),
-																			_List_fromArray(
-																				[pageId])),
-																		A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))),
-																_Utils_Tuple2(
-																'regions',
 																A3(
-																	$author$project$Press$Model$setRegion,
-																	$mdgriffith$elm_codegen$Elm$value(
-																		{
-																			annotation: $elm$core$Maybe$Nothing,
-																			importFrom: _List_fromArray(
-																				['App', 'View', 'Id']),
-																			name: 'Primary'
-																		}),
-																	pageId,
-																	A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)))
+																	$author$project$Gen$App$State$call_.insert,
+																	pageKey,
+																	A2(
+																		$mdgriffith$elm_codegen$Elm$apply,
+																		$mdgriffith$elm_codegen$Elm$value(
+																			{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageLoading_'}),
+																		_List_fromArray(
+																			[pageId])),
+																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
 															]),
 														model);
 													return A2(
@@ -15563,152 +15501,6 @@ var $author$project$Press$Generate$Engine$msgType = function (pageUsages) {
 						[$author$project$Press$Model$types.pageId, $author$project$Press$Model$types.pageLoadResult]))
 				]),
 			pageVariants));
-};
-var $author$project$Press$Model$preloadPage = function (routes) {
-	return A6(
-		$mdgriffith$elm_codegen$Elm$Declare$fn4,
-		'preloadPage',
-		_Utils_Tuple2(
-			'config',
-			$elm$core$Maybe$Just($author$project$Press$Model$types.frameUpdate)),
-		_Utils_Tuple2(
-			'pageId',
-			$elm$core$Maybe$Just($author$project$Press$Model$types.pageId)),
-		_Utils_Tuple2(
-			'initialization',
-			$elm$core$Maybe$Just($author$project$Press$Model$types.pageLoadResult)),
-		_Utils_Tuple2(
-			'model',
-			$elm$core$Maybe$Just($author$project$Press$Model$types.model)),
-		F4(
-			function (config, pageIdToPreload, initialization, model) {
-				return A2(
-					$mdgriffith$elm_codegen$Elm$withType,
-					A2(
-						$mdgriffith$elm_codegen$Elm$Annotation$tuple,
-						$author$project$Press$Model$types.model,
-						$author$project$Gen$App$Effect$annotation_.effect($author$project$Press$Model$types.msg)),
-					$mdgriffith$elm_codegen$Elm$Let$toExpression(
-						A3(
-							$mdgriffith$elm_codegen$Elm$Let$value,
-							'pageKey',
-							A2(
-								$mdgriffith$elm_codegen$Elm$apply,
-								$mdgriffith$elm_codegen$Elm$val('toPageKey'),
-								_List_fromArray(
-									[pageIdToPreload])),
-							$mdgriffith$elm_codegen$Elm$Let$letIn(
-								function (pageId) {
-									return A3(
-										$mdgriffith$elm_codegen$Elm$Case$custom,
-										initialization,
-										A3(
-											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-											_List_fromArray(
-												['App', 'Engine', 'Page']),
-											'InitPlan',
-											_List_fromArray(
-												[
-													$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
-													$mdgriffith$elm_codegen$Elm$Annotation$var('model')
-												])),
-										_List_fromArray(
-											[
-												A2(
-												$mdgriffith$elm_codegen$Elm$Case$branch0,
-												'NotFound',
-												A2($mdgriffith$elm_codegen$Elm$tuple, model, $author$project$Gen$App$Effect$none)),
-												A3(
-												$mdgriffith$elm_codegen$Elm$Case$branch1,
-												'Error',
-												_Utils_Tuple2('err', $author$project$Gen$App$Page$Error$annotation_.error),
-												function (err) {
-													var updatedModel = A2(
-														$mdgriffith$elm_codegen$Elm$updateRecord,
-														_List_fromArray(
-															[
-																_Utils_Tuple2(
-																'states',
-																A3(
-																	$author$project$Gen$App$State$call_.insert,
-																	pageId,
-																	A2(
-																		$mdgriffith$elm_codegen$Elm$apply,
-																		$mdgriffith$elm_codegen$Elm$value(
-																			{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageError_'}),
-																		_List_fromArray(
-																			[err])),
-																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-															]),
-														model);
-													return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, $author$project$Gen$App$Effect$none);
-												}),
-												A4(
-												$mdgriffith$elm_codegen$Elm$Case$branch2,
-												'Loaded',
-												_Utils_Tuple2(
-													'newPage',
-													A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'State')),
-												_Utils_Tuple2(
-													'pageEffect',
-													$author$project$Gen$App$Effect$annotation_.effect($author$project$Press$Model$types.msg)),
-												F2(
-													function (newPage, pageEffect) {
-														return A2(
-															$mdgriffith$elm_codegen$Elm$tuple,
-															A2(
-																$mdgriffith$elm_codegen$Elm$updateRecord,
-																_List_fromArray(
-																	[
-																		_Utils_Tuple2(
-																		'states',
-																		A3(
-																			$author$project$Gen$App$State$call_.insert,
-																			pageId,
-																			newPage,
-																			A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-																	]),
-																model),
-															pageEffect);
-													})),
-												A3(
-												$mdgriffith$elm_codegen$Elm$Case$branch1,
-												'LoadFrom',
-												_Utils_Tuple2('pageEffect', $author$project$Press$Model$types.pageLoadResult),
-												function (pageEffect) {
-													var updatedModel = A2(
-														$mdgriffith$elm_codegen$Elm$updateRecord,
-														_List_fromArray(
-															[
-																_Utils_Tuple2(
-																'states',
-																A3(
-																	$author$project$Gen$App$State$call_.insert,
-																	pageId,
-																	A2(
-																		$mdgriffith$elm_codegen$Elm$apply,
-																		$mdgriffith$elm_codegen$Elm$value(
-																			{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageLoading_'}),
-																		_List_fromArray(
-																			[pageIdToPreload])),
-																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-															]),
-														model);
-													return A2(
-														$mdgriffith$elm_codegen$Elm$tuple,
-														updatedModel,
-														A2(
-															$author$project$Gen$App$Effect$call_.map,
-															A2(
-																$mdgriffith$elm_codegen$Elm$apply,
-																$mdgriffith$elm_codegen$Elm$val('Loaded'),
-																_List_fromArray(
-																	[pageIdToPreload])),
-															pageEffect));
-												})
-											]));
-								}))));
-			}));
 };
 var $stil4m$elm_syntax$Elm$Syntax$Expression$ListExpr = function (a) {
 	return {$: 'ListExpr', a: a};
@@ -17733,8 +17525,8 @@ var $author$project$Press$Model$updatePageBranches = F4(
 			},
 			pages);
 	});
-var $author$project$Press$Generate$Engine$update = F4(
-	function (routes, getPageInit, loadPage, preloadPage) {
+var $author$project$Press$Generate$Engine$update = F3(
+	function (routes, getPageInit, loadPage) {
 		return A2(
 			$mdgriffith$elm_codegen$Elm$declaration,
 			'update',
@@ -17764,15 +17556,6 @@ var $author$project$Press$Generate$Engine$update = F4(
 								_Utils_ap(
 									_List_fromArray(
 										[
-											A4(
-											$mdgriffith$elm_codegen$Elm$Case$branch2,
-											'Loaded',
-											_Utils_Tuple2('pageId', $author$project$Press$Model$types.pageId),
-											_Utils_Tuple2('loaded', $author$project$Press$Model$types.pageLoadResult),
-											F2(
-												function (pageId, initialization) {
-													return A4(loadPage.call, config, model, pageId, initialization);
-												})),
 											A2(
 											$mdgriffith$elm_codegen$Elm$Case$branch0,
 											'PageCacheCleared',
@@ -17802,8 +17585,24 @@ var $author$project$Press$Generate$Engine$update = F4(
 														config,
 														A2($mdgriffith$elm_codegen$Elm$get, 'frame', model)),
 													A2($mdgriffith$elm_codegen$Elm$get, 'states', model));
-												return A4(preloadPage.call, config, pageId, pageInit, model);
+												return A2(
+													$mdgriffith$elm_codegen$Elm$Op$pipe,
+													A2(
+														$mdgriffith$elm_codegen$Elm$apply,
+														loadPage.value(_List_Nil),
+														_List_fromArray(
+															[config, model, pageId])),
+													pageInit);
 											}),
+											A4(
+											$mdgriffith$elm_codegen$Elm$Case$branch2,
+											'Loaded',
+											_Utils_Tuple2('pageId', $author$project$Press$Model$types.pageId),
+											_Utils_Tuple2('initialization', $author$project$Press$Model$types.pageLoadResult),
+											F2(
+												function (pageId, initialization) {
+													return A4(loadPage.call, config, model, pageId, initialization);
+												})),
 											A3(
 											$mdgriffith$elm_codegen$Elm$Case$branch1,
 											'ViewUpdated',
@@ -17848,7 +17647,14 @@ var $author$project$Press$Generate$Engine$update = F4(
 																										config,
 																										A2($mdgriffith$elm_codegen$Elm$get, 'frame', innerModel)),
 																									A2($mdgriffith$elm_codegen$Elm$get, 'states', innerModel));
-																								var preloadedTuple = A4(preloadPage.call, config, pageId, pageInit, innerModel);
+																								var preloadedTuple = A2(
+																									$mdgriffith$elm_codegen$Elm$Op$pipe,
+																									A2(
+																										$mdgriffith$elm_codegen$Elm$apply,
+																										loadPage.value(_List_Nil),
+																										_List_fromArray(
+																											[config, innerModel, pageId])),
+																									pageInit);
 																								return $mdgriffith$elm_codegen$Elm$Let$toExpression(
 																									A4(
 																										$mdgriffith$elm_codegen$Elm$Let$tuple,
@@ -18357,7 +18163,6 @@ var $author$project$Press$Generate$Engine$viewType = A2(
 					]))
 			])));
 var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
-	var preloadPage = $author$project$Press$Model$preloadPage(pageUsages);
 	var loadPage = $author$project$Press$Model$loadPage(pageUsages);
 	var getPageInit = $author$project$Press$Model$getPageInit(pageUsages);
 	return A2(
@@ -18448,10 +18253,9 @@ var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
 				$author$project$Press$Generate$Engine$viewType,
 				$author$project$Press$Generate$Engine$viewPageModel(pageUsages),
 				$author$project$Press$Generate$Engine$msgType(pageUsages),
-				A4($author$project$Press$Generate$Engine$update, pageUsages, getPageInit, loadPage, preloadPage),
+				A3($author$project$Press$Generate$Engine$update, pageUsages, getPageInit, loadPage),
 				getPageInit.declaration,
 				loadPage.declaration,
-				preloadPage.declaration,
 				$author$project$Press$Generate$Engine$view(pageUsages),
 				$author$project$Press$Generate$Engine$subscriptions(pageUsages)
 			]));

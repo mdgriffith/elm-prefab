@@ -67,9 +67,6 @@ generate pageUsages =
         loadPage =
             Press.Model.loadPage pageUsages
 
-        preloadPage =
-            Press.Model.preloadPage pageUsages
-
         getPageInit =
             Press.Model.getPageInit pageUsages
     in
@@ -119,10 +116,9 @@ generate pageUsages =
         , viewType
         , viewPageModel pageUsages
         , msgType pageUsages
-        , update pageUsages getPageInit loadPage preloadPage
+        , update pageUsages getPageInit loadPage
         , getPageInit.declaration
         , loadPage.declaration
-        , preloadPage.declaration
         , view pageUsages
         , subscriptions pageUsages
         ]
@@ -470,18 +466,10 @@ update :
                 -> Elm.Expression
                 -> Elm.Expression
                 -> Elm.Expression
-        }
-    ->
-        { b
-            | call :
-                Elm.Expression
-                -> Elm.Expression
-                -> Elm.Expression
-                -> Elm.Expression
-                -> Elm.Expression
+            , value : List String -> Elm.Expression
         }
     -> Elm.Declaration
-update routes getPageInit loadPage preloadPage =
+update routes getPageInit loadPage =
     Elm.declaration "update"
         (Elm.fn3
             ( "config", Just types.frameUpdate )
@@ -490,15 +478,7 @@ update routes getPageInit loadPage preloadPage =
             (\config msg model ->
                 Elm.Case.custom msg
                     types.msg
-                    ([ Elm.Case.branch2 "Loaded"
-                        ( "pageId", types.pageId )
-                        ( "loaded", types.pageLoadResult )
-                        (\pageId initialization ->
-                            loadPage.call config model pageId initialization
-                        )
-
-                     --
-                     , Elm.Case.branch0 "PageCacheCleared"
+                    ([ Elm.Case.branch0 "PageCacheCleared"
                         (Elm.tuple
                             (Elm.updateRecord
                                 [ ( "states"
@@ -519,7 +499,14 @@ update routes getPageInit loadPage preloadPage =
                                         (Press.Model.toShared config (Elm.get "frame" model))
                                         (Elm.get "states" model)
                             in
-                            preloadPage.call config pageId pageInit model
+                            pageInit
+                                |> Elm.Op.pipe (Elm.apply (loadPage.value []) [ config, model, pageId ])
+                        )
+                     , Elm.Case.branch2 "Loaded"
+                        ( "pageId", types.pageId )
+                        ( "initialization", types.pageLoadResult )
+                        (\pageId initialization ->
+                            loadPage.call config model pageId initialization
                         )
                      , Elm.Case.branch1 "ViewUpdated"
                         ( "operation", types.regionOperation )
@@ -541,7 +528,9 @@ update routes getPageInit loadPage preloadPage =
                                                                         (Elm.get "states" innerModel)
 
                                                                 preloadedTuple =
-                                                                    preloadPage.call config pageId pageInit innerModel
+                                                                    -- loadPage.call config innerModel pageId pageInit
+                                                                    pageInit
+                                                                        |> Elm.Op.pipe (Elm.apply (loadPage.value []) [ config, innerModel, pageId ])
                                                             in
                                                             Elm.Let.letIn
                                                                 (\( preloadedModel, preloadedEffect ) ->
