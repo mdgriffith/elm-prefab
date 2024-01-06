@@ -62,7 +62,7 @@ main =
                             ]
                         }
         , toCmd = \options model effect -> App.Effect.toCmd options effect
-        , toSub = \model sub -> App.Sub.toSubscription sub
+        , toSub = \options model sub -> App.Sub.toSubscription options sub
         , toShared = .shared
         , onUrlChange = \_ -> ()
         , onUrlRequest = \_ -> ()

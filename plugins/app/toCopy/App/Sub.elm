@@ -50,14 +50,14 @@ map func sub =
 
 
 {-| -}
-toSubscription : Sub msg -> Platform.Sub.Sub msg
-toSubscription sub =
+toSubscription : { ignore : String -> msg } -> Sub msg -> Platform.Sub.Sub msg
+toSubscription options sub =
     case sub of
         Sub subscription ->
             subscription
 
         Batch subs ->
-            Platform.Sub.batch (List.map toSubscription subs)
+            Platform.Sub.batch (List.map (toSubscription options) subs)
 
 
 port incoming :

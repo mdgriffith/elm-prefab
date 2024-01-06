@@ -397,7 +397,8 @@ toConfig configType =
             , ( [ SubscriptionConfig ]
               , "toSub"
               , Type.function
-                    [ Type.var "model"
+                    [ Type.namedWith [] "SubOptions" [ Type.var "msg" ]
+                    , Type.var "model"
                     , Gen.App.Sub.annotation_.sub appMsg
                     ]
                     (Gen.Platform.Sub.annotation_.sub appMsg)
@@ -495,6 +496,10 @@ types =
     , regionType = regionType
     , stateCache = stateCache
     , renderedView = regionViewType [ Type.namedWith [] "View" [ appMsg ] ]
+    , subOptions =
+        Type.record
+            [ ( "ignore", Type.function [ Type.string ] appMsg )
+            ]
     , cmdOptions =
         Type.record
             [ ( "navKey", Gen.Browser.Navigation.annotation_.key )
@@ -566,7 +571,13 @@ toCmd config navKey frameModel effect =
 
 toSub : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
 toSub config frameModel sub =
-    Elm.apply (Elm.get "toSub" config) [ frameModel, sub ]
+    Elm.apply (Elm.get "toSub" config)
+        [ Elm.record
+            [ ( "ignore", Elm.val "SubscriptionEventIgnored" )
+            ]
+        , frameModel
+        , sub
+        ]
 
 
 getState : Elm.Expression -> Elm.Expression -> Elm.Expression

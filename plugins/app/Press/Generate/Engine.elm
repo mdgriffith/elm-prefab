@@ -88,6 +88,11 @@ generate pageUsages =
                 { group = Just "App"
                 , exposeConstructor = True
                 }
+        , Elm.alias "SubOptions" types.subOptions
+            |> Elm.exposeWith
+                { group = Just "App"
+                , exposeConstructor = True
+                }
         , toPageKey pageUsages
         , app pageUsages getPageInit loadPage
         , testAlias
@@ -220,9 +225,8 @@ msgType pageUsages =
     Elm.customType "Msg"
         ([ Elm.variant "PageCacheCleared"
          , Elm.variantWith "Preload" [ types.pageId ]
-
-         --  , Elm.variantWith "LoadAt" [ types.routeType, types.regionType ]
          , Elm.variantWith "ViewUpdated" [ types.regionOperation ]
+         , Elm.variantWith "SubscriptionEventIgnored" [ Type.string ]
          , Elm.variantWith "Global" [ Type.var "msg" ]
          , Elm.variantWith "Loaded"
             [ types.pageId
@@ -564,6 +568,13 @@ update routes getPageInit loadPage =
                                         (Elm.get "regions" model)
                                     )
                                 |> Elm.Let.toExpression
+                        )
+                     , Elm.Case.branch1 "SubscriptionEventIgnored"
+                        ( "msg", types.pageId )
+                        (\_ ->
+                            Elm.tuple
+                                model
+                                Gen.App.Effect.none
                         )
                      , Elm.Case.branch1 "Global"
                         ( "frameMsg", Type.var "frameMsg" )
