@@ -33,7 +33,7 @@ export const generator = (options: any) => {
       const pages = pageIdsToPageUsages(pageIds);
 
       const verifiedPages = verifyElmFilesExist(
-        path.join("src", "Page"),
+        path.join(runOptions.src, "Page"),
         pages
       );
 

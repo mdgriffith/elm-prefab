@@ -8873,6 +8873,14 @@ var $author$project$Press$Model$toConfig = function (configType) {
 						$mdgriffith$elm_codegen$Elm$Annotation$function,
 						_List_fromArray(
 							[
+								A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_Nil,
+								'SubOptions',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])),
 								$mdgriffith$elm_codegen$Elm$Annotation$var('model'),
 								$author$project$Gen$App$Sub$annotation_.sub($author$project$Press$Model$appMsg)
 							]),
@@ -9000,6 +9008,17 @@ var $author$project$Press$Model$types = {
 	routeType: $author$project$Press$Model$routeType,
 	sharedType: $author$project$Press$Model$sharedType,
 	stateCache: $author$project$Press$Model$stateCache,
+	subOptions: $mdgriffith$elm_codegen$Elm$Annotation$record(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'ignore',
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					$author$project$Press$Model$appMsg))
+			])),
 	subscription: A3(
 		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 		_List_Nil,
@@ -15489,6 +15508,11 @@ var $author$project$Press$Generate$Engine$msgType = function (pageUsages) {
 						[$author$project$Press$Model$types.regionOperation])),
 					A2(
 					$mdgriffith$elm_codegen$Elm$variantWith,
+					'SubscriptionEventIgnored',
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string])),
+					A2(
+					$mdgriffith$elm_codegen$Elm$variantWith,
 					'Global',
 					_List_fromArray(
 						[
@@ -16842,7 +16866,17 @@ var $author$project$Press$Model$toSub = F3(
 			$mdgriffith$elm_codegen$Elm$apply,
 			A2($mdgriffith$elm_codegen$Elm$get, 'toSub', config),
 			_List_fromArray(
-				[frameModel, sub]));
+				[
+					$mdgriffith$elm_codegen$Elm$record(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'ignore',
+							$mdgriffith$elm_codegen$Elm$val('SubscriptionEventIgnored'))
+						])),
+					frameModel,
+					sub
+				]));
 	});
 var $author$project$Press$Model$withPageHelper = F3(
 	function (pageConfig, fieldName, fn) {
@@ -17689,6 +17723,13 @@ var $author$project$Press$Generate$Engine$update = F3(
 											}),
 											A3(
 											$mdgriffith$elm_codegen$Elm$Case$branch1,
+											'SubscriptionEventIgnored',
+											_Utils_Tuple2('msg', $author$project$Press$Model$types.pageId),
+											function (_v3) {
+												return A2($mdgriffith$elm_codegen$Elm$tuple, model, $author$project$Gen$App$Effect$none);
+											}),
+											A3(
+											$mdgriffith$elm_codegen$Elm$Case$branch1,
 											'Global',
 											_Utils_Tuple2(
 												'frameMsg',
@@ -17709,9 +17750,9 @@ var $author$project$Press$Generate$Engine$update = F3(
 														'frameEffect',
 														updatedFrame,
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
-															function (_v3) {
-																var newFrame = _v3.a;
-																var frameEffect = _v3.b;
+															function (_v4) {
+																var newFrame = _v4.a;
+																var frameEffect = _v4.b;
 																return A2(
 																	$mdgriffith$elm_codegen$Elm$tuple,
 																	A2(
@@ -18212,6 +18253,13 @@ var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
 					group: $elm$core$Maybe$Just('App')
 				},
 				A2($mdgriffith$elm_codegen$Elm$alias, 'CmdOptions', $author$project$Press$Model$types.cmdOptions)),
+				A2(
+				$mdgriffith$elm_codegen$Elm$exposeWith,
+				{
+					exposeConstructor: true,
+					group: $elm$core$Maybe$Just('App')
+				},
+				A2($mdgriffith$elm_codegen$Elm$alias, 'SubOptions', $author$project$Press$Model$types.subOptions)),
 				$author$project$Press$Generate$Engine$toPageKey(pageUsages),
 				A3($author$project$Press$Generate$Engine$app, pageUsages, getPageInit, loadPage),
 				$author$project$Press$Generate$Engine$testAlias,

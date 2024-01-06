@@ -13909,6 +13909,14 @@ var $author$project$Press$Model$toConfig = function (configType) {
 						$mdgriffith$elm_codegen$Elm$Annotation$function,
 						_List_fromArray(
 							[
+								A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_Nil,
+								'SubOptions',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])),
 								$mdgriffith$elm_codegen$Elm$Annotation$var('model'),
 								$author$project$Gen$App$Sub$annotation_.sub($author$project$Press$Model$appMsg)
 							]),
@@ -14038,6 +14046,17 @@ var $author$project$Press$Model$types = {
 	routeType: $author$project$Press$Model$routeType,
 	sharedType: $author$project$Press$Model$sharedType,
 	stateCache: $author$project$Press$Model$stateCache,
+	subOptions: $mdgriffith$elm_codegen$Elm$Annotation$record(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'ignore',
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					$author$project$Press$Model$appMsg))
+			])),
 	subscription: A3(
 		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 		_List_Nil,
