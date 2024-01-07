@@ -1,5 +1,6 @@
 module App.Page exposing
     ( Page, page, authenticated
+    , withKey, withPageCacheLimit
     , Init, init, initWith, notFound, loadFrom, error
     )
 
@@ -7,7 +8,7 @@ module App.Page exposing
 
 @docs Page, page, authenticated
 
-@docs withKey
+@docs withKey, withPageCacheLimit
 
 @docs Init, init, initWith, notFound, loadFrom, error
 
@@ -42,6 +43,16 @@ page =
 withKey : (params -> String) -> Page params msg model -> Page params msg model
 withKey =
     App.Engine.Page.withKey
+
+
+{-| This is the maximum number of page instances that will be cached, above what is already visible.
+
+This defaults to 1.
+
+-}
+withPageCacheLimit : Int -> Page params msg model -> Page params msg model
+withPageCacheLimit =
+    App.Engine.Page.withPageCacheLimit
 
 
 {-| -}

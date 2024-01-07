@@ -94,6 +94,8 @@ generate pageUsages =
                 , exposeConstructor = True
                 }
         , toPageKey pageUsages
+        , toPageGroupKey pageUsages
+        , toPageLimit pageUsages
         , app pageUsages getPageInit loadPage
         , testAlias
         , test getPageInit loadPage
@@ -127,6 +129,92 @@ generate pageUsages =
         , view pageUsages
         , subscriptions pageUsages
         ]
+
+
+toPageGroupKey : List PageUsage -> Elm.Declaration
+toPageGroupKey pages =
+    .declaration <|
+        Elm.Declare.fn "toPageGroupKey"
+            ( "pageId", Just types.pageId )
+            (\pageId ->
+                Elm.Case.custom pageId
+                    types.pageId
+                    (pages
+                        |> List.map
+                            (\pageInfo ->
+                                let
+                                    toBranch fn =
+                                        case pageInfo.paramType of
+                                            Nothing ->
+                                                Elm.Case.branch0 pageInfo.id (fn (Elm.record []))
+
+                                            Just paramType ->
+                                                Elm.Case.branch1 pageInfo.id
+                                                    ( "params", Type.unit )
+                                                    (\params ->
+                                                        fn params
+                                                    )
+                                in
+                                toBranch
+                                    (\params ->
+                                        Elm.string pageInfo.id
+                                    )
+                            )
+                    )
+                    |> Elm.withType Type.string
+            )
+
+
+toPageLimit : List PageUsage -> Elm.Declaration
+toPageLimit pages =
+    .declaration <|
+        Elm.Declare.fn "toPageLimit"
+            ( "pageId", Just types.pageId )
+            (\pageId ->
+                Elm.Case.custom pageId
+                    types.pageId
+                    (pages
+                        |> List.map
+                            (\pageInfo ->
+                                let
+                                    toBranch fn =
+                                        case pageInfo.paramType of
+                                            Nothing ->
+                                                Elm.Case.branch0 pageInfo.id (fn (Elm.record []))
+
+                                            Just paramType ->
+                                                Elm.Case.branch1 pageInfo.id
+                                                    ( "params", Type.unit )
+                                                    (\params ->
+                                                        fn params
+                                                    )
+                                in
+                                if pageInfo.elmModuleIsPresent then
+                                    let
+                                        pageConfig =
+                                            Elm.value
+                                                { importFrom = pageInfo.moduleName
+                                                , name = "page"
+                                                , annotation = Nothing
+                                                }
+                                    in
+                                    toBranch
+                                        (\_ ->
+                                            Elm.apply
+                                                Gen.App.Engine.Page.values_.toInternalDetails
+                                                [ pageConfig ]
+                                                |> Elm.Op.pipe (Elm.val ".pageCacheLimit")
+                                        )
+
+                                else
+                                    toBranch
+                                        (\params ->
+                                            Elm.int 1
+                                        )
+                            )
+                    )
+                    |> Elm.withType Type.int
+            )
 
 
 toPageKey : List PageUsage -> Elm.Declaration
@@ -435,10 +523,11 @@ init getPageInit loadPage config flags url key =
                 model =
                     Elm.record
                         [ ( "key", key )
-                        , ( "regions"
+                        , ( "views"
                           , Press.Generate.Regions.values.empty
                           )
                         , ( "frame", frameModel )
+                        , ( "limits", Gen.App.State.initLimit )
                         , ( "states"
                           , Gen.App.State.init
                           )
@@ -484,14 +573,7 @@ update routes getPageInit loadPage =
                     types.msg
                     ([ Elm.Case.branch0 "PageCacheCleared"
                         (Elm.tuple
-                            (Elm.updateRecord
-                                [ ( "states"
-                                  , Elm.get "states" model
-                                        |> Gen.App.State.drop
-                                  )
-                                ]
-                                model
-                            )
+                            model
                             Gen.App.Effect.none
                         )
                      , Elm.Case.branch1 "Preload"
@@ -554,7 +636,7 @@ update routes getPageInit loadPage =
                                             )
                                             (Elm.tuple
                                                 (Elm.updateRecord
-                                                    [ ( "regions", newRegions )
+                                                    [ ( "views", newRegions )
                                                     ]
                                                     model
                                                 )
@@ -565,7 +647,7 @@ update routes getPageInit loadPage =
                                     "regionDiff"
                                     (Press.Generate.Regions.values.update
                                         regionOperation
-                                        (Elm.get "regions" model)
+                                        (Elm.get "views" model)
                                     )
                                 |> Elm.Let.toExpression
                         )
@@ -644,7 +726,7 @@ view routes =
                                 [ Press.Model.toShared config (Elm.get "frame" model)
                                 , Elm.get "states" model
                                 ]
-                            , Elm.get "regions" model
+                            , Elm.get "views" model
                             ]
                         )
                     |> Elm.Let.toExpression
@@ -780,7 +862,7 @@ subscriptions pages =
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                         |> toSub config (Elm.get "frame" model)
                     , Elm.apply Press.Generate.Regions.values.toList
-                        [ Elm.get "regions" model ]
+                        [ Elm.get "views" model ]
                         |> Gen.List.call_.filterMap
                             (Elm.fn
                                 ( "pageId", Just Type.string )

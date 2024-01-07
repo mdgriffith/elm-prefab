@@ -14866,7 +14866,93 @@ var $author$project$Gen$App$Page$call_ = {
 				}),
 			_List_fromArray(
 				[pageArg]));
-	}
+	},
+	withKey: F2(
+		function (withKeyArg, withKeyArg0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_codegen$Elm$Annotation$function,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('params')
+											]),
+										$mdgriffith$elm_codegen$Elm$Annotation$string),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_Nil,
+										'Page',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+												$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_Nil,
+									'Page',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+											$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+										])))),
+						importFrom: _List_fromArray(
+							['App', 'Page']),
+						name: 'withKey'
+					}),
+				_List_fromArray(
+					[withKeyArg, withKeyArg0]));
+		}),
+	withPageCacheLimit: F2(
+		function (withPageCacheLimitArg, withPageCacheLimitArg0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$int,
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_Nil,
+										'Page',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+												$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_Nil,
+									'Page',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+											$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+										])))),
+						importFrom: _List_fromArray(
+							['App', 'Page']),
+						name: 'withPageCacheLimit'
+					}),
+				_List_fromArray(
+					[withPageCacheLimitArg, withPageCacheLimitArg0]));
+		})
 };
 var $author$project$Gen$App$Sub$none = $mdgriffith$elm_codegen$Elm$value(
 	{

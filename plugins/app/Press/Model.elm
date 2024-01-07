@@ -16,8 +16,10 @@ import Gen.App.Sub
 import Gen.Browser
 import Gen.Browser.Navigation
 import Gen.Json.Encode
+import Gen.List
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
+import Gen.Set
 import Gen.Url
 import Json.Decode
 import Set exposing (Set)
@@ -483,8 +485,20 @@ types =
     , routePath = routePath
     , routeType = routeType
     , pageId = pageIdType
+
+    -- Model
     , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
     , testModel = Type.namedWith [] "Model" [ Type.unit, Type.var "model" ]
+    , modelRecord =
+        Type.record
+            [ ( "key", Type.var "key" )
+            , ( "limits", Gen.App.State.annotation_.limit )
+            , ( "states"
+              , stateCache
+              )
+            , ( "views", regionsRecord )
+            , ( "frame", Type.var "frame" )
+            ]
     , pageLoadResult =
         Gen.App.Engine.Page.annotation_.init
             appMsg
@@ -515,15 +529,6 @@ types =
             , ( "regionUpdate"
               , Type.function [ regionOperation ] appMsg
               )
-            ]
-    , modelRecord =
-        Type.record
-            [ ( "key", Type.var "key" )
-            , ( "states"
-              , stateCache
-              )
-            , ( "regions", regionsRecord )
-            , ( "frame", Type.var "frame" )
             ]
     , frame =
         toConfig FullConfig
@@ -623,7 +628,7 @@ loadPage routes =
         ( "initialization", Just types.pageLoadResult )
         (\config model pageId initialization ->
             Elm.Let.letIn
-                (\pageKey ->
+                (\pageKey pageGroupKey keep ->
                     Elm.Case.custom initialization
                         (Type.namedWith
                             [ "App", "Engine", "Page" ]
@@ -673,16 +678,37 @@ loadPage routes =
                             ( "newPage", Type.named [] "State" )
                             ( "pageEffect", Gen.App.Effect.annotation_.effect types.msg )
                             (\newPage pageEffect ->
-                                Elm.tuple
-                                    (Elm.updateRecord
-                                        [ ( "states"
-                                          , Elm.get "states" model
-                                                |> Gen.App.State.call_.insert pageKey newPage
-                                          )
-                                        ]
-                                        model
+                                Elm.Let.letIn
+                                    (\limitUpdated ->
+                                        let
+                                            updatedModel =
+                                                Elm.updateRecord
+                                                    [ ( "states"
+                                                      , Elm.get "states" model
+                                                            |> Gen.App.State.call_.insert pageKey newPage
+                                                            |> Gen.App.State.call_.purge (Elm.get "removedIds" limitUpdated)
+                                                      )
+                                                    , ( "limits"
+                                                      , Elm.get "limit" limitUpdated
+                                                      )
+                                                    ]
+                                                    model
+                                        in
+                                        Elm.tuple updatedModel
+                                            pageEffect
                                     )
-                                    pageEffect
+                                    |> Elm.Let.value "limitUpdated"
+                                        (Gen.App.State.call_.addToLimit
+                                            (Elm.record
+                                                [ ( "groupId", pageGroupKey )
+                                                , ( "instanceId", pageKey )
+                                                , ( "max", Elm.apply (Elm.val "toPageLimit") [ pageId ] )
+                                                , ( "keep", keep )
+                                                ]
+                                            )
+                                            (Elm.get "limits" model)
+                                        )
+                                    |> Elm.Let.toExpression
                             )
                         , Elm.Case.branch1 "LoadFrom"
                             ( "pageEffect", types.pageLoadResult )
@@ -722,6 +748,25 @@ loadPage routes =
                     (Elm.apply
                         (Elm.val "toPageKey")
                         [ pageId ]
+                    )
+                |> Elm.Let.value "pageGroupKey"
+                    (Elm.apply
+                        (Elm.val "toPageGroupKey")
+                        [ pageId ]
+                    )
+                |> Elm.Let.value "keep"
+                    (Elm.apply
+                        (Elm.value
+                            { importFrom = [ "App", "View", "Id" ]
+                            , name = "toList"
+                            , annotation = Nothing
+                            }
+                        )
+                        [ Elm.get "views" model ]
+                        |> Elm.Op.pipe
+                            (Elm.apply Gen.List.values_.map [ Elm.val "toPageKey" ])
+                        |> Elm.Op.pipe
+                            Gen.Set.values_.fromList
                     )
                 |> Elm.Let.toExpression
                 |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))

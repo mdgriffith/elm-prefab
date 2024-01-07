@@ -1,7 +1,7 @@
 module App.Engine.Page exposing
     ( Page, page
     , Init, init, initWith, notFound, loadFrom, error
-    , withGuard, withKey
+    , withGuard, withKey, withPageCacheLimit
     , InitPlan(..), toInternalDetails, mapInitPlan
     )
 
@@ -11,7 +11,7 @@ module App.Engine.Page exposing
 
 @docs Init, init, initWith, notFound, loadFrom, error
 
-@docs withGuard, withKey
+@docs withGuard, withKey, withPageCacheLimit
 
 
 # Internal Details
@@ -33,6 +33,7 @@ import App.View.Id
 type Page shared params msg model
     = Page
         { toKey : Maybe (params -> String)
+        , pageCacheLimit : Int
         , init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg
@@ -51,6 +52,7 @@ page :
 page options =
     Page
         { toKey = Nothing
+        , pageCacheLimit = 1
         , init = options.init
         , update = options.update
         , subscriptions = options.subscriptions
@@ -66,6 +68,16 @@ withKey toKey (Page options) =
     Page { options | toKey = Just toKey }
 
 
+{-| This is the maximum number of page instances that will be cached, above what is already visible.
+
+This defaults to 1.
+
+-}
+withPageCacheLimit : Int -> Page shared params msg model -> Page shared params msg model
+withPageCacheLimit limit (Page options) =
+    Page { options | pageCacheLimit = max 0 limit }
+
+
 {-| -}
 withGuard :
     (shared -> Result App.Page.Error.Error newShared)
@@ -74,6 +86,7 @@ withGuard :
 withGuard toShared (Page options) =
     Page
         { toKey = options.toKey
+        , pageCacheLimit = options.pageCacheLimit
         , init =
             \params shared maybeModel ->
                 case toShared shared of
@@ -183,6 +196,7 @@ toInternalDetails :
     Page shared params msg model
     ->
         { toKey : Maybe (params -> String)
+        , pageCacheLimit : Int
         , init : params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
         , subscriptions : shared -> model -> App.Sub.Sub msg

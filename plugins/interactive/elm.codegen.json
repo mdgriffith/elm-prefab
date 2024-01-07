@@ -16,10 +16,10 @@
     "local": [
       "/Users/mattgriffith/projects/mdgriffith/elm-ui/docs.json",
       "./engine/Ui/Theme/Input.elm",
-      "../../plugins/app/toCopy/App/Page.elm",
-      "../../plugins/app/toCopy/App/Effect.elm",
-      "../../plugins/app/toCopy/App/Sub.elm",
-      "../../plugins/app/toCopy/App/View.elm"
+      "../../plugins/app/templates/toCopy/App/Page.elm",
+      "../../plugins/app/templates/toCopy/App/Effect.elm",
+      "../../plugins/app/templates/toCopy/App/Sub.elm",
+      "../../plugins/app/templates/toCopy/App/View.elm"
     ]
   }
 }

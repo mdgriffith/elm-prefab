@@ -1,4 +1,4 @@
-module Page.{{name}} exposing
+module Page.WhoDis exposing
     ( Model, Msg
     , page
     )
@@ -56,4 +56,4 @@ subscriptions shared model =
 
 view : App.View.Id.Id -> App.Shared.Shared -> Model -> App.View.View Msg
 view viewId shared model =
-    Debug.todo "Add a view to Page.{{name}}"
+    Debug.todo "Add a view to Page.WhoDis"

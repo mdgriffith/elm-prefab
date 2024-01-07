@@ -8237,6 +8237,14 @@ var $author$project$Gen$App$State$init = $mdgriffith$elm_codegen$Elm$value(
 			['App', 'State']),
 		name: 'init'
 	});
+var $author$project$Gen$App$State$initLimit = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3($mdgriffith$elm_codegen$Elm$Annotation$namedWith, _List_Nil, 'Limit', _List_Nil)),
+		importFrom: _List_fromArray(
+			['App', 'State']),
+		name: 'initLimit'
+	});
 var $mdgriffith$elm_codegen$Elm$Let$Let = function (a) {
 	return {$: 'Let', a: a};
 };
@@ -8613,6 +8621,23 @@ var $author$project$Gen$App$Engine$Page$annotation_ = {
 					[pageArg0, pageArg1, pageArg2, pageArg3]));
 		})
 };
+var $author$project$Gen$App$State$annotation_ = {
+	cache: function (cacheArg0) {
+		return A3(
+			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+			_List_fromArray(
+				['App', 'State']),
+			'Cache',
+			_List_fromArray(
+				[cacheArg0]));
+	},
+	limit: A3(
+		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+		_List_fromArray(
+			['App', 'State']),
+		'Limit',
+		_List_Nil)
+};
 var $author$project$Press$Model$appMsg = A3(
 	$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 	_List_Nil,
@@ -8685,17 +8710,6 @@ var $author$project$Press$Model$sharedType = A2(
 	_List_fromArray(
 		['App', 'Shared']),
 	'Shared');
-var $author$project$Gen$App$State$annotation_ = {
-	cache: function (cacheArg0) {
-		return A3(
-			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-			_List_fromArray(
-				['App', 'State']),
-			'Cache',
-			_List_fromArray(
-				[cacheArg0]));
-	}
-};
 var $author$project$Press$Model$stateCache = $author$project$Gen$App$State$annotation_.cache(
 	A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'State'));
 var $author$project$Gen$App$Effect$annotation_ = {
@@ -8975,8 +8989,9 @@ var $author$project$Press$Model$types = {
 				_Utils_Tuple2(
 				'key',
 				$mdgriffith$elm_codegen$Elm$Annotation$var('key')),
+				_Utils_Tuple2('limits', $author$project$Gen$App$State$annotation_.limit),
 				_Utils_Tuple2('states', $author$project$Press$Model$stateCache),
-				_Utils_Tuple2('regions', $author$project$Press$Model$regionsRecord),
+				_Utils_Tuple2('views', $author$project$Press$Model$regionsRecord),
 				_Utils_Tuple2(
 				'frame',
 				$mdgriffith$elm_codegen$Elm$Annotation$var('frame'))
@@ -9188,8 +9203,9 @@ var $author$project$Press$Generate$Engine$init = F6(
 								_List_fromArray(
 									[
 										_Utils_Tuple2('key', key),
-										_Utils_Tuple2('regions', $author$project$Press$Generate$Regions$values.empty),
+										_Utils_Tuple2('views', $author$project$Press$Generate$Regions$values.empty),
 										_Utils_Tuple2('frame', frameModel),
+										_Utils_Tuple2('limits', $author$project$Gen$App$State$initLimit),
 										_Utils_Tuple2('states', $author$project$Gen$App$State$init)
 									])));
 						return A2($mdgriffith$elm_codegen$Elm$tuple, model, globalFrameEffect);
@@ -13630,108 +13646,52 @@ var $mdgriffith$elm_codegen$Elm$Declare$fn3 = F5(
 		};
 	});
 var $author$project$Gen$App$State$call_ = {
-	clearCurrent: function (clearCurrentArg) {
-		return A2(
-			$mdgriffith$elm_codegen$Elm$apply,
-			$mdgriffith$elm_codegen$Elm$value(
-				{
-					annotation: $elm$core$Maybe$Just(
-						A2(
-							$mdgriffith$elm_codegen$Elm$Annotation$function,
-							_List_fromArray(
-								[
-									A3(
-									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-									_List_Nil,
-									'Cache',
-									_List_fromArray(
-										[
-											$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-										]))
-								]),
-							A3(
-								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-								_List_Nil,
-								'Cache',
+	addToLimit: F2(
+		function (addToLimitArg, addToLimitArg0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
 								_List_fromArray(
 									[
-										$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-									])))),
-					importFrom: _List_fromArray(
-						['App', 'State']),
-					name: 'clearCurrent'
-				}),
-			_List_fromArray(
-				[clearCurrentArg]));
-	},
-	current: function (currentArg) {
-		return A2(
-			$mdgriffith$elm_codegen$Elm$apply,
-			$mdgriffith$elm_codegen$Elm$value(
-				{
-					annotation: $elm$core$Maybe$Just(
-						A2(
-							$mdgriffith$elm_codegen$Elm$Annotation$function,
-							_List_fromArray(
-								[
-									A3(
-									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-									_List_Nil,
-									'Cache',
+										$mdgriffith$elm_codegen$Elm$Annotation$record(
+										_List_fromArray(
+											[
+												_Utils_Tuple2('groupId', $mdgriffith$elm_codegen$Elm$Annotation$string),
+												_Utils_Tuple2('instanceId', $mdgriffith$elm_codegen$Elm$Annotation$string),
+												_Utils_Tuple2('max', $mdgriffith$elm_codegen$Elm$Annotation$int),
+												_Utils_Tuple2(
+												'keep',
+												A3(
+													$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+													_List_fromArray(
+														['Set']),
+													'Set',
+													_List_fromArray(
+														[$mdgriffith$elm_codegen$Elm$Annotation$string])))
+											])),
+										A3($mdgriffith$elm_codegen$Elm$Annotation$namedWith, _List_Nil, 'Limit', _List_Nil)
+									]),
+								$mdgriffith$elm_codegen$Elm$Annotation$record(
 									_List_fromArray(
 										[
-											$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-										]))
-								]),
-							A3(
-								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-								_List_Nil,
-								'Maybe',
-								_List_fromArray(
-									[
-										$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-									])))),
-					importFrom: _List_fromArray(
-						['App', 'State']),
-					name: 'current'
-				}),
-			_List_fromArray(
-				[currentArg]));
-	},
-	drop: function (dropArg) {
-		return A2(
-			$mdgriffith$elm_codegen$Elm$apply,
-			$mdgriffith$elm_codegen$Elm$value(
-				{
-					annotation: $elm$core$Maybe$Just(
-						A2(
-							$mdgriffith$elm_codegen$Elm$Annotation$function,
-							_List_fromArray(
-								[
-									A3(
-									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-									_List_Nil,
-									'Cache',
-									_List_fromArray(
-										[
-											$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-										]))
-								]),
-							A3(
-								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-								_List_Nil,
-								'Cache',
-								_List_fromArray(
-									[
-										$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-									])))),
-					importFrom: _List_fromArray(
-						['App', 'State']),
-					name: 'drop'
-				}),
-			_List_fromArray(
-				[dropArg]));
-	},
+											_Utils_Tuple2(
+											'limit',
+											A3($mdgriffith$elm_codegen$Elm$Annotation$namedWith, _List_Nil, 'Limit', _List_Nil)),
+											_Utils_Tuple2(
+											'removedIds',
+											$mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$string))
+										])))),
+						importFrom: _List_fromArray(
+							['App', 'State']),
+						name: 'addToLimit'
+					}),
+				_List_fromArray(
+					[addToLimitArg, addToLimitArg0]));
+		}),
 	get: F2(
 		function (getArg, getArg0) {
 			return A2(
@@ -13805,6 +13765,42 @@ var $author$project$Gen$App$State$call_ = {
 				_List_fromArray(
 					[insertArg, insertArg0, insertArg1]));
 		}),
+	purge: F2(
+		function (purgeArg, purgeArg0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$string),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_Nil,
+										'Cache',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('state')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_Nil,
+									'Cache',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('state')
+										])))),
+						importFrom: _List_fromArray(
+							['App', 'State']),
+						name: 'purge'
+					}),
+				_List_fromArray(
+					[purgeArg, purgeArg0]));
+		}),
 	remove: F2(
 		function (removeArg, removeArg0) {
 			return A2(
@@ -13841,8 +13837,8 @@ var $author$project$Gen$App$State$call_ = {
 				_List_fromArray(
 					[removeArg, removeArg0]));
 		}),
-	setCurrent: F2(
-		function (setCurrentArg, setCurrentArg0) {
+	removeFromLimit: F2(
+		function (removeFromLimitArg, removeFromLimitArg0) {
 			return A2(
 				$mdgriffith$elm_codegen$Elm$apply,
 				$mdgriffith$elm_codegen$Elm$value(
@@ -13852,31 +13848,50 @@ var $author$project$Gen$App$State$call_ = {
 								$mdgriffith$elm_codegen$Elm$Annotation$function,
 								_List_fromArray(
 									[
-										$mdgriffith$elm_codegen$Elm$Annotation$string,
-										A3(
-										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-										_List_Nil,
-										'Cache',
+										$mdgriffith$elm_codegen$Elm$Annotation$record(
 										_List_fromArray(
 											[
-												$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-											]))
+												_Utils_Tuple2('groupId', $mdgriffith$elm_codegen$Elm$Annotation$string),
+												_Utils_Tuple2('instanceId', $mdgriffith$elm_codegen$Elm$Annotation$string)
+											])),
+										A3($mdgriffith$elm_codegen$Elm$Annotation$namedWith, _List_Nil, 'Limit', _List_Nil)
 									]),
-								A3(
+								A3($mdgriffith$elm_codegen$Elm$Annotation$namedWith, _List_Nil, 'Limit', _List_Nil))),
+						importFrom: _List_fromArray(
+							['App', 'State']),
+						name: 'removeFromLimit'
+					}),
+				_List_fromArray(
+					[removeFromLimitArg, removeFromLimitArg0]));
+		}),
+	values: function (valuesArg) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
 									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 									_List_Nil,
 									'Cache',
 									_List_fromArray(
 										[
 											$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-										])))),
-						importFrom: _List_fromArray(
-							['App', 'State']),
-						name: 'setCurrent'
-					}),
-				_List_fromArray(
-					[setCurrentArg, setCurrentArg0]));
-		})
+										]))
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+								$mdgriffith$elm_codegen$Elm$Annotation$var('state')))),
+					importFrom: _List_fromArray(
+						['App', 'State']),
+					name: 'values'
+				}),
+			_List_fromArray(
+				[valuesArg]));
+	}
 };
 var $mdgriffith$elm_codegen$Elm$Case$maybe = F2(
 	function (mainExpression, branches) {
@@ -14576,6 +14591,7 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 												]),
 											$mdgriffith$elm_codegen$Elm$Annotation$string)
 										]))),
+								_Utils_Tuple2('pageCacheLimit', $mdgriffith$elm_codegen$Elm$Annotation$int),
 								_Utils_Tuple2(
 								'init',
 								A2(
@@ -14778,6 +14794,41 @@ var $author$project$Gen$App$Engine$Page$values_ = {
 			importFrom: _List_fromArray(
 				['App', 'Engine', 'Page']),
 			name: 'withKey'
+		}),
+	withPageCacheLimit: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$int,
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_Nil,
+							'Page',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('shared'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_Nil,
+						'Page',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('shared'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('params'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+							])))),
+			importFrom: _List_fromArray(
+				['App', 'Engine', 'Page']),
+			name: 'withPageCacheLimit'
 		})
 };
 var $author$project$Press$Model$getPageInit = function (pages) {
@@ -15306,6 +15357,1261 @@ var $mdgriffith$elm_codegen$Elm$updateRecord = F2(
 				};
 			});
 	});
+var $mdgriffith$elm_codegen$Elm$Annotation$bool = A3($mdgriffith$elm_codegen$Elm$Annotation$typed, _List_Nil, 'Bool', _List_Nil);
+var $author$project$Gen$List$values_ = {
+	all: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$bool),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$bool)),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'all'
+		}),
+	any: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$bool),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$bool)),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'any'
+		}),
+	append: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'append'
+		}),
+	concat: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+								$mdgriffith$elm_codegen$Elm$Annotation$var('a')))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'concat'
+		}),
+	concatMap: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+								$mdgriffith$elm_codegen$Elm$Annotation$var('b'))),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('b')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'concatMap'
+		}),
+	drop: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$int,
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'drop'
+		}),
+	filter: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$bool),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'filter'
+		}),
+	filterMap: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$maybe(
+								$mdgriffith$elm_codegen$Elm$Annotation$var('b'))),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('b')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'filterMap'
+		}),
+	foldl: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$var('b'))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'foldl'
+		}),
+	foldr: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$var('b'))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'foldr'
+		}),
+	head: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'head'
+		}),
+	indexedMap: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$int,
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('b')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'indexedMap'
+		}),
+	intersperse: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'intersperse'
+		}),
+	isEmpty: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$bool)),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'isEmpty'
+		}),
+	length: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$int)),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'length'
+		}),
+	map: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('b')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'map'
+		}),
+	map2: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('result')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('result')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'map2'
+		}),
+	map3: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('c')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('result')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('c'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('result')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'map3'
+		}),
+	map4: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('c'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('d')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('result')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('c')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('d'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('result')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'map4'
+		}),
+	map5: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('c'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('d'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('e')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('result')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('c')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('d')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('e'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('result')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'map5'
+		}),
+	maximum: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'maximum'
+		}),
+	member: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$bool)),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'member'
+		}),
+	minimum: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'minimum'
+		}),
+	partition: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$bool),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$tuple,
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'partition'
+		}),
+	product: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('number'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$var('number'))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'product'
+		}),
+	range: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$int))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'range'
+		}),
+	repeat: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$int,
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'repeat'
+		}),
+	reverse: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'reverse'
+		}),
+	singleton: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'singleton'
+		}),
+	sort: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'sort'
+		}),
+	sortBy: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'sortBy'
+		}),
+	sortWith: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Basics']),
+								'Order',
+								_List_Nil)),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'sortWith'
+		}),
+	sum: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('number'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$var('number'))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'sum'
+		}),
+	tail: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$maybe(
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'tail'
+		}),
+	take: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$int,
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a'))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'take'
+		}),
+	unzip: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$tuple,
+								$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+								$mdgriffith$elm_codegen$Elm$Annotation$var('b')))
+						]),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$tuple,
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')),
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b'))))),
+			importFrom: _List_fromArray(
+				['List']),
+			name: 'unzip'
+		})
+};
+var $author$project$Gen$Set$values_ = {
+	diff: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								])),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'diff'
+		}),
+	empty: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Set']),
+					'Set',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+						]))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'empty'
+		}),
+	filter: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$bool),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'filter'
+		}),
+	foldl: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$var('b'))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'foldl'
+		}),
+	foldr: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a'),
+									$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b'),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$var('b'))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'foldr'
+		}),
+	fromList: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'fromList'
+		}),
+	insert: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'insert'
+		}),
+	intersect: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								])),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'intersect'
+		}),
+	isEmpty: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$bool)),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'isEmpty'
+		}),
+	map: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable2')),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable2')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'map'
+		}),
+	member: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$bool)),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'member'
+		}),
+	partition: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$bool),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$tuple,
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								])),
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'partition'
+		}),
+	remove: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable'),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'remove'
+		}),
+	singleton: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'singleton'
+		}),
+	size: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$int)),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'size'
+		}),
+	toList: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					$mdgriffith$elm_codegen$Elm$Annotation$list(
+						$mdgriffith$elm_codegen$Elm$Annotation$var('a')))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'toList'
+		}),
+	union: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								])),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Set']),
+							'Set',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Set']),
+						'Set',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('comparable')
+							])))),
+			importFrom: _List_fromArray(
+				['Set']),
+			name: 'union'
+		})
+};
 var $author$project$Press$Model$loadPage = function (routes) {
 	return A6(
 		$mdgriffith$elm_codegen$Elm$Declare$fn4,
@@ -15333,137 +16639,202 @@ var $author$project$Press$Model$loadPage = function (routes) {
 					$mdgriffith$elm_codegen$Elm$Let$toExpression(
 						A3(
 							$mdgriffith$elm_codegen$Elm$Let$value,
-							'pageKey',
+							'keep',
 							A2(
-								$mdgriffith$elm_codegen$Elm$apply,
-								$mdgriffith$elm_codegen$Elm$val('toPageKey'),
-								_List_fromArray(
-									[pageId])),
-							$mdgriffith$elm_codegen$Elm$Let$letIn(
-								function (pageKey) {
-									return A3(
-										$mdgriffith$elm_codegen$Elm$Case$custom,
-										initialization,
-										A3(
-											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-											_List_fromArray(
-												['App', 'Engine', 'Page']),
-											'InitPlan',
-											_List_fromArray(
-												[
-													$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
-													$mdgriffith$elm_codegen$Elm$Annotation$var('model')
-												])),
+								$mdgriffith$elm_codegen$Elm$Op$pipe,
+								$author$project$Gen$Set$values_.fromList,
+								A2(
+									$mdgriffith$elm_codegen$Elm$Op$pipe,
+									A2(
+										$mdgriffith$elm_codegen$Elm$apply,
+										$author$project$Gen$List$values_.map,
 										_List_fromArray(
 											[
-												A2(
-												$mdgriffith$elm_codegen$Elm$Case$branch0,
-												'NotFound',
-												function () {
-													var updatedModel = A2(
-														$mdgriffith$elm_codegen$Elm$updateRecord,
+												$mdgriffith$elm_codegen$Elm$val('toPageKey')
+											])),
+									A2(
+										$mdgriffith$elm_codegen$Elm$apply,
+										$mdgriffith$elm_codegen$Elm$value(
+											{
+												annotation: $elm$core$Maybe$Nothing,
+												importFrom: _List_fromArray(
+													['App', 'View', 'Id']),
+												name: 'toList'
+											}),
+										_List_fromArray(
+											[
+												A2($mdgriffith$elm_codegen$Elm$get, 'views', model)
+											])))),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Let$value,
+								'pageGroupKey',
+								A2(
+									$mdgriffith$elm_codegen$Elm$apply,
+									$mdgriffith$elm_codegen$Elm$val('toPageGroupKey'),
+									_List_fromArray(
+										[pageId])),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Let$value,
+									'pageKey',
+									A2(
+										$mdgriffith$elm_codegen$Elm$apply,
+										$mdgriffith$elm_codegen$Elm$val('toPageKey'),
+										_List_fromArray(
+											[pageId])),
+									$mdgriffith$elm_codegen$Elm$Let$letIn(
+										F3(
+											function (pageKey, pageGroupKey, keep) {
+												return A3(
+													$mdgriffith$elm_codegen$Elm$Case$custom,
+													initialization,
+													A3(
+														$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+														_List_fromArray(
+															['App', 'Engine', 'Page']),
+														'InitPlan',
 														_List_fromArray(
 															[
-																_Utils_Tuple2(
-																'states',
-																A2(
-																	$author$project$Gen$App$State$call_.remove,
-																	pageKey,
-																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-															]),
-														model);
-													return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, $author$project$Gen$App$Effect$none);
-												}()),
-												A3(
-												$mdgriffith$elm_codegen$Elm$Case$branch1,
-												'Error',
-												_Utils_Tuple2('err', $author$project$Gen$App$Page$Error$annotation_.error),
-												function (err) {
-													var updatedModel = A2(
-														$mdgriffith$elm_codegen$Elm$updateRecord,
-														_List_fromArray(
-															[
-																_Utils_Tuple2(
-																'states',
-																A3(
-																	$author$project$Gen$App$State$call_.insert,
-																	pageKey,
-																	A2(
-																		$mdgriffith$elm_codegen$Elm$apply,
-																		$mdgriffith$elm_codegen$Elm$value(
-																			{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageError_'}),
-																		_List_fromArray(
-																			[err])),
-																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-															]),
-														model);
-													return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, $author$project$Gen$App$Effect$none);
-												}),
-												A4(
-												$mdgriffith$elm_codegen$Elm$Case$branch2,
-												'Loaded',
-												_Utils_Tuple2(
-													'newPage',
-													A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'State')),
-												_Utils_Tuple2(
-													'pageEffect',
-													$author$project$Gen$App$Effect$annotation_.effect($author$project$Press$Model$types.msg)),
-												F2(
-													function (newPage, pageEffect) {
-														return A2(
-															$mdgriffith$elm_codegen$Elm$tuple,
+																$mdgriffith$elm_codegen$Elm$Annotation$var('msg'),
+																$mdgriffith$elm_codegen$Elm$Annotation$var('model')
+															])),
+													_List_fromArray(
+														[
 															A2(
-																$mdgriffith$elm_codegen$Elm$updateRecord,
-																_List_fromArray(
-																	[
-																		_Utils_Tuple2(
-																		'states',
+															$mdgriffith$elm_codegen$Elm$Case$branch0,
+															'NotFound',
+															function () {
+																var updatedModel = A2(
+																	$mdgriffith$elm_codegen$Elm$updateRecord,
+																	_List_fromArray(
+																		[
+																			_Utils_Tuple2(
+																			'states',
+																			A2(
+																				$author$project$Gen$App$State$call_.remove,
+																				pageKey,
+																				A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
+																		]),
+																	model);
+																return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, $author$project$Gen$App$Effect$none);
+															}()),
+															A3(
+															$mdgriffith$elm_codegen$Elm$Case$branch1,
+															'Error',
+															_Utils_Tuple2('err', $author$project$Gen$App$Page$Error$annotation_.error),
+															function (err) {
+																var updatedModel = A2(
+																	$mdgriffith$elm_codegen$Elm$updateRecord,
+																	_List_fromArray(
+																		[
+																			_Utils_Tuple2(
+																			'states',
+																			A3(
+																				$author$project$Gen$App$State$call_.insert,
+																				pageKey,
+																				A2(
+																					$mdgriffith$elm_codegen$Elm$apply,
+																					$mdgriffith$elm_codegen$Elm$value(
+																						{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageError_'}),
+																					_List_fromArray(
+																						[err])),
+																				A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
+																		]),
+																	model);
+																return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, $author$project$Gen$App$Effect$none);
+															}),
+															A4(
+															$mdgriffith$elm_codegen$Elm$Case$branch2,
+															'Loaded',
+															_Utils_Tuple2(
+																'newPage',
+																A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'State')),
+															_Utils_Tuple2(
+																'pageEffect',
+																$author$project$Gen$App$Effect$annotation_.effect($author$project$Press$Model$types.msg)),
+															F2(
+																function (newPage, pageEffect) {
+																	return $mdgriffith$elm_codegen$Elm$Let$toExpression(
 																		A3(
-																			$author$project$Gen$App$State$call_.insert,
-																			pageKey,
-																			newPage,
-																			A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-																	]),
-																model),
-															pageEffect);
-													})),
-												A3(
-												$mdgriffith$elm_codegen$Elm$Case$branch1,
-												'LoadFrom',
-												_Utils_Tuple2('pageEffect', $author$project$Press$Model$types.pageLoadResult),
-												function (pageEffect) {
-													var updatedModel = A2(
-														$mdgriffith$elm_codegen$Elm$updateRecord,
-														_List_fromArray(
-															[
-																_Utils_Tuple2(
-																'states',
-																A3(
-																	$author$project$Gen$App$State$call_.insert,
-																	pageKey,
+																			$mdgriffith$elm_codegen$Elm$Let$value,
+																			'limitUpdated',
+																			A2(
+																				$author$project$Gen$App$State$call_.addToLimit,
+																				$mdgriffith$elm_codegen$Elm$record(
+																					_List_fromArray(
+																						[
+																							_Utils_Tuple2('groupId', pageGroupKey),
+																							_Utils_Tuple2('instanceId', pageKey),
+																							_Utils_Tuple2(
+																							'max',
+																							A2(
+																								$mdgriffith$elm_codegen$Elm$apply,
+																								$mdgriffith$elm_codegen$Elm$val('toPageLimit'),
+																								_List_fromArray(
+																									[pageId]))),
+																							_Utils_Tuple2('keep', keep)
+																						])),
+																				A2($mdgriffith$elm_codegen$Elm$get, 'limits', model)),
+																			$mdgriffith$elm_codegen$Elm$Let$letIn(
+																				function (limitUpdated) {
+																					var updatedModel = A2(
+																						$mdgriffith$elm_codegen$Elm$updateRecord,
+																						_List_fromArray(
+																							[
+																								_Utils_Tuple2(
+																								'states',
+																								A2(
+																									$author$project$Gen$App$State$call_.purge,
+																									A2($mdgriffith$elm_codegen$Elm$get, 'removedIds', limitUpdated),
+																									A3(
+																										$author$project$Gen$App$State$call_.insert,
+																										pageKey,
+																										newPage,
+																										A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))),
+																								_Utils_Tuple2(
+																								'limits',
+																								A2($mdgriffith$elm_codegen$Elm$get, 'limit', limitUpdated))
+																							]),
+																						model);
+																					return A2($mdgriffith$elm_codegen$Elm$tuple, updatedModel, pageEffect);
+																				})));
+																})),
+															A3(
+															$mdgriffith$elm_codegen$Elm$Case$branch1,
+															'LoadFrom',
+															_Utils_Tuple2('pageEffect', $author$project$Press$Model$types.pageLoadResult),
+															function (pageEffect) {
+																var updatedModel = A2(
+																	$mdgriffith$elm_codegen$Elm$updateRecord,
+																	_List_fromArray(
+																		[
+																			_Utils_Tuple2(
+																			'states',
+																			A3(
+																				$author$project$Gen$App$State$call_.insert,
+																				pageKey,
+																				A2(
+																					$mdgriffith$elm_codegen$Elm$apply,
+																					$mdgriffith$elm_codegen$Elm$value(
+																						{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageLoading_'}),
+																					_List_fromArray(
+																						[pageId])),
+																				A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
+																		]),
+																	model);
+																return A2(
+																	$mdgriffith$elm_codegen$Elm$tuple,
+																	updatedModel,
 																	A2(
-																		$mdgriffith$elm_codegen$Elm$apply,
-																		$mdgriffith$elm_codegen$Elm$value(
-																			{annotation: $elm$core$Maybe$Nothing, importFrom: _List_Nil, name: 'PageLoading_'}),
-																		_List_fromArray(
-																			[pageId])),
-																	A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-															]),
-														model);
-													return A2(
-														$mdgriffith$elm_codegen$Elm$tuple,
-														updatedModel,
-														A2(
-															$author$project$Gen$App$Effect$call_.map,
-															A2(
-																$mdgriffith$elm_codegen$Elm$apply,
-																$mdgriffith$elm_codegen$Elm$val('Loaded'),
-																_List_fromArray(
-																	[pageId])),
-															pageEffect));
-												})
-											]));
-								}))));
+																		$author$project$Gen$App$Effect$call_.map,
+																		A2(
+																			$mdgriffith$elm_codegen$Elm$apply,
+																			$mdgriffith$elm_codegen$Elm$val('Loaded'),
+																			_List_fromArray(
+																				[pageId])),
+																		pageEffect));
+															})
+														]));
+											})))))));
 			}));
 };
 var $mdgriffith$elm_codegen$Elm$Variant = F2(
@@ -15745,42 +17116,53 @@ var $author$project$Gen$App$Sub$call_ = {
 				_List_fromArray(
 					[mapArg, mapArg0]));
 		}),
-	toSubscription: function (toSubscriptionArg) {
-		return A2(
-			$mdgriffith$elm_codegen$Elm$apply,
-			$mdgriffith$elm_codegen$Elm$value(
-				{
-					annotation: $elm$core$Maybe$Just(
-						A2(
-							$mdgriffith$elm_codegen$Elm$Annotation$function,
-							_List_fromArray(
-								[
-									A3(
+	toSubscription: F2(
+		function (toSubscriptionArg, toSubscriptionArg0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$record(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(
+												'ignore',
+												A2(
+													$mdgriffith$elm_codegen$Elm$Annotation$function,
+													_List_fromArray(
+														[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')))
+											])),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_Nil,
+										'Sub',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
 									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
 									_List_Nil,
 									'Sub',
 									_List_fromArray(
 										[
 											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
-										]))
-								]),
-							A3(
-								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-								_List_Nil,
-								'Sub',
-								_List_fromArray(
-									[
-										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
-									])))),
-					importFrom: _List_fromArray(
-						['App', 'Sub']),
-					name: 'toSubscription'
-				}),
-			_List_fromArray(
-				[toSubscriptionArg]));
-	}
+										])))),
+						importFrom: _List_fromArray(
+							['App', 'Sub']),
+						name: 'toSubscription'
+					}),
+				_List_fromArray(
+					[toSubscriptionArg, toSubscriptionArg0]));
+		})
 };
-var $mdgriffith$elm_codegen$Elm$Annotation$bool = A3($mdgriffith$elm_codegen$Elm$Annotation$typed, _List_Nil, 'Bool', _List_Nil);
 var $author$project$Gen$List$call_ = {
 	all: F2(
 		function (allArg, allArg0) {
@@ -17045,7 +18427,7 @@ var $author$project$Press$Generate$Engine$subscriptions = function (pages) {
 											$author$project$Press$Generate$Regions$values.toList,
 											_List_fromArray(
 												[
-													A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)
+													A2($mdgriffith$elm_codegen$Elm$get, 'views', model)
 												]))))
 								]));
 					}))));
@@ -17209,52 +18591,6 @@ var $author$project$Press$Generate$Engine$testAlias = A2(
 							[$author$project$Gen$Url$annotation_.url]),
 						$author$project$Press$Model$types.msg))
 				]))));
-var $stil4m$elm_syntax$Elm$Syntax$Infix$Right = {$: 'Right'};
-var $mdgriffith$elm_codegen$Internal$Types$appendable = $mdgriffith$elm_codegen$Internal$Types$var('appendable');
-var $mdgriffith$elm_codegen$Elm$Op$applyInfix = F5(
-	function (extraImports, _v0, infixAnnotation, l, r) {
-		var symbol = _v0.a;
-		var dir = _v0.b;
-		return $mdgriffith$elm_codegen$Internal$Compiler$Expression(
-			function (index) {
-				var _v1 = A2($mdgriffith$elm_codegen$Internal$Compiler$toExpressionDetails, index, l);
-				var leftIndex = _v1.a;
-				var left = _v1.b;
-				var _v2 = A2($mdgriffith$elm_codegen$Internal$Compiler$toExpressionDetails, leftIndex, r);
-				var rightIndex = _v2.a;
-				var right = _v2.b;
-				var annotationIndex = $mdgriffith$elm_codegen$Internal$Index$next(rightIndex);
-				return {
-					annotation: A3(
-						$mdgriffith$elm_codegen$Internal$Compiler$applyType,
-						index,
-						$elm$core$Result$Ok(
-							{aliases: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, inferences: $elm$core$Dict$empty, type_: infixAnnotation}),
-						_List_fromArray(
-							[left, right])),
-					expression: A4(
-						$stil4m$elm_syntax$Elm$Syntax$Expression$OperatorApplication,
-						symbol,
-						dir,
-						$mdgriffith$elm_codegen$Internal$Compiler$nodify(
-							$mdgriffith$elm_codegen$Internal$Compiler$parens(left.expression)),
-						$mdgriffith$elm_codegen$Internal$Compiler$nodify(
-							$mdgriffith$elm_codegen$Internal$Compiler$parens(right.expression))),
-					imports: _Utils_ap(
-						extraImports,
-						_Utils_ap(left.imports, right.imports))
-				};
-			});
-	});
-var $mdgriffith$elm_codegen$Elm$Op$append = A3(
-	$mdgriffith$elm_codegen$Elm$Op$applyInfix,
-	_List_Nil,
-	A3($mdgriffith$elm_codegen$Elm$Op$BinOp, '++', $stil4m$elm_syntax$Elm$Syntax$Infix$Right, 5),
-	A2(
-		$mdgriffith$elm_codegen$Internal$Types$function,
-		_List_fromArray(
-			[$mdgriffith$elm_codegen$Internal$Types$appendable, $mdgriffith$elm_codegen$Internal$Types$appendable]),
-		$mdgriffith$elm_codegen$Internal$Types$appendable));
 var $mdgriffith$elm_codegen$Elm$Declare$fn = F3(
 	function (name, one, toExp) {
 		var funcExp = A2($mdgriffith$elm_codegen$Elm$fn, one, toExp);
@@ -17307,6 +18643,97 @@ var $mdgriffith$elm_codegen$Elm$string = function (literal) {
 			};
 		});
 };
+var $author$project$Press$Generate$Engine$toPageGroupKey = function (pages) {
+	return A3(
+		$mdgriffith$elm_codegen$Elm$Declare$fn,
+		'toPageGroupKey',
+		_Utils_Tuple2(
+			'pageId',
+			$elm$core$Maybe$Just($author$project$Press$Model$types.pageId)),
+		function (pageId) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$withType,
+				$mdgriffith$elm_codegen$Elm$Annotation$string,
+				A3(
+					$mdgriffith$elm_codegen$Elm$Case$custom,
+					pageId,
+					$author$project$Press$Model$types.pageId,
+					A2(
+						$elm$core$List$map,
+						function (pageInfo) {
+							var toBranch = function (fn) {
+								var _v0 = pageInfo.paramType;
+								if (_v0.$ === 'Nothing') {
+									return A2(
+										$mdgriffith$elm_codegen$Elm$Case$branch0,
+										pageInfo.id,
+										fn(
+											$mdgriffith$elm_codegen$Elm$record(_List_Nil)));
+								} else {
+									var paramType = _v0.a;
+									return A3(
+										$mdgriffith$elm_codegen$Elm$Case$branch1,
+										pageInfo.id,
+										_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
+										function (params) {
+											return fn(params);
+										});
+								}
+							};
+							return toBranch(
+								function (params) {
+									return $mdgriffith$elm_codegen$Elm$string(pageInfo.id);
+								});
+						},
+						pages)));
+		}).declaration;
+};
+var $stil4m$elm_syntax$Elm$Syntax$Infix$Right = {$: 'Right'};
+var $mdgriffith$elm_codegen$Internal$Types$appendable = $mdgriffith$elm_codegen$Internal$Types$var('appendable');
+var $mdgriffith$elm_codegen$Elm$Op$applyInfix = F5(
+	function (extraImports, _v0, infixAnnotation, l, r) {
+		var symbol = _v0.a;
+		var dir = _v0.b;
+		return $mdgriffith$elm_codegen$Internal$Compiler$Expression(
+			function (index) {
+				var _v1 = A2($mdgriffith$elm_codegen$Internal$Compiler$toExpressionDetails, index, l);
+				var leftIndex = _v1.a;
+				var left = _v1.b;
+				var _v2 = A2($mdgriffith$elm_codegen$Internal$Compiler$toExpressionDetails, leftIndex, r);
+				var rightIndex = _v2.a;
+				var right = _v2.b;
+				var annotationIndex = $mdgriffith$elm_codegen$Internal$Index$next(rightIndex);
+				return {
+					annotation: A3(
+						$mdgriffith$elm_codegen$Internal$Compiler$applyType,
+						index,
+						$elm$core$Result$Ok(
+							{aliases: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, inferences: $elm$core$Dict$empty, type_: infixAnnotation}),
+						_List_fromArray(
+							[left, right])),
+					expression: A4(
+						$stil4m$elm_syntax$Elm$Syntax$Expression$OperatorApplication,
+						symbol,
+						dir,
+						$mdgriffith$elm_codegen$Internal$Compiler$nodify(
+							$mdgriffith$elm_codegen$Internal$Compiler$parens(left.expression)),
+						$mdgriffith$elm_codegen$Internal$Compiler$nodify(
+							$mdgriffith$elm_codegen$Internal$Compiler$parens(right.expression))),
+					imports: _Utils_ap(
+						extraImports,
+						_Utils_ap(left.imports, right.imports))
+				};
+			});
+	});
+var $mdgriffith$elm_codegen$Elm$Op$append = A3(
+	$mdgriffith$elm_codegen$Elm$Op$applyInfix,
+	_List_Nil,
+	A3($mdgriffith$elm_codegen$Elm$Op$BinOp, '++', $stil4m$elm_syntax$Elm$Syntax$Infix$Right, 5),
+	A2(
+		$mdgriffith$elm_codegen$Internal$Types$function,
+		_List_fromArray(
+			[$mdgriffith$elm_codegen$Internal$Types$appendable, $mdgriffith$elm_codegen$Internal$Types$appendable]),
+		$mdgriffith$elm_codegen$Internal$Types$appendable));
 var $author$project$Press$Generate$Engine$toPageKey = function (pages) {
 	return A3(
 		$mdgriffith$elm_codegen$Elm$Declare$fn,
@@ -17392,6 +18819,86 @@ var $author$project$Press$Generate$Engine$toPageKey = function (pages) {
 						pages)));
 		}).declaration;
 };
+var $stil4m$elm_syntax$Elm$Syntax$Expression$Integer = function (a) {
+	return {$: 'Integer', a: a};
+};
+var $mdgriffith$elm_codegen$Internal$Types$int = A2(
+	$stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$Typed,
+	$mdgriffith$elm_codegen$Internal$Types$nodify(
+		_Utils_Tuple2(_List_Nil, 'Int')),
+	_List_Nil);
+var $mdgriffith$elm_codegen$Elm$int = function (intVal) {
+	return $mdgriffith$elm_codegen$Internal$Compiler$Expression(
+		function (_v0) {
+			return {
+				annotation: $elm$core$Result$Ok(
+					{aliases: $mdgriffith$elm_codegen$Internal$Compiler$emptyAliases, inferences: $elm$core$Dict$empty, type_: $mdgriffith$elm_codegen$Internal$Types$int}),
+				expression: $stil4m$elm_syntax$Elm$Syntax$Expression$Integer(intVal),
+				imports: _List_Nil
+			};
+		});
+};
+var $author$project$Press$Generate$Engine$toPageLimit = function (pages) {
+	return A3(
+		$mdgriffith$elm_codegen$Elm$Declare$fn,
+		'toPageLimit',
+		_Utils_Tuple2(
+			'pageId',
+			$elm$core$Maybe$Just($author$project$Press$Model$types.pageId)),
+		function (pageId) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$withType,
+				$mdgriffith$elm_codegen$Elm$Annotation$int,
+				A3(
+					$mdgriffith$elm_codegen$Elm$Case$custom,
+					pageId,
+					$author$project$Press$Model$types.pageId,
+					A2(
+						$elm$core$List$map,
+						function (pageInfo) {
+							var toBranch = function (fn) {
+								var _v1 = pageInfo.paramType;
+								if (_v1.$ === 'Nothing') {
+									return A2(
+										$mdgriffith$elm_codegen$Elm$Case$branch0,
+										pageInfo.id,
+										fn(
+											$mdgriffith$elm_codegen$Elm$record(_List_Nil)));
+								} else {
+									var paramType = _v1.a;
+									return A3(
+										$mdgriffith$elm_codegen$Elm$Case$branch1,
+										pageInfo.id,
+										_Utils_Tuple2('params', $mdgriffith$elm_codegen$Elm$Annotation$unit),
+										function (params) {
+											return fn(params);
+										});
+								}
+							};
+							if (pageInfo.elmModuleIsPresent) {
+								var pageConfig = $mdgriffith$elm_codegen$Elm$value(
+									{annotation: $elm$core$Maybe$Nothing, importFrom: pageInfo.moduleName, name: 'page'});
+								return toBranch(
+									function (_v0) {
+										return A2(
+											$mdgriffith$elm_codegen$Elm$Op$pipe,
+											$mdgriffith$elm_codegen$Elm$val('.pageCacheLimit'),
+											A2(
+												$mdgriffith$elm_codegen$Elm$apply,
+												$author$project$Gen$App$Engine$Page$values_.toInternalDetails,
+												_List_fromArray(
+													[pageConfig])));
+									});
+							} else {
+								return toBranch(
+									function (params) {
+										return $mdgriffith$elm_codegen$Elm$int(1);
+									});
+							}
+						},
+						pages)));
+		}).declaration;
+};
 var $author$project$Gen$App$Effect$batch = function (batchArg) {
 	return A2(
 		$mdgriffith$elm_codegen$Elm$apply,
@@ -17428,40 +18935,6 @@ var $author$project$Gen$App$Effect$batch = function (batchArg) {
 			[
 				$mdgriffith$elm_codegen$Elm$list(batchArg)
 			]));
-};
-var $author$project$Gen$App$State$drop = function (dropArg) {
-	return A2(
-		$mdgriffith$elm_codegen$Elm$apply,
-		$mdgriffith$elm_codegen$Elm$value(
-			{
-				annotation: $elm$core$Maybe$Just(
-					A2(
-						$mdgriffith$elm_codegen$Elm$Annotation$function,
-						_List_fromArray(
-							[
-								A3(
-								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-								_List_Nil,
-								'Cache',
-								_List_fromArray(
-									[
-										$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-									]))
-							]),
-						A3(
-							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-							_List_Nil,
-							'Cache',
-							_List_fromArray(
-								[
-									$mdgriffith$elm_codegen$Elm$Annotation$var('state')
-								])))),
-				importFrom: _List_fromArray(
-					['App', 'State']),
-				name: 'drop'
-			}),
-		_List_fromArray(
-			[dropArg]));
 };
 var $author$project$Press$Model$setState = F3(
 	function (key, val, model) {
@@ -17593,19 +19066,7 @@ var $author$project$Press$Generate$Engine$update = F3(
 											A2(
 											$mdgriffith$elm_codegen$Elm$Case$branch0,
 											'PageCacheCleared',
-											A2(
-												$mdgriffith$elm_codegen$Elm$tuple,
-												A2(
-													$mdgriffith$elm_codegen$Elm$updateRecord,
-													_List_fromArray(
-														[
-															_Utils_Tuple2(
-															'states',
-															$author$project$Gen$App$State$drop(
-																A2($mdgriffith$elm_codegen$Elm$get, 'states', model)))
-														]),
-													model),
-												$author$project$Gen$App$Effect$none)),
+											A2($mdgriffith$elm_codegen$Elm$tuple, model, $author$project$Gen$App$Effect$none)),
 											A3(
 											$mdgriffith$elm_codegen$Elm$Case$branch1,
 											'Preload',
@@ -17650,7 +19111,7 @@ var $author$project$Press$Generate$Engine$update = F3(
 														A2(
 															$author$project$Press$Generate$Regions$values.update,
 															regionOperation,
-															A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)),
+															A2($mdgriffith$elm_codegen$Elm$get, 'views', model)),
 														$mdgriffith$elm_codegen$Elm$Let$letIn(
 															function (_v0) {
 																var newRegions = _v0.a;
@@ -17714,7 +19175,7 @@ var $author$project$Press$Generate$Engine$update = F3(
 																			$mdgriffith$elm_codegen$Elm$updateRecord,
 																			_List_fromArray(
 																				[
-																					_Utils_Tuple2('regions', newRegions)
+																					_Utils_Tuple2('views', newRegions)
 																				]),
 																			model),
 																		$author$project$Gen$App$Effect$none),
@@ -17834,7 +19295,7 @@ var $author$project$Press$Generate$Engine$view = function (routes) {
 												A2($mdgriffith$elm_codegen$Elm$get, 'frame', model)),
 												A2($mdgriffith$elm_codegen$Elm$get, 'states', model)
 											])),
-										A2($mdgriffith$elm_codegen$Elm$get, 'regions', model)
+										A2($mdgriffith$elm_codegen$Elm$get, 'views', model)
 									])),
 							$mdgriffith$elm_codegen$Elm$Let$letIn(frameView)));
 				})));
@@ -18261,6 +19722,8 @@ var $author$project$Press$Generate$Engine$generate = function (pageUsages) {
 				},
 				A2($mdgriffith$elm_codegen$Elm$alias, 'SubOptions', $author$project$Press$Model$types.subOptions)),
 				$author$project$Press$Generate$Engine$toPageKey(pageUsages),
+				$author$project$Press$Generate$Engine$toPageGroupKey(pageUsages),
+				$author$project$Press$Generate$Engine$toPageLimit(pageUsages),
 				A3($author$project$Press$Generate$Engine$app, pageUsages, getPageInit, loadPage),
 				$author$project$Press$Generate$Engine$testAlias,
 				A2($author$project$Press$Generate$Engine$test, getPageInit, loadPage),

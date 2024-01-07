@@ -13526,6 +13526,23 @@ var $author$project$Gen$App$Engine$Page$annotation_ = {
 					[pageArg0, pageArg1, pageArg2, pageArg3]));
 		})
 };
+var $author$project$Gen$App$State$annotation_ = {
+	cache: function (cacheArg0) {
+		return A3(
+			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+			_List_fromArray(
+				['App', 'State']),
+			'Cache',
+			_List_fromArray(
+				[cacheArg0]));
+	},
+	limit: A3(
+		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+		_List_fromArray(
+			['App', 'State']),
+		'Limit',
+		_List_Nil)
+};
 var $author$project$Gen$Browser$Navigation$annotation_ = {
 	key: A3(
 		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
@@ -13619,17 +13636,6 @@ var $author$project$Press$Model$sharedType = A2(
 	_List_fromArray(
 		['App', 'Shared']),
 	'Shared');
-var $author$project$Gen$App$State$annotation_ = {
-	cache: function (cacheArg0) {
-		return A3(
-			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
-			_List_fromArray(
-				['App', 'State']),
-			'Cache',
-			_List_fromArray(
-				[cacheArg0]));
-	}
-};
 var $author$project$Press$Model$stateCache = $author$project$Gen$App$State$annotation_.cache(
 	A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'State'));
 var $author$project$Gen$App$Effect$annotation_ = {
@@ -14013,8 +14019,9 @@ var $author$project$Press$Model$types = {
 				_Utils_Tuple2(
 				'key',
 				$mdgriffith$elm_codegen$Elm$Annotation$var('key')),
+				_Utils_Tuple2('limits', $author$project$Gen$App$State$annotation_.limit),
 				_Utils_Tuple2('states', $author$project$Press$Model$stateCache),
-				_Utils_Tuple2('regions', $author$project$Press$Model$regionsRecord),
+				_Utils_Tuple2('views', $author$project$Press$Model$regionsRecord),
 				_Utils_Tuple2(
 				'frame',
 				$mdgriffith$elm_codegen$Elm$Annotation$var('frame'))
