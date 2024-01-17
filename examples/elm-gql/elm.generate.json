@@ -2,5 +2,10 @@
   "app": {},
   "routes": {
     "Home": "/old-homepage-2/:id/*?{search}"
+  },
+  "interactive": {
+    "output": "interactive",
+    "modules": ["Ui.Button"],
+    "viewers": { "src": "viewers" }
   }
 }
