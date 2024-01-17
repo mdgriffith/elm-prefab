@@ -2,9 +2,9 @@ import * as Generator from "./run_generator";
 import * as AppEngine from "./templates/app/engine";
 import * as AppToCopy from "./templates/app/toCopy";
 import * as Options from "./options";
-import * as ChildProcess from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import * as ElmDev from "./elm_dev";
 
 const AppGenerator = require("./generators/app");
 const AppView = require("./generators/app-view");
@@ -21,15 +21,13 @@ export const generator = (options: any) => {
     run: async (runOptions: Options.RunOptions) => {
       // Copy static files
       AppEngine.copyTo(runOptions.internalSrc, true);
-      const viewRegions = await executeElmDevOperation(
-        "explain App.View.Regions"
-      );
+      const viewRegions = await ElmDev.execute("explain App.View.Regions");
 
       await Generator.run(AppView.Elm.GenerateView, runOptions.internalSrc, {
         regions: viewRegions,
       });
 
-      const pageIds = await executeElmDevOperation("explain App.Page.Id.Id");
+      const pageIds = await ElmDev.execute("explain App.Page.Id.Id");
 
       const pages = pageIdsToPageUsages(pageIds);
 
@@ -207,33 +205,3 @@ const placeholderViewRegions = {
 };
 
 export type File = { path: string; contents: string };
-
-// Call Elm Dev
-
-const elmDevCommand = "/Users/mattgriffith/.local/bin/elm-dev";
-
-function executeElmDevOperation(operation: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    ChildProcess.exec(
-      `${elmDevCommand} ${operation}`,
-      (error, stdout, stderr) => {
-        if (error) {
-          reject(`Error: ${error.message}`);
-          return;
-        }
-        if (stderr) {
-          reject(`Stderr: ${stderr}`);
-          return;
-        }
-        try {
-          const parsedOutput = JSON.parse(stdout);
-          resolve(parsedOutput);
-        } catch (parseError) {
-          console.log(stdout);
-          // @ts-ignore
-          reject(`Error parsing JSON: ${parseError.message}`);
-        }
-      }
-    );
-  });
-}
