@@ -1,5 +1,6 @@
 import * as Options from "./options";
 import * as Generator from "./run_generator";
+import * as ElmDev from "./elm_dev";
 
 const InteractiveGenerator = require("./generators/interactive");
 
@@ -8,13 +9,26 @@ export const generator = (options: any) => {
     generatorType: Options.GeneratorType.Standard,
     init: (runOptions: Options.RunOptions) => {},
     run: async (runOptions: Options.RunOptions) => {
-      options["project"] = testDocs;
-      options["viewers"] = [];
+      const modules = options.modules;
+      if (modules.length == 0) {
+        console.error(
+          "List at least one module for 'interactive' to generate."
+        );
+      }
+
+      // Retrieve the docs for all modules we want examples for.
+      const docs = ElmDev.execute(`docs ${modules}`);
+
+      const finalOptions = {
+        output: options.output ? options.output : "interactive",
+        project: docs,
+        viewers: [],
+      };
 
       await Generator.run(
         InteractiveGenerator.Elm.Generate,
         runOptions.internalSrc,
-        options
+        finalOptions
       );
     },
   };

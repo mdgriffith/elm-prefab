@@ -6,7 +6,6 @@ import Json.Decode
 
 type alias Options =
     { output : String
-    , modules : List String
     , project : List Elm.Docs.Module
     , viewers : List Elm.Docs.Module
     }
@@ -14,11 +13,8 @@ type alias Options =
 
 decoder : Json.Decode.Decoder Options
 decoder =
-    Json.Decode.map4 Options
+    Json.Decode.map3 Options
         (Json.Decode.field "output" Json.Decode.string)
-        (Json.Decode.field "modules"
-            (Json.Decode.list Json.Decode.string)
-        )
         (Json.Decode.field "project"
             (Json.Decode.list Elm.Docs.decoder)
         )
