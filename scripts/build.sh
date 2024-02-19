@@ -18,6 +18,10 @@ node scripts/build.js
     cd plugins/routes
     elm make --optimize Generate.elm --output=../../cli/generators/routes.js
 )
+(
+    cd plugins/assets
+    elm make --optimize Generate.elm --output=../../cli/generators/assets.js
+)
 
 # elm-optimize-level-2
 
