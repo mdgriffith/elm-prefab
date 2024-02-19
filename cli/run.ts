@@ -7,6 +7,7 @@ import * as App from "./run_app";
 import * as Theme from "./run_theme";
 import * as Interactive from "./run_interactive";
 import * as Routes from "./run_routes";
+import * as Assets from "./run_assets";
 
 type GenerateOptions = {
   src: string;
@@ -59,6 +60,9 @@ program
             break;
           case "app":
             plugins.push(App.generator(config.app));
+            break;
+          case "assets":
+            plugins.push(Assets.generator(config.assets));
             break;
           case "interactive":
             plugins.push(Interactive.generator(config.interactive));
