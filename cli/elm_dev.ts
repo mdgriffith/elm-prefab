@@ -2,7 +2,7 @@ import * as ChildProcess from "child_process";
 
 // Call Elm Dev
 
-const elmDevCommand = "/Users/mattgriffith/.local/bin/elm-dev";
+const elmDevCommand = "elm-dev";
 
 export function execute(operation: string): Promise<any> {
   return new Promise((resolve, reject) => {
