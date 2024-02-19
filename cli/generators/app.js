@@ -16837,6 +16837,24 @@ var $author$project$Press$Model$loadPage = function (routes) {
 											})))))));
 			}));
 };
+var $mdgriffith$elm_codegen$Internal$Compiler$expose = function (decl) {
+	switch (decl.$) {
+		case 'Comment':
+			return decl;
+		case 'Block':
+			return decl;
+		default:
+			var details = decl.a;
+			return $mdgriffith$elm_codegen$Internal$Compiler$Declaration(
+				_Utils_update(
+					details,
+					{
+						exposed: $mdgriffith$elm_codegen$Internal$Compiler$Exposed(
+							{exposeConstructor: false, group: $elm$core$Maybe$Nothing})
+					}));
+	}
+};
+var $mdgriffith$elm_codegen$Elm$expose = $mdgriffith$elm_codegen$Internal$Compiler$expose;
 var $mdgriffith$elm_codegen$Elm$Variant = F2(
 	function (a, b) {
 		return {$: 'Variant', a: a, b: b};
@@ -16860,42 +16878,43 @@ var $author$project$Press$Generate$Engine$msgType = function (pageUsages) {
 						]))) : $elm$core$Maybe$Nothing;
 		},
 		pageUsages);
-	return A2(
-		$mdgriffith$elm_codegen$Elm$customType,
-		'Msg',
-		_Utils_ap(
-			_List_fromArray(
-				[
-					$mdgriffith$elm_codegen$Elm$variant('PageCacheCleared'),
-					A2(
-					$mdgriffith$elm_codegen$Elm$variantWith,
-					'Preload',
-					_List_fromArray(
-						[$author$project$Press$Model$types.pageId])),
-					A2(
-					$mdgriffith$elm_codegen$Elm$variantWith,
-					'ViewUpdated',
-					_List_fromArray(
-						[$author$project$Press$Model$types.regionOperation])),
-					A2(
-					$mdgriffith$elm_codegen$Elm$variantWith,
-					'SubscriptionEventIgnored',
-					_List_fromArray(
-						[$mdgriffith$elm_codegen$Elm$Annotation$string])),
-					A2(
-					$mdgriffith$elm_codegen$Elm$variantWith,
-					'Global',
-					_List_fromArray(
-						[
-							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
-						])),
-					A2(
-					$mdgriffith$elm_codegen$Elm$variantWith,
-					'Loaded',
-					_List_fromArray(
-						[$author$project$Press$Model$types.pageId, $author$project$Press$Model$types.pageLoadResult]))
-				]),
-			pageVariants));
+	return $mdgriffith$elm_codegen$Elm$expose(
+		A2(
+			$mdgriffith$elm_codegen$Elm$customType,
+			'Msg',
+			_Utils_ap(
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$variant('PageCacheCleared'),
+						A2(
+						$mdgriffith$elm_codegen$Elm$variantWith,
+						'Preload',
+						_List_fromArray(
+							[$author$project$Press$Model$types.pageId])),
+						A2(
+						$mdgriffith$elm_codegen$Elm$variantWith,
+						'ViewUpdated',
+						_List_fromArray(
+							[$author$project$Press$Model$types.regionOperation])),
+						A2(
+						$mdgriffith$elm_codegen$Elm$variantWith,
+						'SubscriptionEventIgnored',
+						_List_fromArray(
+							[$mdgriffith$elm_codegen$Elm$Annotation$string])),
+						A2(
+						$mdgriffith$elm_codegen$Elm$variantWith,
+						'Global',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])),
+						A2(
+						$mdgriffith$elm_codegen$Elm$variantWith,
+						'Loaded',
+						_List_fromArray(
+							[$author$project$Press$Model$types.pageId, $author$project$Press$Model$types.pageLoadResult]))
+					]),
+				pageVariants)));
 };
 var $stil4m$elm_syntax$Elm$Syntax$Expression$ListExpr = function (a) {
 	return {$: 'ListExpr', a: a};

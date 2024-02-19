@@ -323,6 +323,7 @@ msgType pageUsages =
          ]
             ++ pageVariants
         )
+        |> Elm.expose
 
 
 viewType =
