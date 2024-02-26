@@ -31,8 +31,28 @@ import Path
 import Set exposing (Set)
 
 
+routeOrder : Model.Page -> List ( Int, String )
+routeOrder page =
+    case page.url of
+        Model.UrlPattern { path } ->
+            List.map
+                (\piece ->
+                    case piece of
+                        Model.Token token ->
+                            ( 0, token )
+
+                        Model.Variable name ->
+                            ( 1, name )
+                )
+                path
+
+
 generate : List Model.Page -> Elm.File
-generate routes =
+generate unsorted =
+    let
+        routes =
+            List.sortBy routeOrder unsorted
+    in
     Elm.fileWith [ "App", "Route" ]
         { docs =
             \groups ->
