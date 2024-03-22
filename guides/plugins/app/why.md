@@ -1,7 +1,5 @@
 # Why?
 
-**TLDR:** `elm-prefab`
-
 The Elm Architecture is based on a single source of state (`Model`), a single place to update that state(your `update` function), a way to describe what signals your app accepts(`Msg`), and a way to view your state (`view`).
 
 As your app grows, it's very common to model each page as having it's own `Model`/`Msg`/`update`/`view`, and then the global app will handle forwarding page messages on to pages.
