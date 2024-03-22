@@ -1,11 +1,12 @@
 {
   "app": {},
   "routes": {
-    "Home": "/old-homepage-2/:id/*?{search}"
+    "Home": {
+      "url": "/:id/*?{search}",
+      "redirectFrom": ["/old-homepage-2/:id/*?{search}"]
+    }
   },
-  "interactive": {
-    "output": "interactive",
-    "modules": ["Ui.Button"],
-    "viewers": { "src": "viewers" }
+  "assets": {
+    "Posts": { "src": "./guide", "onServer": "/posts" }
   }
 }

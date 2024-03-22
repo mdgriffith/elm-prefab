@@ -64,9 +64,9 @@ program
           case "assets":
             plugins.push(Assets.generator(config.assets));
             break;
-          case "interactive":
-            plugins.push(Interactive.generator(config.interactive));
-            break;
+          // case "interactive":
+          // plugins.push(Interactive.generator(config.interactive));
+          //break;
           default:
             console.log(`It's neither a theme nor an app. ${pluginName}`);
         }

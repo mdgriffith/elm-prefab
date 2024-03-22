@@ -12,9 +12,14 @@ import App.Shared
 import App.Sub
 import Browser.Navigation
 import Html
+import Ui.Button
 
 
-main : App.Engine.App { shared : { authenticated : App.Shared.Authenticated } } ()
+type Msg
+    = Clicked
+
+
+main : App.Engine.App { shared : { authenticated : App.Shared.Authenticated } } Msg
 main =
     App.Engine.app
         { init =
@@ -31,6 +36,9 @@ main =
                         { title = "Not found"
                         , body =
                             [ Html.text "not found"
+                            , Ui.Button.primary
+                                { label = "Click", onClick = fromFrameMsg Clicked }
+                                |> Ui.Button.view
                             ]
                         }
 
@@ -64,6 +72,6 @@ main =
         , toCmd = \options model effect -> App.Effect.toCmd options effect
         , toSub = \options model sub -> App.Sub.toSubscription options sub
         , toShared = .shared
-        , onUrlChange = \_ -> ()
-        , onUrlRequest = \_ -> ()
+        , onUrlChange = \_ -> Clicked
+        , onUrlRequest = \_ -> Clicked
         }

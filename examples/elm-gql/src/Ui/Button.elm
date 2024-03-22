@@ -9,15 +9,16 @@ module Ui.Button exposing
 {-| -}
 
 import Html exposing (Html)
-import Html.Attribute as Attr
+import Html.Attributes as Attr
+import Html.Events as Events
 
 
 type Button msg
     = Button (Details msg)
 
 
-type alias Details =
-    { style : style
+type alias Details msg =
+    { style : Style
     , widthFill : Bool
     , onClick : msg
     , label : String
@@ -29,7 +30,7 @@ type Style
     | Secondary
 
 
-primary : { label : String, onClick : msg } -> Button
+primary : { label : String, onClick : msg } -> Button msg
 primary options =
     Button
         { style = Primary
@@ -39,7 +40,7 @@ primary options =
         }
 
 
-secondary : { label : String, onClick : msg } -> Button
+secondary : { label : String, onClick : msg } -> Button msg
 secondary options =
     Button
         { style = Secondary
@@ -49,12 +50,12 @@ secondary options =
         }
 
 
-withWidthFill : Bool -> Button -> Button
+withWidthFill : Bool -> Button msg -> Button msg
 withWidthFill on (Button button) =
     Button { button | widthFill = on }
 
 
-view : Button -> Html msg
+view : Button msg -> Html msg
 view (Button button) =
     Html.button [ Events.onClick button.onClick ]
         [ Html.text button.label ]
