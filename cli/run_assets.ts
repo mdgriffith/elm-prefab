@@ -30,6 +30,25 @@ function stripSrc(prefix: string, filepath: string): string {
     : filepath;
 }
 
+const toCrumbs = (basePath: string): string[] => {
+  basePath = basePath.replace(/^\.\/?/, "");
+
+  const dir = path.dirname(path.normalize(basePath));
+  if (dir === ".") {
+    return [];
+  }
+  const sections = dir.split(path.sep);
+  return sections;
+};
+
+const normalizePathOnServer = (pathOnServer: string): string => {
+  if (pathOnServer.startsWith("/")) {
+    return path.normalize(pathOnServer);
+  }
+
+  return "/" + path.normalize(pathOnServer);
+};
+
 export const generator = (options: any) => {
   return {
     generatorType: Options.GeneratorType.Standard,
@@ -63,8 +82,8 @@ export const generator = (options: any) => {
 
             gatheredFiles.push({
               name: path.basename(file.path, path.extname(file.path)),
-              crumbs: path.dirname(basePath).split(path.sep),
-              pathOnServer: src,
+              crumbs: toCrumbs(basePath),
+              pathOnServer: normalizePathOnServer(src),
               content: file.contents,
             });
           }
@@ -86,8 +105,8 @@ export const generator = (options: any) => {
 
             gatheredFiles.push({
               name: path.basename(file.path, path.extname(file.path)),
-              crumbs: path.dirname(basePath).split(path.sep),
-              pathOnServer: pathOnServer,
+              crumbs: toCrumbs(basePath),
+              pathOnServer: normalizePathOnServer(pathOnServer),
               content: file.contents,
             });
           }

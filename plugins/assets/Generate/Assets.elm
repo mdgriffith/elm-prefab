@@ -56,7 +56,7 @@ assetRootFile =
         [ Elm.customType "Src"
             [ Elm.variantWith
                 "Src"
-                [ Elm.string
+                [ Type.string
                 ]
             ]
         , Elm.declaration "toString"
@@ -65,7 +65,7 @@ assetRootFile =
                     Elm.Case.custom src
                         (Type.named [] "Src")
                         [ Elm.Case.branch1 "Src"
-                            ( "innerSrc", Elm.string )
+                            ( "innerSrc", Type.string )
                             (\innerSrc ->
                                 innerSrc
                             )
@@ -82,8 +82,17 @@ assetRootFile =
             , Elm.variantWith
                 "Markdown"
                 [ Type.record
-                    [ ( "title", Elm.string )
-                    , ( "headers", Elm.list (Type.record [ ( "level", Elm.int ), ( "text", Elm.string ) ]) )
+                    [ ( "title", Type.string )
+                    , ( "headers"
+                      , Type.list
+                            (Type.record
+                                [ ( "level"
+                                  , Type.int
+                                  )
+                                , ( "text", Type.string )
+                                ]
+                            )
+                      )
                     ]
                 ]
             ]
@@ -159,6 +168,16 @@ generateAssetGroupDirectory group =
                                 encodeFileInfo
                                 directoryItems
                             )
+                            |> Elm.withType
+                                (Type.list
+                                    (Type.record
+                                        [ ( "name", Type.string )
+                                        , ( "crumbs", Type.list Type.string )
+                                        , ( "pathOnServer", Type.string )
+                                        , ( "content", Type.named [ "Asset" ] "Content" )
+                                        ]
+                                    )
+                                )
                         )
                     ]
     in
@@ -183,7 +202,7 @@ encodeFileInfo info =
         , ( "pathOnServer"
           , Elm.apply
                 (Elm.value
-                    { importFrom = "Asset"
+                    { importFrom = [ "Asset" ]
                     , name = "Src"
                     , annotation = Just (Type.named [ "Asset" ] "Src")
                     }
@@ -199,14 +218,14 @@ encodeContent content =
     case content of
         Binary ->
             Elm.value
-                { importFrom = "Asset"
+                { importFrom = [ "Asset" ]
                 , name = "Binary"
                 , annotation = Just (Type.named [ "Asset" ] "Content")
                 }
 
         Text ->
             Elm.value
-                { importFrom = "Asset"
+                { importFrom = [ "Asset" ]
                 , name = "Text"
                 , annotation = Just (Type.named [ "Asset" ] "Content")
                 }
@@ -214,8 +233,8 @@ encodeContent content =
         Markdown { title, headers } ->
             Elm.apply
                 (Elm.value
-                    { importFrom = "Asset"
-                    , name = "Binary"
+                    { importFrom = [ "Asset" ]
+                    , name = "Markdown"
                     , annotation = Just (Type.named [ "Asset" ] "Content")
                     }
                 )
@@ -251,7 +270,7 @@ type Content
         }
 
 
-toFileInfo : Model.File -> Maybe FileInfo
+toFileInfo : Model.File -> FileInfo
 toFileInfo file =
     { name = file.name
     , crumbs = file.crumbs

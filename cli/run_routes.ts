@@ -8,7 +8,7 @@ const RouteGenerator = require("./generators/routes");
 type ElmFile = {
   id: string;
   url: string;
-  deprecatedUrls?: string[];
+  redirectFrom?: string[];
   assets: Assets | null;
 };
 
@@ -41,38 +41,23 @@ export const generator = (options: any) => {
         const pageConfig = options[moduleName];
 
         let url: string = "";
-        let deprecatedUrls: string[] = [];
+        let redirectFrom: string[] = [];
         let assets: Assets | null = null;
 
         if (typeof pageConfig === "string") {
           // Single Url
           url = pageConfig;
-          deprecatedUrls = [];
-        } else if ("dir" in pageConfig) {
-          // From Directory
-          let files: File[] = [];
-          readFilesRecursively(pageConfig.dir, files);
-          assets = {
-            base: path.normalize(pageConfig.dir),
-            baseOnApp: pageConfig.url.replace("/*", ""),
-            baseOnServer: pageConfig.urlOnServer,
-            files: files,
-          };
-
-          // We require a URL for a directory
-          url = pageConfig.url;
+          redirectFrom = [];
         } else {
           // Normal Elm page with url options
           url = pageConfig.url;
-          deprecatedUrls = pageConfig.deprecatedUrls
-            ? pageConfig.deprecatedUrls
-            : [];
+          redirectFrom = pageConfig.redirectFrom ? pageConfig.redirectFrom : [];
         }
 
         elmFiles.push({
           id: moduleName,
           url: url,
-          deprecatedUrls: deprecatedUrls,
+          redirectFrom: redirectFrom,
           assets: assets,
         });
         // Delete the page config from the options so we can tell if there are missing ones later

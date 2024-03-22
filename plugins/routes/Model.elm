@@ -11,7 +11,7 @@ import Set exposing (Set)
 type alias Page =
     { id : String
     , url : UrlPattern
-    , deprecatedUrls : List UrlPattern
+    , redirectFrom : List UrlPattern
     , assets : Maybe SourceDirectory
     }
 
@@ -66,7 +66,7 @@ decodePage =
     Json.Decode.map4 Page
         (Json.Decode.field "id" Json.Decode.string)
         (Json.Decode.field "url" decodeUrlPattern)
-        (Json.Decode.field "deprecatedUrls" (Json.Decode.list decodeUrlPattern))
+        (Json.Decode.field "redirectFrom" (Json.Decode.list decodeUrlPattern))
         (Json.Decode.field "assets" (Json.Decode.maybe decodeDirectory))
 
 

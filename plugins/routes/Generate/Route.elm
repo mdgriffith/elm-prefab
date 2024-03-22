@@ -107,7 +107,6 @@ generate unsorted =
             , urlEncoder routes
             , urlParser routes
             , urlToId routes
-            , assetLookup routes
             ]
         )
 
@@ -248,57 +247,6 @@ getParamVariableList page =
                             Just name
                 )
                 path
-
-
-assetLookup : List Model.Page -> List Elm.Declaration
-assetLookup routes =
-    let
-        branches =
-            routes
-                |> List.concatMap
-                    (\individualRoute ->
-                        case individualRoute.assets of
-                            Nothing ->
-                                []
-
-                            Just assets ->
-                                List.map
-                                    (\file ->
-                                        let
-                                            appUrlString =
-                                                Path.relative assets.base file.path
-                                                    |> Path.removeExtension
-
-                                            serverUrlString =
-                                                Path.join assets.baseOnServer
-                                                    (Path.relative assets.base file.path)
-                                        in
-                                        ( appUrlString
-                                        , Elm.just
-                                            (Elm.string serverUrlString)
-                                        )
-                                    )
-                                    assets.files
-                    )
-    in
-    case branches of
-        [] ->
-            []
-
-        _ ->
-            [ Elm.declaration "lookupAsset"
-                (Elm.fn ( "path", Just Type.string )
-                    (\path ->
-                        Elm.Case.string path
-                            { cases = branches
-                            , otherwise =
-                                Elm.nothing
-                            }
-                    )
-                    |> Elm.withType
-                        (Type.function [ Type.string ] (Type.maybe Type.string))
-                )
-            ]
 
 
 urlEncoder : List Model.Page -> List Elm.Declaration
@@ -498,10 +446,20 @@ urlParser routes =
                     appUrl =
                         Gen.AppUrl.fromUrl url
                 in
-                Elm.apply (Elm.val "parseAppUrl") [ appUrl ]
+                Elm.apply
+                    (Elm.val "parseAppUrl")
+                    [ appUrl ]
             )
             |> Elm.withType
-                (Type.function [ Gen.Url.annotation_.url ] (Type.maybe (Type.named [] "Route")))
+                (Type.function [ Gen.Url.annotation_.url ]
+                    (Type.maybe
+                        (Type.record
+                            [ ( "route", Type.named [] "Route" )
+                            , ( "isRedirect", Type.bool )
+                            ]
+                        )
+                    )
+                )
         )
         |> Elm.exposeWith
             { exposeConstructor = True
@@ -541,23 +499,38 @@ parseAppUrl routes =
                 Elm.Case.custom
                     (Elm.get "path" appUrl)
                     (Type.list Type.string)
-                    (List.map (toBranchPattern appUrl) routes
+                    (List.concatMap (toBranchPattern appUrl) routes
                         ++ [ Branch.ignore Elm.nothing
                            ]
                     )
                     |> Elm.withType
-                        (Type.maybe (Type.named [] "Route"))
+                        (Type.maybe
+                            (Type.record
+                                [ ( "route", Type.named [] "Route" )
+                                , ( "isRedirect", Type.bool )
+                                ]
+                            )
+                        )
             )
         )
 
 
-toBranchPattern : Elm.Expression -> Model.Page -> Branch.Pattern Elm.Expression
+toBranchPattern : Elm.Expression -> Model.Page -> List (Branch.Pattern Elm.Expression)
 toBranchPattern appUrl page =
-    urlToPatterns appUrl page page.url
+    urlToPatterns False appUrl page page.url
+        :: List.map (urlToPatterns True appUrl page) page.redirectFrom
 
 
-urlToPatterns : Elm.Expression -> Model.Page -> Model.UrlPattern -> Branch.Pattern Elm.Expression
-urlToPatterns appUrl page (Model.UrlPattern pattern) =
+urlToPatterns : Bool -> Elm.Expression -> Model.Page -> Model.UrlPattern -> Branch.Pattern Elm.Expression
+urlToPatterns isRedirect appUrl page (Model.UrlPattern pattern) =
+    let
+        toResult route =
+            Elm.record
+                [ ( "route", route )
+                , ( "isRedirect", Elm.bool isRedirect )
+                ]
+                |> Elm.just
+    in
     if pattern.includePathTail then
         Branch.listWithRemaining
             { patterns = List.map toTokenPattern pattern.path
@@ -591,7 +564,7 @@ urlToPatterns appUrl page (Model.UrlPattern pattern) =
                                 (Elm.val page.id)
                                 [ Elm.record (( "path", remaining ) :: fields)
                                 ]
-                                |> Elm.just
+                                |> toResult
 
                         Just assets ->
                             let
@@ -615,7 +588,7 @@ urlToPatterns appUrl page (Model.UrlPattern pattern) =
                                                         :: fields
                                                     )
                                                 ]
-                                                |> Elm.just
+                                                |> toResult
                                         )
                                 , Branch.nothing Elm.nothing
                                 ]
@@ -651,7 +624,7 @@ urlToPatterns appUrl page (Model.UrlPattern pattern) =
                         (Elm.val page.id)
                         [ Elm.record fields
                         ]
-                        |> Elm.just
+                        |> toResult
             }
 
 

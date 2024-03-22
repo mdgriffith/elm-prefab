@@ -46,7 +46,6 @@ import Markdown.Block as Block
 import Markdown.Parser
 import Parser exposing ((|.), (|=))
 import Path
-import Press.Generate.Directory
 import Press.Generate.Engine
 import Press.Generate.Regions
 import Press.Model exposing (..)
