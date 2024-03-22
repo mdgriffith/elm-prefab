@@ -13,3 +13,4 @@ editor/codegen/Gen
 dist
 .elm-press
 index.html
+plugins/dev

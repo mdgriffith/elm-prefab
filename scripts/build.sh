@@ -10,10 +10,10 @@ node scripts/build.js
     cd plugins/theme
     elm make Generate.elm --output=../../cli/generators/theme.js
 )
-(
-    cd plugins/interactive
-    elm make Generate.elm --output=../../cli/generators/interactive.js
-)
+# (
+#     cd plugins/interactive
+#     elm make Generate.elm --output=../../cli/generators/interactive.js
+# )
 (
     cd plugins/routes
     elm make --optimize Generate.elm --output=../../cli/generators/routes.js
