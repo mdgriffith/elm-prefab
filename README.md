@@ -39,5 +39,3 @@ npm install --savedev elm-prefab
 # Running `elm-prefab` will drop you into an interactive guide to getting started.
 npm run elm-prefab
 ```
-
-## Plugin List
