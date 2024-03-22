@@ -26,8 +26,8 @@ export const generate = (options: GenerateOptions) => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
 
   for (const generator of options.plugins) {
-    generator.init({ internalSrc: "./.elm-press", src: options.src });
-    generator.run({ internalSrc: "./.elm-press", src: options.src });
+    generator.init({ internalSrc: "./.elm-prefab", src: options.src });
+    generator.run({ internalSrc: "./.elm-prefab", src: options.src });
   }
 };
 
@@ -36,7 +36,7 @@ export const generate = (options: GenerateOptions) => {
 const program = new Command();
 
 program
-  .name("elm-press")
+  .name("elm-prefab")
   .description("Generate and maintain Elm scaffolding")
   .version("0.1.0");
 

@@ -6,7 +6,7 @@ export const copyTo = (baseDir: string, overwrite: boolean) => {
   
   if (overwrite || !fs.existsSync(path.join(baseDir, "/App/Page/Error.elm"))) {
     fs.mkdirSync(path.dirname(path.join(baseDir, "/App/Page/Error.elm")), { recursive: true });
-    fs.writeFileSync(path.join(baseDir, "/App/Page/Error.elm"), "module App.Page.Error exposing (Error(..))\n\n{-| You may want to protect a page with a certain error when it is first requested.\n\n  - `NotFound` is built in to `elm-press`, so you don't need to capture that here.\n\nCommon errors are\n\n    - Unauthenticated — When you require someone to be signed in in order to see a page.\n    - Permission denied — When you require taht someone is both signed in and has certain permissions.\n\n-}\n\n\ntype Error\n    = Unauthenticated\n");
+    fs.writeFileSync(path.join(baseDir, "/App/Page/Error.elm"), "module App.Page.Error exposing (Error(..))\n\n{-| You may want to protect a page with a certain error when it is first requested.\n\n  - `NotFound` is built in to `elm-prefab`, so you don't need to capture that here.\n\nCommon errors are\n\n    - Unauthenticated — When you require someone to be signed in in order to see a page.\n    - Permission denied — When you require taht someone is both signed in and has certain permissions.\n\n-}\n\n\ntype Error\n    = Unauthenticated\n");
   }
 
 

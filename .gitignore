@@ -12,5 +12,6 @@ editor/codegen/Gen
 
 dist
 .elm-press
+.elm-prefab
 index.html
 plugins/dev

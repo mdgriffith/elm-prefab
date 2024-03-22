@@ -26,4 +26,4 @@ node scripts/build.js
 # elm-optimize-level-2
 
 # tsc
-esbuild cli/run.ts --bundle --outfile=dist/elm-press.js --platform=node
+esbuild cli/run.ts --bundle --outfile=dist/elm-prefab.js --platform=node

@@ -2,7 +2,7 @@ module App.Page.Error exposing (Error(..))
 
 {-| You may want to protect a page with a certain error when it is first requested.
 
-  - `NotFound` is built in to `elm-press`, so you don't need to capture that here.
+  - `NotFound` is built in to `elm-prefab`, so you don't need to capture that here.
 
 Common errors are
 

@@ -1,6 +1,6 @@
 {
-  "name": "elm-press",
-  "version": "1.0.0",
+  "name": "elm-prefab",
+  "version": "0.1.0",
   "description": "A simple markdown -> Elm code generator",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mdgriffith/elm-press.git"
+    "url": "git+https://github.com/mdgriffith/elm-prefab.git"
   },
   "author": "",
   "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/mdgriffith/elm-press/issues"
+    "url": "https://github.com/mdgriffith/elm-prefab/issues"
   },
-  "homepage": "https://github.com/mdgriffith/elm-press#readme",
+  "homepage": "https://github.com/mdgriffith/elm-prefab#readme",
   "dependencies": {
     "elm-dev": "^0.1.2"
   },
