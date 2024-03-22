@@ -42,9 +42,51 @@ generate assetGroups =
 
 generateAssetGroup : Model.AssetGroup -> List Elm.File
 generateAssetGroup group =
-    List.filterMap identity
-        [ generateAssetGroupDirectory group
-        , generateAssetGroupSource group
+    assetRootFile
+        :: List.filterMap identity
+            [ generateAssetGroupDirectory group
+
+            -- , generateAssetGroupSource group
+            ]
+
+
+assetRootFile : Elm.File
+assetRootFile =
+    Elm.file [ "Asset" ]
+        [ Elm.customType "Src"
+            [ Elm.variantWith
+                "Src"
+                [ Elm.string
+                ]
+            ]
+        , Elm.declaration "toString"
+            (Elm.fn ( "src", Just (Type.named [] "Src") )
+                (\src ->
+                    Elm.Case.custom src
+                        (Type.named [] "Src")
+                        [ Elm.Case.branch1 "Src"
+                            ( "innerSrc", Elm.string )
+                            (\innerSrc ->
+                                innerSrc
+                            )
+                        ]
+                )
+            )
+        , Elm.customType "Content"
+            [ Elm.variantWith
+                "Binary"
+                []
+            , Elm.variantWith
+                "Text"
+                []
+            , Elm.variantWith
+                "Markdown"
+                [ Type.record
+                    [ ( "title", Elm.string )
+                    , ( "headers", Elm.list (Type.record [ ( "level", Elm.int ), ( "text", Elm.string ) ]) )
+                    ]
+                ]
+            ]
         ]
 
 
@@ -101,36 +143,21 @@ generateAssetGroupDirectory group =
         entries =
             List.map toDirectoryEntry group.files
 
-        all =
-            Elm.declaration "all"
-                (Elm.list
-                    (List.map
-                        (\file ->
-                            Elm.record
-                                [ ( "name", Elm.string (declarationName file) )
-                                , ( "path", Elm.string file.pathOnServer )
-                                , ( "crumbs", Elm.list (List.map Elm.string file.crumbs) )
-                                ]
-                        )
-                        group.files
-                    )
-                )
-
-        search =
+        directory =
             let
-                searchItems =
-                    List.filterMap toMarkdownInfo group.files
+                directoryItems =
+                    List.map toFileInfo group.files
             in
-            case searchItems of
+            case directoryItems of
                 [] ->
                     []
 
                 _ ->
-                    [ Elm.declaration "search"
+                    [ Elm.declaration "directory_"
                         (Elm.list
                             (List.map
-                                encodeMarkdownInfo
-                                searchItems
+                                encodeFileInfo
+                                directoryItems
                             )
                         )
                     ]
@@ -143,21 +170,60 @@ generateAssetGroupDirectory group =
             Elm.file [ "Assets", group.name ]
                 (List.concat
                     [ entries
-                    , [ all ]
-                    , search
+                    , directory
                     ]
                 )
 
 
-encodeMarkdownInfo : MarkdownInfo -> Elm.Expression
-encodeMarkdownInfo info =
+encodeFileInfo : FileInfo -> Elm.Expression
+encodeFileInfo info =
     Elm.record
         [ ( "name", Elm.string info.name )
-        , ( "title", Elm.string info.title )
-        , ( "headers", Elm.list (List.map encodeHeader info.headers) )
         , ( "crumbs", Elm.list (List.map Elm.string info.crumbs) )
-        , ( "pathOnServer", Elm.string info.pathOnServer )
+        , ( "pathOnServer"
+          , Elm.apply
+                (Elm.value
+                    { importFrom = "Asset"
+                    , name = "Src"
+                    , annotation = Just (Type.named [ "Asset" ] "Src")
+                    }
+                )
+                [ Elm.string info.pathOnServer ]
+          )
+        , ( "content", encodeContent info.content )
         ]
+
+
+encodeContent : Content -> Elm.Expression
+encodeContent content =
+    case content of
+        Binary ->
+            Elm.value
+                { importFrom = "Asset"
+                , name = "Binary"
+                , annotation = Just (Type.named [ "Asset" ] "Content")
+                }
+
+        Text ->
+            Elm.value
+                { importFrom = "Asset"
+                , name = "Text"
+                , annotation = Just (Type.named [ "Asset" ] "Content")
+                }
+
+        Markdown { title, headers } ->
+            Elm.apply
+                (Elm.value
+                    { importFrom = "Asset"
+                    , name = "Binary"
+                    , annotation = Just (Type.named [ "Asset" ] "Content")
+                    }
+                )
+                [ Elm.record
+                    [ ( "title", Elm.string title )
+                    , ( "headers", Elm.list (List.map encodeHeader headers) )
+                    ]
+                ]
 
 
 encodeHeader : ( Int, String ) -> Elm.Expression
@@ -168,44 +234,54 @@ encodeHeader ( level, text ) =
         ]
 
 
-type alias MarkdownInfo =
+type alias FileInfo =
     { name : String
-    , title : String
-    , headers : List ( Int, String )
     , crumbs : List String
     , pathOnServer : String
+    , content : Content
     }
 
 
-toMarkdownInfo : Model.File -> Maybe MarkdownInfo
-toMarkdownInfo file =
-    case file.content of
-        Model.Binary ->
-            Nothing
+type Content
+    = Binary
+    | Text
+    | Markdown
+        { title : String
+        , headers : List ( Int, String )
+        }
 
-        Model.Text source ->
-            let
-                ( _, ext ) =
-                    Path.extension file.pathOnServer
-            in
-            if List.member ext [ "markdown", "md" ] then
+
+toFileInfo : Model.File -> Maybe FileInfo
+toFileInfo file =
+    { name = file.name
+    , crumbs = file.crumbs
+    , pathOnServer = file.pathOnServer
+    , content =
+        case file.content of
+            Model.Binary ->
+                Binary
+
+            Model.Text source ->
                 let
-                    headers =
-                        getHeaders source
+                    ( _, ext ) =
+                        Path.extension file.pathOnServer
                 in
-                Just
-                    { name = file.name
-                    , title =
-                        List.head headers
-                            |> Maybe.map Tuple.second
-                            |> Maybe.withDefault file.name
-                    , headers = headers
-                    , crumbs = file.crumbs
-                    , pathOnServer = file.pathOnServer
-                    }
+                if List.member ext [ "markdown", "md" ] then
+                    let
+                        headers =
+                            getHeaders source
+                    in
+                    Markdown
+                        { title =
+                            List.head headers
+                                |> Maybe.map Tuple.second
+                                |> Maybe.withDefault file.name
+                        , headers = headers
+                        }
 
-            else
-                Nothing
+                else
+                    Text
+    }
 
 
 {-| -}
