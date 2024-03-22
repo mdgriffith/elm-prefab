@@ -77,7 +77,7 @@ Which means you can have:
 - a typesafe URL to a static file.
 - And a `directory_` which lists all the files it found as well as some metadata if it's available.
 
-The `directory_` can be really nice to build a quick nav bar!.
+The `directory_` can be really nice to build a quick nav bar!
 
 ## Asset.Src Type
 

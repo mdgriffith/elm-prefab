@@ -14,7 +14,7 @@
 }
 ```
 
-**routes** is an object where the keys are capitalized, and the key is a [URL template](#UrlTemplate)
+**routes** is an object where the keys are capitalized, and the value is a [URL template](#UrlTemplate)
 
 This will generate `App/Route.elm` in the `.elm-prefab` directory, which will have
 

@@ -47,7 +47,7 @@ If you open [Notion](https://www.notion.so), it's common to have one note open i
 
 So, things have a hard time fitting nicely into single pages.
 
-You can absolutely do this kind of thing in Elm, but you need some forethought. And depending on the codebase you're in it might get hairy and take much longer than expected. Especially if you get that requirement after having invested in a one-page-at-a-time.
+You can absolutely do this kind of thing in Elm, but you need some forethought. And depending on the codebase you're in, it might get hairy and take much longer than expected. Especially if you get that requirement after having invested in a one-page-at-a-time.
 
 Refactoring in Elm is wonderfully safe, but it's also not free.
 
@@ -120,7 +120,7 @@ type alias Regions view =
     }
 ```
 
-The `Regions` type is read via some :magic*wand: (we ask a special version of the Elm Compiler to read it for us), and what it means is that `primary`, `nav` and `detail` are the top-level \_view regions* for our app.
+The `Regions` type is read via some :magic_wand: (we ask a special version of the Elm Compiler to read it for us), and what it means is that `primary`, `nav` and `detail` are the top-level \_view regions_ for our app.
 
 Concretely this means that you can send a command that says "load this page in this region".
 
