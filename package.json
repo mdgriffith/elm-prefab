@@ -1,7 +1,7 @@
 {
   "name": "elm-prefab",
   "version": "0.1.0",
-  "description": "A simple markdown -> Elm code generator",
+  "description": "Maintainable Codegeneration for Elm Apps",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
