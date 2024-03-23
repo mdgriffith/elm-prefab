@@ -1,8 +1,6 @@
 import * as Options from "./options";
 import * as Generator from "./run_generator";
 
-const InteractiveGenerator = require("./generators/interactive");
-
 export const generator = (options: any): Options.Generator => {
   return {
     name: "interactive",
@@ -27,11 +25,7 @@ export const generator = (options: any): Options.Generator => {
         viewers: [],
       };
 
-      return await Generator.run(
-        InteractiveGenerator.Elm.Generate,
-        runOptions.internalSrc,
-        finalOptions
-      );
+      return await Generator.run(runOptions.internalSrc, finalOptions);
     },
   };
 };

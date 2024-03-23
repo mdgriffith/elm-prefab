@@ -2,15 +2,16 @@ import * as fs from "fs";
 import * as path from "path";
 import * as Options from "./options";
 
+const ElmGenerator = require("./generators/all");
+
 // Run a standard generator made by elm-codegen
 export async function run(
-  generator: any,
   outputDir: string,
   flags: any
 ): Promise<Options.Summary> {
   return new Promise((resolve, reject) => {
     // @ts-ignore
-    const app = generator.init({ flags: flags });
+    const app = ElmGenerator.Elm.Run.init({ flags: flags });
     if (app.ports.onSuccessSend) {
       app.ports.onSuccessSend.subscribe(resolve);
     }

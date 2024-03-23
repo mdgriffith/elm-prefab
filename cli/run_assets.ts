@@ -116,7 +116,7 @@ export const generator = (options: any): Options.Generator => {
         delete options[moduleName];
       }
 
-      return await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+      return await Generator.run(runOptions.internalSrc, {
         assets: assetGroups,
       });
     },

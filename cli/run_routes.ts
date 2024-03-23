@@ -3,8 +3,6 @@ import * as Options from "./options";
 import * as path from "path";
 import * as fs from "fs";
 
-const ElmGenerator = require("./generators/all");
-
 type ElmFile = {
   id: string;
   url: string;
@@ -66,7 +64,7 @@ export const generator = (options: any): Options.Generator => {
         delete options[moduleName];
       }
 
-      return await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+      return await Generator.run(runOptions.internalSrc, {
         routes: elmFiles,
       });
     },

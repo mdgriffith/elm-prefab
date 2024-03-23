@@ -84,6 +84,7 @@ program
 
       return;
     }
+
     const config = JSON.parse(fs.readFileSync("./elm.generate.json", "utf-8"));
     const plugins: Options.Generator[] = [];
 
