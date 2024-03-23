@@ -12,6 +12,9 @@ devDependencies:
   '@types/node-fetch':
     specifier: ^2.5.10
     version: 2.5.10
+  chalk:
+    specifier: ^4.1.2
+    version: 4.1.2
   commander:
     specifier: ^11.1.0
     version: 11.1.0

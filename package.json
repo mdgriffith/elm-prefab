@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/node": "^15.0.3",
     "@types/node-fetch": "^2.5.10",
+    "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "elm": "0.19.1-5",
     "elm-codegen": "^0.5.0",
