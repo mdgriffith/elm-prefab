@@ -3,8 +3,9 @@ import * as Generator from "./run_generator";
 
 const InteractiveGenerator = require("./generators/interactive");
 
-export const generator = (options: any) => {
+export const generator = (options: any): Options.Generator => {
   return {
+    name: "interactive",
     generatorType: Options.GeneratorType.Standard,
     init: (runOptions: Options.RunOptions) => {},
     run: async (runOptions: Options.RunOptions) => {
@@ -26,7 +27,7 @@ export const generator = (options: any) => {
         viewers: [],
       };
 
-      await Generator.run(
+      return await Generator.run(
         InteractiveGenerator.Elm.Generate,
         runOptions.internalSrc,
         finalOptions

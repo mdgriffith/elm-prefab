@@ -10,8 +10,9 @@ const AppGenerator = require("./generators/app");
 const AppView = require("./generators/app-view");
 const Page = require("./templates/app/page");
 
-export const generator = (options: any) => {
+export const generator = (options: any): Options.Generator => {
   return {
+    name: "app",
     generatorType: Options.GeneratorType.Standard,
     init: (runOptions: Options.RunOptions) => {
       // Copy static files
@@ -36,10 +37,13 @@ export const generator = (options: any) => {
         pages
       );
 
-      // const pages = placeholderPageUsages;
-      await Generator.run(AppGenerator.Elm.Generate, runOptions.internalSrc, {
-        pageUsages: verifiedPages,
-      });
+      return await Generator.run(
+        AppGenerator.Elm.Generate,
+        runOptions.internalSrc,
+        {
+          pageUsages: verifiedPages,
+        }
+      );
     },
   };
 };

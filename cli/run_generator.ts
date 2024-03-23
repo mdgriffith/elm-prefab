@@ -1,9 +1,14 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as Options from "./options";
 
 // Run a standard generator made by elm-codegen
-export async function run(generator: any, outputDir: string, flags: any) {
-  const promise = new Promise((resolve, reject) => {
+export async function run(
+  generator: any,
+  outputDir: string,
+  flags: any
+): Promise<Options.Summary> {
+  return new Promise((resolve, reject) => {
     // @ts-ignore
     const app = generator.init({ flags: flags });
     if (app.ports.onSuccessSend) {
@@ -17,26 +22,23 @@ export async function run(generator: any, outputDir: string, flags: any) {
     }
   })
     .then((files: any) => {
+      const generated: Options.Generated[] = [];
       for (const file of files) {
         writeFile(path.join(outputDir, file.path), file.contents);
+        generated.push({ outputDir: outputDir, path: file.path });
       }
+      return { generated: generated };
     })
     .catch((errorList) => {
+      const errors: Options.Error[] = [];
       for (const error of errorList) {
-        console.error(
-          format_title(error.title),
-          "\n\n" + error.description + "\n"
-        );
+        errors.push({
+          title: error.title as string,
+          description: error.description as string,
+        });
       }
-
-      process.exit(1);
+      return { errors: errors };
     });
-  return promise;
-}
-
-function format_title(title: string): string {
-  const tail = "-".repeat(80 - (title.length + 2));
-  return "--" + title + tail;
 }
 
 function writeFile(fullpath: string, contents: string) {

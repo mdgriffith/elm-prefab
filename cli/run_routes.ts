@@ -19,8 +19,9 @@ type Assets = {
   files: { path: string; contents: string }[];
 };
 
-export const generator = (options: any) => {
+export const generator = (options: any): Options.Generator => {
   return {
+    name: "routes",
     generatorType: Options.GeneratorType.Standard,
     init: (runOptions: Options.RunOptions) => {
       // Copy static files
@@ -65,9 +66,13 @@ export const generator = (options: any) => {
         delete options[moduleName];
       }
 
-      await Generator.run(RouteGenerator.Elm.Generate, runOptions.internalSrc, {
-        pages: elmFiles,
-      });
+      return await Generator.run(
+        RouteGenerator.Elm.Generate,
+        runOptions.internalSrc,
+        {
+          pages: elmFiles,
+        }
+      );
     },
   };
 };

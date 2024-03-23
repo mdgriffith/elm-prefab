@@ -5,13 +5,6 @@ import * as fs from "fs";
 
 const AssetGenerator = require("./generators/assets");
 
-// type Assets = {
-//   base: string;
-//   baseOnApp: string;
-//   baseOnServer: string;
-//   files: { path: string; contents: string }[];
-// };
-
 type AssetGroup = {
   name: string;
   files: {
@@ -49,8 +42,9 @@ const normalizePathOnServer = (pathOnServer: string): string => {
   return "/" + path.normalize(pathOnServer);
 };
 
-export const generator = (options: any) => {
+export const generator = (options: any): Options.Generator => {
   return {
+    name: "assets",
     generatorType: Options.GeneratorType.Standard,
     init: (runOptions: Options.RunOptions) => {
       // Copy static files
@@ -122,9 +116,13 @@ export const generator = (options: any) => {
         delete options[moduleName];
       }
 
-      await Generator.run(AssetGenerator.Elm.Generate, runOptions.internalSrc, {
-        assets: assetGroups,
-      });
+      return await Generator.run(
+        AssetGenerator.Elm.Generate,
+        runOptions.internalSrc,
+        {
+          assets: assetGroups,
+        }
+      );
     },
   };
 };
