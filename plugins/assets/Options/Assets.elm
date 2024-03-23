@@ -1,8 +1,8 @@
-module Model exposing
+module Options.Assets exposing
     ( AssetGroup
     , Content(..)
     , File
-    , decode
+    , decodeAssetGroup
     )
 
 {-| -}
@@ -34,11 +34,6 @@ type Content
 
 
 {- Decoders -}
-
-
-decode : Json.Decode.Decoder (List AssetGroup)
-decode =
-    Json.Decode.field "assets" (Json.Decode.list decodeAssetGroup)
 
 
 decodeAssetGroup : Json.Decode.Decoder AssetGroup

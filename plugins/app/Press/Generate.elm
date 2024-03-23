@@ -22,7 +22,6 @@ import Elm.Annotation as Type
 import Elm.Case
 import Elm.Let
 import Elm.Op
-import Gen.App.Markdown
 import Gen.App.State
 import Gen.AppUrl
 import Gen.Browser

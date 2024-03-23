@@ -3,7 +3,7 @@ import * as Options from "./options";
 import * as path from "path";
 import * as fs from "fs";
 
-const AssetGenerator = require("./generators/assets");
+const ElmGenerator = require("./generators/all");
 
 type AssetGroup = {
   name: string;
@@ -116,13 +116,9 @@ export const generator = (options: any): Options.Generator => {
         delete options[moduleName];
       }
 
-      return await Generator.run(
-        AssetGenerator.Elm.Generate,
-        runOptions.internalSrc,
-        {
-          assets: assetGroups,
-        }
-      );
+      return await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+        assets: assetGroups,
+      });
     },
   };
 };

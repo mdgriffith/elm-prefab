@@ -29,18 +29,18 @@ import Gen.Url.Parser.Query
 import Json.Decode
 import Markdown.Block
 import Markdown.Parser
-import Model
+import Options.Assets
 import Parser exposing ((|.), (|=))
 import Path
 import Set exposing (Set)
 
 
-generate : List Model.AssetGroup -> List Elm.File
+generate : List Options.Assets.AssetGroup -> List Elm.File
 generate assetGroups =
     List.concatMap generateAssetGroup assetGroups
 
 
-generateAssetGroup : Model.AssetGroup -> List Elm.File
+generateAssetGroup : Options.Assets.AssetGroup -> List Elm.File
 generateAssetGroup group =
     assetRootFile
         :: List.filterMap identity
@@ -99,7 +99,7 @@ assetRootFile =
         ]
 
 
-generateAssetGroupSource : Model.AssetGroup -> Maybe Elm.File
+generateAssetGroupSource : Options.Assets.AssetGroup -> Maybe Elm.File
 generateAssetGroupSource group =
     let
         assetSources =
@@ -114,13 +114,13 @@ generateAssetGroupSource group =
                 assetSources
 
 
-toSourceDeclaration : Model.File -> Maybe Elm.Declaration
+toSourceDeclaration : Options.Assets.File -> Maybe Elm.Declaration
 toSourceDeclaration file =
     case file.content of
-        Model.Binary ->
+        Options.Assets.Binary ->
             Nothing
 
-        Model.Text source ->
+        Options.Assets.Text source ->
             Elm.declaration (declarationName file)
                 (Elm.string source)
                 |> Elm.exposeWith
@@ -130,7 +130,7 @@ toSourceDeclaration file =
                 |> Just
 
 
-declarationName : Model.File -> String
+declarationName : Options.Assets.File -> String
 declarationName file =
     case file.crumbs of
         [] ->
@@ -146,7 +146,7 @@ declarationName file =
   - A top level list called `all` that contains all the files in the asset group.
 
 -}
-generateAssetGroupDirectory : Model.AssetGroup -> Maybe Elm.File
+generateAssetGroupDirectory : Options.Assets.AssetGroup -> Maybe Elm.File
 generateAssetGroupDirectory group =
     let
         entries =
@@ -270,17 +270,17 @@ type Content
         }
 
 
-toFileInfo : Model.File -> FileInfo
+toFileInfo : Options.Assets.File -> FileInfo
 toFileInfo file =
     { name = file.name
     , crumbs = file.crumbs
     , pathOnServer = file.pathOnServer
     , content =
         case file.content of
-            Model.Binary ->
+            Options.Assets.Binary ->
                 Binary
 
-            Model.Text source ->
+            Options.Assets.Text source ->
                 let
                     ( _, ext ) =
                         Path.extension file.pathOnServer
@@ -304,7 +304,7 @@ toFileInfo file =
 
 
 {-| -}
-toDirectoryEntry : Model.File -> Elm.Declaration
+toDirectoryEntry : Options.Assets.File -> Elm.Declaration
 toDirectoryEntry file =
     Elm.declaration (declarationName file)
         (Elm.string file.pathOnServer)

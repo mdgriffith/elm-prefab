@@ -6,14 +6,14 @@ import Elm
 import Gen.CodeGen.Generate as Generate
 import Generate.Route
 import Json.Decode
-import Model
+import Options.Route
 
 
 main : Program Json.Decode.Value () ()
 main =
     Generate.withFeedback
         (\flags ->
-            case Json.Decode.decodeValue Model.decode flags of
+            case Json.Decode.decodeValue Options.Route.decode flags of
                 Ok input ->
                     Ok
                         { info = []

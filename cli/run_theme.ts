@@ -2,7 +2,7 @@ import * as Options from "./options";
 import * as Generator from "./run_generator";
 import * as ThemeWebComponents from "./templates/theme/engine";
 
-const ThemeGenerator = require("./generators/theme");
+const ElmGenerator = require("./generators/all");
 
 export const generator = (options: any): Options.Generator => {
   return {
@@ -13,11 +13,9 @@ export const generator = (options: any): Options.Generator => {
     },
     run: async (runOptions: Options.RunOptions) => {
       ThemeWebComponents.copyTo(runOptions.internalSrc, true);
-      return await Generator.run(
-        ThemeGenerator.Elm.Generate,
-        runOptions.internalSrc,
-        options
-      );
+      return await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+        theme: options,
+      });
     },
   };
 };

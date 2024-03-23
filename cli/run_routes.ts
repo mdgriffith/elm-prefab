@@ -3,7 +3,7 @@ import * as Options from "./options";
 import * as path from "path";
 import * as fs from "fs";
 
-const RouteGenerator = require("./generators/routes");
+const ElmGenerator = require("./generators/all");
 
 type ElmFile = {
   id: string;
@@ -66,13 +66,9 @@ export const generator = (options: any): Options.Generator => {
         delete options[moduleName];
       }
 
-      return await Generator.run(
-        RouteGenerator.Elm.Generate,
-        runOptions.internalSrc,
-        {
-          pages: elmFiles,
-        }
-      );
+      return await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+        routes: elmFiles,
+      });
     },
   };
 };

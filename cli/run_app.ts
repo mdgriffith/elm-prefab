@@ -6,8 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as ElmDev from "./elm_dev";
 
-const AppGenerator = require("./generators/app");
-const AppView = require("./generators/app-view");
+const ElmGenerator = require("./generators/all");
 const Page = require("./templates/app/page");
 
 export const generator = (options: any): Options.Generator => {
@@ -24,8 +23,8 @@ export const generator = (options: any): Options.Generator => {
       AppEngine.copyTo(runOptions.internalSrc, true);
       const viewRegions = await ElmDev.execute("explain App.View.Regions");
 
-      await Generator.run(AppView.Elm.GenerateView, runOptions.internalSrc, {
-        regions: viewRegions,
+      await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+        "app-view": viewRegions,
       });
 
       const pageIds = await ElmDev.execute("explain App.Page.Id.Id");
@@ -37,13 +36,9 @@ export const generator = (options: any): Options.Generator => {
         pages
       );
 
-      return await Generator.run(
-        AppGenerator.Elm.Generate,
-        runOptions.internalSrc,
-        {
-          pageUsages: verifiedPages,
-        }
-      );
+      return await Generator.run(ElmGenerator.Elm.Run, runOptions.internalSrc, {
+        app: verifiedPages,
+      });
     },
   };
 };

@@ -25,29 +25,29 @@ import Gen.Url
 import Gen.Url.Parser
 import Gen.Url.Parser.Query
 import Json.Decode
-import Model
+import Options.Route
 import Parser exposing ((|.), (|=))
 import Path
 import Set exposing (Set)
 
 
-routeOrder : Model.Page -> List ( Int, String )
+routeOrder : Options.Route.Page -> List ( Int, String )
 routeOrder page =
     case page.url of
-        Model.UrlPattern { path } ->
+        Options.Route.UrlPattern { path } ->
             List.map
                 (\piece ->
                     case piece of
-                        Model.Token token ->
+                        Options.Route.Token token ->
                             ( 0, token )
 
-                        Model.Variable name ->
+                        Options.Route.Variable name ->
                             ( 1, name )
                 )
                 path
 
 
-generate : List Model.Page -> Elm.File
+generate : List Options.Route.Page -> Elm.File
 generate unsorted =
     let
         routes =
@@ -111,30 +111,30 @@ generate unsorted =
         )
 
 
-hasVars : List Model.UrlPiece -> Bool
+hasVars : List Options.Route.UrlPiece -> Bool
 hasVars pieces =
     List.any
         (\piece ->
             case piece of
-                Model.Token _ ->
+                Options.Route.Token _ ->
                     False
 
-                Model.Variable _ ->
+                Options.Route.Variable _ ->
                     True
         )
         pieces
 
 
-hasNoParams : Model.QueryParams -> Bool
+hasNoParams : Options.Route.QueryParams -> Bool
 hasNoParams params =
     Set.isEmpty params.specificFields
         && not params.includeCatchAll
 
 
-paramType : Model.Page -> Type.Annotation
+paramType : Options.Route.Page -> Type.Annotation
 paramType route =
     let
-        (Model.UrlPattern { queryParams, includePathTail, path }) =
+        (Options.Route.UrlPattern { queryParams, includePathTail, path }) =
             route.url
     in
     if hasNoParams queryParams && not includePathTail && route.assets == Nothing && not (hasVars path) then
@@ -168,10 +168,10 @@ paramType route =
                 , List.filterMap
                     (\piece ->
                         case piece of
-                            Model.Token _ ->
+                            Options.Route.Token _ ->
                                 Nothing
 
-                            Model.Variable name ->
+                            Options.Route.Variable name ->
                                 Just ( name, Type.string )
                     )
                     path
@@ -187,7 +187,7 @@ paramType route =
             )
 
 
-urlToId : List Model.Page -> List Elm.Declaration
+urlToId : List Options.Route.Page -> List Elm.Declaration
 urlToId routes =
     [ Elm.declaration "toId"
         (Elm.fn ( "route", Just (Type.named [] "Route") )
@@ -233,23 +233,23 @@ urlToId routes =
     ]
 
 
-getParamVariableList : Model.Page -> List String
+getParamVariableList : Options.Route.Page -> List String
 getParamVariableList page =
     case page.url of
-        Model.UrlPattern { path } ->
+        Options.Route.UrlPattern { path } ->
             List.filterMap
                 (\piece ->
                     case piece of
-                        Model.Token _ ->
+                        Options.Route.Token _ ->
                             Nothing
 
-                        Model.Variable name ->
+                        Options.Route.Variable name ->
                             Just name
                 )
                 path
 
 
-urlEncoder : List Model.Page -> List Elm.Declaration
+urlEncoder : List Options.Route.Page -> List Elm.Declaration
 urlEncoder routes =
     [ Elm.declaration "toString"
         (Elm.fn ( "route", Just (Type.named [] "Route") )
@@ -263,7 +263,7 @@ urlEncoder routes =
                                     ( "params", paramType individualRoute )
                                     (\params ->
                                         let
-                                            (Model.UrlPattern { path, includePathTail, queryParams }) =
+                                            (Options.Route.UrlPattern { path, includePathTail, queryParams }) =
                                                 individualRoute.url
                                         in
                                         renderPath path includePathTail queryParams params
@@ -281,7 +281,7 @@ urlEncoder routes =
     ]
 
 
-renderPath : List Model.UrlPiece -> Bool -> Model.QueryParams -> Elm.Expression -> Elm.Expression
+renderPath : List Options.Route.UrlPiece -> Bool -> Options.Route.QueryParams -> Elm.Expression -> Elm.Expression
 renderPath path includePathTail queryParams paramValues =
     let
         base =
@@ -289,10 +289,10 @@ renderPath path includePathTail queryParams paramValues =
                 |> List.map
                     (\piece ->
                         case piece of
-                            Model.Token token ->
+                            Options.Route.Token token ->
                                 Elm.string token
 
-                            Model.Variable var ->
+                            Options.Route.Variable var ->
                                 Elm.get var paramValues
                     )
                 |> Elm.list
@@ -384,7 +384,7 @@ wrapList fields =
                 )
 
 
-sameRoute : List Model.Page -> Elm.Declaration
+sameRoute : List Options.Route.Page -> Elm.Declaration
 sameRoute routes =
     if List.length routes <= 1 then
         Elm.declaration "sameRouteBase"
@@ -437,7 +437,7 @@ sameRoute routes =
                 }
 
 
-urlParser : List Model.Page -> List Elm.Declaration
+urlParser : List Options.Route.Page -> List Elm.Declaration
 urlParser routes =
     [ Elm.declaration "parse"
         (Elm.fn ( "url", Just Gen.Url.annotation_.url )
@@ -490,7 +490,7 @@ getList field appUrlParams =
     ]
 
 
-parseAppUrl : List Model.Page -> Elm.Declaration
+parseAppUrl : List Options.Route.Page -> Elm.Declaration
 parseAppUrl routes =
     Elm.declaration "parseAppUrl"
         (Elm.fn
@@ -515,14 +515,14 @@ parseAppUrl routes =
         )
 
 
-toBranchPattern : Elm.Expression -> Model.Page -> List (Branch.Pattern Elm.Expression)
+toBranchPattern : Elm.Expression -> Options.Route.Page -> List (Branch.Pattern Elm.Expression)
 toBranchPattern appUrl page =
     urlToPatterns False appUrl page page.url
         :: List.map (urlToPatterns True appUrl page) page.redirectFrom
 
 
-urlToPatterns : Bool -> Elm.Expression -> Model.Page -> Model.UrlPattern -> Branch.Pattern Elm.Expression
-urlToPatterns isRedirect appUrl page (Model.UrlPattern pattern) =
+urlToPatterns : Bool -> Elm.Expression -> Options.Route.Page -> Options.Route.UrlPattern -> Branch.Pattern Elm.Expression
+urlToPatterns isRedirect appUrl page (Options.Route.UrlPattern pattern) =
     let
         toResult route =
             Elm.record
@@ -628,13 +628,13 @@ urlToPatterns isRedirect appUrl page (Model.UrlPattern pattern) =
             }
 
 
-toTokenPattern : Model.UrlPiece -> Branch.Pattern (List ( String, Elm.Expression ))
+toTokenPattern : Options.Route.UrlPiece -> Branch.Pattern (List ( String, Elm.Expression ))
 toTokenPattern token =
     case token of
-        Model.Token string ->
+        Options.Route.Token string ->
             Branch.string string []
 
-        Model.Variable varname ->
+        Options.Route.Variable varname ->
             Branch.var varname
                 |> Branch.map
                     (\var ->

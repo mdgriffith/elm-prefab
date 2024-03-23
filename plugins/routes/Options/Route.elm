@@ -1,4 +1,11 @@
-module Model exposing (Page, QueryParams, UrlPattern(..), UrlPiece(..), decode)
+module Options.Route exposing
+    ( Page
+    , QueryParams
+    , UrlPattern(..)
+    , UrlPiece(..)
+    , decode
+    , decodePage
+    )
 
 {-| -}
 

@@ -6,14 +6,14 @@ import Elm
 import Gen.CodeGen.Generate as Generate
 import Generate.Assets
 import Json.Decode
-import Model
+import Options.Assets
 
 
 main : Program Json.Decode.Value () ()
 main =
     Generate.withFeedback
         (\flags ->
-            case Json.Decode.decodeValue Model.decode flags of
+            case Json.Decode.decodeValue Options.Assets.decode flags of
                 Ok input ->
                     Ok
                         { info = []
