@@ -1,5 +1,6 @@
 module Generate.Route exposing
     ( Error(..)
+    , checkForErrors
     , errorToDetails
     , generate
     , routeOrder
@@ -12,6 +13,7 @@ import Elm.Case
 import Elm.Case.Branch as Branch
 import Elm.Let
 import Elm.Op
+import Extra.Parser
 import Gen.AppUrl
 import Gen.Browser
 import Gen.Browser.Navigation
@@ -75,6 +77,7 @@ type Error
         , nameTwo : String
         , patternTwo : String
         }
+    | ParserError Options.Route.ParserError
     | Unreachable
         { name : String
         , pattern : String
@@ -99,6 +102,17 @@ errorToDetails error =
                        )
             }
 
+        ParserError err ->
+            { title = err.name ++ ": Parser error"
+            , description =
+                case err.deadEnds of
+                    [] ->
+                        "I ran into something weird with " ++ err.pattern
+
+                    _ ->
+                        Extra.Parser.annotate err.deadEnds err.pattern
+            }
+
         OverlappingRoutes { nameOne, patternOne, nameTwo, patternTwo } ->
             { title = "Overlapping routes"
             , description = "The routes " ++ nameOne ++ " and " ++ nameTwo ++ " have overlapping URL patterns. The patterns are: " ++ patternOne ++ " and " ++ patternTwo
@@ -110,12 +124,103 @@ errorToDetails error =
             }
 
 
-checkForErrors : List Options.Route.Page -> List Error
+checkForErrors : List Options.Route.ParsedPage -> Result (List Error) (List Options.Route.Page)
 checkForErrors routes =
-    List.filterMap checkForFieldCollisions routes
-        ++ (List.foldl (checkForOverlaps routes) ( Set.empty, [] ) routes
-                |> Tuple.second
-           )
+    List.foldl (check routes)
+        { collisions = Set.empty
+        , result = Ok []
+        }
+        routes
+        |> .result
+
+
+maybeToList : Maybe a -> List a
+maybeToList maybe =
+    case maybe of
+        Just value ->
+            [ value ]
+
+        Nothing ->
+            []
+
+
+check :
+    List Options.Route.ParsedPage
+    -> Options.Route.ParsedPage
+    ->
+        { collisions : Set String
+        , result : Result (List Error) (List Options.Route.Page)
+        }
+    ->
+        { collisions : Set String
+        , result : Result (List Error) (List Options.Route.Page)
+        }
+check allRoutes route cursor =
+    let
+        ( redirectRoutes, foundErrors ) =
+            List.foldl
+                (\redirect ( reds, pErrors ) ->
+                    case redirect of
+                        Options.Route.UrlParsedPattern pattern ->
+                            ( Options.Route.UrlPattern pattern :: reds
+                            , pErrors
+                            )
+
+                        Options.Route.UrlError err ->
+                            ( reds
+                            , ParserError err :: pErrors
+                            )
+                )
+                ( [], [] )
+                route.redirectFrom
+    in
+    case cursor.result of
+        Err errs ->
+            { collisions = cursor.collisions
+            , result = Err (errs ++ foundErrors)
+            }
+
+        Ok pages ->
+            case foundErrors of
+                [] ->
+                    case route.url of
+                        Options.Route.UrlParsedPattern pattern ->
+                            let
+                                fieldCollisions =
+                                    maybeToList (checkForFieldCollisions newRoute)
+
+                                ( newCollisions, overlaps ) =
+                                    checkForOverlaps pages newRoute cursor.collisions
+
+                                newRoute =
+                                    { id = route.id
+                                    , url = Options.Route.UrlPattern pattern
+                                    , assets = route.assets
+                                    , redirectFrom = redirectRoutes
+                                    }
+
+                                newErrors =
+                                    fieldCollisions ++ overlaps
+                            in
+                            if List.isEmpty newErrors then
+                                { collisions = newCollisions
+                                , result = Ok (newRoute :: pages)
+                                }
+
+                            else
+                                { collisions = newCollisions
+                                , result = Err newErrors
+                                }
+
+                        Options.Route.UrlError err ->
+                            { collisions = cursor.collisions
+                            , result = Err (ParserError err :: foundErrors)
+                            }
+
+                _ ->
+                    { collisions = cursor.collisions
+                    , result = Err foundErrors
+                    }
 
 
 
@@ -152,9 +257,13 @@ checkForErrors routes =
 --         errors
 
 
-checkForOverlaps : List Options.Route.Page -> Options.Route.Page -> ( Set String, List Error ) -> ( Set String, List Error )
-checkForOverlaps routes route cursor =
-    List.foldl (isOverlapping route) cursor routes
+checkForOverlaps :
+    List Options.Route.Page
+    -> Options.Route.Page
+    -> Set String
+    -> ( Set String, List Error )
+checkForOverlaps routes route alreadyOverlapping =
+    List.foldl (isOverlapping route) ( alreadyOverlapping, [] ) routes
 
 
 {-| Collisions happen when two routes are the same length and have the same tokens in the same position
@@ -299,14 +408,13 @@ checkForFieldCollisions route =
                 }
 
 
-generate : List Options.Route.Page -> Result (List Error) Elm.File
-generate routes =
-    let
-        errors =
-            checkForErrors routes
-    in
-    case errors of
-        [] ->
+generate : List Options.Route.ParsedPage -> Result (List Error) Elm.File
+generate parsedRoutes =
+    case checkForErrors parsedRoutes of
+        Err errs ->
+            Err errs
+
+        Ok routes ->
             Ok <|
                 Elm.fileWith [ "App", "Route" ]
                     { docs =
@@ -364,9 +472,6 @@ generate routes =
                         , urlToId routes
                         ]
                     )
-
-        _ ->
-            Err errors
 
 
 hasVars : List Options.Route.UrlPiece -> Bool

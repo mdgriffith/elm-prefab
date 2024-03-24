@@ -1,7 +1,11 @@
 module Options.Route exposing
     ( Page
+    , ParsedPage
+    , ParserError
     , QueryParams
+    , UrlParsedPattern(..)
     , UrlPattern(..)
+    , UrlPatternDetails
     , UrlPiece(..)
     , decode
     , decodePage
@@ -14,6 +18,14 @@ import Json.Decode
 import Markdown.Parser
 import Parser exposing ((|.), (|=))
 import Set exposing (Set)
+
+
+type alias ParsedPage =
+    { id : String
+    , url : UrlParsedPattern
+    , redirectFrom : List UrlParsedPattern
+    , assets : Maybe SourceDirectory
+    }
 
 
 type alias Page =
@@ -42,6 +54,19 @@ type UrlPattern
     = UrlPattern UrlPatternDetails
 
 
+type UrlParsedPattern
+    = UrlParsedPattern UrlPatternDetails
+    | UrlError ParserError
+
+
+type alias ParserError =
+    { name : String
+    , isRedirect : Bool
+    , pattern : String
+    , deadEnds : List Parser.DeadEnd
+    }
+
+
 type alias UrlPatternDetails =
     { pattern : String
     , path : List UrlPiece
@@ -65,31 +90,41 @@ type UrlPiece
 {- Decoders -}
 
 
-decode : Json.Decode.Decoder (List Page)
+decode : Json.Decode.Decoder (List ParsedPage)
 decode =
     Json.Decode.field "pages" (Json.Decode.list decodePage)
 
 
-decodePage : Json.Decode.Decoder Page
+decodePage : Json.Decode.Decoder ParsedPage
 decodePage =
-    Json.Decode.map4 Page
-        (Json.Decode.field "id" Json.Decode.string)
-        (Json.Decode.field "url" decodeUrlPattern)
-        (Json.Decode.field "redirectFrom" (Json.Decode.list decodeUrlPattern))
-        (Json.Decode.field "assets" (Json.Decode.maybe decodeDirectory))
+    Json.Decode.field "id" Json.Decode.string
+        |> Json.Decode.andThen
+            (\id ->
+                Json.Decode.map3 (ParsedPage id)
+                    (Json.Decode.field "url" (decodeUrlPattern False id))
+                    (Json.Decode.field "redirectFrom" (Json.Decode.list (decodeUrlPattern True id)))
+                    (Json.Decode.field "assets" (Json.Decode.maybe decodeDirectory))
+            )
 
 
-decodeUrlPattern : Json.Decode.Decoder UrlPattern
-decodeUrlPattern =
+decodeUrlPattern : Bool -> String -> Json.Decode.Decoder UrlParsedPattern
+decodeUrlPattern isRedirect id =
     Json.Decode.string
         |> Json.Decode.andThen
             (\string ->
                 case Parser.run (parseUrlPattern string) string of
                     Ok urlPattern ->
-                        Json.Decode.succeed urlPattern
+                        Json.Decode.succeed (UrlParsedPattern urlPattern)
 
                     Err err ->
-                        Json.Decode.fail ("I don't understand this route:" ++ string)
+                        Json.Decode.succeed
+                            (UrlError
+                                { name = id
+                                , isRedirect = isRedirect
+                                , pattern = string
+                                , deadEnds = err
+                                }
+                            )
             )
 
 
@@ -104,65 +139,18 @@ Which parses
   - and `search` into a list of strings from ?search
 
 -}
-parseUrlPattern : String -> Parser.Parser UrlPattern
+parseUrlPattern : String -> Parser.Parser UrlPatternDetails
 parseUrlPattern pattern =
     Parser.succeed
         (\path queryParams ->
-            UrlPattern
-                { pattern = pattern
-                , path = path.path
-                , includePathTail = path.includePathTail
-                , queryParams = queryParams
-                }
+            { pattern = pattern
+            , path = path.path
+            , includePathTail = path.includePathTail
+            , queryParams = queryParams
+            }
         )
         |= parsePath
         |= parseQueryParams
-
-
-parseQueryParams : Parser.Parser QueryParams
-parseQueryParams =
-    Parser.oneOf
-        [ Parser.succeed
-            { includeCatchAll = False
-            , specificFields = Set.empty
-            }
-            |. Parser.end
-        , Parser.succeed (\params -> params)
-            |. Parser.symbol "?"
-            |. Parser.symbol "{"
-            |= Parser.oneOf
-                [ Parser.succeed
-                    { includeCatchAll = True
-                    , specificFields = Set.empty
-                    }
-                    |. Parser.symbol "**"
-                , Parser.loop
-                    { includeCatchAll = False
-                    , specificFields = Set.empty
-                    }
-                    (\params ->
-                        Parser.oneOf
-                            [ Parser.succeed
-                                (\fieldName ->
-                                    Parser.Loop { params | specificFields = Set.insert fieldName params.specificFields }
-                                )
-                                |= Parser.getChompedString
-                                    (Parser.succeed ()
-                                        |. Parser.chompIf Char.isAlpha
-                                        |. Parser.chompWhile Char.isAlpha
-                                    )
-                                |. Parser.chompWhile (\c -> c == ',')
-                            , Parser.succeed (Parser.Done params)
-                            ]
-                    )
-                ]
-            |. Parser.symbol "}"
-        ]
-
-
-isBlank : String -> Bool
-isBlank str =
-    String.isEmpty (String.trim str)
 
 
 parsePath :
@@ -209,14 +197,65 @@ parsePath =
                                     )
                                 )
                         ]
-                , Parser.succeed
-                    (Parser.Done
-                        { includePathTail = False
-                        , path = List.reverse pieces
-                        }
-                    )
+                , case pieces of
+                    [] ->
+                        Parser.problem "paths must start with /"
+
+                    _ ->
+                        Parser.succeed
+                            (Parser.Done
+                                { includePathTail = False
+                                , path = List.reverse pieces
+                                }
+                            )
                 ]
         )
+
+
+parseQueryParams : Parser.Parser QueryParams
+parseQueryParams =
+    Parser.oneOf
+        [ Parser.succeed
+            { includeCatchAll = False
+            , specificFields = Set.empty
+            }
+            |. Parser.end
+        , Parser.succeed (\params -> params)
+            |. Parser.symbol "?"
+            |. Parser.symbol "{"
+            |= Parser.oneOf
+                [ Parser.succeed
+                    { includeCatchAll = True
+                    , specificFields = Set.empty
+                    }
+                    |. Parser.symbol "**"
+                , Parser.loop
+                    { includeCatchAll = False
+                    , specificFields = Set.empty
+                    }
+                    (\params ->
+                        Parser.oneOf
+                            [ Parser.succeed
+                                (\fieldName ->
+                                    Parser.Loop { params | specificFields = Set.insert fieldName params.specificFields }
+                                )
+                                |= Parser.getChompedString
+                                    (Parser.succeed ()
+                                        |. Parser.chompIf Char.isAlpha
+                                        |. Parser.chompWhile Char.isAlpha
+                                    )
+                                |. Parser.chompWhile (\c -> c == ',')
+                            , Parser.succeed (Parser.Done params)
+                            ]
+                    )
+                ]
+            |. Parser.symbol "}"
+        ]
+
+
+isBlank : String -> Bool
+isBlank str =
+    String.isEmpty (String.trim str)
 
 
 decodeDirectory : Json.Decode.Decoder SourceDirectory

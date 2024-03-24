@@ -20,7 +20,7 @@ import Theme.Generate
 type PluginRun
     = App (List Press.Model.PageUsage)
     | AppView Press.Model.ViewRegions
-    | Route (List Options.Route.Page)
+    | Route (List Options.Route.ParsedPage)
     | Assets (List Options.Assets.AssetGroup)
     | Theme Theme.Theme
 

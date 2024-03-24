@@ -8,7 +8,7 @@ import Parser
 import Test exposing (Test)
 
 
-parseRoute : String -> Result (List Parser.DeadEnd) Options.Route.UrlPattern
+parseRoute : String -> Result (List Parser.DeadEnd) Options.Route.UrlPatternDetails
 parseRoute string =
     Parser.run (Options.Route.parseUrlPattern string) string
 
@@ -16,9 +16,22 @@ parseRoute string =
 parsePage : String -> String -> Result (List Parser.DeadEnd) Options.Route.Page
 parsePage id string =
     Result.map
-        (\ok ->
+        (\route ->
             { id = id
-            , url = ok
+            , url = Options.Route.UrlPattern route
+            , redirectFrom = []
+            , assets = Nothing
+            }
+        )
+        (parseRoute string)
+
+
+parseParsedPage : String -> String -> Result (List Parser.DeadEnd) Options.Route.ParsedPage
+parseParsedPage id string =
+    Result.map
+        (\route ->
+            { id = id
+            , url = Options.Route.UrlParsedPattern route
             , redirectFrom = []
             , assets = Nothing
             }
@@ -41,7 +54,7 @@ overlappingFields =
     Test.describe "Overlapping fields"
         [ Test.test "Path pieces" <|
             \_ ->
-                case parsePage "Home" "/test/:id/other/:id" of
+                case parseParsedPage "Home" "/test/:id/other/:id" of
                     Err err ->
                         Expect.fail
                             ("Failed to parse route: " ++ Parser.deadEndsToString err)
@@ -58,7 +71,7 @@ overlappingFields =
                                 Expect.fail "An unexpected error was returned"
         , Test.test "Path piece + query parameter" <|
             \_ ->
-                case parsePage "Home" "/test/:id/other?{id}" of
+                case parseParsedPage "Home" "/test/:id/other?{id}" of
                     Err err ->
                         Expect.fail
                             ("Failed to parse route: " ++ Parser.deadEndsToString err)
@@ -83,10 +96,10 @@ overlappingRoutes =
             \_ ->
                 let
                     one =
-                        parsePage "Home" "/test/:id/other/"
+                        parseParsedPage "Home" "/test/:id/other/"
 
                     two =
-                        parsePage "Other" "/test/:id/other/"
+                        parseParsedPage "Other" "/test/:id/other/"
                 in
                 case Result.map2 Tuple.pair one two of
                     Err err ->
@@ -107,10 +120,10 @@ overlappingRoutes =
             \_ ->
                 let
                     one =
-                        parsePage "Home" "/test/:id/other/"
+                        parseParsedPage "Home" "/test/:id/other/"
 
                     two =
-                        parsePage "Other" "/test/:id123/other/"
+                        parseParsedPage "Other" "/test/:id123/other/"
                 in
                 case Result.map2 Tuple.pair one two of
                     Err err ->
@@ -132,41 +145,40 @@ overlappingRoutes =
 
 parsing : Test
 parsing =
-    Test.only <|
-        Test.describe "Parsing"
-            [ Test.test "The final slash is optional" <|
-                \_ ->
-                    let
-                        one =
-                            parsePage "Home" "/:id"
+    Test.describe "Parsing"
+        [ Test.test "The final slash is optional" <|
+            \_ ->
+                let
+                    one =
+                        parsePage "Home" "/:id"
 
-                        two =
-                            parsePage "Other" "/:id/"
-                    in
-                    case Result.map2 Tuple.pair one two of
-                        Err err ->
-                            Expect.fail
-                                ("Failed to parse route: " ++ Parser.deadEndsToString err)
+                    two =
+                        parsePage "Other" "/:id/"
+                in
+                case Result.map2 Tuple.pair one two of
+                    Err err ->
+                        Expect.fail
+                            ("Failed to parse route: " ++ Parser.deadEndsToString err)
 
-                        Ok ( onePage, twoPage ) ->
-                            Expect.equal (toPath onePage.url) (toPath twoPage.url)
-            , Test.test "First slash is required" <|
-                \_ ->
-                    case parsePage "Other" ":id/" of
-                        Err err ->
-                            Expect.pass
+                    Ok ( onePage, twoPage ) ->
+                        Expect.equal (toPath onePage.url) (toPath twoPage.url)
+        , Test.test "First slash is required" <|
+            \_ ->
+                case parsePage "Other" ":id/" of
+                    Err err ->
+                        Expect.pass
 
-                        Ok _ ->
-                            Expect.fail "The first slash is required"
-            , Test.test "Question mark needs something after it" <|
-                \_ ->
-                    case parsePage "Other" "/:id/?" of
-                        Err err ->
-                            Expect.pass
+                    Ok _ ->
+                        Expect.fail "The first slash is required"
+        , Test.test "Question mark needs something after it" <|
+            \_ ->
+                case parsePage "Other" "/:id/?" of
+                    Err err ->
+                        Expect.pass
 
-                        Ok _ ->
-                            Expect.fail "Question mark needs something after it"
-            ]
+                    Ok _ ->
+                        Expect.fail "Question mark needs something after it"
+        ]
 
 
 toPath : Options.Route.UrlPattern -> List Options.Route.UrlPiece
