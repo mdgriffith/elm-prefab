@@ -3,10 +3,15 @@ import * as Options from "./options";
 import * as path from "path";
 import * as fs from "fs";
 
-const ElmGenerator = require("./generators/all");
-
 type AssetGroup = {
   name: string;
+  fileInfo: {
+    markdown: {
+      frontmatter: {
+        [key: string]: any;
+      };
+    };
+  };
   files: {
     name: string;
     crumbs: string[];
@@ -68,7 +73,7 @@ export const generator = (options: any): Options.Generator => {
           const src = assetConfig;
 
           let files: File[] = [];
-          readFilesRecursively(src, files);
+          await readFilesRecursively(src, files);
 
           const gatheredFiles = [];
           for (let file of files) {
@@ -84,11 +89,12 @@ export const generator = (options: any): Options.Generator => {
 
           assetGroups.push({
             name: moduleName,
+            fileInfo: { markdown: { frontmatter: {} } },
             files: gatheredFiles,
           });
         } else {
           let files: File[] = [];
-          readFilesRecursively(assetConfig.src, files);
+          await readFilesRecursively(assetConfig.src, files);
 
           const gatheredFiles = [];
           for (let file of files) {
@@ -105,8 +111,13 @@ export const generator = (options: any): Options.Generator => {
             });
           }
 
+          const frontmatter = assetConfig.markdown
+            ? assetConfig.markdown.frontmatter
+            : {};
+
           assetGroups.push({
             name: moduleName,
+            fileInfo: { markdown: { frontmatter: frontmatter } },
             files: gatheredFiles,
           });
         }
@@ -151,7 +162,7 @@ export const readFilesRecursively = async (dir: string, found: File[]) => {
         found.push({ path: filePath, contents: content });
       }
     } else if (stat.isDirectory()) {
-      readFilesRecursively(filePath, found);
+      await readFilesRecursively(filePath, found);
     }
   }
 };

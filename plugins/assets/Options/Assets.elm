@@ -7,6 +7,7 @@ module Options.Assets exposing
 
 {-| -}
 
+import Dict
 import Json.Decode
 import Set exposing (Set)
 
@@ -14,6 +15,7 @@ import Set exposing (Set)
 type alias AssetGroup =
     { name : String
     , files : List File
+    , fileInfo : { markdown : { frontmatter : Dict.Dict String String } }
     }
 
 
@@ -38,9 +40,22 @@ type Content
 
 decodeAssetGroup : Json.Decode.Decoder AssetGroup
 decodeAssetGroup =
-    Json.Decode.map2 AssetGroup
+    Json.Decode.map3 AssetGroup
         (Json.Decode.field "name" Json.Decode.string)
         (Json.Decode.field "files" (Json.Decode.list decodeFile))
+        (Json.Decode.field "fileInfo"
+            (Json.Decode.map
+                (\dict ->
+                    { markdown = { frontmatter = dict }
+                    }
+                )
+                (Json.Decode.field "markdown"
+                    (Json.Decode.field "frontmatter"
+                        (Json.Decode.dict Json.Decode.string)
+                    )
+                )
+            )
+        )
 
 
 decodeFile : Json.Decode.Decoder File

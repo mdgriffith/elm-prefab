@@ -4033,9 +4033,9 @@ var $author$project$Theme$Decoder$decode = A7(
 		$elm$json$Json$Decode$field,
 		'shadows',
 		$elm$json$Json$Decode$succeed(_List_Nil)));
-var $author$project$Options$Assets$AssetGroup = F2(
-	function (name, files) {
-		return {files: files, name: name};
+var $author$project$Options$Assets$AssetGroup = F3(
+	function (name, files, fileInfo) {
+		return {fileInfo: fileInfo, files: files, name: name};
 	});
 var $author$project$Options$Assets$File = F4(
 	function (name, crumbs, pathOnServer, content) {
@@ -4062,14 +4062,160 @@ var $author$project$Options$Assets$decodeFile = A5(
 		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
 	A2($elm$json$Json$Decode$field, 'pathOnServer', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'content', $author$project$Options$Assets$decodeContent));
-var $author$project$Options$Assets$decodeAssetGroup = A3(
-	$elm$json$Json$Decode$map2,
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $elm$core$Dict$Black = {$: 'Black'};
+var $elm$core$Dict$RBNode_elm_builtin = F5(
+	function (a, b, c, d, e) {
+		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
+	});
+var $elm$core$Dict$Red = {$: 'Red'};
+var $elm$core$Dict$balance = F5(
+	function (color, key, value, left, right) {
+		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
+			var _v1 = right.a;
+			var rK = right.b;
+			var rV = right.c;
+			var rLeft = right.d;
+			var rRight = right.e;
+			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+				var _v3 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var lLeft = left.d;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					key,
+					value,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					rK,
+					rV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
+					rRight);
+			}
+		} else {
+			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
+				var _v5 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var _v6 = left.d;
+				var _v7 = _v6.a;
+				var llK = _v6.b;
+				var llV = _v6.c;
+				var llLeft = _v6.d;
+				var llRight = _v6.e;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					lK,
+					lV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
+			} else {
+				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
+			}
+		}
+	});
+var $elm$core$Basics$compare = _Utils_compare;
+var $elm$core$Dict$insertHelp = F3(
+	function (key, value, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+		} else {
+			var nColor = dict.a;
+			var nKey = dict.b;
+			var nValue = dict.c;
+			var nLeft = dict.d;
+			var nRight = dict.e;
+			var _v1 = A2($elm$core$Basics$compare, key, nKey);
+			switch (_v1.$) {
+				case 'LT':
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						A3($elm$core$Dict$insertHelp, key, value, nLeft),
+						nRight);
+				case 'EQ':
+					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
+				default:
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						nLeft,
+						A3($elm$core$Dict$insertHelp, key, value, nRight));
+			}
+		}
+	});
+var $elm$core$Dict$insert = F3(
+	function (key, value, dict) {
+		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $elm$json$Json$Decode$dict = function (decoder) {
+	return A2(
+		$elm$json$Json$Decode$map,
+		$elm$core$Dict$fromList,
+		$elm$json$Json$Decode$keyValuePairs(decoder));
+};
+var $author$project$Options$Assets$decodeAssetGroup = A4(
+	$elm$json$Json$Decode$map3,
 	$author$project$Options$Assets$AssetGroup,
 	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
 	A2(
 		$elm$json$Json$Decode$field,
 		'files',
-		$elm$json$Json$Decode$list($author$project$Options$Assets$decodeFile)));
+		$elm$json$Json$Decode$list($author$project$Options$Assets$decodeFile)),
+	A2(
+		$elm$json$Json$Decode$field,
+		'fileInfo',
+		A2(
+			$elm$json$Json$Decode$map,
+			function (dict) {
+				return {
+					markdown: {frontmatter: dict}
+				};
+			},
+			A2(
+				$elm$json$Json$Decode$field,
+				'markdown',
+				A2(
+					$elm$json$Json$Decode$field,
+					'frontmatter',
+					$elm$json$Json$Decode$dict($elm$json$Json$Decode$string))))));
 var $author$project$Options$Route$ParsedPage = F3(
 	function (id, url, redirectFrom) {
 		return {id: id, redirectFrom: redirectFrom, url: url};
@@ -4375,8 +4521,6 @@ var $author$project$Options$Route$parsePath = A2(
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
 var $elm$parser$Parser$ExpectingEnd = {$: 'ExpectingEnd'};
 var $elm$core$String$length = _String_length;
@@ -4392,115 +4536,6 @@ var $elm$parser$Parser$Advanced$end = function (x) {
 		});
 };
 var $elm$parser$Parser$end = $elm$parser$Parser$Advanced$end($elm$parser$Parser$ExpectingEnd);
-var $elm$core$Dict$Black = {$: 'Black'};
-var $elm$core$Dict$RBNode_elm_builtin = F5(
-	function (a, b, c, d, e) {
-		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
-	});
-var $elm$core$Dict$Red = {$: 'Red'};
-var $elm$core$Dict$balance = F5(
-	function (color, key, value, left, right) {
-		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
-			var _v1 = right.a;
-			var rK = right.b;
-			var rV = right.c;
-			var rLeft = right.d;
-			var rRight = right.e;
-			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-				var _v3 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var lLeft = left.d;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					key,
-					value,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					color,
-					rK,
-					rV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
-					rRight);
-			}
-		} else {
-			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
-				var _v5 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var _v6 = left.d;
-				var _v7 = _v6.a;
-				var llK = _v6.b;
-				var llV = _v6.c;
-				var llLeft = _v6.d;
-				var llRight = _v6.e;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					lK,
-					lV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
-			} else {
-				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
-			}
-		}
-	});
-var $elm$core$Basics$compare = _Utils_compare;
-var $elm$core$Dict$insertHelp = F3(
-	function (key, value, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-		} else {
-			var nColor = dict.a;
-			var nKey = dict.b;
-			var nValue = dict.c;
-			var nLeft = dict.d;
-			var nRight = dict.e;
-			var _v1 = A2($elm$core$Basics$compare, key, nKey);
-			switch (_v1.$) {
-				case 'LT':
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						A3($elm$core$Dict$insertHelp, key, value, nLeft),
-						nRight);
-				case 'EQ':
-					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
-				default:
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						nLeft,
-						A3($elm$core$Dict$insertHelp, key, value, nRight));
-			}
-		}
-	});
-var $elm$core$Dict$insert = F3(
-	function (key, value, dict) {
-		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
-		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
-			var _v1 = _v0.a;
-			var k = _v0.b;
-			var v = _v0.c;
-			var l = _v0.d;
-			var r = _v0.e;
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _v0;
-			return x;
-		}
-	});
 var $elm$core$Set$insert = F2(
 	function (key, _v0) {
 		var dict = _v0.a;
@@ -5803,18 +5838,6 @@ var $mdgriffith$elm_codegen$Internal$Compiler$addInference = F3(
 			},
 			infs);
 	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
 var $mdgriffith$elm_codegen$Internal$Compiler$formatAliasKey = F2(
 	function (mod, name) {
 		return A2($elm$core$String$join, '.', mod) + ('.' + name);
@@ -12489,6 +12512,13 @@ var $author$project$Generate$Assets$assetRootFile = A2(
 								[
 									_Utils_Tuple2('title', $mdgriffith$elm_codegen$Elm$Annotation$string),
 									_Utils_Tuple2(
+									'frontmatter',
+									$mdgriffith$elm_codegen$Elm$Annotation$record(
+										_List_fromArray(
+											[
+												_Utils_Tuple2('source_', $mdgriffith$elm_codegen$Elm$Annotation$string)
+											]))),
+									_Utils_Tuple2(
 									'headers',
 									$mdgriffith$elm_codegen$Elm$Annotation$list(
 										$mdgriffith$elm_codegen$Elm$Annotation$record(
@@ -13229,6 +13259,7 @@ var $author$project$Generate$Assets$encodeContent = function (content) {
 		default:
 			var title = content.a.title;
 			var headers = content.a.headers;
+			var frontmatter = content.a.frontmatter;
 			return A2(
 				$mdgriffith$elm_codegen$Elm$apply,
 				$mdgriffith$elm_codegen$Elm$value(
@@ -13254,7 +13285,16 @@ var $author$project$Generate$Assets$encodeContent = function (content) {
 								_Utils_Tuple2(
 								'headers',
 								$mdgriffith$elm_codegen$Elm$list(
-									A2($elm$core$List$map, $author$project$Generate$Assets$encodeHeader, headers)))
+									A2($elm$core$List$map, $author$project$Generate$Assets$encodeHeader, headers))),
+								_Utils_Tuple2(
+								'frontmatter',
+								$mdgriffith$elm_codegen$Elm$record(
+									A2(
+										$elm$core$List$cons,
+										_Utils_Tuple2(
+											'source_',
+											$mdgriffith$elm_codegen$Elm$string(frontmatter.source_)),
+										frontmatter.attrs)))
 							]))
 					]));
 	}
@@ -13329,7 +13369,26 @@ var $author$project$Generate$Assets$toDirectoryEntry = function (file) {
 		A2(
 			$mdgriffith$elm_codegen$Elm$declaration,
 			$author$project$Generate$Assets$declarationName(file),
-			$mdgriffith$elm_codegen$Elm$string(file.pathOnServer)));
+			A2(
+				$mdgriffith$elm_codegen$Elm$withType,
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$named,
+					_List_fromArray(
+						['Asset']),
+					'Src'),
+				A2(
+					$mdgriffith$elm_codegen$Elm$apply,
+					$mdgriffith$elm_codegen$Elm$value(
+						{
+							annotation: $elm$core$Maybe$Nothing,
+							importFrom: _List_fromArray(
+								['Asset']),
+							name: 'Src'
+						}),
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$string(file.pathOnServer)
+						])))));
 };
 var $author$project$Generate$Assets$Binary = {$: 'Binary'};
 var $author$project$Generate$Assets$Markdown = function (a) {
@@ -13362,6 +13421,279 @@ var $author$project$Path$extension = function (str) {
 		str);
 	return _Utils_Tuple2(base, ext);
 };
+var $author$project$Generate$Assets$indentedString = A2(
+	$elm$parser$Parser$map,
+	$elm$core$Tuple$second,
+	A2(
+		$elm$parser$Parser$loop,
+		_Utils_Tuple2(true, ''),
+		function (_v0) {
+			var isFirst = _v0.a;
+			var str = _v0.b;
+			return $elm$parser$Parser$oneOf(
+				_List_fromArray(
+					[
+						isFirst ? A2(
+						$elm$parser$Parser$keeper,
+						$elm$parser$Parser$succeed(
+							function (line) {
+								return $elm$parser$Parser$Loop(
+									_Utils_Tuple2(false, str + (line + '\n')));
+							}),
+						A2(
+							$elm$parser$Parser$ignorer,
+							$elm$parser$Parser$getChompedString(
+								$elm$parser$Parser$chompWhile(
+									function (c) {
+										return !_Utils_eq(
+											c,
+											_Utils_chr('\n'));
+									})),
+							$elm$parser$Parser$chompIf(
+								function (c) {
+									return _Utils_eq(
+										c,
+										_Utils_chr('\n'));
+								}))) : A2(
+						$elm$parser$Parser$keeper,
+						A2(
+							$elm$parser$Parser$keeper,
+							A2(
+								$elm$parser$Parser$ignorer,
+								$elm$parser$Parser$succeed(
+									F2(
+										function (spaces, line) {
+											return $elm$parser$Parser$Loop(
+												_Utils_Tuple2(false, str + (spaces + (line + '\n'))));
+										})),
+								$elm$parser$Parser$chompIf(
+									function (c) {
+										return _Utils_eq(
+											c,
+											_Utils_chr(' '));
+									})),
+							$elm$parser$Parser$getChompedString(
+								$elm$parser$Parser$chompWhile(
+									function (c) {
+										return _Utils_eq(
+											c,
+											_Utils_chr(' '));
+									}))),
+						A2(
+							$elm$parser$Parser$ignorer,
+							$elm$parser$Parser$getChompedString(
+								$elm$parser$Parser$chompWhile(
+									function (c) {
+										return !_Utils_eq(
+											c,
+											_Utils_chr('\n'));
+									})),
+							$elm$parser$Parser$chompIf(
+								function (c) {
+									return _Utils_eq(
+										c,
+										_Utils_chr('\n'));
+								}))),
+						$elm$parser$Parser$succeed(
+						$elm$parser$Parser$Done(
+							_Utils_Tuple2(false, str)))
+					]));
+		}));
+var $author$project$Generate$Assets$frontmatterParserAttributes = A2(
+	$elm$parser$Parser$keeper,
+	A2(
+		$elm$parser$Parser$ignorer,
+		$elm$parser$Parser$succeed($elm$core$Basics$identity),
+		$elm$parser$Parser$chompWhile(
+			function (c) {
+				return _Utils_eq(
+					c,
+					_Utils_chr('-')) || _Utils_eq(
+					c,
+					_Utils_chr('\n'));
+			})),
+	A2(
+		$elm$parser$Parser$loop,
+		_List_Nil,
+		function (attrs) {
+			return $elm$parser$Parser$oneOf(
+				_List_fromArray(
+					[
+						A2(
+						$elm$parser$Parser$ignorer,
+						A2(
+							$elm$parser$Parser$ignorer,
+							A2(
+								$elm$parser$Parser$ignorer,
+								$elm$parser$Parser$succeed(
+									$elm$parser$Parser$Done(attrs)),
+								$elm$parser$Parser$chompIf(
+									function (c) {
+										return _Utils_eq(
+											c,
+											_Utils_chr('-'));
+									})),
+							$elm$parser$Parser$chompWhile(
+								function (c) {
+									return _Utils_eq(
+										c,
+										_Utils_chr('-'));
+								})),
+						$elm$parser$Parser$chompWhile(
+							function (c) {
+								return _Utils_eq(
+									c,
+									_Utils_chr('\n'));
+							})),
+						A2(
+						$elm$parser$Parser$ignorer,
+						$elm$parser$Parser$succeed(
+							$elm$parser$Parser$Done(attrs)),
+						$elm$parser$Parser$chompIf(
+							function (c) {
+								return _Utils_eq(
+									c,
+									_Utils_chr('#'));
+							})),
+						A2(
+						$elm$parser$Parser$keeper,
+						A2(
+							$elm$parser$Parser$keeper,
+							$elm$parser$Parser$succeed(
+								F2(
+									function (attrName, content) {
+										return $elm$parser$Parser$Loop(
+											A2(
+												$elm$core$List$cons,
+												_Utils_Tuple2(
+													attrName,
+													$mdgriffith$elm_codegen$Elm$string(content)),
+												attrs));
+									})),
+							A2(
+								$elm$parser$Parser$ignorer,
+								$elm$parser$Parser$getChompedString(
+									$elm$parser$Parser$chompWhile(
+										function (c) {
+											return (!_Utils_eq(
+												c,
+												_Utils_chr(':'))) && (!_Utils_eq(
+												c,
+												_Utils_chr('\n')));
+										})),
+								$elm$parser$Parser$spaces)),
+						$author$project$Generate$Assets$indentedString)
+					]));
+		}));
+var $elm$parser$Parser$mapChompedString = $elm$parser$Parser$Advanced$mapChompedString;
+var $author$project$Generate$Assets$frontmatterParser = A2(
+	$elm$parser$Parser$mapChompedString,
+	F2(
+		function (source, attrs) {
+			return {attrs: attrs, source_: source};
+		}),
+	$author$project$Generate$Assets$frontmatterParserAttributes);
+var $elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2($elm$core$Dict$map, func, left),
+				A2($elm$core$Dict$map, func, right));
+		}
+	});
+var $author$project$Generate$Assets$dropWhileLeft = F2(
+	function (predicate, string) {
+		dropWhileLeft:
+		while (true) {
+			var _v0 = $elm$core$String$uncons(string);
+			if (_v0.$ === 'Just') {
+				var _v1 = _v0.a;
+				var c = _v1.a;
+				var rest = _v1.b;
+				if (predicate(c)) {
+					var $temp$predicate = predicate,
+						$temp$string = rest;
+					predicate = $temp$predicate;
+					string = $temp$string;
+					continue dropWhileLeft;
+				} else {
+					return string;
+				}
+			} else {
+				return string;
+			}
+		}
+	});
+var $elm$core$String$reverse = _String_reverse;
+var $author$project$Generate$Assets$dropWhileRight = F2(
+	function (predicate, string) {
+		return $elm$core$String$reverse(
+			A2(
+				$author$project$Generate$Assets$dropWhileLeft,
+				predicate,
+				$elm$core$String$reverse(string)));
+	});
+var $author$project$Generate$Assets$trimFrontMatter = function (source) {
+	return A2(
+		$author$project$Generate$Assets$dropWhileRight,
+		function (c) {
+			return _Utils_eq(
+				c,
+				_Utils_chr('-')) || (_Utils_eq(
+				c,
+				_Utils_chr('\n')) || _Utils_eq(
+				c,
+				_Utils_chr('#')));
+		},
+		A2(
+			$author$project$Generate$Assets$dropWhileLeft,
+			function (c) {
+				return _Utils_eq(
+					c,
+					_Utils_chr('-')) || _Utils_eq(
+					c,
+					_Utils_chr('\n'));
+			},
+			source));
+};
+var $author$project$Generate$Assets$getFrontMatterSource = F2(
+	function (allowedAttrs, source) {
+		var _v0 = A2($elm$parser$Parser$run, $author$project$Generate$Assets$frontmatterParser, source);
+		if (_v0.$ === 'Err') {
+			return {attrs: _List_Nil, source_: ''};
+		} else {
+			var frontmatter = _v0.a;
+			var attrDict = $elm$core$Dict$fromList(frontmatter.attrs);
+			return {
+				attrs: $elm$core$Dict$toList(
+					A2(
+						$elm$core$Dict$map,
+						F2(
+							function (key, _v1) {
+								var _v2 = A2($elm$core$Dict$get, key, attrDict);
+								if (_v2.$ === 'Just') {
+									var value = _v2.a;
+									return value;
+								} else {
+									return $mdgriffith$elm_codegen$Elm$string('');
+								}
+							}),
+						allowedAttrs)),
+				source_: $author$project$Generate$Assets$trimFrontMatter(frontmatter.source_)
+			};
+		}
+	});
 var $dillonkearns$elm_markdown$Markdown$Block$foldl = F3(
 	function (_function, acc, list) {
 		foldl:
@@ -21056,47 +21388,52 @@ var $author$project$Generate$Assets$getHeaders = function (src) {
 		return _List_Nil;
 	}
 };
-var $author$project$Generate$Assets$toFileInfo = function (file) {
-	return {
-		content: function () {
-			var _v0 = file.content;
-			if (_v0.$ === 'Binary') {
-				return $author$project$Generate$Assets$Binary;
-			} else {
-				var source = _v0.a;
-				var _v1 = $author$project$Path$extension(file.pathOnServer);
-				var ext = _v1.b;
-				if (A2(
-					$elm$core$List$member,
-					ext,
-					_List_fromArray(
-						['markdown', 'md']))) {
-					var headers = $author$project$Generate$Assets$getHeaders(source);
-					return $author$project$Generate$Assets$Markdown(
-						{
-							headers: headers,
-							title: A2(
-								$elm$core$Maybe$withDefault,
-								file.name,
-								A2(
-									$elm$core$Maybe$map,
-									$elm$core$Tuple$second,
-									$elm$core$List$head(headers)))
-						});
+var $author$project$Generate$Assets$toFileInfo = F2(
+	function (group, file) {
+		return {
+			content: function () {
+				var _v0 = file.content;
+				if (_v0.$ === 'Binary') {
+					return $author$project$Generate$Assets$Binary;
 				} else {
-					return $author$project$Generate$Assets$Text;
+					var source = _v0.a;
+					var _v1 = $author$project$Path$extension(file.pathOnServer);
+					var ext = _v1.b;
+					if (A2(
+						$elm$core$List$member,
+						ext,
+						_List_fromArray(
+							['markdown', 'md']))) {
+						var headers = $author$project$Generate$Assets$getHeaders(source);
+						return $author$project$Generate$Assets$Markdown(
+							{
+								frontmatter: A2($author$project$Generate$Assets$getFrontMatterSource, group.fileInfo.markdown.frontmatter, source),
+								headers: headers,
+								title: A2(
+									$elm$core$Maybe$withDefault,
+									file.name,
+									A2(
+										$elm$core$Maybe$map,
+										$elm$core$Tuple$second,
+										$elm$core$List$head(headers)))
+							});
+					} else {
+						return $author$project$Generate$Assets$Text;
+					}
 				}
-			}
-		}(),
-		crumbs: file.crumbs,
-		name: file.name,
-		pathOnServer: file.pathOnServer
-	};
-};
+			}(),
+			crumbs: file.crumbs,
+			name: file.name,
+			pathOnServer: file.pathOnServer
+		};
+	});
 var $author$project$Generate$Assets$generateAssetGroupDirectory = function (group) {
 	var entries = A2($elm$core$List$map, $author$project$Generate$Assets$toDirectoryEntry, group.files);
 	var directory = function () {
-		var directoryItems = A2($elm$core$List$map, $author$project$Generate$Assets$toFileInfo, group.files);
+		var directoryItems = A2(
+			$elm$core$List$map,
+			$author$project$Generate$Assets$toFileInfo(group),
+			group.files);
 		if (!directoryItems.b) {
 			return _List_Nil;
 		} else {
