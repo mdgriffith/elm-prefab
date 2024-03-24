@@ -195,7 +195,6 @@ check allRoutes route cursor =
                                 newRoute =
                                     { id = route.id
                                     , url = Options.Route.UrlPattern pattern
-                                    , assets = route.assets
                                     , redirectFrom = redirectRoutes
                                     }
 
@@ -480,7 +479,7 @@ paramType route =
         (Options.Route.UrlPattern { queryParams, includePathTail, path }) =
             route.url
     in
-    if hasNoParams queryParams && not includePathTail && route.assets == Nothing && not (hasVars path) then
+    if hasNoParams queryParams && not includePathTail && not (hasVars path) then
         Type.record []
 
     else
@@ -502,13 +501,7 @@ paramType route =
         in
         Type.record
             (List.concat
-                [ case route.assets of
-                    Nothing ->
-                        []
-
-                    Just assets ->
-                        [ ( "src", Type.string ) ]
-                , List.filterMap
+                [ List.filterMap
                     (\piece ->
                         case piece of
                             Options.Route.Token _ ->
@@ -937,40 +930,11 @@ toBranchPattern appUrl routeInfo =
                                     )
                                     []
                     in
-                    case page.assets of
-                        Nothing ->
-                            Elm.apply
-                                (Elm.val page.id)
-                                [ Elm.record (( "path", remaining ) :: fields)
-                                ]
-                                |> toResult
-
-                        Just assets ->
-                            let
-                                lookupAsset =
-                                    Elm.apply (Elm.val "lookupAsset")
-                                        [ Elm.Op.append
-                                            (Elm.string "/")
-                                            (Gen.String.call_.join (Elm.string "/") remaining)
-                                        ]
-                            in
-                            Elm.Case.custom lookupAsset
-                                (Type.maybe Type.string)
-                                [ Branch.just (Branch.var "src")
-                                    |> Branch.map
-                                        (\src ->
-                                            Elm.apply
-                                                (Elm.val page.id)
-                                                [ Elm.record
-                                                    (( "src", src )
-                                                        :: ( "path", remaining )
-                                                        :: fields
-                                                    )
-                                                ]
-                                                |> toResult
-                                        )
-                                , Branch.nothing Elm.nothing
-                                ]
+                    Elm.apply
+                        (Elm.val page.id)
+                        [ Elm.record (( "path", remaining ) :: fields)
+                        ]
+                        |> toResult
             }
 
     else

@@ -24,7 +24,6 @@ type alias ParsedPage =
     { id : String
     , url : UrlParsedPattern
     , redirectFrom : List UrlParsedPattern
-    , assets : Maybe SourceDirectory
     }
 
 
@@ -32,7 +31,6 @@ type alias Page =
     { id : String
     , url : UrlPattern
     , redirectFrom : List UrlPattern
-    , assets : Maybe SourceDirectory
     }
 
 
@@ -100,10 +98,9 @@ decodePage =
     Json.Decode.field "id" Json.Decode.string
         |> Json.Decode.andThen
             (\id ->
-                Json.Decode.map3 (ParsedPage id)
+                Json.Decode.map2 (ParsedPage id)
                     (Json.Decode.field "url" (decodeUrlPattern False id))
                     (Json.Decode.field "redirectFrom" (Json.Decode.list (decodeUrlPattern True id)))
-                    (Json.Decode.field "assets" (Json.Decode.maybe decodeDirectory))
             )
 
 

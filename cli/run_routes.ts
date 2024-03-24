@@ -7,14 +7,6 @@ type ElmFile = {
   id: string;
   url: string;
   redirectFrom?: string[];
-  assets: Assets | null;
-};
-
-type Assets = {
-  base: string;
-  baseOnApp: string;
-  baseOnServer: string;
-  files: { path: string; contents: string }[];
 };
 
 export const generator = (options: any): Options.Generator => {
@@ -41,7 +33,6 @@ export const generator = (options: any): Options.Generator => {
 
         let url: string = "";
         let redirectFrom: string[] = [];
-        let assets: Assets | null = null;
 
         if (typeof pageConfig === "string") {
           // Single Url
@@ -57,7 +48,6 @@ export const generator = (options: any): Options.Generator => {
           id: moduleName,
           url: url,
           redirectFrom: redirectFrom,
-          assets: assets,
         });
         // Delete the page config from the options so we can tell if there are missing ones later
         // Also a page config can only be used once
