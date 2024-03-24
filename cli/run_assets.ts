@@ -125,24 +125,29 @@ export const generator = (options: any): Options.Generator => {
 
 export type File = { path: string; contents: string | null };
 
-export const readFilesRecursively = (dir: string, found: File[]) => {
+export const readFilesRecursively = async (dir: string, found: File[]) => {
+  if (
+    dir.endsWith("node_modules") ||
+    dir.endsWith("elm-stuff") ||
+    dir.endsWith(".git")
+  ) {
+    // don't go chasing waterfalls
+    return;
+  }
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
 
-    if (file.startsWith(".")) {
+    if (file.startsWith(".") || file.startsWith("_")) {
       //  Skip hidden files
       continue;
     }
     if (stat.isFile()) {
-      const content = fs.readFileSync(filePath, "utf-8");
-      if (content.includes("\u0000")) {
-        // This is our way of detecting if it's a binary file or not.
-        // We're checking if it contains a "null byte"
-        // If it doesn we don't include the contents
+      if (await isBinaryFile(filePath)) {
         found.push({ path: filePath, contents: null });
       } else {
+        const content = fs.readFileSync(filePath, "utf-8");
         found.push({ path: filePath, contents: content });
       }
     } else if (stat.isDirectory()) {
@@ -150,3 +155,32 @@ export const readFilesRecursively = (dir: string, found: File[]) => {
     }
   }
 };
+
+function isBinaryFile(
+  filePath: string,
+  bytesToCheck: number = 512
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const buffer = Buffer.alloc(bytesToCheck);
+    fs.open(filePath, "r", (err, fd) => {
+      if (err) {
+        return reject(err);
+      }
+      fs.read(fd, buffer, 0, bytesToCheck, 0, (err, bytesRead) => {
+        fs.close(fd, (closeErr) => {
+          if (closeErr) {
+            console.error("Error closing file", closeErr);
+          }
+          if (err) {
+            return reject(err);
+          }
+          // This is our way of detecting if it's a binary file or not.
+          // We're checking if it contains a "null byte"
+          // If it doesn we don't include the contents
+          const hasNullBytes = buffer.slice(0, bytesRead).includes(0x00);
+          resolve(hasNullBytes);
+        });
+      });
+    });
+  });
+}
