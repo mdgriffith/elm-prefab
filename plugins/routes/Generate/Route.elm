@@ -1,4 +1,4 @@
-module Generate.Route exposing (generate)
+module Generate.Route exposing (Error(..), errorToDetails, generate)
 
 import Elm
 import Elm.Annotation as Type
@@ -47,68 +47,313 @@ routeOrder page =
                 path
 
 
-generate : List Options.Route.Page -> Elm.File
+type Error
+    = FieldCollision
+        { name : String
+        , pattern : String
+        , collisions : Set String
+        }
+    | OverlappingRoutes
+        { nameOne : String
+        , patternOne : String
+        , nameTwo : String
+        , patternTwo : String
+        }
+    | Unreachable
+        { name : String
+        , pattern : String
+        }
+
+
+errorToDetails : Error -> { title : String, description : String }
+errorToDetails error =
+    case error of
+        FieldCollision { name, pattern, collisions } ->
+            { title = "Field collision in route " ++ name
+            , description =
+                "The field "
+                    ++ name
+                    ++ " in route "
+                    ++ name
+                    ++ " is used in multiple places in the URL pattern "
+                    ++ pattern
+                    ++ ". The fields that collide are: "
+                    ++ (Set.toList collisions
+                            |> String.join ", "
+                       )
+            }
+
+        OverlappingRoutes { nameOne, patternOne, nameTwo, patternTwo } ->
+            { title = "Overlapping routes"
+            , description = "The routes " ++ nameOne ++ " and " ++ nameTwo ++ " have overlapping URL patterns. The patterns are: " ++ patternOne ++ " and " ++ patternTwo
+            }
+
+        Unreachable { name, pattern } ->
+            { title = "Unreachable route"
+            , description = "The route " ++ name ++ " with pattern " ++ pattern ++ " is unreachable ore general pattern."
+            }
+
+
+checkForErrors : List Options.Route.Page -> List Error
+checkForErrors routes =
+    List.filterMap checkForFieldCollisions routes
+        ++ (List.foldl (checkForOverlaps routes) ( Set.empty, [] ) routes
+                |> Tuple.second
+           )
+
+
+
+-- ++ List.foldl checkForUnreachable [] routes
+-- {-|
+-- A path is unreachable if
+-- -}
+-- checkForUnreachable : Options.Route.Page -> List Error -> List Error
+-- checkForUnreachable route errors =
+--     let
+--         (Options.Route.UrlPattern { path, queryParams }) =
+--             route.url
+--         ( _, collisionsFound ) =
+--             List.foldl
+--                 (\piece ( found, collisions ) ->
+--                     case piece of
+--                         Options.Route.Token _ ->
+--                             ( found, collisions )
+--                         Options.Route.Variable name ->
+--                             ( found, collisions )
+--                 )
+--                 ( queryParams.specificFields
+--                 , Set.empty
+--                 )
+--                 path
+--     in
+--     if Set.isEmpty collisionsFound then
+--         Unreachable
+--             { name = route.id
+--             , pattern = route.id
+--             }
+--             :: errors
+--     else
+--         errors
+
+
+checkForOverlaps : List Options.Route.Page -> Options.Route.Page -> ( Set String, List Error ) -> ( Set String, List Error )
+checkForOverlaps routes route cursor =
+    List.foldl (isOverlapping route) cursor routes
+
+
+{-| Collisions happen when two routes are the same length and have the same tokens in the same position
+
+    /token/two
+    /:token/two
+    /token/:two
+    /:token/:two
+
+-}
+isOverlapping : Options.Route.Page -> Options.Route.Page -> ( Set String, List Error ) -> ( Set String, List Error )
+isOverlapping route otherRoute ( alreadyOverlapping, errors ) =
+    let
+        _ =
+            Debug.log "Checking for overlap" ( alreadyOverlapping, route.id )
+    in
+    if
+        (route.id == otherRoute.id)
+            || Set.member route.id alreadyOverlapping
+            || Set.member otherRoute.id alreadyOverlapping
+    then
+        let
+            _ =
+                Debug.log "    SKIP" "--"
+        in
+        ( alreadyOverlapping, errors )
+
+    else
+        let
+            (Options.Route.UrlPattern one) =
+                route.url
+
+            (Options.Route.UrlPattern two) =
+                otherRoute.url
+        in
+        if List.length one.path /= List.length two.path then
+            let
+                _ =
+                    Debug.log "    SKIP" "-- mismatched length"
+            in
+            ( alreadyOverlapping, errors )
+
+        else
+            let
+                ( foundOverlap, _ ) =
+                    List.foldl
+                        (\piece ( overlap, second ) ->
+                            if not overlap then
+                                ( overlap, [] )
+
+                            else
+                                case second of
+                                    [] ->
+                                        ( overlap, [] )
+
+                                    (Options.Route.Token secondToken) :: rest ->
+                                        case piece of
+                                            Options.Route.Token token ->
+                                                ( token == secondToken, rest )
+
+                                            Options.Route.Variable name ->
+                                                ( False
+                                                , rest
+                                                )
+
+                                    (Options.Route.Variable _) :: rest ->
+                                        case piece of
+                                            Options.Route.Variable _ ->
+                                                ( True, rest )
+
+                                            Options.Route.Token token ->
+                                                ( False
+                                                , rest
+                                                )
+                        )
+                        ( True, two.path )
+                        one.path
+            in
+            if foundOverlap then
+                let
+                    _ =
+                        Debug.log "    FOUND" "--"
+                in
+                ( alreadyOverlapping
+                    |> Set.insert route.id
+                    |> Set.insert otherRoute.id
+                , OverlappingRoutes
+                    { nameOne = route.id
+                    , patternOne = route.id
+                    , nameTwo = otherRoute.id
+                    , patternTwo = otherRoute.id
+                    }
+                    :: errors
+                )
+
+            else
+                let
+                    _ =
+                        Debug.log "    SKIP2" "--"
+                in
+                ( alreadyOverlapping, errors )
+
+
+checkForFieldCollisions : Options.Route.Page -> Maybe Error
+checkForFieldCollisions route =
+    let
+        (Options.Route.UrlPattern { path, queryParams }) =
+            route.url
+
+        ( _, collisionsFound ) =
+            List.foldl
+                (\piece ( found, collisions ) ->
+                    case piece of
+                        Options.Route.Token _ ->
+                            ( found, collisions )
+
+                        Options.Route.Variable name ->
+                            if Set.member name found then
+                                ( found
+                                , Set.insert name collisions
+                                )
+
+                            else
+                                ( Set.insert name found
+                                , collisions
+                                )
+                )
+                ( queryParams.specificFields
+                , Set.empty
+                )
+                path
+    in
+    if Set.isEmpty collisionsFound then
+        Nothing
+
+    else
+        Just <|
+            FieldCollision
+                { name = route.id
+                , pattern = route.id
+                , collisions = collisionsFound
+                }
+
+
+generate : List Options.Route.Page -> Result (List Error) Elm.File
 generate unsorted =
     let
         routes =
             List.sortBy routeOrder unsorted
+
+        errors =
+            checkForErrors routes
     in
-    Elm.fileWith [ "App", "Route" ]
-        { docs =
-            \groups ->
-                groups
-                    |> List.sortBy
-                        (\doc ->
-                            case doc.group of
-                                Nothing ->
-                                    0
+    case errors of
+        [] ->
+            Ok <|
+                Elm.fileWith [ "App", "Route" ]
+                    { docs =
+                        \groups ->
+                            groups
+                                |> List.sortBy
+                                    (\doc ->
+                                        case doc.group of
+                                            Nothing ->
+                                                0
 
-                                Just "Route" ->
-                                    1
+                                            Just "Route" ->
+                                                1
 
-                                Just "Params" ->
-                                    2
+                                            Just "Params" ->
+                                                2
 
-                                Just "Encodings" ->
-                                    3
+                                            Just "Encodings" ->
+                                                3
 
-                                _ ->
-                                    4
-                        )
-                    |> List.map Elm.docs
-        , aliases = []
-        }
-        (List.concat
-            [ [ Elm.customType "Route"
-                    (List.map
-                        (\route ->
-                            Elm.variantWith
-                                route.id
-                                [ paramType route
-                                ]
-                        )
-                        routes
+                                            _ ->
+                                                4
+                                    )
+                                |> List.map Elm.docs
+                    , aliases = []
+                    }
+                    (List.concat
+                        [ [ Elm.customType "Route"
+                                (List.map
+                                    (\route ->
+                                        Elm.variantWith
+                                            route.id
+                                            [ paramType route
+                                            ]
+                                    )
+                                    routes
+                                )
+                                |> Elm.exposeWith
+                                    { exposeConstructor = True
+                                    , group = Just "Route"
+                                    }
+                          ]
+                        , List.map
+                            (\route ->
+                                Elm.alias (route.id ++ "_Params")
+                                    (paramType route)
+                                    |> Elm.exposeWith
+                                        { exposeConstructor = False
+                                        , group = Just "Params"
+                                        }
+                            )
+                            routes
+                        , urlEncoder routes
+                        , urlParser routes
+                        , urlToId routes
+                        ]
                     )
-                    |> Elm.exposeWith
-                        { exposeConstructor = True
-                        , group = Just "Route"
-                        }
-              ]
-            , List.map
-                (\route ->
-                    Elm.alias (route.id ++ "_Params")
-                        (paramType route)
-                        |> Elm.exposeWith
-                            { exposeConstructor = False
-                            , group = Just "Params"
-                            }
-                )
-                routes
-            , urlEncoder routes
-            , urlParser routes
-            , urlToId routes
-            ]
-        )
+
+        _ ->
+            Err errors
 
 
 hasVars : List Options.Route.UrlPiece -> Bool
@@ -144,7 +389,7 @@ paramType route =
         let
             addCatchall fields =
                 if queryParams.includeCatchAll then
-                    ( "params", Type.dict Type.string Type.string )
+                    ( "params_", Type.dict Type.string Type.string )
                         :: fields
 
                 else
@@ -152,7 +397,7 @@ paramType route =
 
             addFullTail fields =
                 if includePathTail then
-                    ( "path", Type.list Type.string ) :: fields
+                    ( "path_", Type.list Type.string ) :: fields
 
                 else
                     fields

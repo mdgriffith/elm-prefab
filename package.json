@@ -7,7 +7,7 @@
   "scripts": {
     "build": "bash scripts/build.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "gen:install": "(cd plugins ; elm-codegen install)",
+    "gen:install": "(cd plugins/codegen ; elm-codegen install)",
     "gen:run": "pnpm run build ; cd ./examples/elm-gql ; ts-node ../../cli/run.ts generate",
     "example": "pnpm run gen:run ; (cd examples/elm-gql; elm make src/Main.elm --output=/dev/null)",
     "example:build": "cd ./examples/elm-gql ; node ../../dist/elm-prefab.js generate"

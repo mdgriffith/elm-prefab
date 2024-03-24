@@ -24,11 +24,11 @@ This will generate `App/Route.elm` in the `.elm-prefab` directory, which will ha
 type Route
     = Home {}
     | Post { id : String }
-    | Posts { path : List String }
+    | Posts { path_ : List String }
     | Dasboard { search : Maybe String, filter : Maybe String, sort : Maybe String }
     | Everything
         { tag : String
-        , path : List String
+        , path_ : List String
         , search : Maybe String
         , filter : Maybe String
         , sort : Maybe String
@@ -47,7 +47,7 @@ We are introducing a way to describe a URL, but hopefully it'll feel pretty intu
 - `/posts/*` - Parses the full path after `/posts`.
   - So, if you have `/posts/containing/tag/whatever`:
   - you'd get a type
-    `Posts { path = ["containing", "tag", "whatever" ]}`
+    `Posts { path_ = ["containing", "tag", "whatever" ]}`
   - You can only have one `*` at the end
 
 Handling URL query parameters.

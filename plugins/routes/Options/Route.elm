@@ -5,6 +5,7 @@ module Options.Route exposing
     , UrlPiece(..)
     , decode
     , decodePage
+    , parseUrlPattern
     )
 
 {-| -}
@@ -42,7 +43,8 @@ type UrlPattern
 
 
 type alias UrlPatternDetails =
-    { path : List UrlPiece
+    { pattern : String
+    , path : List UrlPiece
     , includePathTail : Bool
     , queryParams : QueryParams
     }
@@ -82,7 +84,7 @@ decodeUrlPattern =
     Json.Decode.string
         |> Json.Decode.andThen
             (\string ->
-                case Parser.run parseUrlPattern string of
+                case Parser.run (parseUrlPattern string) string of
                     Ok urlPattern ->
                         Json.Decode.succeed urlPattern
 
@@ -102,12 +104,13 @@ Which parses
   - and `search` into a list of strings from ?search
 
 -}
-parseUrlPattern : Parser.Parser UrlPattern
-parseUrlPattern =
+parseUrlPattern : String -> Parser.Parser UrlPattern
+parseUrlPattern pattern =
     Parser.succeed
         (\path queryParams ->
             UrlPattern
-                { path = path.path
+                { pattern = pattern
+                , path = path.path
                 , includePathTail = path.includePathTail
                 , queryParams = queryParams
                 }

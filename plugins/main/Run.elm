@@ -48,10 +48,19 @@ main =
                         }
 
                 Ok (Route routes) ->
-                    Ok
-                        { info = []
-                        , files = [ Generate.Route.generate routes ]
-                        }
+                    case Generate.Route.generate routes of
+                        Ok file ->
+                            Ok
+                                { info = []
+                                , files = [ file ]
+                                }
+
+                        Err errors ->
+                            Err
+                                (List.map
+                                    Generate.Route.errorToDetails
+                                    errors
+                                )
 
                 Ok (Assets assets) ->
                     Ok
