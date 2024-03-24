@@ -31,6 +31,8 @@ suite =
     Test.describe "Routes"
         [ overlappingFields
         , overlappingRoutes
+        , routeOrder
+        , parsing
         ]
 
 
@@ -125,4 +127,144 @@ overlappingRoutes =
 
                             Err err ->
                                 Expect.fail ("An unexpected error was returned" ++ Debug.toString err)
+        ]
+
+
+parsing : Test
+parsing =
+    Test.only <|
+        Test.describe "Parsing"
+            [ Test.test "The final slash is optional" <|
+                \_ ->
+                    let
+                        one =
+                            parsePage "Home" "/:id"
+
+                        two =
+                            parsePage "Other" "/:id/"
+                    in
+                    case Result.map2 Tuple.pair one two of
+                        Err err ->
+                            Expect.fail
+                                ("Failed to parse route: " ++ Parser.deadEndsToString err)
+
+                        Ok ( onePage, twoPage ) ->
+                            Expect.equal (toPath onePage.url) (toPath twoPage.url)
+            , Test.test "First slash is required" <|
+                \_ ->
+                    case parsePage "Other" ":id/" of
+                        Err err ->
+                            Expect.pass
+
+                        Ok _ ->
+                            Expect.fail "The first slash is required"
+            , Test.test "Question mark needs something after it" <|
+                \_ ->
+                    case parsePage "Other" "/:id/?" of
+                        Err err ->
+                            Expect.pass
+
+                        Ok _ ->
+                            Expect.fail "Question mark needs something after it"
+            ]
+
+
+toPath : Options.Route.UrlPattern -> List Options.Route.UrlPiece
+toPath (Options.Route.UrlPattern url) =
+    url.path
+
+
+routeOrder : Test
+routeOrder =
+    Test.describe "Route order"
+        [ Test.test "Catch all should be last" <|
+            \_ ->
+                let
+                    one =
+                        parsePage "Home" "/:id/*"
+
+                    two =
+                        parsePage "Other" "/:id/"
+                in
+                case Result.map2 Tuple.pair one two of
+                    Err err ->
+                        Expect.fail
+                            ("Failed to parse route: " ++ Parser.deadEndsToString err)
+
+                    Ok ( onePage, twoPage ) ->
+                        let
+                            sorted =
+                                [ onePage, twoPage ]
+                                    |> List.concatMap Generate.Route.toUrlPatterns
+                                    |> List.sortBy (.pattern >> Generate.Route.routeOrder)
+                                    |> List.map
+                                        (.page >> .id)
+                        in
+                        case sorted of
+                            [ "Other", "Home" ] ->
+                                Expect.pass
+
+                            _ ->
+                                Expect.fail ("An unexpected order was returned! \n" ++ String.join "\n-" sorted)
+        , Test.test "Catch all should be last, " <|
+            \_ ->
+                let
+                    one =
+                        parsePage "Home" "/:id/*"
+
+                    two =
+                        parsePage "Other" "/:id/tests/:thing/other/:thing"
+                in
+                case Result.map2 Tuple.pair one two of
+                    Err err ->
+                        Expect.fail
+                            ("Failed to parse route: " ++ Parser.deadEndsToString err)
+
+                    Ok ( onePage, twoPage ) ->
+                        let
+                            sorted =
+                                [ onePage, twoPage ]
+                                    |> List.concatMap Generate.Route.toUrlPatterns
+                                    |> List.sortBy (.pattern >> Generate.Route.routeOrder)
+                                    |> List.map
+                                        (.page >> .id)
+                        in
+                        case sorted of
+                            [ "Other", "Home" ] ->
+                                Expect.pass
+
+                            _ ->
+                                Expect.fail ("An unexpected order was returned! \n" ++ String.join "\n-" sorted)
+        , Test.test "Known tokens should come before variables" <|
+            \_ ->
+                let
+                    {-
+
+                    -}
+                    one =
+                        parsePage "Home" "/:id/"
+
+                    two =
+                        parsePage "Other" "/test/:id/other/"
+                in
+                case Result.map2 Tuple.pair one two of
+                    Err err ->
+                        Expect.fail
+                            ("Failed to parse route: " ++ Parser.deadEndsToString err)
+
+                    Ok ( onePage, twoPage ) ->
+                        let
+                            sorted =
+                                [ onePage, twoPage ]
+                                    |> List.concatMap Generate.Route.toUrlPatterns
+                                    |> List.sortBy (.pattern >> Generate.Route.routeOrder)
+                                    |> List.map
+                                        (.page >> .id)
+                        in
+                        case sorted of
+                            [ "Other", "Home" ] ->
+                                Expect.pass
+
+                            _ ->
+                                Expect.fail ("An unexpected order was returned! " ++ String.join "\n-" sorted)
         ]

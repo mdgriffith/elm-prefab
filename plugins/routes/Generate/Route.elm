@@ -1,4 +1,10 @@
-module Generate.Route exposing (Error(..), errorToDetails, generate)
+module Generate.Route exposing
+    ( Error(..)
+    , errorToDetails
+    , generate
+    , routeOrder
+    , toUrlPatterns
+    )
 
 import Elm
 import Elm.Annotation as Type
@@ -31,20 +37,30 @@ import Path
 import Set exposing (Set)
 
 
-routeOrder : Options.Route.Page -> List ( Int, String )
-routeOrder page =
-    case page.url of
-        Options.Route.UrlPattern { path } ->
-            List.map
-                (\piece ->
-                    case piece of
-                        Options.Route.Token token ->
-                            ( 0, token )
+{-|
 
-                        Options.Route.Variable name ->
-                            ( 1, name )
-                )
-                path
+  - Tokens come before variables
+  - Catchall path tails should be last
+
+-}
+routeOrder : Options.Route.UrlPattern -> ( Int, List ( Int, String ) )
+routeOrder (Options.Route.UrlPattern pattern) =
+    ( if pattern.includePathTail then
+        1
+
+      else
+        0
+    , List.map
+        (\piece ->
+            case piece of
+                Options.Route.Token token ->
+                    ( 0, token )
+
+                Options.Route.Variable name ->
+                    ( 1, name )
+        )
+        pattern.path
+    )
 
 
 type Error
@@ -284,11 +300,8 @@ checkForFieldCollisions route =
 
 
 generate : List Options.Route.Page -> Result (List Error) Elm.File
-generate unsorted =
+generate routes =
     let
-        routes =
-            List.sortBy routeOrder unsorted
-
         errors =
             checkForErrors routes
     in
@@ -736,7 +749,13 @@ getList field appUrlParams =
 
 
 parseAppUrl : List Options.Route.Page -> Elm.Declaration
-parseAppUrl routes =
+parseAppUrl unsorted =
+    let
+        paths =
+            unsorted
+                |> List.concatMap toUrlPatterns
+                |> List.sortBy (.pattern >> routeOrder)
+    in
     Elm.declaration "parseAppUrl"
         (Elm.fn
             ( "appUrl", Just Gen.AppUrl.annotation_.appUrl )
@@ -744,7 +763,7 @@ parseAppUrl routes =
                 Elm.Case.custom
                     (Elm.get "path" appUrl)
                     (Type.list Type.string)
-                    (List.concatMap (toBranchPattern appUrl) routes
+                    (List.map (toBranchPattern appUrl) paths
                         ++ [ Branch.ignore Elm.nothing
                            ]
                     )
@@ -760,19 +779,49 @@ parseAppUrl routes =
         )
 
 
-toBranchPattern : Elm.Expression -> Options.Route.Page -> List (Branch.Pattern Elm.Expression)
-toBranchPattern appUrl page =
-    urlToPatterns False appUrl page page.url
-        :: List.map (urlToPatterns True appUrl page) page.redirectFrom
+toUrlPatterns :
+    Options.Route.Page
+    ->
+        List
+            { page : Options.Route.Page
+            , redirect : Bool
+            , pattern : Options.Route.UrlPattern
+            }
+toUrlPatterns page =
+    { page = page
+    , redirect = False
+    , pattern = page.url
+    }
+        :: List.map
+            (\from ->
+                { page = page
+                , redirect = True
+                , pattern = from
+                }
+            )
+            page.redirectFrom
 
 
-urlToPatterns : Bool -> Elm.Expression -> Options.Route.Page -> Options.Route.UrlPattern -> Branch.Pattern Elm.Expression
-urlToPatterns isRedirect appUrl page (Options.Route.UrlPattern pattern) =
+toBranchPattern :
+    Elm.Expression
+    ->
+        { page : Options.Route.Page
+        , redirect : Bool
+        , pattern : Options.Route.UrlPattern
+        }
+    -> Branch.Pattern Elm.Expression
+toBranchPattern appUrl routeInfo =
     let
+        page =
+            routeInfo.page
+
+        (Options.Route.UrlPattern pattern) =
+            routeInfo.pattern
+
         toResult route =
             Elm.record
                 [ ( "route", route )
-                , ( "isRedirect", Elm.bool isRedirect )
+                , ( "isRedirect", Elm.bool routeInfo.redirect )
                 ]
                 |> Elm.just
     in
