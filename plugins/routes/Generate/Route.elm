@@ -276,19 +276,11 @@ checkForOverlaps routes route alreadyOverlapping =
 -}
 isOverlapping : Options.Route.Page -> Options.Route.Page -> ( Set String, List Error ) -> ( Set String, List Error )
 isOverlapping route otherRoute ( alreadyOverlapping, errors ) =
-    let
-        _ =
-            Debug.log "Checking for overlap" ( alreadyOverlapping, route.id )
-    in
     if
         (route.id == otherRoute.id)
             || Set.member route.id alreadyOverlapping
             || Set.member otherRoute.id alreadyOverlapping
     then
-        let
-            _ =
-                Debug.log "    SKIP" "--"
-        in
         ( alreadyOverlapping, errors )
 
     else
@@ -300,10 +292,6 @@ isOverlapping route otherRoute ( alreadyOverlapping, errors ) =
                 otherRoute.url
         in
         if List.length one.path /= List.length two.path then
-            let
-                _ =
-                    Debug.log "    SKIP" "-- mismatched length"
-            in
             ( alreadyOverlapping, errors )
 
         else
@@ -343,10 +331,6 @@ isOverlapping route otherRoute ( alreadyOverlapping, errors ) =
                         one.path
             in
             if foundOverlap then
-                let
-                    _ =
-                        Debug.log "    FOUND" "--"
-                in
                 ( alreadyOverlapping
                     |> Set.insert route.id
                     |> Set.insert otherRoute.id
@@ -360,10 +344,6 @@ isOverlapping route otherRoute ( alreadyOverlapping, errors ) =
                 )
 
             else
-                let
-                    _ =
-                        Debug.log "    SKIP2" "--"
-                in
                 ( alreadyOverlapping, errors )
 
 
