@@ -55,6 +55,10 @@ But I want that flexibility by default for all future apps I write in Elm.
 
 When we say a Single-page-app, we don't want the single finger of the monkey paw to curl.
 
+## Page transitions
+
+Being able to track mulitple page states also sets us up for seamless page transitions.
+
 ## Page state from a dictionary
 
 So, what does this mean for `elm-prefab`?
@@ -120,7 +124,7 @@ type alias Regions view =
     }
 ```
 
-The `Regions` type is read via some :magic_wand: (we ask a special version of the Elm Compiler to read it for us), and what it means is that `primary`, `nav` and `detail` are the top-level \_view regions_ for our app.
+The `Regions` type is read via some :magic*wand: (we ask a special version of the Elm Compiler to read it for us), and what it means is that `primary`, `nav` and `detail` are the top-level \_view regions* for our app.
 
 Concretely this means that you can send a command that says "load this page in this region".
 
