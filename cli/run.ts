@@ -9,6 +9,7 @@ import * as Theme from "./run_theme";
 import * as Interactive from "./run_interactive";
 import * as Routes from "./run_routes";
 import * as Assets from "./run_assets";
+import * as GraphQL from "./run_graphql";
 import * as Output from "./output/summary";
 
 // Create readline interface
@@ -110,6 +111,9 @@ program
             break;
           case "assets":
             plugins.push(Assets.generator(config.assets));
+            break;
+          case "graphql":
+            plugins.push(GraphQL.generator(config.graphql));
             break;
           // case "interactive":
           // plugins.push(Interactive.generator(config.interactive));
