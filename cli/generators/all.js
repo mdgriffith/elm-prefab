@@ -23211,7 +23211,7 @@ var $author$project$Generate$Route$renderPath = F4(
 		var fullPath = includePathTail ? A2(
 			$mdgriffith$elm_codegen$Elm$Op$append,
 			base,
-			A2($mdgriffith$elm_codegen$Elm$get, 'path', paramValues)) : base;
+			A2($mdgriffith$elm_codegen$Elm$get, 'path_', paramValues)) : base;
 		var allParams = $author$project$Generate$Route$hasNoParams(queryParams) ? $author$project$Gen$Dict$empty : (queryParams.includeCatchAll ? A2($mdgriffith$elm_codegen$Elm$get, 'params', paramValues) : A3(
 			$elm$core$Set$foldl,
 			F2(
@@ -24749,7 +24749,7 @@ var $author$project$Generate$Route$toBranchPattern = F2(
 										$mdgriffith$elm_codegen$Elm$record(
 										A2(
 											$elm$core$List$cons,
-											_Utils_Tuple2('path', remaining),
+											_Utils_Tuple2('path_', remaining),
 											fields))
 									])));
 					}),

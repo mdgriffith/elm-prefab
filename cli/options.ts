@@ -3,7 +3,7 @@ export enum GeneratorType {
   Standard = 1,
 }
 
-export type RunOptions = { internalSrc: string; src: string };
+export type RunOptions = { internalSrc: string; js: string; src: string };
 
 export type Generator = {
   name: string;

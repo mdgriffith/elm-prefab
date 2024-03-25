@@ -636,7 +636,7 @@ renderPath path includePathTail queryParams paramValues =
         fullPath =
             if includePathTail then
                 Elm.Op.append base
-                    (Elm.get "path" paramValues)
+                    (Elm.get "path_" paramValues)
 
             else
                 base
@@ -932,7 +932,7 @@ toBranchPattern appUrl routeInfo =
                     in
                     Elm.apply
                         (Elm.val page.id)
-                        [ Elm.record (( "path", remaining ) :: fields)
+                        [ Elm.record (( "path_", remaining ) :: fields)
                         ]
                         |> toResult
             }

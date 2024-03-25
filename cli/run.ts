@@ -19,6 +19,7 @@ const rl = createInterface({
 
 type GenerateOptions = {
   src: string;
+  js: string;
   plugins: Options.Generator[];
 };
 
@@ -28,9 +29,14 @@ export const generate = async (
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
   for (const generator of options.plugins) {
-    generator.init({ internalSrc: "./.elm-prefab", src: options.src });
+    generator.init({
+      internalSrc: "./.elm-prefab",
+      js: options.js,
+      src: options.src,
+    });
     results[generator.name] = await generator.run({
       internalSrc: "./.elm-prefab",
+      js: options.js,
       src: options.src,
     });
   }
@@ -114,8 +120,9 @@ program
       }
     }
     const src = config.src || "./src";
+    const js = config.js || "./js";
 
-    const summary = await generate({ src: src, plugins: plugins });
+    const summary = await generate({ src, js, plugins: plugins });
 
     Output.summary(summary);
     process.exit(0);

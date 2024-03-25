@@ -8,5 +8,106 @@
   },
   "assets": {
     "Posts": { "src": "./guide", "onServer": "/posts" }
+  },
+  "theme": {
+    "colors": {
+      "black": "#000000",
+      "white": "#ffffff",
+      "neutral": {
+        "50": "#fafafa",
+        "100": "#f5f5f5",
+        "200": "#e5e5e5",
+        "300": "#d4d4d4",
+        "400": "#a3a3a3",
+        "500": "#737373",
+        "600": "#525252",
+        "700": "#404040",
+        "800": "#262626",
+        "900": "#171717",
+        "950": "#0a0a0a"
+      }
+    },
+    "palettes": {
+      "primary": {
+        "background": "#ec4899",
+        "foreground": "#f5f5f5",
+        "border": "#ec4899"
+      },
+      "secondary": {
+        "background": "#ffffff",
+        "foreground": "#262626",
+        "border": "#d4d4d4"
+      },
+      "danger": {
+        "background": "#ec4899",
+        "foreground": "#f5f5f5",
+        "border": "#ec4899"
+      },
+      "neutral": {
+        "background": "#ffffff",
+        "foreground": "#000000",
+        "border": "#000000"
+      },
+      "neutralInverted": {
+        "background": "#000000",
+        "foreground": "#ffffff",
+        "border": "#000000"
+      }
+    },
+    "spacing": {
+      "zero": 0,
+      "sm4": 2,
+      "sm3": 4,
+      "sm2": 8,
+      "sm": 12,
+      "md": 16,
+      "lg": 20,
+      "lg1": 24,
+      "lg2": 32,
+      "lg3": 40,
+      "lg4": 80
+    },
+    "typography": {
+      "h1": {
+        "face": "EB Garamond",
+        "fallback": ["serif"],
+        "size": 28,
+        "color": "#171717"
+      },
+      "h2": {
+        "face": "EB Garamond",
+        "fallback": ["serif"],
+        "size": 24,
+        "color": "#171717"
+      },
+      "h3": {
+        "face": "EB Garamond",
+        "fallback": ["serif"],
+        "size": 20,
+        "color": "#171717"
+      },
+      "huge": {
+        "face": "EB Garamond",
+        "fallback": ["sans-serif"],
+        "size": 120,
+        "color": "#171717"
+      },
+      "default": {
+        "face": "Noto Sans",
+        "fallback": ["sans-serif"],
+        "size": 16,
+        "color": "#171717"
+      },
+      "small": {
+        "face": "Noto Sans",
+        "fallback": ["sans-serif"],
+        "size": 10,
+        "color": "#171717"
+      }
+    },
+    "borders": {
+      "small": { "rounded": 2, "width": 1 }
+    },
+    "shadows": []
   }
 }
