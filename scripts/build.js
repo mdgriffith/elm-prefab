@@ -41,6 +41,55 @@ export const toBody = (replacements: Map<string, string>) => {
 }
 `;
 
+function convertToDirName(inputString) {
+  // This regex looks for 'to' followed by a capitalized word
+  const regex = /to([A-Z][a-z]*)/g;
+
+  // The replacement function takes the match, converts the first character after 'to' to lowercase
+  // and returns the rest of the string as is.
+  return inputString.replace(regex, (match, p1) => {
+    return p1.charAt(0).toLowerCase() + p1.slice(1);
+  });
+}
+
+const templateNameToDir = (template) => {
+  if (template == "toHidden") {
+    return "internalSrc";
+  }
+  return convertToDirName(template);
+};
+
+// string -> string | null
+const toCopyAll = (templates) => {
+  if (templates.length === 0) {
+    return null;
+  }
+  let imports = "";
+  for (const template of templates) {
+    imports += `import * as ${template} from "./${template}";\n`;
+  }
+
+  let copyCommands = "";
+  for (const template of templates) {
+    if (template == "toHidden") {
+      copyCommands += `  ${template}.copyTo(options.internalSrc, true)\n`;
+    } else {
+      copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
+        template
+      )}, false)\n`;
+    }
+  }
+
+  return `
+import { RunOptions } from "../../options";
+${imports}
+
+export const copy = (options: RunOptions) => {
+${copyCommands}}
+
+  `;
+};
+
 const copyFile = (file, targetFilePath) => {
   const targetDir = path.dirname(targetFilePath);
   let body = JSON.stringify(fs.readFileSync(`./${file}`).toString());
@@ -67,6 +116,15 @@ const copyDir = (dir, targetFilePath) => {
   );
 };
 
+const copyDirIfExists = (baseDir, pluginName, name, templates) => {
+  const dir = path.join(baseDir, "templates", name);
+  if (fs.existsSync(dir)) {
+    const targetDir = `./cli/templates/${pluginName}/${name}.ts`;
+    copyDir(dir, targetDir);
+    templates.push(name);
+  }
+};
+
 const isDirectory = (pathStr) => fs.statSync(pathStr).isDirectory();
 const getDirectories = (pathStr) =>
   fs
@@ -91,11 +149,26 @@ const getFilesRecursively = (filepath) => {
   return files.concat(getFiles(filepath));
 };
 
-//
-copyDir("plugins/app/templates/engine", "./cli/templates/app/engine.ts");
-copyDir("plugins/app/templates/toCopy", "./cli/templates/app/toCopy.ts");
-copyFile("plugins/app/templates/extra/Page.elm", "./cli/templates/app/page.ts");
+for (const dir of getDirectories("plugins")) {
+  const pluginName = path.basename(dir);
+  const templates = [];
+  copyDirIfExists(dir, pluginName, "toHidden", templates);
+  copyDirIfExists(dir, pluginName, "toSrc", templates);
+  copyDirIfExists(dir, pluginName, "toJs", templates);
+  copyDirIfExists(dir, pluginName, "toRoot", templates);
 
-//
-copyDir("plugins/theme/engine", "./cli/templates/theme/engine.ts");
-copyDir("plugins/theme/js", "./cli/templates/theme/js.ts");
+  const maybeCopyAll = toCopyAll(templates);
+  if (maybeCopyAll) {
+    fs.writeFileSync(`./cli/templates/${pluginName}/copyAll.ts`, maybeCopyAll);
+  }
+
+  const oneOffDir = path.join(dir, "templates", "oneOff");
+  if (fs.existsSync(oneOffDir)) {
+    for (const file of getFilesRecursively(oneOffDir)) {
+      copyFile(
+        file,
+        `./cli/templates/${pluginName}/oneOff/${path.basename(file)}.ts`
+      );
+    }
+  }
+}

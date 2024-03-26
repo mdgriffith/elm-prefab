@@ -3,12 +3,16 @@ export enum GeneratorType {
   Standard = 1,
 }
 
-export type RunOptions = { internalSrc: string; js: string; src: string };
+export type RunOptions = {
+  internalSrc: string;
+  js: string;
+  src: string;
+  root: string;
+};
 
 export type Generator = {
   name: string;
   generatorType: GeneratorType;
-  init: (options: RunOptions) => void;
   run: (options: RunOptions) => Promise<Summary>;
 };
 

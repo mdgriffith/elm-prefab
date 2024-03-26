@@ -5,7 +5,6 @@ export const generator = (options: any): Options.Generator => {
   return {
     name: "interactive",
     generatorType: Options.GeneratorType.Standard,
-    init: (runOptions: Options.RunOptions) => {},
     run: async (runOptions: Options.RunOptions) => {
       const modules = options.modules;
       if (modules.length == 0) {

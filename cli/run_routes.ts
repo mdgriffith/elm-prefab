@@ -13,10 +13,6 @@ export const generator = (options: any): Options.Generator => {
   return {
     name: "routes",
     generatorType: Options.GeneratorType.Standard,
-    init: (runOptions: Options.RunOptions) => {
-      // Copy static files
-      // Which is nothing!
-    },
     run: async (runOptions: Options.RunOptions) => {
       // Copy static files
 

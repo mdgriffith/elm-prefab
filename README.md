@@ -18,9 +18,9 @@ Each plugin is independent, so you can pick and choose what you want.
 
 - **Routes** - Spend as little time futzing with routes as possible!
 
-- **Assets** - Be able to link to any static asset
+- **Assets** - Be able to link to a static asset
 
-- **GraphQL** - GraphQL queries and mutations and get Elm code to use them! (Powered by [vendrinc/elm-gql](https://github.com/Vendrinc/elm-gql))
+- **GraphQL** - Write GraphQL queries and mutations and get Elm code to use them! (Powered by [vendrinc/elm-gql](https://github.com/Vendrinc/elm-gql))
 
 [The Elm Architecture](https://guide.elm-lang.org/architecture/) is a very stable way to build apps, but there are some nuances to master.
 

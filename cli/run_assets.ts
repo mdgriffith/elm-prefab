@@ -51,10 +51,6 @@ export const generator = (options: any): Options.Generator => {
   return {
     name: "assets",
     generatorType: Options.GeneratorType.Standard,
-    init: (runOptions: Options.RunOptions) => {
-      // Copy static files
-      // Which is nothing!
-    },
     run: async (runOptions: Options.RunOptions) => {
       /* The expected shape of the options is one of the following forms:
        

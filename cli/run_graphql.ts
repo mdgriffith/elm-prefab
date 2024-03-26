@@ -20,7 +20,6 @@ export const generator = (options: GQLOptions): Options.Generator => {
   return {
     name: "theme",
     generatorType: Options.GeneratorType.Standard,
-    init: (runOptions: Options.RunOptions) => {},
     run: async (runOptions: Options.RunOptions) => {
       const schema = replaceEnvVars(options.schema);
       if (typeof schema !== "string") {

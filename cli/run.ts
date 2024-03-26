@@ -29,17 +29,14 @@ export const generate = async (
 ): Promise<Options.SummaryMap> => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
+  const runOptions: Options.RunOptions = {
+    internalSrc: "./.elm-prefab",
+    js: options.js,
+    src: options.src,
+    root: ".",
+  };
   for (const generator of options.plugins) {
-    generator.init({
-      internalSrc: "./.elm-prefab",
-      js: options.js,
-      src: options.src,
-    });
-    results[generator.name] = await generator.run({
-      internalSrc: "./.elm-prefab",
-      js: options.js,
-      src: options.src,
-    });
+    results[generator.name] = await generator.run(runOptions);
   }
   return results;
 };

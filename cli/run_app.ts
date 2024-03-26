@@ -1,25 +1,21 @@
 import * as Generator from "./run_generator";
-import * as AppEngine from "./templates/app/engine";
-import * as AppToCopy from "./templates/app/toCopy";
+import * as AppEngine from "./templates/app/copyAll";
 import * as Options from "./options";
 import * as fs from "fs";
 import * as path from "path";
 import * as ElmDev from "./elm_dev";
 
-const Page = require("./templates/app/page");
+const Page = require("./templates/app/oneOff/Page.elm.ts");
 
 export const generator = (options: any): Options.Generator => {
   return {
     name: "app",
     generatorType: Options.GeneratorType.Standard,
-    init: (runOptions: Options.RunOptions) => {
-      // Copy static files
-      AppEngine.copyTo(runOptions.internalSrc, true);
-      AppToCopy.copyTo(runOptions.src, false);
-    },
+
     run: async (runOptions: Options.RunOptions) => {
       // Copy static files
-      AppEngine.copyTo(runOptions.internalSrc, true);
+      AppEngine.copy(runOptions);
+
       const viewRegions = await ElmDev.execute("explain App.View.Regions");
 
       await Generator.run(runOptions.internalSrc, {
