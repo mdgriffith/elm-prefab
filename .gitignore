@@ -13,6 +13,7 @@ editor/codegen/Gen
 dist
 .elm-press
 .elm-prefab
-index.html
+./index.html
+examples/*/index.html
 plugins/dev
 examples/test
