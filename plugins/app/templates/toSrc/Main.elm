@@ -2,8 +2,8 @@ module Main exposing (main)
 
 {-| -}
 
+import App
 import App.Effect
-import App.Engine
 import App.Flags
 import App.Page.Id
 import App.Route
@@ -25,9 +25,9 @@ type alias Model =
 
 
 {-| -}
-main : App.Engine.App Model Msg
+main : App.App Model Msg
 main =
-    App.Engine.app
+    App.app
         { init = init
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlRequested
@@ -44,24 +44,24 @@ main =
                         , body = [ Html.text "Nothing" ]
                         }
 
-                    Just (App.Engine.Loading _) ->
+                    Just (App.Loading _) ->
                         { title = "Loading"
                         , body = [ Html.text "Loading" ]
                         }
 
-                    Just App.Engine.NotFound ->
+                    Just App.NotFound ->
                         --
                         { title = "Not found"
                         , body = [ Html.text "Not found" ]
                         }
 
-                    Just (App.Engine.Error error) ->
+                    Just (App.Error error) ->
                         -- error is a type you control that lives at App.Page.Error
                         { title = "Not found"
                         , body = [ Html.text "Not found" ]
                         }
 
-                    Just (App.Engine.View page) ->
+                    Just (App.View page) ->
                         view fromFrameMsg model page
         }
 
@@ -98,12 +98,12 @@ subscriptions model =
     App.Sub.none
 
 
-toSub : App.Engine.SubOptions Msg -> Model -> App.Sub.Sub (App.Engine.Msg Msg) -> Sub.Sub (App.Engine.Msg Msg)
+toSub : App.SubOptions Msg -> Model -> App.Sub.Sub (App.Msg Msg) -> Sub.Sub (App.Msg Msg)
 toSub options model sub =
     App.Sub.toSubscription options sub
 
 
-toCmd : App.Engine.CmdOptions Msg -> Model -> App.Effect.Effect (App.Engine.Msg Msg) -> Cmd (App.Engine.Msg Msg)
+toCmd : App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
 toCmd options model effect =
     case model.flags of
         Err _ ->
@@ -114,10 +114,10 @@ toCmd options model effect =
 
 
 view :
-    (Msg -> App.Engine.Msg Msg)
+    (Msg -> App.Msg Msg)
     -> Model
-    -> App.View.View (App.Engine.Msg Msg)
-    -> Browser.Document (App.Engine.Msg Msg)
+    -> App.View.View (App.Msg Msg)
+    -> Browser.Document (App.Msg Msg)
 view fromFrameMsg model innerView =
     { title = innerView.title
     , body =

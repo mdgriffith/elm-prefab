@@ -9,7 +9,7 @@ import Elm.Declare
 import Elm.Let
 import Elm.Op
 import Gen.App.Effect
-import Gen.App.Engine.Page
+import Gen.App.Page
 import Gen.App.Page.Error
 import Gen.App.State
 import Gen.App.Sub
@@ -70,7 +70,7 @@ generate pageUsages =
         getPageInit =
             Press.Model.getPageInit pageUsages
     in
-    Elm.file [ "App", "Engine" ]
+    Elm.file [ "App" ]
         [ Elm.alias "App"
             (Type.namedWith []
                 "Program"
@@ -201,7 +201,7 @@ toPageLimit pages =
                                     toBranch
                                         (\_ ->
                                             Elm.apply
-                                                Gen.App.Engine.Page.values_.toInternalDetails
+                                                Gen.App.Page.values_.toInternalDetails
                                                 [ pageConfig ]
                                                 |> Elm.Op.pipe (Elm.val ".pageCacheLimit")
                                         )
@@ -273,7 +273,7 @@ toPageKey pages =
                                                 )
                                                 |> Elm.Let.value "pageDetails"
                                                     (Elm.apply
-                                                        Gen.App.Engine.Page.values_.toInternalDetails
+                                                        Gen.App.Page.values_.toInternalDetails
                                                         [ pageConfig ]
                                                     )
                                                 |> Elm.Let.toExpression

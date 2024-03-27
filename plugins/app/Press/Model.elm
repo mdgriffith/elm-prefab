@@ -9,7 +9,7 @@ import Elm.Declare
 import Elm.Let
 import Elm.Op
 import Gen.App.Effect
-import Gen.App.Engine.Page
+import Gen.App.Page
 import Gen.App.Page.Error
 import Gen.App.State
 import Gen.App.Sub
@@ -500,7 +500,7 @@ types =
             , ( "frame", Type.var "frame" )
             ]
     , pageLoadResult =
-        Gen.App.Engine.Page.annotation_.init
+        Gen.App.Page.annotation_.init
             appMsg
             (Type.named [] "State")
     , regionsRecord = regionsRecord
@@ -631,7 +631,7 @@ loadPage routes =
                 (\pageKey pageGroupKey keep ->
                     Elm.Case.custom initialization
                         (Type.namedWith
-                            [ "App", "Engine", "Page" ]
+                            [ "App", "Page" ]
                             "InitPlan"
                             [ Type.var "msg", Type.var "model" ]
                         )
@@ -793,7 +793,7 @@ preloadPage routes =
                 (\pageId ->
                     Elm.Case.custom initialization
                         (Type.namedWith
-                            [ "App", "Engine", "Page" ]
+                            [ "App", "Page" ]
                             "InitPlan"
                             [ Type.var "msg", Type.var "model" ]
                         )
@@ -947,7 +947,7 @@ getPageInit pages =
                                                     ]
                                                     |> Elm.Op.pipe
                                                         (Elm.apply
-                                                            Gen.App.Engine.Page.values_.mapInitPlan
+                                                            Gen.App.Page.values_.mapInitPlan
                                                             [ Elm.record
                                                                 [ ( "onModel", Elm.val pageInfo.id )
                                                                 , ( "onMsg"
@@ -961,7 +961,7 @@ getPageInit pages =
                                             )
                                             |> Elm.Let.value "pageDetails"
                                                 (Elm.apply
-                                                    Gen.App.Engine.Page.values_.toInternalDetails
+                                                    Gen.App.Page.values_.toInternalDetails
                                                     [ pageConfig ]
                                                 )
                                             |> Elm.Let.value "pageKey"
@@ -975,13 +975,13 @@ getPageInit pages =
                                 case pageInfo.paramType of
                                     Nothing ->
                                         Elm.Case.branch0 pageInfo.id
-                                            Gen.App.Engine.Page.notFound
+                                            Gen.App.Page.notFound
 
                                     Just paramType ->
                                         Elm.Case.branch1 pageInfo.id
                                             ( "params", Type.unit )
                                             (\params ->
-                                                Gen.App.Engine.Page.notFound
+                                                Gen.App.Page.notFound
                                             )
                         )
                 )
@@ -998,7 +998,7 @@ withPageHelper pageConfig fieldName fn =
         )
         |> Elm.Let.value "pageDetails"
             (Elm.apply
-                Gen.App.Engine.Page.values_.toInternalDetails
+                Gen.App.Page.values_.toInternalDetails
                 [ pageConfig ]
             )
         |> Elm.Let.toExpression

@@ -12,8 +12,8 @@
       "lydell/elm-app-url": "1.0.2"
     },
     "local": [
-      "../app/templates/engine/",
-      "../app/templates/toCopy/",
+      "../app/templates/toSrc/",
+      "../app/templates/toHidden/",
       "/Users/mattgriffith/projects/mdgriffith/elm-ui/docs.json"
     ]
   }

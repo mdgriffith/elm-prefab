@@ -1,0 +1,29 @@
+// @ts-ignore
+import { Elm } from "../src/Main.elm";
+import * as Clipboard from "./webcomponents/clipboard";
+import * as LocalStorage from "./webcomponents/localStorage";
+
+// Boot up the Elm App
+const app = Elm.Main.init({
+  flags: { now: Date.now(), localStorage: LocalStorage.getAll() },
+});
+
+// Handling data from elm to JS
+app.ports?.outgoing?.subscribe?.((message: any) => {
+  switch (message.tag) {
+    case "local-storage":
+      LocalStorage.set(message.details.key, message.details.value);
+      break;
+
+    case "local-storage-clear":
+      LocalStorage.clear(message.details.key);
+      break;
+
+    case "copy-to-clipboard":
+      Clipboard.copy(message.details.text);
+      break;
+
+    default:
+      break;
+  }
+});

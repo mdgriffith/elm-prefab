@@ -1,4 +1,4 @@
-module App.Engine.Page exposing
+module App.Page exposing
     ( Page, page
     , Init, init, initWith, notFound, loadFrom, error
     , withGuard, withKey, withPageCacheLimit

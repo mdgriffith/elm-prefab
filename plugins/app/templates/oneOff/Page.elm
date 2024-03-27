@@ -29,7 +29,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page params Msg Model
+page : App.Page.Page App.Shared.Shared params Msg Model
 page =
     App.Page.page
         { init = init
