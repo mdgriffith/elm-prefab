@@ -1,3 +1,13 @@
+export type Config = {
+  src?: string;
+  js?: string;
+  app?: any;
+  routes?: any;
+  assets?: any;
+  theme?: any;
+  graphql?: any;
+};
+
 export enum GeneratorType {
   DataRetrieval = 0,
   Standard = 1,

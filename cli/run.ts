@@ -45,7 +45,7 @@ export const generate = async (
 
 const program = new Command();
 
-const defaultConfig = {
+const defaultConfig: Options.Config = {
   app: {},
   routes: {
     Home: "/",
@@ -55,14 +55,55 @@ const defaultConfig = {
   assets: { Assets: { src: "./assets", onServer: "assets" } },
 };
 
+const readConfig = async (filepath: string): Promise<Options.Config | null> => {
+  return null;
+};
+
+const runGeneration = async (config: Options.Config) => {
+  const plugins: Options.Generator[] = [];
+  for (const pluginName in config) {
+    if (config.hasOwnProperty(pluginName)) {
+      switch (pluginName) {
+        case "src":
+          break;
+        case "routes":
+          plugins.push(Routes.generator(config.routes));
+          break;
+        case "theme":
+          plugins.push(Theme.generator(config.theme));
+          break;
+        case "app":
+          plugins.push(App.generator(config.app));
+          break;
+        case "assets":
+          plugins.push(Assets.generator(config.assets));
+          break;
+        case "graphql":
+          plugins.push(GraphQL.generator(config.graphql));
+          break;
+        // case "interactive":
+        // plugins.push(Interactive.generator(config.interactive));
+        //break;
+        default:
+          console.log(`It's neither a theme nor an app. ${pluginName}`);
+      }
+    }
+  }
+  const src = config.src || "./src";
+  const js = config.js || "./js";
+
+  const summary = await generate({ src, js, plugins: plugins });
+
+  Output.summary(summary);
+  process.exit(0);
+};
+
 program
   .name("elm-prefab")
   .description("Generate Elm scaffolding")
   .version("0.1.0")
   .action(async () => {
     if (fs.existsSync("./elm.generate.json") == false) {
-      console.error("No elm.generate.json file found.");
-
       rl.question(
         `No ${Chalk.yellow(
           "elm.generate.json"
@@ -77,6 +118,8 @@ program
             console.log(
               `${Chalk.yellow("elm.generate.json")} file has been generated!`
             );
+
+            runGeneration(defaultConfig);
           } else {
             console.log("File generation skipped.");
           }
@@ -87,46 +130,12 @@ program
       );
 
       return;
+    } else {
+      const config = JSON.parse(
+        fs.readFileSync("./elm.generate.json", "utf-8")
+      );
+      runGeneration(config);
     }
-
-    const config = JSON.parse(fs.readFileSync("./elm.generate.json", "utf-8"));
-    const plugins: Options.Generator[] = [];
-
-    for (const pluginName in config) {
-      if (config.hasOwnProperty(pluginName)) {
-        switch (pluginName) {
-          case "src":
-            break;
-          case "routes":
-            plugins.push(Routes.generator(config.routes));
-            break;
-          case "theme":
-            plugins.push(Theme.generator(config.theme));
-            break;
-          case "app":
-            plugins.push(App.generator(config.app));
-            break;
-          case "assets":
-            plugins.push(Assets.generator(config.assets));
-            break;
-          case "graphql":
-            plugins.push(GraphQL.generator(config.graphql));
-            break;
-          // case "interactive":
-          // plugins.push(Interactive.generator(config.interactive));
-          //break;
-          default:
-            console.log(`It's neither a theme nor an app. ${pluginName}`);
-        }
-      }
-    }
-    const src = config.src || "./src";
-    const js = config.js || "./js";
-
-    const summary = await generate({ src, js, plugins: plugins });
-
-    Output.summary(summary);
-    process.exit(0);
   });
 
 program.parse();

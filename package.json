@@ -10,7 +10,8 @@
     "gen:install": "(cd plugins/codegen ; elm-codegen install)",
     "gen:run": "pnpm run build ; cd ./examples/elm-gql ; ts-node ../../cli/run.ts generate",
     "example": "pnpm run gen:run ; (cd examples/elm-gql; elm make src/Main.elm --output=/dev/null)",
-    "example:build": "cd ./examples/elm-gql ; node ../../dist/elm-prefab.js generate"
+    "example:build": "cd ./examples/elm-gql ; node ../../dist/elm-prefab.js generate",
+    "test:init": "bash scripts/init-test.sh"
   },
   "repository": {
     "type": "git",

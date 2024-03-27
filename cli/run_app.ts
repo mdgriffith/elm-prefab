@@ -7,6 +7,12 @@ import * as ElmDev from "./elm_dev";
 
 const Page = require("./templates/app/oneOff/Page.elm.ts");
 
+const ensureDirSync = (dir: string) => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
+
 export const generator = (options: any): Options.Generator => {
   return {
     name: "app",
@@ -25,6 +31,8 @@ export const generator = (options: any): Options.Generator => {
       const pageIds = await ElmDev.execute("explain App.Page.Id.Id");
 
       const pages = pageIdsToPageUsages(pageIds);
+
+      ensureDirSync(path.join(runOptions.src, "Page"));
 
       const verifiedPages = verifyElmFilesExist(
         path.join(runOptions.src, "Page"),
