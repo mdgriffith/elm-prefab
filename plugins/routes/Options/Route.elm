@@ -196,7 +196,16 @@ parsePath =
                         ]
                 , case pieces of
                     [] ->
-                        Parser.problem "paths must start with /"
+                        Parser.oneOf
+                            [ Parser.succeed
+                                (Parser.Done
+                                    { includePathTail = False
+                                    , path = List.reverse pieces
+                                    }
+                                )
+                                |. Parser.end
+                            , Parser.problem "paths must start with /"
+                            ]
 
                     _ ->
                         Parser.succeed

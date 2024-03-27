@@ -20,7 +20,6 @@ parsePage id string =
             { id = id
             , url = Options.Route.UrlPattern route
             , redirectFrom = []
-            , assets = Nothing
             }
         )
         (parseRoute string)
@@ -33,7 +32,6 @@ parseParsedPage id string =
             { id = id
             , url = Options.Route.UrlParsedPattern route
             , redirectFrom = []
-            , assets = Nothing
             }
         )
         (parseRoute string)
@@ -146,7 +144,25 @@ overlappingRoutes =
 parsing : Test
 parsing =
     Test.describe "Parsing"
-        [ Test.test "The final slash is optional" <|
+        [ Test.test "Single slash is valid" <|
+            \_ ->
+                case parsePage "Other" "/" of
+                    Err err ->
+                        Expect.fail
+                            ("Failed to parse route: " ++ Debug.toString err)
+
+                    Ok _ ->
+                        Expect.pass
+        , Test.test "Simple route is valid" <|
+            \_ ->
+                case parsePage "Other" "/test/thing/" of
+                    Err err ->
+                        Expect.fail
+                            ("Failed to parse route: " ++ Debug.toString err)
+
+                    Ok _ ->
+                        Expect.pass
+        , Test.test "The final slash is optional" <|
             \_ ->
                 let
                     one =
