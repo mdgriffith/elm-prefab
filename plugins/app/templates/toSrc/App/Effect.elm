@@ -1,7 +1,7 @@
 port module App.Effect exposing
     ( Effect, none, batch, map
     , now, nowAfter
-    , pushUrl, replaceUrl
+    , navigateTo, pushUrl, replaceUrl
     , forward, back
     , preload, load, loadAt, reload
     , sendMsg, sendMsgAfter
@@ -9,7 +9,7 @@ port module App.Effect exposing
     , focus, blur
     , file, files, fileToUrl
     , request, Expect, expectString, expectJson, expectBytes, expectWhatever
-    , toCmd
+    , toCmd, sendToJs
     )
 
 {-|
@@ -24,7 +24,7 @@ port module App.Effect exposing
 
 # Navigation
 
-@docs pushUrl, replaceUrl
+@docs navigateTo, pushUrl, replaceUrl
 
 @docs forward, back
 
@@ -61,7 +61,7 @@ port module App.Effect exposing
 
 # Effects
 
-@docs toCmd
+@docs toCmd, sendToJs
 
 -}
 
@@ -93,6 +93,12 @@ none =
 batch : List (Effect msg) -> Effect msg
 batch =
     Batch
+
+
+{-| -}
+navigateTo : App.Route.Route -> Effect msg
+navigateTo route =
+    PushUrl (App.Route.toString route)
 
 
 {-| -}
@@ -152,6 +158,12 @@ sendMsg =
 sendMsgAfter : Int -> msg -> Effect msg
 sendMsgAfter delay msg =
     SendMsgAfter delay msg
+
+
+{-| -}
+sendToJs : { tag : String, details : Maybe Json.Encode.Value } -> Effect msg
+sendToJs =
+    SendToWorld
 
 
 {-| Get the current time

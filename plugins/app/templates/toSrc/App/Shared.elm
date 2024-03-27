@@ -1,13 +1,13 @@
 module App.Shared exposing
     ( Shared
-    , Authenticated(..)
+    , Authenticated(..), isLoggedIn
     )
 
 {-| Data that is shared between the global app and the individual pages.
 
 @docs Shared
 
-@docs Authenticated
+@docs Authenticated, isLoggedIn
 
 -}
 
@@ -19,3 +19,13 @@ type alias Shared =
 type Authenticated
     = Authenticated
     | Unauthenticated
+
+
+isLoggedIn : Shared -> Bool
+isLoggedIn shared =
+    case shared.authenticated of
+        Authenticated ->
+            True
+
+        Unauthenticated ->
+            False
