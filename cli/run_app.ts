@@ -4,6 +4,7 @@ import * as Options from "./options";
 import * as fs from "fs";
 import * as path from "path";
 import * as ElmDev from "./elm_dev";
+import chalk from "chalk";
 
 const Page = require("./templates/app/oneOff/Page.elm.ts");
 
@@ -13,7 +14,7 @@ const ensureDirSync = (dir: string) => {
   }
 };
 
-export const generator = (options: any): Options.Generator => {
+export const generator = (options: Options.Config): Options.Generator => {
   return {
     name: "app",
     generatorType: Options.GeneratorType.Standard,
@@ -35,6 +36,8 @@ export const generator = (options: any): Options.Generator => {
       ensureDirSync(path.join(runOptions.src, "Page"));
 
       const verifiedPages = verifyElmFilesExist(
+        // Silence warnings if we're initializing
+        runOptions.initializing,
         path.join(runOptions.src, "Page"),
         pages
       );
@@ -55,10 +58,14 @@ type PageUsage = {
 };
 
 const logError = (title: string, body: string) => {
-  console.log(`\n\n${title}\n\n${body}\n\n`);
+  console.log(`\n\n${chalk.cyan(title)}\n\n${body}\n`);
 };
 
-const verifyElmFilesExist = (dir: string, pages: PageUsage[]): PageUsage[] => {
+const verifyElmFilesExist = (
+  silent: boolean,
+  dir: string,
+  pages: PageUsage[]
+): PageUsage[] => {
   try {
     const elmFiles = fs
       .readdirSync(dir)
@@ -68,11 +75,14 @@ const verifyElmFilesExist = (dir: string, pages: PageUsage[]): PageUsage[] => {
     // Check for PageUsage entries without a corresponding file
     pages.forEach((page) => {
       if (!elmFileNames.includes(page.id)) {
-        logError(
-          `Missing Elm Page`,
-          `I found Page.Id.${page.id}, but wasn't able to find a corresponding .elm file for it in src/Page!
-For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`
-        );
+        if (!silent) {
+          logError(
+            `Missing Elm Page`,
+            `I found Page.Id.${page.id}, but wasn't able to find a corresponding .elm file for it in src/Page!
+  For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`
+          );
+        }
+
         const pageContent = Page.toBody(new Map([["{{name}}", page.id]]));
 
         fs.writeFileSync(path.join(dir, `${page.id}.elm`), pageContent, "utf8");
@@ -84,7 +94,7 @@ For now I'll make that page ID render as the Not Found page until you get a mome
 
     // Check for .elm files not referenced in PageUsage
     elmFileNames.forEach((fileName) => {
-      if (!pages.some((page) => page.id === fileName)) {
+      if (!pages.some((page) => page.id === fileName) && !silent) {
         logError(
           `Unused Elm Page`,
           `I found ${fileName}.elm, but there is no entry in Page.Id for it, so it's not used.  I'd recommend adding a new entry to Page.Id for it, or delete the file!`

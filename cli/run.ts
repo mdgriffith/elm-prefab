@@ -25,11 +25,13 @@ type GenerateOptions = {
 };
 
 export const generate = async (
-  options: GenerateOptions
+  options: GenerateOptions,
+  initializing: boolean
 ): Promise<Options.SummaryMap> => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
   const runOptions: Options.RunOptions = {
+    initializing,
     internalSrc: "./.elm-prefab",
     js: options.js,
     src: options.src,
@@ -56,10 +58,14 @@ const defaultConfig: Options.Config = {
 };
 
 const readConfig = async (filepath: string): Promise<Options.Config | null> => {
-  return null;
+  try {
+    return JSON.parse(fs.readFileSync("./elm.generate.json", "utf-8"));
+  } catch (e) {
+    return null;
+  }
 };
 
-const runGeneration = async (config: Options.Config) => {
+const runGeneration = async (config: Options.Config, initializing: boolean) => {
   const plugins: Options.Generator[] = [];
   for (const pluginName in config) {
     if (config.hasOwnProperty(pluginName)) {
@@ -92,7 +98,7 @@ const runGeneration = async (config: Options.Config) => {
   const src = config.src || "./src";
   const js = config.js || "./src-js";
 
-  const summary = await generate({ src, js, plugins: plugins });
+  const summary = await generate({ src, js, plugins: plugins }, initializing);
 
   Output.summary(summary);
   process.exit(0);
@@ -103,7 +109,8 @@ program
   .description("Generate Elm scaffolding")
   .version("0.1.0")
   .action(async () => {
-    if (fs.existsSync("./elm.generate.json") == false) {
+    const config = await readConfig("./elm.generate.json");
+    if (config == null) {
       rl.question(
         `No ${Chalk.yellow(
           "elm.generate.json"
@@ -119,7 +126,7 @@ program
               `${Chalk.yellow("elm.generate.json")} file has been generated!`
             );
 
-            runGeneration(defaultConfig);
+            runGeneration(defaultConfig, true);
           } else {
             console.log("File generation skipped.");
           }
@@ -131,10 +138,7 @@ program
 
       return;
     } else {
-      const config = JSON.parse(
-        fs.readFileSync("./elm.generate.json", "utf-8")
-      );
-      runGeneration(config);
+      runGeneration(config, false);
     }
   });
 
