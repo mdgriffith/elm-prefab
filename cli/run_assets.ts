@@ -140,25 +140,26 @@ export const readFilesRecursively = async (dir: string, found: File[]) => {
   ) {
     // don't go chasing waterfalls
     return;
-  }
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
+  } else if (fs.existsSync(dir)) {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const filePath = path.join(dir, file);
+      const stat = fs.statSync(filePath);
 
-    if (file.startsWith(".") || file.startsWith("_")) {
-      //  Skip hidden files
-      continue;
-    }
-    if (stat.isFile()) {
-      if (await isBinaryFile(filePath)) {
-        found.push({ path: filePath, contents: null });
-      } else {
-        const content = fs.readFileSync(filePath, "utf-8");
-        found.push({ path: filePath, contents: content });
+      if (file.startsWith(".") || file.startsWith("_")) {
+        //  Skip hidden files
+        continue;
       }
-    } else if (stat.isDirectory()) {
-      await readFilesRecursively(filePath, found);
+      if (stat.isFile()) {
+        if (await isBinaryFile(filePath)) {
+          found.push({ path: filePath, contents: null });
+        } else {
+          const content = fs.readFileSync(filePath, "utf-8");
+          found.push({ path: filePath, contents: content });
+        }
+      } else if (stat.isDirectory()) {
+        await readFilesRecursively(filePath, found);
+      }
     }
   }
 };
