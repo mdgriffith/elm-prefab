@@ -16,7 +16,7 @@ export const summary = (summaryMap: Options.SummaryMap) => {
   console.log("");
   for (const key in summaryMap) {
     const summary = summaryMap[key];
-    console.log(format_title(key) + chalk.grey(" (.elm-prefab)"));
+    console.log(format_title(key));
 
     if ("errors" in summary) {
       for (const error of summary.errors) {
@@ -25,7 +25,7 @@ export const summary = (summaryMap: Options.SummaryMap) => {
       }
     } else {
       for (const generated of summary.generated) {
-        console.log(indent(4, chalk.yellow(generated.path)));
+        console.log(indent(4, chalk.green(generated.path)));
       }
     }
     console.log("");

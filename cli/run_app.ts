@@ -20,8 +20,10 @@ export const generator = (options: Options.Config): Options.Generator => {
     generatorType: Options.GeneratorType.Standard,
 
     run: async (runOptions: Options.RunOptions) => {
+      const summary: Options.Summary = { generated: [] };
+
       // Copy static files
-      AppEngine.copy(runOptions);
+      AppEngine.copy(runOptions, summary);
 
       const viewRegions = await ElmDev.execute("explain App.View.Regions");
 
@@ -41,10 +43,10 @@ export const generator = (options: Options.Config): Options.Generator => {
         path.join(runOptions.src, "Page"),
         pages
       );
-
-      return await Generator.run(runOptions.internalSrc, {
+      const newSummary = await Generator.run(runOptions.internalSrc, {
         app: verifiedPages,
       });
+      return Options.mergeSummaries(summary, newSummary);
     },
   };
 };
@@ -109,7 +111,6 @@ const verifyElmFilesExist = (
 };
 
 const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
-  // pageIds.definition.type.c
   const pages: PageUsage[] = [];
   if (!pageIds.definition.type.definition.variants) {
     console.log(

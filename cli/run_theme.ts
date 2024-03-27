@@ -7,10 +7,13 @@ export const generator = (options: any): Options.Generator => {
     name: "theme",
     generatorType: Options.GeneratorType.Standard,
     run: async (runOptions: Options.RunOptions) => {
-      ThemeWebComponents.copy(runOptions);
-      return await Generator.run(runOptions.internalSrc, {
+      const summary: Options.Summary = { generated: [] };
+      ThemeWebComponents.copy(runOptions, summary);
+      const newSummary = await Generator.run(runOptions.internalSrc, {
         theme: options,
       });
+
+      return Options.mergeSummaries(summary, newSummary);
     },
   };
 };

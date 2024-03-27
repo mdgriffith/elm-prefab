@@ -9,18 +9,21 @@ This copies a number of files into .ts files so we can write them as static file
 const toTypescriptFile = (body) => `
 import * as path from "path";
 import * as fs from "fs";
+import * as Options from "../../options";
 
-export const copyTo = (baseDir: string, overwrite: boolean) => { 
+export const copyTo = (baseDir: string, overwrite: boolean, summary: Options.Summary) => { 
   ${body}
 }
 `;
 
 const toCopyFile = (path, contents) => `
   if (overwrite || !fs.existsSync(path.join(baseDir, "${path}"))) {
-    fs.mkdirSync(path.dirname(path.join(baseDir, "${path}")), { recursive: true });
-    fs.writeFileSync(path.join(baseDir, "${path}"), ${contents});
-  }
-`;
+    const filepath = path.join(baseDir, "${path}");
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+    fs.writeFileSync(filepath, ${contents});
+    const generated = { outputDir: baseDir, path: filepath}
+    Options.addGenerated(summary, generated);
+  }`;
 
 const toSingleTypescriptFile = (body) => `
 
@@ -72,22 +75,21 @@ const toCopyAll = (templates) => {
   let copyCommands = "";
   for (const template of templates) {
     if (template == "toHidden") {
-      copyCommands += `  ${template}.copyTo(options.internalSrc, true)\n`;
+      copyCommands += `  ${template}.copyTo(options.internalSrc, true, summary)\n`;
     } else {
       copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
         template
-      )}, false)\n`;
+      )}, false, summary)\n`;
     }
   }
 
   return `
-import { RunOptions } from "../../options";
+import * as Options from "../../options";
 ${imports}
 
-export const copy = (options: RunOptions) => {
+export const copy = (options: Options.RunOptions, summary: Options.Summary) => {
 ${copyCommands}}
-
-  `;
+`;
 };
 
 const copyFile = (file, targetFilePath) => {

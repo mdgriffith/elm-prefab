@@ -14,6 +14,7 @@ export enum GeneratorType {
 }
 
 export type RunOptions = {
+  initializing: boolean;
   internalSrc: string;
   js: string;
   src: string;
@@ -34,3 +35,25 @@ export type Summary = { errors: Error[] } | { generated: Generated[] };
 
 export type Error = { title: string; description: string };
 export type Generated = { outputDir: string; path: string };
+
+export const addGenerated = (
+  summary: Summary,
+  generatedFile: Generated
+): Summary => {
+  if ("generated" in summary) {
+    summary.generated.push(generatedFile);
+  }
+  return summary;
+};
+
+export const mergeSummaries = (one: Summary, two: Summary): Summary => {
+  if ("errors" in one) {
+    return one;
+  }
+
+  if ("errors" in two) {
+    return two;
+  }
+
+  return { generated: one.generated.concat(two.generated) };
+};
