@@ -1,16 +1,16 @@
 module App.Effect.LocalStorage exposing
     ( LocalStorage
-    , saveSession, clearSession
+    , saveSession, clearSession, onSessionChange
     , decode
     )
 
 {-| A very simple module for interacting with local storage.
 
-This pairs with some js code in localStorage.ts, take a look to get familiar with it.
+This pairs with some js code in localStorage.ts!
 
 @docs LocalStorage
 
-@docs saveSession, clearSession
+@docs saveSession, clearSession, onSessionChange
 
 @docs decode
 
@@ -21,7 +21,6 @@ import App.Shared
 import App.Sub
 import Json.Decode
 import Json.Encode
-import Time
 
 
 type alias LocalStorage =
@@ -60,6 +59,14 @@ saveSession session =
 clearSession : App.Effect.Effect msg
 clearSession =
     clearAtKey keys.session
+
+
+onSessionChange : (Session -> msg) -> App.Sub.Sub msg
+onSessionChange toMsg =
+    App.Sub.onLocalStorageUpdated
+        { key = keys.session
+        , decoder = Json.Decode.map toMsg decodeSession
+        }
 
 
 decodeSession : Json.Decode.Decoder Session

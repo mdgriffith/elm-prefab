@@ -13,6 +13,10 @@ app.ports?.outgoing?.subscribe?.((message: any) => {
   switch (message.tag) {
     case "local-storage":
       LocalStorage.set(message.details.key, message.details.value);
+      if (app.ports?.localStorageUpdated) {
+        app.ports.localStorageUpdated.send(message.details);
+      }
+
       break;
 
     case "local-storage-clear":
