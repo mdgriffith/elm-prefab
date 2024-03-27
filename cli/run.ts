@@ -90,7 +90,7 @@ const runGeneration = async (config: Options.Config) => {
     }
   }
   const src = config.src || "./src";
-  const js = config.js || "./js";
+  const js = config.js || "./src-js";
 
   const summary = await generate({ src, js, plugins: plugins });
 
