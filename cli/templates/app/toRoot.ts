@@ -12,7 +12,7 @@ export const copyTo = (baseDir: string, overwrite: boolean) => {
 
   if (overwrite || !fs.existsSync(path.join(baseDir, "/package.json"))) {
     fs.mkdirSync(path.dirname(path.join(baseDir, "/package.json")), { recursive: true });
-    fs.writeFileSync(path.join(baseDir, "/package.json"), "{\n  \"devDependencies\": {\n    \"vite\": \"^4.2.1\",\n    \"vite-plugin-elm\": \"^2.7.2\",\n    \"typescript\": \"^5.4.3\"\n  },\n  \"name\": \"placeholder\",\n  \"description\": \"\",\n  \"version\": \"0.1.0\",\n  \"dependencies\": {\n    \"@tiptap/core\": \"^2.2.4\",\n    \"@tiptap/pm\": \"^2.2.4\",\n    \"@tiptap/starter-kit\": \"^2.2.4\"\n  },\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc && vite build\"\n  }\n}\n");
+    fs.writeFileSync(path.join(baseDir, "/package.json"), "{\n  \"devDependencies\": {\n    \"vite\": \"^5.2.6\",\n    \"vite-plugin-elm\": \"^3.0.0\",\n    \"typescript\": \"^5.4.3\"\n  },\n  \"name\": \"placeholder\",\n  \"type\": \"module\",\n  \"description\": \"\",\n  \"version\": \"0.1.0\",\n  \"dependencies\": {\n    \"@tiptap/core\": \"^2.2.4\",\n    \"@tiptap/pm\": \"^2.2.4\",\n    \"@tiptap/starter-kit\": \"^2.2.4\"\n  },\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc && vite build\"\n  }\n}\n");
   }
 
 

@@ -76,6 +76,7 @@ For now I'll make that page ID render as the Not Found page until you get a mome
         const pageContent = Page.toBody(new Map([["{{name}}", page.id]]));
 
         fs.writeFileSync(path.join(dir, `${page.id}.elm`), pageContent, "utf8");
+        page.elmModuleIsPresent = true;
       } else {
         page.elmModuleIsPresent = true;
       }

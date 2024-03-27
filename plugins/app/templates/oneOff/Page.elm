@@ -15,7 +15,7 @@ import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
-
+import Html
 
 
 
@@ -56,4 +56,6 @@ subscriptions shared model =
 
 view : App.View.Id.Id -> App.Shared.Shared -> Model -> App.View.View Msg
 view viewId shared model =
-    Debug.todo "Add a view to Page.{{name}}"
+   { title = "{{name}}"
+   , body = Html.text "{{name}}"
+   }

@@ -11,4 +11,5 @@ node ../../dist/elm-prefab.js
 elm make src/Main.elm --output=/dev/null
 
 pnpm install
-pnpm build
+# pnpm build
+pnpm dev

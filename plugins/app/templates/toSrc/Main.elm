@@ -74,25 +74,16 @@ init flagsValue url =
 
         initial =
             App.Route.parse url
-    in
-    ( { shared =
-            { authenticated =
-                App.Shared.Unauthenticated
+
+        model =
+            { shared =
+                { authenticated =
+                    App.Shared.Unauthenticated
+                }
+            , flags = decodedFlags
             }
-      , flags = decodedFlags
-      }
-    , case initial of
-        Nothing ->
-            App.Effect.none
-
-        Just { route, isRedirect } ->
-            -- If we were redirected, we need to replace the URL with the new one
-            if isRedirect then
-                App.Effect.replaceUrl (App.Route.toString route)
-
-            else
-                App.Effect.none
-    )
+    in
+    gotoUrl url model App.Effect.none
 
 
 

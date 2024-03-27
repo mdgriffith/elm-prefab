@@ -1,10 +1,11 @@
 {
   "devDependencies": {
-    "vite": "^4.2.1",
-    "vite-plugin-elm": "^2.7.2",
+    "vite": "^5.2.6",
+    "vite-plugin-elm": "^3.0.0",
     "typescript": "^5.4.3"
   },
   "name": "placeholder",
+  "type": "module",
   "description": "",
   "version": "0.1.0",
   "dependencies": {
