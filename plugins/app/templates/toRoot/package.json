@@ -1,0 +1,19 @@
+{
+  "devDependencies": {
+    "vite": "^4.2.1",
+    "vite-plugin-elm": "^2.7.2",
+    "typescript": "^5.4.3"
+  },
+  "name": "placeholder",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {
+    "@tiptap/core": "^2.2.4",
+    "@tiptap/pm": "^2.2.4",
+    "@tiptap/starter-kit": "^2.2.4"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  }
+}

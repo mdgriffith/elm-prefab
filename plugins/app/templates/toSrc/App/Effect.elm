@@ -8,6 +8,7 @@ port module App.Effect exposing
     , generate
     , focus, blur
     , file, files, fileToUrl
+    , copyToClipboard
     , request, Expect, expectString, expectJson, expectBytes, expectWhatever
     , toCmd, sendToJs
     )
@@ -52,6 +53,11 @@ port module App.Effect exposing
 # File selection
 
 @docs file, files, fileToUrl
+
+
+# Clipboard
+
+@docs copyToClipboard
 
 
 # Http
@@ -215,6 +221,14 @@ files =
 fileToUrl : File.File -> (String -> msg) -> Effect msg
 fileToUrl fileData toMsg =
     FileToUrl fileData toMsg
+
+
+copyToClipboard : String -> Effect msg
+copyToClipboard text =
+    SendToWorld
+        { tag = "copy-to-clipboard"
+        , details = Just (Json.Encode.string text)
+        }
 
 
 request :
