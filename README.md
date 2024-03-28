@@ -42,8 +42,6 @@ npm install --savedev elm-prefab
 npm run elm-prefab
 ```
 
-## Running `elm-prefab` for the first time
-
 When running `elm-prefab` for the first time, a number of files will be generated.
 
 - `.elm-prefab` - Files in the `.elm-prefab` directory are owned by `elm-prefab`. Take a look, but know that they will be overwritten as needed.

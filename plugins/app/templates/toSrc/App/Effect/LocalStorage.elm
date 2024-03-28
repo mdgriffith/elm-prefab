@@ -41,7 +41,7 @@ keys =
 decode : Json.Decode.Decoder LocalStorage
 decode =
     -- All tables must fail nicely
-    Json.Decode.map LocalStorage
+    Json.Decode.map (\maybeSession -> { session = maybeSession })
         (Json.Decode.maybe (Json.Decode.field keys.session decodeSession))
 
 
