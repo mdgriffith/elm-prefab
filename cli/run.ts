@@ -54,7 +54,7 @@ const defaultConfig: Options.Config = {
     Login: "/login",
     Logout: "/logout",
   },
-  assets: { Assets: { src: "./assets", onServer: "assets" } },
+  assets: { Assets: { src: "./public", onServer: "assets" } },
 };
 
 const readConfig = async (filepath: string): Promise<Options.Config | null> => {
