@@ -62,7 +62,11 @@ page options =
         }
 
 
-{-| -}
+{-| This is the key that is used to store the page's state globally.
+
+It defaults to the page's name.
+
+-}
 withKey : (params -> String) -> Page shared params msg model -> Page shared params msg model
 withKey toKey (Page options) =
     Page { options | toKey = Just toKey }
