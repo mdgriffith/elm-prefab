@@ -13,7 +13,7 @@ Each plugin is independent, so you can pick and choose what you want.
 - **App** - A base app architecture that has
 
   - Page-level state caching
-  - Notion-like flexibility for viewing multiple pages at once.
+  - Notion-like flexibility for _viewing multiple pages_ at once.
   - Built-in support for [`elm-program-test`](https://package.elm-lang.org/packages/avh4/elm-program-test/latest/) for full end-to-end testing of your Elm app.
 
 - **Routes** - Spend as little time futzing with routes as possible!
@@ -32,14 +32,54 @@ This is for those who want to speed up development for new projects and avoid so
 
 In general, `elm-prefab` has a config file called `elm.generate.json`, and you run `elm-prefab` to generate the code.
 
-Generated code lives in the `.elm-prefab` directory.
-
 Getting started
 
 ```bash
 # navigate to your projects directory and install `elm-prefab`
 npm install --savedev elm-prefab
 
-# Running `elm-prefab` will drop you into an interactive guide to getting started.
+# Running `elm-prefab` will generate working
 npm run elm-prefab
 ```
+
+## Running `elm-prefab` for the first time
+
+When running `elm-prefab` for the first time, a number of files will be generated.
+
+- `.elm-prefab` - Files in the `.elm-prefab` directory are owned by `elm-prefab`. Take a look, but know that they will be overwritten as needed.
+- `src/*` - Elm files will be generated in the `src` directory and are owned by _you_, meaning you can modify them as you want! Once they're generated, `elm-prefab` doesn't modify them.
+- `src-js/*` - These are some JS, HTML, and CSS files that are also owned by you!
+- There are also a number of config files that will be generated at the root of your project, including
+  - elm.json
+  - package.json
+  - tsconfig.json
+  - vite.config.js
+
+**Note** - Vite, Typescript, and NPM are not necessarily _required_ to use `elm-prefab`, it's just really convenient to include them.
+
+## Starting the Vite development server
+
+Once you're run `npm run elm-prefab`, you now have a working [`Vite`](https://vitejs.dev/) setup.
+
+`npm run dev` will start a dev server so you can get coding!
+
+Running `npm run build` will build things for production, with the resultant files in the `dist` folder. Feel free to check out the [ViteJS docs](https://vitejs.dev/guide/)
+
+## The first place to look
+
+`elm-prefab` has generated a starting `src/Page/Home.elm` for you, take a look.
+
+If you've worked with elm before it should be pretty familiar as a standard `model/update/Msg/view` thing.
+
+The next place to look is `src/Main.elm`.
+
+This is the _global_ part of the app. This is where you can control:
+
+- Global layout, including showing multiple pages in one layout.
+- Authentication logic.
+- Any other "App-wide" thing you might want.
+
+Now go build something! If you have a questions, check out the below guides.
+
+- [Adding a new page](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/add-a-page.md)
+- [Using local storage](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/using-localstorage.md)
