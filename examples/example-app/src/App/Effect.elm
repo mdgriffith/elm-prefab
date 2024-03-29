@@ -1,15 +1,16 @@
 port module App.Effect exposing
     ( Effect, none, batch, map
     , now, nowAfter
-    , pushUrl, replaceUrl
+    , navigateTo, pushUrl, replaceUrl
     , forward, back
     , preload, load, loadAt, reload
     , sendMsg, sendMsgAfter
     , generate
     , focus, blur
     , file, files, fileToUrl
+    , copyToClipboard
     , request, Expect, expectString, expectJson, expectBytes, expectWhatever
-    , toCmd
+    , toCmd, sendToJs
     )
 
 {-|
@@ -24,7 +25,7 @@ port module App.Effect exposing
 
 # Navigation
 
-@docs pushUrl, replaceUrl
+@docs navigateTo, pushUrl, replaceUrl
 
 @docs forward, back
 
@@ -54,6 +55,11 @@ port module App.Effect exposing
 @docs file, files, fileToUrl
 
 
+# Clipboard
+
+@docs copyToClipboard
+
+
 # Http
 
 @docs request, Expect, expectString, expectJson, expectBytes, expectWhatever
@@ -61,7 +67,7 @@ port module App.Effect exposing
 
 # Effects
 
-@docs toCmd
+@docs toCmd, sendToJs
 
 -}
 
@@ -93,6 +99,12 @@ none =
 batch : List (Effect msg) -> Effect msg
 batch =
     Batch
+
+
+{-| -}
+navigateTo : App.Route.Route -> Effect msg
+navigateTo route =
+    PushUrl (App.Route.toString route)
 
 
 {-| -}
@@ -154,6 +166,12 @@ sendMsgAfter delay msg =
     SendMsgAfter delay msg
 
 
+{-| -}
+sendToJs : { tag : String, details : Maybe Json.Encode.Value } -> Effect msg
+sendToJs =
+    SendToWorld
+
+
 {-| Get the current time
 -}
 now : (Time.Posix -> msg) -> Effect msg
@@ -205,6 +223,14 @@ fileToUrl fileData toMsg =
     FileToUrl fileData toMsg
 
 
+copyToClipboard : String -> Effect msg
+copyToClipboard text =
+    SendToWorld
+        { tag = "copy-to-clipboard"
+        , details = Just (Json.Encode.string text)
+        }
+
+
 request :
     { method : String
     , headers : List Http.Header
@@ -239,12 +265,12 @@ type Effect msg
     | File (List String) (File.File -> msg)
     | Files (List String) (File.File -> List File.File -> msg)
     | FileToUrl File.File (String -> msg)
-      -- Loading page state
+      -- Loading
     | ViewUpdated (App.View.Id.Operation App.Page.Id.Id)
     | Preload App.Page.Id.Id
-      -- URL navigation
     | Load String
     | Reload
+      -- History navigation
     | Forward Int
     | Back Int
       -- Http

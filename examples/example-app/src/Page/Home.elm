@@ -1,4 +1,4 @@
-module Page.WhoDisWithParams exposing
+module Page.Home exposing
     ( Model, Msg
     , page
     )
@@ -15,7 +15,7 @@ import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
-
+import Html
 
 
 
@@ -29,7 +29,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page params Msg Model
+page : App.Page.Page App.Shared.Shared params Msg Model
 page =
     App.Page.page
         { init = init
@@ -56,4 +56,6 @@ subscriptions shared model =
 
 view : App.View.Id.Id -> App.Shared.Shared -> Model -> App.View.View Msg
 view viewId shared model =
-    Debug.todo "Add a view to Page.WhoDisWithParams"
+   { title = "Home"
+   , body = Html.text "Home"
+   }

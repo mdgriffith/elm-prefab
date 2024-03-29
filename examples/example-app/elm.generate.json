@@ -1,0 +1,14 @@
+{
+  "app": {},
+  "routes": {
+    "Home": "/",
+    "Login": "/login",
+    "Logout": "/logout"
+  },
+  "assets": {
+    "Assets": {
+      "src": "./public",
+      "onServer": "assets"
+    }
+  }
+}

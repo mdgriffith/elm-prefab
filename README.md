@@ -53,7 +53,7 @@ When running `elm-prefab` for the first time, a number of files will be generate
   - tsconfig.json
   - vite.config.js
 
-**Note** - Vite, Typescript, and NPM are not necessarily _required_ to use `elm-prefab`, it's just really convenient to include them.
+**Note** - Vite, Typescript, and NPM are not _required_ to use `elm-prefab`, it's just convenient to include them.
 
 ## Starting the Vite development server
 
@@ -65,7 +65,7 @@ Running `npm run build` will build things for production, with the resultant fil
 
 ## The first place to look
 
-`elm-prefab` has generated a starting `src/Page/Home.elm` for you, take a look.
+`elm-prefab` has generated `src/Page/Home.elm` for you, let's take a look.
 
 If you've worked with elm before it should be pretty familiar as a standard `model/update/Msg/view` thing.
 

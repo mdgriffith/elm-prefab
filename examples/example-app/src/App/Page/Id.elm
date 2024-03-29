@@ -5,8 +5,6 @@ module App.Page.Id exposing (Id(..))
 
 type Id
     = Home HomeParams
-    | WhoDis
-    | WhoDisWithParams WhoDisParams
 
 
 
@@ -15,9 +13,3 @@ type Id
 
 type alias HomeParams =
     {}
-
-
-type alias WhoDisParams =
-    { name : String
-    , age : Int
-    }
