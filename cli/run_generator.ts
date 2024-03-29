@@ -26,7 +26,10 @@ export async function run(
       const generated: Options.Generated[] = [];
       for (const file of files) {
         writeFile(path.join(outputDir, file.path), file.contents);
-        generated.push({ outputDir: outputDir, path: file.path });
+        generated.push({
+          outputDir: outputDir,
+          path: path.join(outputDir, file.path),
+        });
       }
       return { generated: generated };
     })
