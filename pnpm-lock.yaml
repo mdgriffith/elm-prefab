@@ -1,9 +1,13 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   elm-dev:
-    specifier: ^0.1.2
-    version: 0.1.2
+    specifier: ^0.1.3
+    version: 0.1.3
   elm-gql:
     specifier: ^0.13.0
     version: 0.13.0
@@ -49,40 +53,40 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
-  /@elm_dev_binaries/darwin_arm64@0.1.1:
-    resolution: {integrity: sha512-SKgv6Juu/RFgYmgPAumr/oWxSZ5lZzET5RM5A3uJQDmOTSX0jRTxrcMAb+PcEEwRc/zQbIbr5tvMR8eVRjR7dg==}
+  /@elm_dev_binaries/darwin_arm64@0.1.3:
+    resolution: {integrity: sha512-bfd8ptJuoJ5f1iGhfzBFoV8GI0LuWv4UBgHPUtkMm6GVJiP4usUYT0hl2HsQCCD4fo4jUXqJRNaRNhSIyDMFgw==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /@elm_dev_binaries/darwin_x64@0.1.1:
-    resolution: {integrity: sha512-oaA1xWK2rxDRYwhMYFSDXF0lfk8KBBThzxptdtOITPftBiIMSlS/bTBzQMmX0b3//Wk3WnfngmrNqrab9zh+kQ==}
+  /@elm_dev_binaries/darwin_x64@0.1.3:
+    resolution: {integrity: sha512-c1U5kuU6S0pU4donii5nWNG+F0lw6CAZkDrA5GwQIVVvyV26QEW+7myk5o/kNMoyvlaMLAUi6TOmoLobfYZtqQ==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: false
     optional: true
 
-  /@elm_dev_binaries/linux_arm64@0.1.1:
-    resolution: {integrity: sha512-PedCc4XImJjUe+26kzJoOtY0JxD836PYnP017w3v0gPV23SWsuuTt8Tu/bqE+n75vAkm0Dy8DHqBBeXgbxg2uQ==}
+  /@elm_dev_binaries/linux_arm64@0.1.3:
+    resolution: {integrity: sha512-N+dXO/EV9TReAv9yV3W4JK9u8kbPZIo3rOQhoaUUr+ZDBSqPLv8Nr8cTz5i7KiZvniNkhvPDzhRAsYzfxqVYaQ==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /@elm_dev_binaries/linux_x64@0.1.1:
-    resolution: {integrity: sha512-KF8v7OB+v1XWKybj9jMKJEbEwUNMeRx/q+qDJdtQ/hFHWc/174/CQL0OQN6bRsbaxIrf58XBnaKfZDxt2vf9Sw==}
+  /@elm_dev_binaries/linux_x64@0.1.3:
+    resolution: {integrity: sha512-/W0JrFzZWQTH6ZEpMIvileelLYu92JwGHMmx+YehyRrIeQicfEzAIqGyejzvlqyaVh7NdMBpeq5G+hfO+9QJHQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: false
     optional: true
 
-  /@elm_dev_binaries/win32_x64@0.1.1:
-    resolution: {integrity: sha512-QbYp0njiOawIdcmBVxPI7yI8N1WEj2s4MjzyClXcq0G959mrYxVxTRmDYxRFb3nID95g56gE8UHUqu7Uv8XiEQ==}
+  /@elm_dev_binaries/win32_x64@0.1.3:
+    resolution: {integrity: sha512-WTgTGHZTkBCURqsY1Bra2TGT+8b0z72ExhdZCQrllKkG6mbUQB8dwyic1CWn/Ha1DbTx794A/oNCiKLRreLYwQ==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
@@ -556,17 +560,17 @@ packages:
       node-elm-compiler: 5.0.6
     dev: true
 
-  /elm-dev@0.1.2:
-    resolution: {integrity: sha512-PJCHklbfN57AFlUOScVTIOFQ+/MoaUwnBgsInkzTbErjmNmEiP0Q7bIf9AlmkIvE3t2ktlNk5hR6cea9phytfw==}
+  /elm-dev@0.1.3:
+    resolution: {integrity: sha512-g8LJ1UCDv2YAjq905vDwLCoCCjCW9v3u/7q8TcX9fk8fe3Wz4iocyGuHE/tckXBcz3uwx1atNDRtXHxhTFea3w==}
     engines: {node: '>=7.0.0'}
     hasBin: true
     requiresBuild: true
     optionalDependencies:
-      '@elm_dev_binaries/darwin_arm64': 0.1.1
-      '@elm_dev_binaries/darwin_x64': 0.1.1
-      '@elm_dev_binaries/linux_arm64': 0.1.1
-      '@elm_dev_binaries/linux_x64': 0.1.1
-      '@elm_dev_binaries/win32_x64': 0.1.1
+      '@elm_dev_binaries/darwin_arm64': 0.1.3
+      '@elm_dev_binaries/darwin_x64': 0.1.3
+      '@elm_dev_binaries/linux_arm64': 0.1.3
+      '@elm_dev_binaries/linux_x64': 0.1.3
+      '@elm_dev_binaries/win32_x64': 0.1.3
     dev: false
 
   /elm-gql@0.13.0:

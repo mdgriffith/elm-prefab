@@ -14,13 +14,18 @@ const ensureDirSync = (dir: string) => {
   }
 };
 
-export const generator = (options: Options.Config): Options.Generator => {
+export const generator = (options: Options.AppOptions): Options.Generator => {
   return {
     name: "app",
     generatorType: Options.GeneratorType.Standard,
 
     run: async (runOptions: Options.RunOptions) => {
       const summary: Options.Summary = { generated: [] };
+
+      if (!runOptions.initializing) {
+        runOptions.generateDefaultFiles =
+          options.defaultFiles == false ? false : true;
+      }
 
       // Copy static files
       AppEngine.copy(runOptions, summary);
@@ -111,6 +116,11 @@ const verifyElmFilesExist = (
 };
 
 const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
+  if (pageIds.error) {
+    console.log(pageIds.error);
+    process.exit(1);
+  }
+
   const pages: PageUsage[] = [];
   if (!pageIds.definition.type.definition.variants) {
     console.log(

@@ -32,6 +32,7 @@ export const generate = async (
   const results: Options.SummaryMap = {};
   const runOptions: Options.RunOptions = {
     initializing,
+    generateDefaultFiles: true,
     internalSrc: "./.elm-prefab",
     js: options.js,
     src: options.src,
@@ -59,7 +60,7 @@ const defaultConfig: Options.Config = {
 
 const readConfig = async (filepath: string): Promise<Options.Config | null> => {
   try {
-    return JSON.parse(fs.readFileSync("./elm.generate.json", "utf-8"));
+    return JSON.parse(fs.readFileSync(filepath, "utf-8"));
   } catch (e) {
     return null;
   }
@@ -79,6 +80,9 @@ const runGeneration = async (config: Options.Config, initializing: boolean) => {
           plugins.push(Theme.generator(config.theme));
           break;
         case "app":
+          if (config.app == null) {
+            break;
+          }
           plugins.push(App.generator(config.app));
           break;
         case "assets":

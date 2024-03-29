@@ -11,13 +11,13 @@ import * as path from "path";
 import * as fs from "fs";
 import * as Options from "../../options";
 
-export const copyTo = (baseDir: string, overwrite: boolean, summary: Options.Summary) => { 
+export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => { 
   ${body}
 }
 `;
 
 const toCopyFile = (path, contents) => `
-  if (overwrite || !fs.existsSync(path.join(baseDir, "${path}"))) {
+  if (overwrite || (!fs.existsSync(path.join(baseDir, "${path}")) && !skip)) {
     const filepath = path.join(baseDir, "${path}");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
     fs.writeFileSync(filepath, ${contents});
@@ -75,11 +75,11 @@ const toCopyAll = (templates) => {
   let copyCommands = "";
   for (const template of templates) {
     if (template == "toHidden") {
-      copyCommands += `  ${template}.copyTo(options.internalSrc, true, summary)\n`;
+      copyCommands += `  ${template}.copyTo(options.internalSrc, true, false, summary)\n`;
     } else {
       copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
         template
-      )}, false, summary)\n`;
+      )}, false, !options.generateDefaultFiles, summary)\n`;
     }
   }
 

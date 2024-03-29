@@ -7,8 +7,8 @@ import * as toRoot from "./toRoot";
 
 
 export const copy = (options: Options.RunOptions, summary: Options.Summary) => {
-  toHidden.copyTo(options.internalSrc, true, summary)
-  toSrc.copyTo(options.src, false, summary)
-  toJs.copyTo(options.js, false, summary)
-  toRoot.copyTo(options.root, false, summary)
+  toHidden.copyTo(options.internalSrc, true, false, summary)
+  toSrc.copyTo(options.src, false, !options.generateDefaultFiles, summary)
+  toJs.copyTo(options.js, false, !options.generateDefaultFiles, summary)
+  toRoot.copyTo(options.root, false, !options.generateDefaultFiles, summary)
 }

@@ -1,11 +1,19 @@
 export type Config = {
   src?: string;
   js?: string;
-  app?: any;
+  app?: AppOptions;
   routes?: any;
   assets?: any;
   theme?: any;
   graphql?: any;
+};
+
+export type AppOptions = {
+  defaultFiles?: boolean;
+};
+
+export type ThemeOptions = {
+  defaultFiles?: boolean;
 };
 
 export enum GeneratorType {
@@ -15,6 +23,7 @@ export enum GeneratorType {
 
 export type RunOptions = {
   initializing: boolean;
+  generateDefaultFiles: boolean;
   internalSrc: string;
   js: string;
   src: string;
