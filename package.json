@@ -1,10 +1,11 @@
 {
   "name": "elm-prefab",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Maintainable code scaffolding for Elm Apps",
   "bin": {
     "elm-prefab": "./bin/elm-prefab"
   },
+  "main": "dist/elm-prefab.js",
   "files": [
     "dist",
     "bin"
