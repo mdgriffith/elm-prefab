@@ -2,8 +2,13 @@
   "name": "elm-prefab",
   "version": "0.1.0",
   "description": "Maintainable code scaffolding for Elm Apps",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "bin": {
+    "elm-prefab": "./bin/elm-prefab"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
   "scripts": {
     "build": "bash scripts/build.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
