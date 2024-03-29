@@ -47,5 +47,5 @@ That's right, there's not a heckuva lot of config for this one!
     package.json
     tsconfig.json
     vite.config.js
----
+
 ```
