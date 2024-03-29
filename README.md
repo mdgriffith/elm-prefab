@@ -42,6 +42,9 @@ npm install --savedev elm-prefab
 npm run elm-prefab
 ```
 
+> **Note for PNPM** - If you're using pnpm, you may run into an error that says `elm-dev` not found
+> In this case you may need to run `pnpm install --save-dev elm-dev, elm-gql`
+
 When running `elm-prefab` for the first time, a number of files will be generated.
 
 [You can take a look in the examples folder to see what is generated on the first run.](https://github.com/mdgriffith/elm-prefab/tree/main/examples/example-app)
