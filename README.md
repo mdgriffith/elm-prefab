@@ -44,6 +44,8 @@ npm run elm-prefab
 
 When running `elm-prefab` for the first time, a number of files will be generated.
 
+[You can take a look in the examples folder to see what is generated on the first run.](https://github.com/mdgriffith/elm-prefab/tree/main/examples/example-app)
+
 - `.elm-prefab` - Files in the `.elm-prefab` directory are owned by `elm-prefab`. Take a look, but know that they will be overwritten as needed.
 - `src/*` - Elm files will be generated in the `src` directory and are owned by _you_, meaning you can modify them as you want! Once they're generated, `elm-prefab` doesn't modify them.
 - `src-js/*` - These are some JS, HTML, and CSS files that are also owned by you!
@@ -65,11 +67,11 @@ Running `npm run build` will build things for production, with the resultant fil
 
 ## The first place to look
 
-`elm-prefab` has generated `src/Page/Home.elm` for you, let's take a look.
+`elm-prefab` has generated [`src/Page/Home.elm`](https://github.com/mdgriffith/elm-prefab/blob/main/examples/example-app/src/Page/Home.elm) for you, let's take a look.
 
 If you've worked with elm before it should be pretty familiar as a standard `model/update/Msg/view` thing.
 
-The next place to look is `src/Main.elm`.
+The next place to look is [`src/Main.elm`](https://github.com/mdgriffith/elm-prefab/blob/main/examples/example-app/src/Main.elm).
 
 This is the _global_ part of the app. This is where you can control:
 
@@ -81,3 +83,11 @@ Now go build something! If you have a questions, check out the below guides.
 
 - [Adding a new page](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/add-a-page.md)
 - [Using local storage](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/using-localstorage.md)
+
+- [Managing routes](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/routes.md)
+- [Managing assets](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/assets.md)
+- [Using GraphQL](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/graphql.md)
+
+## FAQ
+
+- [Why does this thing exist?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/app/why.md)
