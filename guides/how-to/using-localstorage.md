@@ -2,7 +2,7 @@
 
 Let's cache some information in [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)!
 
-For example, let's say we want to store Supabase auth info in local storage so that people can stay logged in if they close their browser. There's a more in depth guide for Supabase Auth, but this will just cover storing stuff in local storage.
+For example, let's say we want to store Supabase auth info in local storage so that people can stay logged in if they close their browser. There'll likely be a more in depth guide for Supabase Auth in the future, but this will just cover storing stuff in local storage.
 
 First, create a new file called `src/Supa/Auth.elm` and copy the following into it:
 

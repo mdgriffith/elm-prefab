@@ -327,6 +327,7 @@ toCmd :
     { options
         | navKey : Browser.Navigation.Key
         , preload : App.Page.Id.Id -> msg
+        , dropPageCache : msg
         , regionUpdate : App.View.Id.Operation App.Page.Id.Id -> msg
     }
     -> Effect msg
