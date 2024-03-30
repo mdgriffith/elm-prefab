@@ -21,8 +21,14 @@ attr a =
 generate : Theme.Theme -> List Elm.File
 generate theme =
     [ generateColors theme
-    , generatePalettes theme
-    , Elm.file [ "Ui", "Theme" ]
+    , generateText theme
+    , generateLayout theme
+    ]
+
+
+generateLayout : Theme.Theme -> Elm.File
+generateLayout theme =
+    Elm.file [ "Theme", "Layout" ]
         (List.concat
             [ [ Elm.declaration "layout"
                     (Elm.fn2
@@ -46,61 +52,7 @@ generate theme =
                     )
                     |> Elm.expose
               ]
-            , List.filterMap
-                (\typeface ->
-                    let
-                        name =
-                            Theme.nameToString typeface.name
-                    in
-                    if List.member name [ "h1", "h2", "h3", "h4", "h5", "h6" ] then
-                        Elm.declaration name
-                            (Elm.fn2
-                                ( "attrs"
-                                , Just
-                                    (Elm.Annotation.list
-                                        (Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg"))
-                                    )
-                                )
-                                ( "label", Just Elm.Annotation.string )
-                                (\attrs label ->
-                                    Gen.Ui.call_.el
-                                        (Elm.Op.cons
-                                            (Elm.get name
-                                                (Elm.val "font")
-                                            )
-                                            attrs
-                                        )
-                                        (Gen.Ui.call_.text label)
-                                )
-                            )
-                            |> Elm.expose
-                            |> Just
-
-                    else
-                        Nothing
-                )
-                theme.typography
-            , [ Elm.declaration "font"
-                    (toFields
-                        (\typeface ->
-                            Gen.Ui.Font.font
-                                { name = typeface.face
-                                , fallback = [ Gen.Ui.Font.serif ]
-                                , variants = []
-                                , weight =
-                                    if typeface.weight == 400 then
-                                        Gen.Ui.Font.regular
-
-                                    else
-                                        Gen.Ui.Font.bold
-                                , size = typeface.size
-                                }
-                        )
-                        theme.typography
-                        |> Elm.record
-                    )
-                    |> Elm.expose
-              , Elm.declaration "border"
+            , [ Elm.declaration "border"
                     (toFields
                         (\border ->
                             Gen.Ui.border border.width
@@ -189,12 +141,111 @@ generate theme =
               ]
             ]
         )
-    ]
+
+
+generateText : Theme.Theme -> Elm.File
+generateText theme =
+    Elm.file [ "Theme", "Text" ]
+        (List.concat
+            [ List.concatMap
+                (\{ name, item } ->
+                    List.map
+                        (\typeface ->
+                            Elm.fn
+                                ( "label", Just Elm.Annotation.string )
+                                (\label ->
+                                    Gen.Ui.call_.el
+                                        (Elm.list
+                                            [ Elm.val
+                                                "attr"
+                                                |> Elm.get (Theme.nameToString typeface.name)
+                                            ]
+                                        )
+                                        (Gen.Ui.call_.text label)
+                                )
+                                |> Elm.declaration (Theme.nameToString typeface.name)
+                                |> Elm.expose
+                        )
+                        item
+                )
+                theme.typography
+
+            -- as attributes
+            , [ Elm.declaration "attr"
+                    (List.concatMap
+                        (\{ name, item } ->
+                            List.map
+                                (\typeface ->
+                                    ( Theme.nameToString typeface.name
+                                    , Gen.Ui.Font.font
+                                        { name = typeface.item.face
+                                        , fallback = [ Gen.Ui.Font.serif ]
+                                        , variants = []
+                                        , weight =
+                                            toWeight typeface.item.weight
+                                        , size = typeface.item.size
+                                        }
+                                    )
+                                )
+                                item
+                        )
+                        theme.typography
+                        |> Elm.record
+                    )
+                    |> Elm.expose
+              ]
+            ]
+        )
+
+
+capitalize : String -> String
+capitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toUpper top ++ remain
+
+
+toWeight : Int -> Elm.Expression
+toWeight weight =
+    if weight == 100 then
+        Gen.Ui.Font.hairline
+
+    else if weight == 200 then
+        Gen.Ui.Font.extraLight
+
+    else if weight == 300 then
+        Gen.Ui.Font.light
+
+    else if weight == 400 then
+        Gen.Ui.Font.regular
+
+    else if weight == 500 then
+        Gen.Ui.Font.medium
+
+    else if weight == 600 then
+        Gen.Ui.Font.semiBold
+
+    else if weight == 700 then
+        Gen.Ui.Font.bold
+
+    else if weight == 800 then
+        Gen.Ui.Font.extraBold
+
+    else if weight == 900 then
+        Gen.Ui.Font.heavy
+
+    else
+        Gen.Ui.Font.regular
 
 
 generateColors : Theme.Theme -> Elm.File
 generateColors theme =
-    Elm.file [ "Ui", "Theme", "Color" ]
+    Elm.file [ "Theme", "Color" ]
         (toFields toColor theme.colors
             |> List.map
                 (\( name, val ) ->
@@ -204,25 +255,23 @@ generateColors theme =
         )
 
 
-generatePalettes : Theme.Theme -> Elm.File
-generatePalettes theme =
-    Elm.file [ "Ui", "Theme", "Palette" ]
-        (theme.palettes
-            |> List.map
-                (\{ name, item } ->
-                    Elm.declaration (Theme.nameToString name)
-                        (Gen.Ui.palette
-                            { background = toColor item.background
-                            , font = toColor item.foreground
-                            , border = toColor item.border
-                            }
-                        )
-                        |> Elm.expose
-                )
-        )
 
-
-
+-- generatePalettes : Theme.Theme -> Elm.File
+-- generatePalettes theme =
+--     Elm.file [ "Ui", "Theme", "Palette" ]
+--         (theme.palettes
+--             |> List.map
+--                 (\{ name, item } ->
+--                     Elm.declaration (Theme.nameToString name)
+--                         (Gen.Ui.palette
+--                             { background = toColor item.background
+--                             , font = toColor item.foreground
+--                             , border = toColor item.border
+--                             }
+--                         )
+--                         |> Elm.expose
+--                 )
+--         )
 {- HELPERS -}
 
 

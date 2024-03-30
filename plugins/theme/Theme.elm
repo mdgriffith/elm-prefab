@@ -30,11 +30,9 @@ type Color
 
 type alias Theme =
     { colors : List (Named Color)
-    , palettes : List (Named ColorPalette)
     , spacing : List (Named Int)
-    , typography : List (Named Typeface)
+    , typography : List (Named (List (Named Typeface)))
     , borders : List (Named BorderVariant)
-    , shadows : List (Named Shadow)
     }
 
 
@@ -51,7 +49,7 @@ type alias Typeface =
     , weight : Int
     , size : Int
     , lineSpacing : Int
-    , colors : Palette Color
+    , colors : Maybe (Palette Color)
     }
 
 

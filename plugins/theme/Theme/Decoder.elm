@@ -14,12 +14,9 @@ nameToString (Name str) =
 
 decode : Json.Decode.Decoder Theme
 decode =
-    Json.Decode.map6 Theme
+    Json.Decode.map4 Theme
         (Json.Decode.field "colors"
             decodeColorSwatch
-        )
-        (Json.Decode.field "palettes"
-            decodeColorPalette
         )
         (Json.Decode.field "spacing"
             (decodeNamed Json.Decode.int)
@@ -29,9 +26,6 @@ decode =
         )
         (Json.Decode.field "borders"
             (decodeNamed decodeBorderVariant)
-        )
-        (Json.Decode.field "shadows"
-            (Json.Decode.succeed [])
         )
 
 
@@ -106,21 +100,87 @@ decodeNamed inner =
             )
 
 
-decodeTypeface : Json.Decode.Decoder Typeface
+{-|
+
+    "typography": {
+        "interface": {
+            "font": ["EB Garamond", "serif"]
+            "sizes":
+                { "huge":
+                    { "size": 120
+                    , "weight": 700
+                    }
+                }
+            }
+        }
+    }
+
+-}
+decodeTypeface : Json.Decode.Decoder (List (Named Typeface))
 decodeTypeface =
-    Json.Decode.map6 Typeface
-        (Json.Decode.field "face" Json.Decode.string)
-        (Json.Decode.field "fallback" (Json.Decode.list Json.Decode.string))
+    Json.Decode.map2
+        (\( font, fallback ) sizes ->
+            List.map
+                (\( name, size ) ->
+                    Named (Name name)
+                        { face = font
+                        , fallback = fallback
+                        , weight = size.weight
+                        , size = size.size
+                        , lineSpacing = size.lineSpacing
+                        , colors = size.color
+                        }
+                )
+                sizes
+        )
+        (Json.Decode.field "font" (nonEmptyList Json.Decode.string))
+        (Json.Decode.field "sizes"
+            (Json.Decode.keyValuePairs decodeTypefaceSize)
+        )
+
+
+decodeTypefaceSize :
+    Json.Decode.Decoder
+        { size : Int
+        , weight : Int
+        , lineSpacing : Int
+        , color : Maybe (Palette Color)
+        }
+decodeTypefaceSize =
+    Json.Decode.map4
+        (\size weight lineSpacing color ->
+            { size = size
+            , weight = weight
+            , lineSpacing = lineSpacing
+            , color = color
+            }
+        )
+        (Json.Decode.field "size" Json.Decode.int)
         (Json.Decode.maybe (Json.Decode.field "weight" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 400)
         )
-        (Json.Decode.field "size" Json.Decode.int)
         (Json.Decode.maybe (Json.Decode.field "lineSpacing" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 1)
         )
-        (Json.Decode.field "color"
-            (decodePalette decodeColor)
-        )
+        (Json.Decode.maybe (Json.Decode.field "color" (decodePalette decodeColor)))
+
+
+
+-- )
+
+
+nonEmptyList : Json.Decode.Decoder a -> Json.Decode.Decoder ( a, List a )
+nonEmptyList decoder =
+    Json.Decode.list decoder
+        |> Json.Decode.andThen
+            (\list ->
+                case list of
+                    [] ->
+                        Json.Decode.fail "Expected a non-empty list"
+
+                    first :: rest ->
+                        Json.Decode.succeed ( first, rest )
+            )
 
 
 decodePalette : Json.Decode.Decoder thing -> Json.Decode.Decoder (Palette thing)

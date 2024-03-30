@@ -56,6 +56,60 @@ const defaultConfig: Options.Config = {
     Logout: "/logout",
   },
   assets: { Assets: { src: "./public", onServer: "assets" } },
+  // theme: {
+  //   colors: {
+  //     black: "#000000",
+  //     white: "#ffffff",
+  //     neutral: {
+  //       "50": "#fafafa",
+  //       "100": "#f5f5f5",
+  //       "200": "#e5e5e5",
+  //       "300": "#d4d4d4",
+  //       "400": "#a3a3a3",
+  //       "500": "#737373",
+  //       "600": "#525252",
+  //       "700": "#404040",
+  //       "800": "#262626",
+  //       "900": "#171717",
+  //       "950": "#0a0a0a",
+  //     },
+  //   },
+  //   spacing: {
+  //     zero: 0,
+  //     sm4: 2,
+  //     sm3: 4,
+  //     sm2: 8,
+  //     sm: 12,
+  //     md: 16,
+  //     lg: 20,
+  //     lg1: 24,
+  //     lg2: 32,
+  //     lg3: 40,
+  //     lg4: 80,
+  //   },
+  //   typography: {
+  //     prose: {
+  //       font: ["EB Garamond", "serif"],
+  //       sizes: {
+  //         h1: { size: 28 },
+  //         h2: { size: 24 },
+  //         h3: { size: 20 },
+  //         huge: { size: 120 },
+  //       },
+  //     },
+  //     interface: {
+  //       font: ["Noto Sans", "sans-serif"],
+  //       sizes: {
+  //         default: { size: 16 },
+  //         bold: { size: 16, weight: 700 },
+  //         small: { size: 10 },
+  //       },
+  //     },
+  //   },
+  //   borders: {
+  //     small: { rounded: 2, width: 1 },
+  //   },
+  // },
 };
 
 const readConfig = async (filepath: string): Promise<Options.Config | null> => {

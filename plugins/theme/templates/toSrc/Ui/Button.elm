@@ -1,8 +1,7 @@
 module Ui.Button exposing
     ( Button, primary, secondary
-    , withSmall
-    , withWidthFill
-    , view, viewRow
+    , withSmall, withLoading, withWidthFill
+    , view, row
     )
 
 {-|
@@ -10,16 +9,14 @@ module Ui.Button exposing
 @docs Button, primary, secondary
 
 
-## Sizing
+## Options
 
-@docs withSmall
+@docs withSmall, withLoading, withWidthFill
 
 
-## Misc
+## Viewing
 
-@docs withWidthFill
-
-@docs view, viewRow
+@docs view, row
 
 -}
 
@@ -172,13 +169,13 @@ view (Button details) =
 
 
 {-| -}
-viewRow : List (Button msg) -> Ui.Element msg
-viewRow buttons =
+row : List (Ui.Attribute msg) -> List (Button msg) -> Ui.Element msg
+row attrs buttons =
     let
         buttonCount =
             List.length buttons
     in
-    Ui.row []
+    Ui.row attrs
         (List.indexedMap
             (\index (Button details) ->
                 Button
