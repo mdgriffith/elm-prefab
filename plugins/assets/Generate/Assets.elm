@@ -1,4 +1,4 @@
-module Generate.Assets exposing (generate)
+module Generate.Assets exposing (frontmatterParser, generate, trimFrontMatter)
 
 {-| -}
 
@@ -402,15 +402,21 @@ frontmatterParserAttributes =
                         |. Parser.chompIf (\c -> c == '-')
                         |. Parser.chompWhile (\c -> c == '-')
                         |. Parser.chompWhile (\c -> c == '\n')
+                    , Parser.succeed (Parser.Loop attrs)
+                        |. Parser.chompIf (\c -> c == '\n')
+                    , Parser.succeed (Parser.Done attrs)
+                        |. Parser.end
                     , Parser.succeed (Parser.Done attrs)
                         |. Parser.chompIf (\c -> c == '#')
                     , Parser.succeed
                         (\attrName content ->
-                            Parser.Loop (( attrName, Elm.string content ) :: attrs)
+                            Parser.Loop (( attrName, Elm.string (String.trim content) ) :: attrs)
                         )
                         |= (Parser.chompWhile (\c -> c /= ':' && c /= '\n')
                                 |> Parser.getChompedString
                            )
+                        |. Parser.spaces
+                        |. Parser.chompWhile (\c -> c == ':')
                         |. Parser.spaces
                         |= indentedString
                     ]
