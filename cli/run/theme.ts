@@ -1,6 +1,6 @@
-import * as Options from "./options";
+import * as Options from "../options";
 import * as Generator from "./run_generator";
-import * as ThemeWebComponents from "./templates/theme/copyAll";
+import * as ThemeWebComponents from "../templates/theme/copyAll";
 
 export const generator = (options: Options.ThemeOptions): Options.Generator => {
   return {

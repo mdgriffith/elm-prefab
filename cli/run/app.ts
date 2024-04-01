@@ -1,9 +1,9 @@
 import * as Generator from "./run_generator";
-import * as AppEngine from "./templates/app/copyAll";
-import * as Options from "./options";
+import * as AppEngine from "../templates/app/copyAll";
+import * as Options from "../options";
 import * as fs from "fs";
 import * as path from "path";
-import * as ElmDev from "./elm_dev";
+import * as ElmDev from "../elm_dev";
 import chalk from "chalk";
 
 const Page = require("./templates/app/oneOff/Page.elm.ts");

@@ -1,5 +1,5 @@
 import * as GQL from "elm-gql";
-import * as Options from "./options";
+import * as Options from "../options";
 import * as Generator from "./run_generator";
 
 // Some slight differences from elm-gql the cli

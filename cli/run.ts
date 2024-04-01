@@ -4,12 +4,12 @@ import * as Options from "./options";
 import { createInterface } from "readline";
 import Chalk from "chalk";
 
-import * as App from "./run_app";
-import * as Theme from "./run_theme";
-import * as Interactive from "./run_interactive";
-import * as Routes from "./run_routes";
-import * as Assets from "./run_assets";
-import * as GraphQL from "./run_graphql";
+import * as App from "./run/app";
+import * as Theme from "./run/theme";
+import * as Docs from "./run/docs";
+import * as Routes from "./run/routes";
+import * as Assets from "./run/assets";
+import * as GraphQL from "./run/graphql";
 import * as Output from "./output/summary";
 
 // Create readline interface

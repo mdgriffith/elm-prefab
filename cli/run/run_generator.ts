@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as Options from "./options";
+import * as Options from "../options";
 
 const ElmGenerator = require("./generators/all");
 

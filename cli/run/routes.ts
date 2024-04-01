@@ -1,5 +1,5 @@
 import * as Generator from "./run_generator";
-import * as Options from "./options";
+import * as Options from "../options";
 import * as path from "path";
 import * as fs from "fs";
 
