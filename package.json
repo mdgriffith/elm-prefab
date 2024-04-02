@@ -14,7 +14,9 @@
     "build": "bash scripts/build.sh",
     "test": "cd plugins ; elm-test",
     "gen:install": "(cd plugins/codegen ; elm-codegen install)",
-    "test:init": "bash scripts/init-test.sh"
+    "test:init": "bash scripts/init-test.sh",
+    "test:greeting": "bash scripts/test-greeting.sh",
+    "test:playground": "bash scripts/test-playground.sh"
   },
   "repository": {
     "type": "git",

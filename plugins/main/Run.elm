@@ -5,9 +5,11 @@ module Run exposing (..)
 import Elm
 import Gen.CodeGen.Generate as Generate
 import Generate.Assets
+import Generate.Docs
 import Generate.Route
 import Json.Decode
 import Options.Assets
+import Options.Docs
 import Options.Route
 import Press.Generate
 import Press.Generate.Regions
@@ -23,6 +25,7 @@ type PluginRun
     | Route (List Options.Route.ParsedPage)
     | Assets (List Options.Assets.AssetGroup)
     | Theme Theme.Theme
+    | Docs Options.Docs.Docs
 
 
 main : Program Json.Decode.Value () ()
@@ -74,6 +77,12 @@ main =
                         , files = Theme.Generate.generate theme
                         }
 
+                Ok (Docs docs) ->
+                    Ok
+                        { info = []
+                        , files = Generate.Docs.generate docs
+                        }
+
                 Err errors ->
                     Err
                         [ { title = "Error decoding flags"
@@ -91,4 +100,5 @@ decodePlugin =
         , Json.Decode.field "routes" (Json.Decode.map Route (Json.Decode.list Options.Route.decodePage))
         , Json.Decode.field "assets" (Json.Decode.map Assets (Json.Decode.list Options.Assets.decodeAssetGroup))
         , Json.Decode.field "theme" (Json.Decode.map Theme Theme.Decoder.decode)
+        , Json.Decode.field "docs" (Json.Decode.map Docs Options.Docs.decoder)
         ]

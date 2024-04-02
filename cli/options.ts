@@ -6,6 +6,7 @@ export type Config = {
   assets?: any;
   theme?: any;
   graphql?: any;
+  docs?: any;
 };
 
 export type AppOptions = {};

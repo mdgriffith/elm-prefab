@@ -83,9 +83,9 @@ const runGeneration = async (
         case "graphql":
           plugins.push(GraphQL.generator(config.graphql));
           break;
-        // case "interactive":
-        // plugins.push(Interactive.generator(config.interactive));
-        //break;
+        case "docs":
+          plugins.push(Docs.generator(config.docs));
+          break;
         default:
           console.log(`I don't recognize this plugin: ${pluginName}`);
       }
@@ -106,6 +106,7 @@ const runGeneration = async (
 
 const runWithConfig = async (plugins: string[]) => {
   const config = await readConfig("./elm.generate.json", plugins);
+
   if (config == null) {
     const newConfig = await Initialize.config(plugins, config);
     if (newConfig == null) {
@@ -122,7 +123,7 @@ const run = async (argString: string[]) => {
 
   switch (args.kind) {
     case "run":
-      runWithConfig(args.plugins);
+      await runWithConfig(args.plugins);
       break;
     case "help":
       console.log(args.message);

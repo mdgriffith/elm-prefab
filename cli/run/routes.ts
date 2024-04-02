@@ -60,6 +60,9 @@ export const generator = (options: any): Options.Generator => {
 export type File = { path: string; contents: string };
 
 export const readFilesRecursively = (dir: string, found: File[]) => {
+  if (!fs.existsSync(dir)) {
+    return;
+  }
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const filePath = path.join(dir, file);

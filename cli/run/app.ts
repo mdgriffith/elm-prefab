@@ -25,13 +25,19 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
       // Copy static files
       AppEngine.copy(runOptions, summary);
 
-      const viewRegions = await ElmDev.execute("explain App.View.Regions");
+      const viewRegions = await ElmDev.execute(
+        "explain App.View.Regions",
+        runOptions.root
+      );
 
       await Generator.run(runOptions.internalSrc, {
         "app-view": viewRegions,
       });
 
-      const pageIds = await ElmDev.execute("explain App.Page.Id.Id");
+      const pageIds = await ElmDev.execute(
+        "explain App.Page.Id.Id",
+        runOptions.root
+      );
 
       const pages = pageIdsToPageUsages(pageIds);
 

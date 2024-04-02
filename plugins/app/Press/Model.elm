@@ -58,27 +58,6 @@ decodePageUsages =
         )
 
 
-decodePageUsagesOLD : Json.Decode.Decoder (List PageUsage)
-decodePageUsagesOLD =
-    Json.Decode.field "usages"
-        (Json.Decode.list
-            (Json.Decode.field "module"
-                (Json.Decode.map
-                    (String.split ".")
-                    Json.Decode.string
-                )
-                |> Json.Decode.andThen
-                    (\modName ->
-                        Json.Decode.field "usedBy"
-                            (Json.Decode.list (decodeUsage modName)
-                                |> Json.Decode.map (List.filterMap identity)
-                            )
-                    )
-            )
-        )
-        |> Json.Decode.map List.concat
-
-
 decodeUsage : List String -> Json.Decode.Decoder (Maybe PageUsage)
 decodeUsage modName =
     Json.Decode.field "isConcrete" Json.Decode.bool
