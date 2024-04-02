@@ -4,10 +4,11 @@ import * as ChildProcess from "child_process";
 
 const elmDevCommand = "elm-dev";
 
-export function execute(operation: string): Promise<any> {
+export function execute(operation: string, cwd?: string): Promise<any> {
   return new Promise((resolve, reject) => {
     ChildProcess.exec(
       `${elmDevCommand} ${operation}`,
+      { cwd: cwd },
       (error, stdout, stderr) => {
         if (error) {
           reject(`Error: ${error.message}`);
