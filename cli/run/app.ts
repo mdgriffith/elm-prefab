@@ -6,7 +6,7 @@ import * as path from "path";
 import * as ElmDev from "../elm_dev";
 import chalk from "chalk";
 
-const Page = require("./templates/app/oneOff/Page.elm.ts");
+const Page = require("../templates/app/oneOff/Page.elm.ts");
 
 const ensureDirSync = (dir: string) => {
   if (!fs.existsSync(dir)) {
@@ -21,11 +21,6 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
 
     run: async (runOptions: Options.RunOptions) => {
       const summary: Options.Summary = { generated: [] };
-
-      if (!runOptions.initializing) {
-        runOptions.generateDefaultFiles =
-          options.defaultFiles == false ? false : true;
-      }
 
       // Copy static files
       AppEngine.copy(runOptions, summary);

@@ -8,13 +8,9 @@ export type Config = {
   graphql?: any;
 };
 
-export type AppOptions = {
-  defaultFiles?: boolean;
-};
+export type AppOptions = {};
 
-export type ThemeOptions = {
-  defaultFiles?: boolean;
-};
+export type ThemeOptions = {};
 
 export enum GeneratorType {
   DataRetrieval = 0,

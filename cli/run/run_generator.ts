@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as Options from "../options";
 
-const ElmGenerator = require("./generators/all");
+const ElmGenerator = require("../generators/all");
 
 // Run a standard generator made by elm-codegen
 export async function run(
