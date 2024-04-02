@@ -13,7 +13,7 @@ const defaultConfig: Options.Config = {
   assets: { Assets: { src: "./public", onServer: "assets" } },
   graphql: {
     schema: "$GRAPHQL_SCHEMA",
-    header: "Authorization: bearer $GRAPHQL_API_ENDPOINT",
+    header: "Authorization: bearer $GRAPHQL_API_TOKEN",
   },
   theme: {
     colors: {
@@ -121,9 +121,36 @@ export const config = async (
       existing ? existing : {}
     );
     fs.writeFileSync("elm.generate.json", JSON.stringify(config, null, 2));
-    console.log(
-      `${Chalk.yellow("elm.generate.json")} file has been generated!`
-    );
+
+    if ("graphql" in plugins && existing != null && !("graphql" in existing)) {
+      console.log(
+        `I've added some default graphQL settings to ${Chalk.yellow(
+          "elm.generate.json"
+        )} which use the following environment variables:
+
+- ${Chalk.yellow(
+          "$GRAPHQL_SCHEMA"
+        )} - The HTTP endpoint for the GraphQL schema, or the path to a local schema file in JSON format.
+- ${Chalk.yellow(
+          "$GRAPHQL_API_TOKEN"
+        )} - The API token needed for querying for the schema.
+
+Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
+`
+      );
+      process.exit(0);
+    } else if (existing == null) {
+      console.log(
+        `${Chalk.yellow("elm.generate.json")} file has been generated!`
+      );
+    } else {
+      const pluginsAdded = plugins.filter((plugin) => !(plugin in existing));
+
+      console.log(
+        `${Chalk.yellow("elm.generate.json")} file has been generated!`
+      );
+    }
+
     return config;
   } else {
     console.log("File generation skipped.");
