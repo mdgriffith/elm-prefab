@@ -15,7 +15,7 @@ export const generator = (options: any): Options.Generator => {
       const modules = options.modules;
 
       // Retrieve the docs for all modules we want examples for.
-      // const docs = await ElmDev.execute(`docs ${modules}`);
+
       // console.log(docs);
       let elmJson: any = null;
       try {
@@ -56,6 +56,16 @@ export const generator = (options: any): Options.Generator => {
         };
       }
 
+      const depDocs = await getDepDocs(elmJson.dependencies.direct);
+
+      const docs = [];
+      if ("modules" in options && options.modules) {
+        for (const mod of options.modules) {
+          const moduleDocs = await ElmDev.execute(`docs ${mod}`);
+          docs.push(moduleDocs);
+        }
+      }
+
       let readme = null;
       try {
         readme = fs.readFileSync(
@@ -86,9 +96,9 @@ export const generator = (options: any): Options.Generator => {
         // viewers: [],
         readme: readme,
         project: elmJson,
-        modules: testDocs,
+        modules: docs,
         guides: guides,
-        deps: {},
+        deps: depDocs,
       };
 
       const summary = await Generator.run(path.join(docsSrc, ".elm-prefab"), {
@@ -98,6 +108,15 @@ export const generator = (options: any): Options.Generator => {
       return Options.mergeSummaries(subsummary, summary);
     },
   };
+};
+
+const getDepDocs = async (deps: any) => {
+  const depDocs: any = {};
+  for (const [packageName, version] of Object.entries(deps)) {
+    const docs = await ElmDev.execute(`docs ${packageName} ${version}`);
+    depDocs[packageName] = docs;
+  }
+  return depDocs;
 };
 
 const testDocs = [

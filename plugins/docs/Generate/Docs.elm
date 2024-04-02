@@ -17,10 +17,13 @@ import Press.Generate
 
 generate : Options.Docs.Docs -> List Elm.File
 generate docs =
-    [ generateProject docs
-    , generateGuides docs
-    , generateModules docs
-    ]
+    List.concat
+        [ [ generateProject docs
+          , generateGuides docs
+          , generateModules docs
+          ]
+        , generatePackages docs
+        ]
 
 
 generateProject : Options.Docs.Docs -> Elm.File
@@ -174,3 +177,52 @@ generateModules docs =
                     )
                     docs.modules
         )
+
+
+generatePackages : Options.Docs.Docs -> List Elm.File
+generatePackages docs =
+    case Dict.toList docs.deps of
+        [] ->
+            []
+
+        pkgs ->
+            List.map
+                (\( name, mods ) ->
+                    Elm.file [ "Docs", "Packages", sanitizePackageName name ]
+                        [ Elm.declaration "info"
+                            (Elm.list (List.map Generate.Docs.Module.generate mods))
+                        ]
+                )
+                pkgs
+
+
+sanitizePackageName : String -> String
+sanitizePackageName name =
+    String.replace "." "_" name
+        |> String.replace "-" "_"
+        |> String.replace "/" "_"
+        |> String.split "_"
+        |> List.map capitalize
+        |> String.join ""
+
+
+capitalize : String -> String
+capitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toUpper top ++ remain
+
+
+decapitalize : String -> String
+decapitalize str =
+    case String.uncons str of
+        Nothing ->
+            str
+
+        Just ( first, tail ) ->
+            String.fromChar (Char.toLower first) ++ tail

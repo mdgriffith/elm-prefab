@@ -15380,6 +15380,34 @@
             }
         }());
     };
+    var $author$project$Generate$Docs$capitalize = function (str) {
+        var top = $elm$core$String$left_fn(1, str);
+        var remain = $elm$core$String$dropLeft_fn(1, str);
+        return _Utils_ap($elm$core$String$toUpper(top), remain);
+    };
+    var $author$project$Generate$Docs$sanitizePackageName = function (name) {
+        return $elm$core$String$join_fn("", $elm$core$List$map_fn($author$project$Generate$Docs$capitalize, $elm$core$String$split_fn("_", $elm$core$String$replace_fn("/", "_", $elm$core$String$replace_fn("-", "_", $elm$core$String$replace_fn(".", "_", name))))));
+    };
+    var $author$project$Generate$Docs$generatePackages = function (docs) {
+        var _v0 = $elm$core$Dict$toList(docs.kb);
+        if (!_v0.b) {
+            return _List_Nil;
+        }
+        else {
+            var pkgs = _v0;
+            return $elm$core$List$map_fn(function (_v1) {
+                var name = _v1.a;
+                var mods = _v1.b;
+                return $mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray([
+                    "Docs",
+                    "Packages",
+                    $author$project$Generate$Docs$sanitizePackageName(name)
+                ]), _List_fromArray([
+                    $mdgriffith$elm_codegen$Elm$declaration_fn("info", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Docs$Module$generate, mods)))
+                ]));
+            }, pkgs);
+        }
+    };
     var $elm$project_metadata_utils$Elm$Version$toTuple = function (_v0) {
         var major = _v0.a;
         var minor = _v0.b;
@@ -15553,11 +15581,14 @@
         ]));
     };
     var $author$project$Generate$Docs$generate = function (docs) {
-        return _List_fromArray([
-            $author$project$Generate$Docs$generateProject(docs),
-            $author$project$Generate$Docs$generateGuides(docs),
-            $author$project$Generate$Docs$generateModules(docs)
-        ]);
+        return $elm$core$List$concat(_List_fromArray([
+            _List_fromArray([
+                $author$project$Generate$Docs$generateProject(docs),
+                $author$project$Generate$Docs$generateGuides(docs),
+                $author$project$Generate$Docs$generateModules(docs)
+            ]),
+            $author$project$Generate$Docs$generatePackages(docs)
+        ]));
     };
     var $mdgriffith$elm_codegen$Elm$alias_fn = function (name, innerAnnotation) {
         return $mdgriffith$elm_codegen$Internal$Compiler$Declaration({
