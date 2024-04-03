@@ -33,7 +33,8 @@ function sortByDirectory(records: Options.Generated[]) {
     // Compare directory names
     if (dirA < dirB) return -1;
     if (dirA > dirB) return 1;
-    return 0;
+
+    return a.path.localeCompare(b.path);
   });
 }
 
