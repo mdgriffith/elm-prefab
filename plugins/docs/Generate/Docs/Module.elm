@@ -6,6 +6,15 @@ import Elm.Docs
 import Elm.Type
 
 
+comment : String -> Elm.Expression
+comment str =
+    -- Elm.string str
+    str
+        |> String.replace "\\" "\\\\"
+        |> String.replace "\"" "\\\""
+        |> Elm.string
+
+
 {-|
 
     { name = String
@@ -21,7 +30,7 @@ generate : Elm.Docs.Module -> Elm.Expression
 generate mod =
     Elm.record
         [ ( "name", Elm.string mod.name )
-        , ( "comment", Elm.string mod.comment )
+        , ( "comment", comment mod.comment )
         , ( "unions", Elm.list (List.map generateUnion mod.unions) )
         , ( "aliases", Elm.list (List.map generateAlias mod.aliases) )
         , ( "values", Elm.list (List.map generateValue mod.values) )
@@ -34,7 +43,7 @@ generateUnion : Elm.Docs.Union -> Elm.Expression
 generateUnion union =
     Elm.record
         [ ( "name", Elm.string union.name )
-        , ( "comment", Elm.string union.comment )
+        , ( "comment", comment union.comment )
         , ( "args", Elm.list (List.map Elm.string union.args) )
         , ( "tags", Elm.list (List.map generateTag union.tags) )
         ]
@@ -51,7 +60,7 @@ generateAlias : Elm.Docs.Alias -> Elm.Expression
 generateAlias alias_ =
     Elm.record
         [ ( "name", Elm.string alias_.name )
-        , ( "comment", Elm.string alias_.comment )
+        , ( "comment", comment alias_.comment )
         , ( "args", Elm.list (List.map Elm.string alias_.args) )
         , ( "tipe", generateType alias_.tipe )
         ]
@@ -61,7 +70,7 @@ generateValue : Elm.Docs.Value -> Elm.Expression
 generateValue value =
     Elm.record
         [ ( "name", Elm.string value.name )
-        , ( "comment", Elm.string value.comment )
+        , ( "comment", comment value.comment )
         , ( "tipe", generateType value.tipe )
         ]
 
@@ -70,7 +79,7 @@ generateBinop : Elm.Docs.Binop -> Elm.Expression
 generateBinop binop =
     Elm.record
         [ ( "name", Elm.string binop.name )
-        , ( "comment", Elm.string binop.comment )
+        , ( "comment", comment binop.comment )
         , ( "associativity", generateAssociativity binop.associativity )
         , ( "precedence", Elm.int binop.precedence )
         , ( "tipe", generateType binop.tipe )

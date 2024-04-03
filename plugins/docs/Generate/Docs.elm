@@ -186,14 +186,34 @@ generatePackages docs =
             []
 
         pkgs ->
-            List.map
-                (\( name, mods ) ->
-                    Elm.file [ "Docs", "Packages", sanitizePackageName name ]
-                        [ Elm.declaration "info"
-                            (Elm.list (List.map Generate.Docs.Module.generate mods))
+            let
+                toPackage ( packageName, mods ) =
+                    Elm.record
+                        [ ( "name", Elm.string packageName )
+                        , ( "modules"
+                          , Elm.value
+                                { importFrom = [ "Docs", "Packages", sanitizePackageName packageName ]
+                                , name = "info"
+                                , annotation = Just (Type.list (Type.named [ "Elm", "Docs" ] "Module"))
+                                }
+                          )
                         ]
-                )
-                pkgs
+
+                directory =
+                    Elm.file [ "Docs", "Packages" ]
+                        [ Elm.declaration "directory"
+                            (Elm.list (List.map toPackage pkgs))
+                        ]
+            in
+            directory
+                :: List.map
+                    (\( name, mods ) ->
+                        Elm.file [ "Docs", "Packages", sanitizePackageName name ]
+                            [ Elm.declaration "info"
+                                (Elm.list (List.map Generate.Docs.Module.generate mods))
+                            ]
+                    )
+                    pkgs
 
 
 sanitizePackageName : String -> String

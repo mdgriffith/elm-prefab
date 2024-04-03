@@ -15174,6 +15174,9 @@
             }
         }());
     };
+    var $author$project$Generate$Docs$Module$comment = function (str) {
+        return $mdgriffith$elm_codegen$Elm$string($elm$core$String$replace_fn("\"", "\\\"", $elm$core$String$replace_fn("\\", "\\\\", str)));
+    };
     var $mdgriffith$elm_codegen$Internal$Compiler$getAnnotation = function (exp) {
         return exp.b;
     };
@@ -15299,7 +15302,7 @@
     var $author$project$Generate$Docs$Module$generateAlias = function (alias_) {
         return $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
             _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$string(alias_.d)),
-            _Utils_Tuple2("comment", $mdgriffith$elm_codegen$Elm$string(alias_.aS)),
+            _Utils_Tuple2("comment", $author$project$Generate$Docs$Module$comment(alias_.aS)),
             _Utils_Tuple2("args", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($mdgriffith$elm_codegen$Elm$string, alias_.ck))),
             _Utils_Tuple2("tipe", $author$project$Generate$Docs$Module$generateType(alias_.b2))
         ]));
@@ -15329,7 +15332,7 @@
     var $author$project$Generate$Docs$Module$generateBinop = function (binop) {
         return $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
             _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$string(binop.d)),
-            _Utils_Tuple2("comment", $mdgriffith$elm_codegen$Elm$string(binop.aS)),
+            _Utils_Tuple2("comment", $author$project$Generate$Docs$Module$comment(binop.aS)),
             _Utils_Tuple2("associativity", $author$project$Generate$Docs$Module$generateAssociativity(binop.ju)),
             _Utils_Tuple2("precedence", $mdgriffith$elm_codegen$Elm$int(binop.l3)),
             _Utils_Tuple2("tipe", $author$project$Generate$Docs$Module$generateType(binop.b2))
@@ -15343,7 +15346,7 @@
     var $author$project$Generate$Docs$Module$generateUnion = function (union) {
         return $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
             _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$string(union.d)),
-            _Utils_Tuple2("comment", $mdgriffith$elm_codegen$Elm$string(union.aS)),
+            _Utils_Tuple2("comment", $author$project$Generate$Docs$Module$comment(union.aS)),
             _Utils_Tuple2("args", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($mdgriffith$elm_codegen$Elm$string, union.ck))),
             _Utils_Tuple2("tags", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Docs$Module$generateTag, union.mZ)))
         ]));
@@ -15351,14 +15354,14 @@
     var $author$project$Generate$Docs$Module$generateValue = function (value) {
         return $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
             _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$string(value.d)),
-            _Utils_Tuple2("comment", $mdgriffith$elm_codegen$Elm$string(value.aS)),
+            _Utils_Tuple2("comment", $author$project$Generate$Docs$Module$comment(value.aS)),
             _Utils_Tuple2("tipe", $author$project$Generate$Docs$Module$generateType(value.b2))
         ]));
     };
     var $author$project$Generate$Docs$Module$generate = function (mod) {
         return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["Elm", "Docs"]), "Module"), $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
             _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$string(mod.d)),
-            _Utils_Tuple2("comment", $mdgriffith$elm_codegen$Elm$string(mod.aS)),
+            _Utils_Tuple2("comment", $author$project$Generate$Docs$Module$comment(mod.aS)),
             _Utils_Tuple2("unions", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Docs$Module$generateUnion, mod.m9))),
             _Utils_Tuple2("aliases", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Docs$Module$generateAlias, mod.jm))),
             _Utils_Tuple2("values", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Docs$Module$generateValue, mod.i5))),
@@ -15395,7 +15398,26 @@
         }
         else {
             var pkgs = _v0;
-            return $elm$core$List$map_fn(function (_v1) {
+            var toPackage = function (_v2) {
+                var packageName = _v2.a;
+                var mods = _v2.b;
+                return $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
+                    _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$string(packageName)),
+                    _Utils_Tuple2("modules", $mdgriffith$elm_codegen$Elm$value({
+                        b: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["Elm", "Docs"]), "Module"))),
+                        c: _List_fromArray([
+                            "Docs",
+                            "Packages",
+                            $author$project$Generate$Docs$sanitizePackageName(packageName)
+                        ]),
+                        d: "info"
+                    }))
+                ]));
+            };
+            var directory = $mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray(["Docs", "Packages"]), _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$declaration_fn("directory", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn(toPackage, pkgs)))
+            ]));
+            return _List_Cons(directory, $elm$core$List$map_fn(function (_v1) {
                 var name = _v1.a;
                 var mods = _v1.b;
                 return $mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray([
@@ -15405,7 +15427,7 @@
                 ]), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$declaration_fn("info", $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Docs$Module$generate, mods)))
                 ]));
-            }, pkgs);
+            }, pkgs));
         }
     };
     var $elm$project_metadata_utils$Elm$Version$toTuple = function (_v0) {

@@ -189,11 +189,7 @@ gotoRoute { isRedirect, route } model eff =
         _ ->
             let
                 pageId =
-                    if routeRequiresAuthentication route && not (App.Shared.isLoggedIn model.shared) then
-                        App.Page.Id.Home {}
-
-                    else
-                        routeToPageId route
+                    routeToPageId route
             in
             ( model
             , App.Effect.batch
@@ -201,11 +197,6 @@ gotoRoute { isRedirect, route } model eff =
                 , eff
                 ]
             )
-
-
-routeRequiresAuthentication : App.Route.Route -> Bool
-routeRequiresAuthentication route =
-    True
 
 
 routeToPageId : App.Route.Route -> App.Page.Id.Id

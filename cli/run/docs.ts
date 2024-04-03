@@ -96,7 +96,7 @@ export const generator = (options: any): Options.Generator => {
         // viewers: [],
         readme: readme,
         project: elmJson,
-        modules: docs,
+        modules: [], //docs,
         guides: guides,
         deps: depDocs,
       };

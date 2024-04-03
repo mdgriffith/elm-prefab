@@ -12,7 +12,9 @@ import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
+import Docs.Packages
 import Html
+import Html.Attributes as Attr
 
 
 {-| -}
@@ -52,6 +54,17 @@ subscriptions shared model =
 
 view : App.View.Id.Id -> App.Shared.Shared -> Model -> App.View.View Msg
 view viewId shared model =
-    { title = "Home"
-    , body = Html.text "Home"
+    { title = "Package"
+    , body =
+        Html.div []
+            [ Html.text "Packages:"
+            , Html.div []
+                (List.map
+                    (\package ->
+                        Html.div []
+                            [ Html.text package.name ]
+                    )
+                    Docs.Packages.directory
+                )
+            ]
     }
