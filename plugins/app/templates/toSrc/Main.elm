@@ -173,49 +173,32 @@ gotoUrl url model eff =
 
 gotoRoute : { isRedirect : Bool, route : App.Route.Route } -> Model -> App.Effect.Effect Msg -> ( Model, App.Effect.Effect Msg )
 gotoRoute { isRedirect, route } model eff =
-    case route of
-        App.Route.Logout params ->
-            ( { model
-                | shared =
-                    { authenticated = App.Shared.Unauthenticated
-                    }
-              }
-            , App.Effect.batch
-                [ App.Effect.replaceUrl "/"
-                , eff
-                ]
-            )
+    if isRedirect then
+        ( model, App.Effect.replaceUrl (App.Route.toString route) )
 
-        _ ->
-            let
-                pageId =
-                    if routeRequiresAuthentication route && not (App.Shared.isLoggedIn model.shared) then
-                        App.Page.Id.Home {}
+    else
+        case App.Page.Id.fromRoute route of
+            Nothing ->
+                case route of
+                    App.Route.Logout params ->
+                        ( { model
+                            | shared =
+                                { authenticated = App.Shared.Unauthenticated
+                                }
+                          }
+                        , App.Effect.batch
+                            [ App.Effect.replaceUrl "/"
+                            , eff
+                            ]
+                        )
 
-                    else
-                        routeToPageId route
-            in
-            ( model
-            , App.Effect.batch
-                [ App.Effect.loadAt App.View.Id.Primary pageId
-                , eff
-                ]
-            )
+                    _ ->
+                        ( model, App.Effect.none )
 
-
-routeRequiresAuthentication : App.Route.Route -> Bool
-routeRequiresAuthentication route =
-    True
-
-
-routeToPageId : App.Route.Route -> App.Page.Id.Id
-routeToPageId route =
-    case route of
-        App.Route.Home _ ->
-            App.Page.Id.Home {}
-
-        App.Route.Logout _ ->
-            App.Page.Id.Home {}
-
-        App.Route.Login _ ->
-            App.Page.Id.Home {}
+            Just pageId ->
+                ( model
+                , App.Effect.batch
+                    [ App.Effect.loadAt App.View.Id.Primary pageId
+                    , eff
+                    ]
+                )
