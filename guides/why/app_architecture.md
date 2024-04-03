@@ -21,7 +21,7 @@ type Model
 
 Which means your model is one of the above values.
 
-This is honestly pretty great because it's so clear.
+This is honestly pretty great because it's so clear!
 
 However, there are a few situations that I really wanted to explore with `elm-prefab`
 

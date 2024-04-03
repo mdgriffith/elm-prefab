@@ -14,9 +14,8 @@ Each plugin is independent, so you can pick and choose what you want.
 
   - Page-level state caching
   - Notion-like flexibility for _viewing multiple pages_ at once.
+  - Routing generation - Spend as little time futzing with routes as possible!
   - Built-in support for [`elm-program-test`](https://package.elm-lang.org/packages/avh4/elm-program-test/latest/) for full end-to-end testing of your Elm app.
-
-- **Routes** - Spend as little time futzing with routes as possible!
 
 - **Assets** - Be able to link to a static asset
 
@@ -87,10 +86,11 @@ Now go build something! If you have a questions, check out the below guides.
 - [Adding a new page](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/add-a-page.md)
 - [Using local storage](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/using-localstorage.md)
 
-- [Managing routes](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/routes.md)
+- [Managing routes and pages](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/app/routes_and_pages.md)
 - [Managing assets](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/assets.md)
 - [Using GraphQL](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/graphql.md)
 
 ## FAQ
 
-- [Why does this thing exist?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/app/why.md)
+- [Why does this thing exist?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/app_architecture.md)
+- [Why is routing handled like it is?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/routes.md)

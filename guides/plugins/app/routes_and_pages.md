@@ -1,20 +1,26 @@
-# Routing
-
-**Config example**
+# Routes and Pages
 
 ```json
 {
-  "routes": {
-    "Home": "/home",
-    "Post": "/post/:id",
-    "Posts": "/posts/*",
-    "Dashboard": "/dashboard?{search,filter,sort}",
-    "Everything": "/everything/:tag/*?{search,filter}"
+  "app": {
+    "pages": {
+      "Home": "/home",
+      "Post": "/post/:id",
+      "Posts": "/posts/*",
+      "Dashboard": "/dashboard?{search,filter,sort}",
+      "Everything": "/everything/:tag/*?{search,filter}"
+    }
   }
 }
 ```
 
-**routes** is an object where the keys are capitalized, and the value is a [URL template](#UrlTemplate)
+**pages** is an object where the keys are capitalized, and the value is a [URL template](#UrlTemplate)
+
+When specifying pages above, a few things happen.
+
+1. Routes are generated in `App/Route.elm`
+2. If a page in `src/Page/{PageName}.elm` doesn't exist, a placeholder page will be generated for you.
+3.
 
 This will generate `App/Route.elm` in the `.elm-prefab` directory, which will have
 
@@ -75,7 +81,7 @@ Knowing the exact query parameters a URL uses can be really cool.
 
 It means you can safely link to a page with a certain configuration.
 
-## Redirects.
+## Redirects
 
 Instead of a URL string, you can also specify a list of redirects if needed.
 
@@ -85,7 +91,7 @@ No problem, we can pop that into a redirect.
 
 ```json
 {
-  "routes": {
+  "pages": {
     "Posts": { "url": "/posts/*", "redirectFrom": ["/pots/*"] }
   }
 }
@@ -95,37 +101,24 @@ No problem, we can pop that into a redirect.
 
 This means the app will parse both URLs as `Posts`.
 
-You can also know if a url was a redirect by using `App.Route.isRedirect : Url -> Bool`.
+You can also know if a url was redirected because `App.Route.parse` returns `Maybe { route : Route, isRedirect : Bool }`.
 
-## Why have a generator for this?
+This is useful because if a redirect happens, you'll need to
 
-The main motivations for this are:
+## URLs without a page
 
-- Minimizing the time spent on routing.
-- To have a single, scannable place to see all the routes of a project.
-- To know exactly what information is available for each route. (e.g. "Oh, we care about the search URL param for this page, cool.")
+It's common for `/logout` to not be a literal page, but for it to be a url you still want to capture.
 
-Also, when handling routing in Elm you need to make sure that the URL parser and the URL toString function stay in sync.
-This isn't that _hard_ to do, but once routing gets large, it can be a source of anxiety.
+If you use `urlOnly`, then only a route will be generated, and no actual `Page/{PageName}.elm` will be required.
 
-Anxiety kills your development speed and is no fun. :heart:
+```json
+{
+  "pages": {
+    "Logout": { "urlONly": "/logout" }
+  }
+}
+```
 
-## Why not Filesystem based routing?
+## Why are things handled this way?
 
-One of the differentiators between this project and something like [Elm Land](https://elm.land/) is that we describe routes in a config as opposed to generating them from a directory structure.
-
-Filesystem routing is pretty cool! So, why the heck aren't we using it?
-
-## Deprecated routes and redirects
-
-What if we want to change the url for a page for whatever reason? Well we can go ahead and change it, but what about all the existing external links that are out there? It's pretty common to send out emails with links to specific parts of your app.
-
-I guess we'll just never change things.
-
-## Not all URLs correspond to a page
-
-`/logout` is a very common route which is not an actual page. We generally want to logout the user and return them to the home page.
-
-You can read more about this in the [App plugin](guides/plugins/app.md), but long story short, it can be pretty cool to have multiple "pages" rendered at once.
-
-But if we do that, then which one owns the URL?
+Check out "[why is routing handled like it is?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/routes.md)" for more information!
