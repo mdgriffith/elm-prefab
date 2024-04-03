@@ -61,7 +61,7 @@ When running `elm-prefab` for the first time, a number of files will be generate
 
 ## Starting the Vite development server
 
-Once you're run `npm run elm-prefab`, you now have a working [`Vite`](https://vitejs.dev/) setup.
+Once you've run `npm run elm-prefab`, you now have a working [`Vite`](https://vitejs.dev/) setup.
 
 `npm run dev` will start a dev server so you can get coding!
 
