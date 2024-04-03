@@ -21,14 +21,6 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
     Options.addGenerated(summary, generated);
   }
 
-  if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/Page/Id.elm")) && !skip)) {
-    const filepath = path.join(baseDir, "/App/Page/Id.elm");
-    fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "module App.Page.Id exposing (Id(..))\n\n{-| This is a special file that `elm-prefab` reads when generating the Elm code for wiring up a page.\n\n`elm-prefab` tracks page states in a key/value dictionary that is handled in `./elm-prefab/App.elm`\n\nThe `Id` type belows represents the key for that dictionary.\n\n`elm-prefab` needs every value of `Id` to correspond to an Elm module in `src/Page/*`. It does this by matching up the names.\n\nSo,\n\n    type Id\n        = Home HomeParams\n\nMeans that `elm-prefab` expects to find a module at `src/Page/Home.elm`.\n\nIf you add a new value to `Id` and run `elm-prefab`, then it will create a placeholder page for you!\n\n-}\n\n\ntype Id\n    = Home HomeParams\n\n\n\n{- Param definitions -}\n\n\ntype alias HomeParams =\n    {}\n");
-    const generated = { outputDir: baseDir, path: filepath}
-    Options.addGenerated(summary, generated);
-  }
-
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/Effect.elm")) && !skip)) {
     const filepath = path.join(baseDir, "/App/Effect.elm");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });

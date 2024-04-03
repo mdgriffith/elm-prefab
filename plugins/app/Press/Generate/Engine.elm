@@ -22,6 +22,7 @@ import Gen.Maybe
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.Url
+import Options.App
 import Press.Generate.Regions
 import Press.Model exposing (..)
 
@@ -61,7 +62,7 @@ pageRecordType =
         ]
 
 
-generate : List PageUsage -> Elm.File
+generate : List Options.App.PageUsage -> Elm.File
 generate pageUsages =
     let
         loadPage =
@@ -131,7 +132,7 @@ generate pageUsages =
         ]
 
 
-toPageGroupKey : List PageUsage -> Elm.Declaration
+toPageGroupKey : List Options.App.PageUsage -> Elm.Declaration
 toPageGroupKey pages =
     .declaration <|
         Elm.Declare.fn "toPageGroupKey"
@@ -165,7 +166,7 @@ toPageGroupKey pages =
             )
 
 
-toPageLimit : List PageUsage -> Elm.Declaration
+toPageLimit : List Options.App.PageUsage -> Elm.Declaration
 toPageLimit pages =
     .declaration <|
         Elm.Declare.fn "toPageLimit"
@@ -217,7 +218,7 @@ toPageLimit pages =
             )
 
 
-toPageKey : List PageUsage -> Elm.Declaration
+toPageKey : List Options.App.PageUsage -> Elm.Declaration
 toPageKey pages =
     .declaration <|
         Elm.Declare.fn "toPageKey"
@@ -290,7 +291,7 @@ toPageKey pages =
             )
 
 
-msgType : List PageUsage -> Elm.Declaration
+msgType : List Options.App.PageUsage -> Elm.Declaration
 msgType pageUsages =
     let
         pageVariants =
@@ -543,7 +544,7 @@ init getPageInit loadPage config flags url key =
 
 
 update :
-    List PageUsage
+    List Options.App.PageUsage
     ->
         { a
             | call :
@@ -695,7 +696,7 @@ update routes getPageInit loadPage =
         )
 
 
-view : List PageUsage -> Elm.Declaration
+view : List Options.App.PageUsage -> Elm.Declaration
 view routes =
     Elm.declaration "view"
         (Elm.fn2
@@ -735,7 +736,7 @@ view routes =
         )
 
 
-viewPageModel : List PageUsage -> Elm.Declaration
+viewPageModel : List Options.App.PageUsage -> Elm.Declaration
 viewPageModel pages =
     Elm.declaration "viewPageModel"
         (Elm.fn4
@@ -849,7 +850,7 @@ routeToView shared regionId pageId pageInfo =
         Nothing
 
 
-subscriptions : List PageUsage -> Elm.Declaration
+subscriptions : List Options.App.PageUsage -> Elm.Declaration
 subscriptions pages =
     Elm.declaration "subscriptions"
         (Elm.fn2
@@ -895,7 +896,7 @@ subscriptions pages =
         )
 
 
-pageModelToSubscription : Elm.Expression -> Elm.Expression -> List PageUsage -> Elm.Expression -> Elm.Expression -> Elm.Expression
+pageModelToSubscription : Elm.Expression -> Elm.Expression -> List Options.App.PageUsage -> Elm.Expression -> Elm.Expression -> Elm.Expression
 pageModelToSubscription config model pages current pageId =
     Elm.Case.custom current
         types.pageModel
@@ -911,7 +912,7 @@ pageModelToSubscription config model pages current pageId =
         )
 
 
-pageInfoToSubscriptioon : Elm.Expression -> Elm.Expression -> Elm.Expression -> PageUsage -> Maybe Elm.Case.Branch
+pageInfoToSubscriptioon : Elm.Expression -> Elm.Expression -> Elm.Expression -> Options.App.PageUsage -> Maybe Elm.Case.Branch
 pageInfoToSubscriptioon config model pageId pageInfo =
     if pageInfo.elmModuleIsPresent then
         let

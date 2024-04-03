@@ -1,4 +1,8 @@
-module Press.Generate exposing (Error, decode, errorToDetails, generate)
+module Press.Generate exposing
+    ( Error
+    , errorToDetails
+    , generate
+    )
 
 {-| Press generates the minimal amount needed to have a working app.
 
@@ -40,9 +44,11 @@ import Gen.Tuple
 import Gen.Url
 import Gen.Url.Parser
 import Gen.Url.Parser.Query
+import Generate.Route
 import Json.Decode
 import Markdown.Block as Block
 import Markdown.Parser
+import Options.App
 import Parser exposing ((|.), (|=))
 import Path
 import Press.Generate.Engine
@@ -51,66 +57,124 @@ import Press.Model exposing (..)
 import Set exposing (Set)
 
 
-
-{- GENERATES -}
-
-
-type Error
-    = RouteCollision
-        { base : Press.Model.Page
-        , collisions : List Press.Model.UrlPattern
-        }
+type alias Error =
+    Generate.Route.Error
 
 
 errorToDetails : Error -> { title : String, description : String }
 errorToDetails error =
-    case error of
-        RouteCollision collision ->
-            { title = "Route collision"
-            , description = ""
-            }
+    Generate.Route.errorToDetails error
 
 
-generate : List PageUsage -> Result (List Error) (List Elm.File)
+generate : List Options.App.PageUsage -> Result (List Error) (List Elm.File)
 generate pageUsages =
-    Ok [ Press.Generate.Engine.generate pageUsages ]
-
-
-validateRoutes : List Page -> List Error
-validateRoutes pages =
-    List.concatMap (validatePageRoutes pages) pages
-
-
-validatePageRoutes : List Page -> Page -> List Error
-validatePageRoutes allPages page =
     let
-        otherRoutes =
-            allPages
-                |> List.filter (\p -> p.id /= page.id)
-                |> List.concatMap Press.Model.getRoutes
+        routes =
+            List.filterMap .route pageUsages
+
+        pages =
+            List.map populateParamType pageUsages
     in
-    case List.filter (Press.Model.hasCollisions page.url) otherRoutes of
-        [] ->
-            []
+    case Generate.Route.generate routes of
+        Err err ->
+            Err err
 
-        collisions ->
-            [ RouteCollision
-                { base = page
-                , collisions = collisions
-                }
-            ]
-
-
-
-{- Decode source data -}
+        Ok routeFile ->
+            Ok
+                [ Press.Generate.Engine.generate pages
+                , generatePageId pageUsages
+                , routeFile
+                ]
 
 
-type alias Options =
-    Press.Model.Model
+populateParamType : Options.App.PageUsage -> Options.App.PageUsage
+populateParamType page =
+    { page | paramType = Just (page.id ++ "_Params") }
 
 
-decode : Json.Decode.Decoder Options
-decode =
-    Json.Decode.map2 Press.Model.Model
-        (Json.Decode.field "regions" Press.Model.decodeViewRegions)
-        (Json.Decode.field "pageUsages" Press.Model.decodePageUsages)
+generatePageId : List Options.App.PageUsage -> Elm.File
+generatePageId pageUsages =
+    let
+        pageIdType =
+            Elm.customType "Id"
+                (List.map
+                    (\page ->
+                        Elm.variantWith page.id [ Type.named [] (page.id ++ "_Params") ]
+                    )
+                    pageUsages
+                )
+
+        paramAliases =
+            List.map
+                (\page ->
+                    case page.route of
+                        Nothing ->
+                            Elm.alias
+                                (page.id ++ "_Params")
+                                (Type.record [])
+
+                        Just parsedRoute ->
+                            case Generate.Route.checkForErrors [ parsedRoute ] of
+                                Err _ ->
+                                    Elm.alias
+                                        (page.id ++ "_Params")
+                                        (Type.record [])
+
+                                Ok [ route ] ->
+                                    Elm.alias
+                                        (page.id ++ "_Params")
+                                        (Type.named [ "App", "Route" ] (page.id ++ "_Params"))
+
+                                _ ->
+                                    Elm.alias
+                                        (page.id ++ "_Params")
+                                        (Type.record [])
+                )
+                pageUsages
+
+        fromRoute =
+            Elm.declaration "fromRoute"
+                (Elm.fn
+                    ( "route", Just (Type.named [ "App", "Route" ] "Route") )
+                    (\route ->
+                        Elm.Case.custom route
+                            (Type.named [ "App", "Route" ] "Route")
+                            (List.filterMap
+                                (\page ->
+                                    case page.route of
+                                        Nothing ->
+                                            Nothing
+
+                                        Just parsedRoute ->
+                                            case Generate.Route.checkForErrors [ parsedRoute ] of
+                                                Err _ ->
+                                                    Nothing
+
+                                                Ok [ pageRoute ] ->
+                                                    Just
+                                                        (Elm.Case.branch1 pageRoute.id
+                                                            ( "params", Type.named [ "App", "Route" ] (pageRoute.id ++ "_Params") )
+                                                            (\params ->
+                                                                if page.urlOnly then
+                                                                    Elm.nothing
+
+                                                                else
+                                                                    Elm.apply
+                                                                        (Elm.val pageRoute.id)
+                                                                        [ params ]
+                                                                        |> Elm.just
+                                                            )
+                                                        )
+
+                                                _ ->
+                                                    Nothing
+                                )
+                                pageUsages
+                            )
+                            |> Elm.withType (Type.maybe (Type.named [] "Id"))
+                    )
+                )
+    in
+    Elm.file
+        [ "App", "Page", "Id" ]
+        (pageIdType :: fromRoute :: paramAliases)

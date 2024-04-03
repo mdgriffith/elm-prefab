@@ -22,115 +22,8 @@ import Gen.Platform.Sub
 import Gen.Set
 import Gen.Url
 import Json.Decode
+import Options.App
 import Set exposing (Set)
-
-
-type alias Model =
-    { viewRegions : ViewRegions
-    , pageUsages : List PageUsage
-    }
-
-
-type alias PageUsage =
-    { id : String
-    , moduleName : List String
-    , value : String
-    , paramType : Maybe String
-    , elmModuleIsPresent : Bool
-    }
-
-
-decodePageUsages : Json.Decode.Decoder (List PageUsage)
-decodePageUsages =
-    Json.Decode.list
-        (Json.Decode.map5 PageUsage
-            (Json.Decode.field "id" Json.Decode.string)
-            (Json.Decode.field "moduleName" (Json.Decode.list Json.Decode.string))
-            (Json.Decode.field "value" Json.Decode.string)
-            (Json.Decode.field "paramType"
-                (Json.Decode.oneOf
-                    [ Json.Decode.map Just Json.Decode.string
-                    , Json.Decode.null Nothing
-                    ]
-                )
-            )
-            (Json.Decode.field "elmModuleIsPresent" Json.Decode.bool)
-        )
-
-
-decodeUsage : List String -> Json.Decode.Decoder (Maybe PageUsage)
-decodeUsage modName =
-    Json.Decode.field "isConcrete" Json.Decode.bool
-        |> Json.Decode.andThen
-            (\isConcrete ->
-                if isConcrete then
-                    Json.Decode.map2
-                        (\name paramType ->
-                            Just
-                                { id =
-                                    List.reverse modName
-                                        |> List.head
-                                        |> Maybe.withDefault name
-                                , moduleName = modName
-                                , value = name
-                                , paramType = Just paramType
-                                , elmModuleIsPresent = True
-                                }
-                        )
-                        (Json.Decode.field "name" Json.Decode.string)
-                        (Json.Decode.at [ "type", "components" ]
-                            (Json.Decode.index 2
-                                (Json.Decode.oneOf
-                                    [ Json.Decode.field "definition" Json.Decode.string
-                                        |> Json.Decode.map (\_ -> "{}")
-                                    , Json.Decode.field "definition" (Json.Decode.keyValuePairs Json.Decode.string)
-                                        |> Json.Decode.map
-                                            (\fields ->
-                                                let
-                                                    body =
-                                                        List.map
-                                                            (\( fieldName, value ) ->
-                                                                fieldName ++ " : " ++ value
-                                                            )
-                                                            fields
-                                                            |> String.join ", "
-                                                in
-                                                "{ "
-                                                    ++ body
-                                                    ++ " }"
-                                            )
-                                    , Json.Decode.at [ "definition", "type" ] Json.Decode.string
-                                        |> Json.Decode.andThen
-                                            (\typeString ->
-                                                if typeString == "alias" then
-                                                    Json.Decode.at [ "definition", "fields" ] (Json.Decode.keyValuePairs Json.Decode.string)
-                                                        |> Json.Decode.map
-                                                            (\fields ->
-                                                                let
-                                                                    body =
-                                                                        List.map
-                                                                            (\( fieldName, value ) ->
-                                                                                fieldName ++ " : " ++ value
-                                                                            )
-                                                                            fields
-                                                                            |> String.join ", "
-                                                                in
-                                                                "{ "
-                                                                    ++ body
-                                                                    ++ " }"
-                                                            )
-
-                                                else
-                                                    Json.Decode.fail "Unknown type"
-                                            )
-                                    ]
-                                )
-                            )
-                        )
-
-                else
-                    Json.Decode.succeed Nothing
-            )
 
 
 type alias ViewRegions =
@@ -591,7 +484,7 @@ setRegion region value regions =
 
 -}
 loadPage :
-    List PageUsage
+    List Options.App.PageUsage
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -753,7 +646,7 @@ loadPage routes =
 
 
 preloadPage :
-    List PageUsage
+    List Options.App.PageUsage
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -865,7 +758,7 @@ preloadPage routes =
 
 
 getPageInit :
-    List PageUsage
+    List Options.App.PageUsage
     ->
         { declaration : Elm.Declaration
         , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
@@ -984,7 +877,7 @@ withPageHelper pageConfig fieldName fn =
 
 
 updatePageBranches :
-    List PageUsage
+    List Options.App.PageUsage
     -> Elm.Expression
     -> Elm.Expression
     -> Elm.Expression

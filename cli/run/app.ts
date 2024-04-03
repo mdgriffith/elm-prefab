@@ -34,12 +34,7 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
         "app-view": viewRegions,
       });
 
-      const pageIds = await ElmDev.execute(
-        "explain App.Page.Id.Id",
-        runOptions.root
-      );
-
-      const pages = pageIdsToPageUsages(pageIds);
+      const pages = pageConfigToPageUsages(options.pages);
 
       ensureDirSync(path.join(runOptions.src, "Page"));
 
@@ -63,6 +58,8 @@ type PageUsage = {
   value: string;
   paramType: string | null;
   elmModuleIsPresent: boolean;
+  urlOnly: boolean;
+  route: { id: string; url: string; redirectFrom: string[] } | null;
 };
 
 const logError = (title: string, body: string) => {
@@ -135,9 +132,57 @@ const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
       moduleName: ["Page", variant.name],
       value: "page",
       paramType: variant.args.length === 0 ? null : variant.args[0],
+      urlOnly: false,
       elmModuleIsPresent: false,
+      route: null,
     });
   }
+  return pages;
+};
+
+const pageConfigToPageUsages = (pageConfigs: any | undefined): PageUsage[] => {
+  const pages: PageUsage[] = [];
+  if (pageConfigs) {
+    for (const [pageId, value] of Object.entries(pageConfigs)) {
+      let route = null;
+      let urlOnly = false;
+
+      if (typeof value === "string") {
+        route = { id: pageId, url: value, redirectFrom: [] };
+        // @ts-ignore
+      } else if ("url" in value) {
+        route = {
+          id: pageId,
+          // @ts-ignore
+          url: value.url,
+          // @ts-ignore
+          redirectFrom: value.redirectFrom || [],
+        };
+        // @ts-ignore
+      } else if ("urlOnly" in value) {
+        urlOnly = true;
+        route = {
+          id: pageId,
+          // @ts-ignore
+          url: value.urlOnly,
+          // @ts-ignore
+          redirectFrom: value.redirectFrom || [],
+        };
+      }
+
+      pages.push({
+        id: pageId,
+        moduleName: ["Page", pageId],
+        value: "page",
+        paramType: null, //pageConfig.paramType,
+        elmModuleIsPresent: false,
+        urlOnly: urlOnly,
+        // @ts-ignore
+        route: route,
+      });
+    }
+  }
+
   return pages;
 };
 

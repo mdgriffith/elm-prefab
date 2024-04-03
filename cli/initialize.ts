@@ -4,12 +4,14 @@ import * as Options from "./options";
 import * as fs from "fs";
 
 const defaultConfig: Options.Config = {
-  app: {},
-  routes: {
-    Home: "/",
-    Login: "/login",
-    Logout: "/logout",
+  app: {
+    pages: {
+      Home: "/",
+      Login: "/login",
+      Logout: { urlOnly: "/logout" },
+    },
   },
+
   assets: { Assets: { src: "./public", onServer: "assets" } },
   graphql: {
     schema: "$GRAPHQL_SCHEMA",
@@ -144,10 +146,14 @@ Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
         `${Chalk.yellow("elm.generate.json")} file has been generated!`
       );
     } else {
-      const pluginsAdded = plugins.filter((plugin) => !(plugin in existing));
+      const pluginsAdded = plugins
+        .filter((plugin) => !(plugin in existing))
+        .map((plugin) => Chalk.green(plugin));
 
       console.log(
-        `${Chalk.yellow("elm.generate.json")} file has been generated!`
+        `I've added the following plugins to your ${Chalk.yellow(
+          "elm.generate.json"
+        )} file!\n\n${pluginsAdded.join("\n    ")}`
       );
     }
 

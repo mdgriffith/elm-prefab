@@ -8,7 +8,6 @@ import Elm.Type
 
 comment : String -> Elm.Expression
 comment str =
-    -- Elm.string str
     str
         |> String.replace "\\" "\\\\"
         |> String.replace "\"" "\\\""

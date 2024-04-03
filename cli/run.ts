@@ -65,9 +65,6 @@ const runGeneration = async (
       switch (pluginName) {
         case "src":
           break;
-        case "routes":
-          plugins.push(Routes.generator(config.routes));
-          break;
         case "theme":
           plugins.push(Theme.generator(config.theme));
           break;

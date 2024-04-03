@@ -11,12 +11,19 @@ module Page.{{name}} exposing
 
 import App.Effect
 import App.Page
+import App.Page.Id
 import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
 import Html
 
+
+{-|
+
+-}
+type alias Params =
+    App.Page.Id.{{name}}_Params
 
 
 {-| -}
@@ -29,7 +36,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page App.Shared.Shared params Msg Model
+page : App.Page.Page App.Shared.Shared Params Msg Model
 page =
     App.Page.page
         { init = init
@@ -39,7 +46,7 @@ page =
         }
 
 
-init : params -> App.Shared.Shared -> Maybe Model -> App.Page.Init Msg Model
+init : Params -> App.Shared.Shared -> Maybe Model -> App.Page.Init Msg Model
 init params shared maybeCached =
     App.Page.init {}
 

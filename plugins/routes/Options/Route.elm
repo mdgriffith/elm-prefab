@@ -34,14 +34,6 @@ type alias Page =
     }
 
 
-type alias SourceDirectory =
-    { base : String
-    , baseOnApp : String
-    , baseOnServer : String
-    , files : List Source
-    }
-
-
 type alias Source =
     { path : String
     , source : String
@@ -262,19 +254,3 @@ parseQueryParams =
 isBlank : String -> Bool
 isBlank str =
     String.isEmpty (String.trim str)
-
-
-decodeDirectory : Json.Decode.Decoder SourceDirectory
-decodeDirectory =
-    Json.Decode.map4 SourceDirectory
-        (Json.Decode.field "base" Json.Decode.string)
-        (Json.Decode.field "baseOnApp" Json.Decode.string)
-        (Json.Decode.field "baseOnServer" Json.Decode.string)
-        (Json.Decode.field "files" (Json.Decode.list decodeSource))
-
-
-decodeSource : Json.Decode.Decoder Source
-decodeSource =
-    Json.Decode.map2 Source
-        (Json.Decode.field "path" Json.Decode.string)
-        (Json.Decode.field "contents" Json.Decode.string)

@@ -9,7 +9,9 @@ export type Config = {
   docs?: any;
 };
 
-export type AppOptions = {};
+export type AppOptions = {
+  pages?: any;
+};
 
 export type ThemeOptions = {};
 
