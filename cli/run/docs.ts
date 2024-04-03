@@ -5,7 +5,6 @@ import * as Static from "../templates/docs/copyAll";
 import * as fs from "fs";
 import * as path from "path";
 import * as App from "./app";
-import * as Route from "./routes";
 
 export const generator = (options: any): Options.Generator => {
   return {
@@ -190,19 +189,17 @@ const runAppGenerator = async (
     summary
   );
 
-  await Route.generator({
-    Home: "/",
-    Guide: "/guide/*",
-    Package: "/package/*",
-    Module: "/module/*",
-    Login: "/login",
-    Logout: "/logout",
-  }).run(internalOptions);
-
   ensureDirSync(docsPath);
   ensureDirSync(path.join(docsPath, "src"));
 
-  const appSummary = await App.generator({}).run(internalOptions);
+  const appSummary = await App.generator({
+    pages: {
+      Home: "/",
+      Guide: "/guide/*",
+      Package: "/package/*",
+      Module: "/module/*",
+    },
+  }).run(internalOptions);
 
   if (fs.existsSync(path.join(internalSrc, "Main.elm"))) {
     fs.unlinkSync(path.join(internalSrc, "Main.elm"));

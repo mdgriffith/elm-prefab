@@ -1,4 +1,4 @@
-module Page.Guide exposing (page, Model, Msg)
+module Page.Home exposing (page, Model, Msg)
 
 {-|
 
@@ -26,7 +26,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page App.Shared.Shared App.Page.Id.Guide_Params Msg Model
+page : App.Page.Page App.Shared.Shared App.Page.Id.Home_Params Msg Model
 page =
     App.Page.page
         { init = init
@@ -36,7 +36,7 @@ page =
         }
 
 
-init : App.Page.Id.Guide_Params -> App.Shared.Shared -> Maybe Model -> App.Page.Init Msg Model
+init : App.Page.Id.Home_Params -> App.Shared.Shared -> Maybe Model -> App.Page.Init Msg Model
 init params shared maybeCached =
     App.Page.init {}
 

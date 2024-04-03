@@ -8,6 +8,7 @@ module Page.Module exposing (page, Model, Msg)
 
 import App.Effect
 import App.Page
+import App.Page.Id
 import App.Shared
 import App.Sub
 import App.View
@@ -25,7 +26,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page App.Shared.Shared params Msg Model
+page : App.Page.Page App.Shared.Shared App.Page.Id.Module_Params Msg Model
 page =
     App.Page.page
         { init = init
@@ -35,7 +36,7 @@ page =
         }
 
 
-init : params -> App.Shared.Shared -> Maybe Model -> App.Page.Init Msg Model
+init : App.Page.Id.Module_Params -> App.Shared.Shared -> Maybe Model -> App.Page.Init Msg Model
 init params shared maybeCached =
     App.Page.init {}
 
