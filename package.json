@@ -30,7 +30,8 @@
   "homepage": "https://github.com/mdgriffith/elm-prefab#readme",
   "dependencies": {
     "elm-dev": "^0.1.3",
-    "elm-gql": "^0.13.0"
+    "elm-gql": "^0.13.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^15.0.3",

@@ -194,10 +194,10 @@ const runAppGenerator = async (
 
   const appSummary = await App.generator({
     pages: {
-      Home: "/",
-      Guide: "/guide/*",
-      Package: "/package/*",
-      Module: "/module/*",
+      Home: Options.toUrl("/"),
+      Guide: Options.toUrl("/guide/*"),
+      Package: Options.toUrl("/package/*"),
+      Module: Options.toUrl("/module/*"),
     },
   }).run(internalOptions);
 

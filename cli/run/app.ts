@@ -140,96 +140,24 @@ const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
   return pages;
 };
 
-const pageConfigToPageUsages = (pageConfigs: any | undefined): PageUsage[] => {
+const pageConfigToPageUsages = (pageConfigs: {
+  [key: string]: Options.PageOptions;
+}): PageUsage[] => {
   const pages: PageUsage[] = [];
-  if (pageConfigs) {
-    for (const [pageId, value] of Object.entries(pageConfigs)) {
-      let route = null;
-      let urlOnly = false;
 
-      if (typeof value === "string") {
-        route = { id: pageId, url: value, redirectFrom: [] };
-        // @ts-ignore
-      } else if ("url" in value) {
-        route = {
-          id: pageId,
-          // @ts-ignore
-          url: value.url,
-          // @ts-ignore
-          redirectFrom: value.redirectFrom || [],
-        };
-        // @ts-ignore
-      } else if ("urlOnly" in value) {
-        urlOnly = true;
-        route = {
-          id: pageId,
-          // @ts-ignore
-          url: value.urlOnly,
-          // @ts-ignore
-          redirectFrom: value.redirectFrom || [],
-        };
-      }
-
-      pages.push({
-        id: pageId,
-        moduleName: ["Page", pageId],
-        value: "page",
-        paramType: null, //pageConfig.paramType,
-        elmModuleIsPresent: false,
-        urlOnly: urlOnly,
-        // @ts-ignore
-        route: route,
-      });
-    }
+  for (const [pageId, value] of Object.entries(pageConfigs)) {
+    pages.push({
+      id: pageId,
+      moduleName: ["Page", pageId],
+      value: "page",
+      paramType: null, //pageConfig.paramType,
+      elmModuleIsPresent: false,
+      urlOnly: value.urlOnly,
+      route: { id: pageId, url: value.url, redirectFrom: value.redirectFrom },
+    });
   }
 
   return pages;
-};
-
-const placeHolderPageIds = {
-  moduleName: "App.Page.Id",
-  definition: {
-    name: "Id",
-    type: {
-      signature: "Id",
-      definition: {
-        type: "union",
-        variants: [
-          {
-            name: "Home",
-            args: ["HomeParams"],
-          },
-        ],
-      },
-      components: [
-        {
-          source: {
-            pkg: "author/project",
-            module: "App.Page.Id",
-          },
-          definition: {
-            type: "alias",
-            comment: null,
-            module: "App.Page.Id",
-            name: "HomeParams",
-            args: [],
-            signature: "{}",
-            fields: {},
-          },
-        },
-      ],
-    },
-    region: {
-      start: {
-        line: 6,
-        column: 1,
-      },
-      end: {
-        line: 7,
-        column: 22,
-      },
-    },
-  },
 };
 
 const placeholderViewRegions = {

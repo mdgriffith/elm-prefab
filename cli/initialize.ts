@@ -3,19 +3,26 @@ import Chalk from "chalk";
 import * as Options from "./options";
 import * as fs from "fs";
 
-const defaultConfig: Options.Config = {
+const minimalConfig: Options.Config = {
+  src: "src",
+  js: "src-js",
+};
+
+// This isn't quite an `Options.Config` because some fields like urls aren't expanded
+const defaultOptions: Options.Config = {
+  src: "src",
+  js: "src-js",
   app: {
     pages: {
-      Home: "/",
-      Login: "/login",
-      Logout: { urlOnly: "/logout" },
+      Home: Options.toUrl("/"),
+      Login: Options.toUrl("/login"),
+      Logout: Options.toUrlOnly("/logout"),
     },
   },
-
   assets: { Assets: { src: "./public", onServer: "assets" } },
   graphql: {
     schema: "$GRAPHQL_SCHEMA",
-    header: "Authorization: bearer $GRAPHQL_API_TOKEN",
+    header: ["Authorization: bearer $GRAPHQL_API_TOKEN"],
   },
   theme: {
     colors: {
@@ -83,12 +90,12 @@ const composeDefaultConfig = (
     pluginsRequested.length > 0 ? pluginsRequested : defaultPlugins;
 
   for (const plugin of plugins) {
-    if (plugin in defaultConfig) {
+    if (plugin in defaultOptions) {
       if (plugin in config) {
         continue;
       }
       // @ts-ignore
-      config[plugin] = defaultConfig[plugin];
+      config[plugin] = defaultOptions[plugin];
     }
   }
   return config;
@@ -106,6 +113,37 @@ const question = async (q: string): Promise<string> => {
   });
 };
 
+export const writeConfig = (config: Options.Config) => {
+  // Slow, but we know for sure we have a deep clone and no lingering references
+  const clone: any = JSON.parse(JSON.stringify(config));
+
+  if (clone.app) {
+    Object.keys(clone.app.pages).forEach(function (pageName) {
+      const page = clone.app.pages[pageName];
+
+      let redirectFrom =
+        //@ts-ignore
+        page.redirectFrom.length == 0 ? undefined : page.redirectFrom;
+
+      if (!page.urlOnly && page.redirectFrom.length === 0) {
+        clone.app.pages[pageName] = page.url;
+      } else if (page.urlOnly) {
+        clone.app.pages[pageName] = {
+          urlOnly: page.url,
+          redirectFrom: redirectFrom,
+        };
+      } else {
+        clone.app.pages[pageName] = {
+          url: page.url,
+          redirectFrom: redirectFrom,
+        };
+      }
+    });
+  }
+
+  fs.writeFileSync("elm.generate.json", JSON.stringify(clone, null, 2));
+};
+
 export const config = async (
   plugins: string[],
   existing: Options.Config | null
@@ -120,9 +158,10 @@ export const config = async (
   if (answer.toLowerCase() === "y" || answer.trim() === "") {
     const config = await composeDefaultConfig(
       plugins,
-      existing ? existing : {}
+      existing ? existing : minimalConfig
     );
-    fs.writeFileSync("elm.generate.json", JSON.stringify(config, null, 2));
+
+    writeConfig(config);
 
     if ("graphql" in plugins && existing != null && !("graphql" in existing)) {
       console.log(

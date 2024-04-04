@@ -6,17 +6,19 @@ import * as Generator from "./run_generator";
 // elm-gql has ourputDir and outputAll, but for elm-prefab we just want outputAll
 // We're also  always going to run force vecause the performance isn't bad
 // And we ran into weirdnesses at work.
-type GQLOptions = {
-  schema: string;
-  namespace?: string;
-  header?: string[];
-  generateMocks?: boolean;
-  queries?: string;
-  globalFragments: string | null;
-  existingEnumDefinitions?: string | null;
-};
+// type GQLOptions = {
+//   schema: string;
+//   namespace?: string;
+//   header?: string[];
+//   generateMocks?: boolean;
+//   queries?: string;
+//   globalFragments: string | null;
+//   existingEnumDefinitions?: string | null;
+// };
 
-export const generator = (options: GQLOptions): Options.Generator => {
+export const generator = (
+  options: Options.GraphQLOptions
+): Options.Generator => {
   return {
     name: "theme",
     generatorType: Options.GeneratorType.Standard,
@@ -47,7 +49,9 @@ export const generator = (options: GQLOptions): Options.Generator => {
         force: true,
         generateMocks: options.generateMocks,
         queries: options.queries,
-        globalFragments: options.globalFragments,
+        globalFragments: options.globalFragments
+          ? options.globalFragments
+          : null,
         existingEnumDefinitions: options.existingEnumDefinitions,
       });
       if ("errors" in result) {

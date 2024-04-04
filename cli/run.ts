@@ -6,7 +6,6 @@ import * as Initialize from "./initialize";
 import * as App from "./run/app";
 import * as Theme from "./run/theme";
 import * as Docs from "./run/docs";
-import * as Routes from "./run/routes";
 import * as Assets from "./run/assets";
 import * as GraphQL from "./run/graphql";
 import * as Output from "./output/summary";
@@ -35,7 +34,6 @@ export const generate = async (
   for (const generator of options.plugins) {
     runOptions.generateDefaultFiles =
       initializing || pluginsInitializing.includes(generator.name);
-
     results[generator.name] = await generator.run(runOptions);
   }
   return results;
@@ -45,12 +43,16 @@ const readConfig = async (
   filepath: string,
   plugins: string[]
 ): Promise<Options.Config | null> => {
+  if (!fs.existsSync(filepath)) {
+    return null;
+  }
   try {
     let config = JSON.parse(fs.readFileSync(filepath, "utf-8"));
-
+    config = Options.Config.parse(config);
     return config;
   } catch (e) {
-    return null;
+    console.log(e);
+    process.exit(1);
   }
 };
 
@@ -60,36 +62,24 @@ const runGeneration = async (
   initializing: boolean
 ) => {
   const plugins: Options.Generator[] = [];
-  for (const pluginName in config) {
-    if (config.hasOwnProperty(pluginName)) {
-      switch (pluginName) {
-        case "src":
-          break;
-        case "theme":
-          plugins.push(Theme.generator(config.theme));
-          break;
-        case "app":
-          if (config.app == null) {
-            break;
-          }
-          plugins.push(App.generator(config.app));
-          break;
-        case "assets":
-          plugins.push(Assets.generator(config.assets));
-          break;
-        case "graphql":
-          plugins.push(GraphQL.generator(config.graphql));
-          break;
-        case "docs":
-          plugins.push(Docs.generator(config.docs));
-          break;
-        default:
-          console.log(`I don't recognize this plugin: ${pluginName}`);
-      }
-    }
+  const src = config.src;
+  const js = config.js;
+
+  if (config.theme != null) {
+    plugins.push(Theme.generator(config.theme));
   }
-  const src = config.src || "./src";
-  const js = config.js || "./src-js";
+  if (config.app != null) {
+    plugins.push(App.generator(config.app));
+  }
+  if (config.assets != null) {
+    plugins.push(Assets.generator(config.assets));
+  }
+  if (config.graphql != null) {
+    plugins.push(GraphQL.generator(config.graphql));
+  }
+  if (config.docs != null) {
+    plugins.push(Docs.generator(config.docs));
+  }
 
   const summary = await generate(
     { src, js, plugins: plugins },
