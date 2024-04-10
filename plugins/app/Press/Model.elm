@@ -230,7 +230,8 @@ toConfig configType =
             , ( [ UpdateConfig, TestConfig ]
               , "update"
               , Type.function
-                    [ Type.var "msg"
+                    [ resourcesType
+                    , Type.var "msg"
                     , Type.var "model"
                     ]
                     (Type.tuple
@@ -241,14 +242,16 @@ toConfig configType =
             , ( [ SubscriptionConfig, UpdateConfig, TestConfig ]
               , "subscriptions"
               , Type.function
-                    [ Type.var "model"
+                    [ resourcesType
+                    , Type.var "model"
                     ]
                     (Gen.App.Sub.annotation_.sub (Type.var "msg"))
               )
             , ( [ ViewConfig, TestConfig ]
               , "view"
               , Type.function
-                    [ Type.function [ Type.var "msg" ] appMsg
+                    [ resourcesType
+                    , Type.function [ Type.var "msg" ] appMsg
                     , Type.var "model"
                     , Type.namedWith [ "App", "View" ]
                         "Regions"
@@ -262,7 +265,8 @@ toConfig configType =
             , ( []
               , "toCmd"
               , Type.function
-                    [ Type.namedWith [] "CmdOptions" [ Type.var "msg" ]
+                    [ resourcesType
+                    , Type.namedWith [] "CmdOptions" [ Type.var "msg" ]
                     , Type.var "model"
                     , Gen.App.Effect.annotation_.effect appMsg
                     ]
@@ -271,7 +275,8 @@ toConfig configType =
             , ( [ SubscriptionConfig, UpdateConfig, TestConfig ]
               , "toSub"
               , Type.function
-                    [ Type.namedWith [] "SubOptions" [ Type.var "msg" ]
+                    [ resourcesType
+                    , Type.namedWith [] "SubOptions" [ Type.var "msg" ]
                     , Type.var "model"
                     , Gen.App.Sub.annotation_.sub appMsg
                     ]
@@ -431,10 +436,11 @@ types =
 {- 'Frame' helpers -}
 
 
-toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
-toCmd config navKey frameModel effect =
+toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+toCmd config resources navKey frameModel effect =
     Elm.apply (Elm.get "toCmd" config)
-        [ Elm.record
+        [ resources
+        , Elm.record
             [ ( "navKey", navKey )
             , ( "toApp", Elm.val "Global" )
             , ( "dropPageCache", Elm.val "PageCacheCleared" )
@@ -447,10 +453,11 @@ toCmd config navKey frameModel effect =
         ]
 
 
-toSub : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
-toSub config frameModel sub =
+toSub : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+toSub config resources frameModel sub =
     Elm.apply (Elm.get "toSub" config)
-        [ Elm.record
+        [ resources
+        , Elm.record
             [ ( "ignore", Elm.val "SubscriptionEventIgnored" )
             ]
         , frameModel

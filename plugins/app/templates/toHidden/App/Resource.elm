@@ -6,17 +6,19 @@ module App.Resource exposing (Resource, resource)
 
 -}
 
+import Json.Encode as Json
+
 
 {-| -}
 type alias Resource msg model =
-    { init : model
+    { init : Json.Value -> model
     , update : msg -> model -> model
     }
 
 
 {-| -}
 resource :
-    { init : model
+    { init : Json.Value -> model
     , update : msg -> model -> model
     }
     -> Resource msg model

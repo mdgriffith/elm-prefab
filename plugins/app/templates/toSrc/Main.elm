@@ -6,6 +6,7 @@ import App
 import App.Effect
 import App.Flags
 import App.Page.Id
+import App.Resources
 import App.Route
 import App.Sub
 import App.View
@@ -34,7 +35,7 @@ main =
         , toCmd = toCmd
         , toSub = toSub
         , view =
-            \fromFrameMsg model regions ->
+            \resources toAppMsg model regions ->
                 case regions.primary of
                     Nothing ->
                         { title = "Nothing"
@@ -59,7 +60,7 @@ main =
                         }
 
                     Just (App.View page) ->
-                        view fromFrameMsg model page
+                        view resources toAppMsg model page
         }
 
 
@@ -86,18 +87,18 @@ init flagsValue url =
 -}
 
 
-subscriptions : Model -> App.Sub.Sub Msg
-subscriptions model =
+subscriptions : App.Resources.Resources -> Model -> App.Sub.Sub Msg
+subscriptions resources model =
     App.Sub.none
 
 
-toSub : App.SubOptions Msg -> Model -> App.Sub.Sub (App.Msg Msg) -> Sub.Sub (App.Msg Msg)
-toSub options model sub =
+toSub : App.Resources.Resources -> App.SubOptions Msg -> Model -> App.Sub.Sub (App.Msg Msg) -> Sub.Sub (App.Msg Msg)
+toSub resources options model sub =
     App.Sub.toSubscription options sub
 
 
-toCmd : App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
-toCmd options model effect =
+toCmd : App.Resources.Resources -> App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
+toCmd resources options model effect =
     case model.flags of
         Err _ ->
             Cmd.none
@@ -107,11 +108,12 @@ toCmd options model effect =
 
 
 view :
-    (Msg -> App.Msg Msg)
+    App.Resources.Resources
+    -> (Msg -> App.Msg Msg)
     -> Model
     -> App.View.View (App.Msg Msg)
     -> Browser.Document (App.Msg Msg)
-view fromFrameMsg model innerView =
+view resources toAppMsg model innerView =
     { title = innerView.title
     , body =
         [ innerView.body
@@ -130,8 +132,8 @@ type Msg
     | UrlRequested Browser.UrlRequest
 
 
-update : Msg -> Model -> ( Model, App.Effect.Effect Msg )
-update msg model =
+update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update resources msg model =
     case msg of
         UrlRequested (Browser.Internal url) ->
             case App.Route.parse url of

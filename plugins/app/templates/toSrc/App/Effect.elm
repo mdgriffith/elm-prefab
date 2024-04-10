@@ -5,6 +5,7 @@ port module App.Effect exposing
     , forward, back
     , preload, load, loadAt, reload
     , sendMsg, sendMsgAfter
+    , saveToLocalStorage, clearLocalStorageKey
     , generate
     , focus, blur
     , file, files, fileToUrl
@@ -38,6 +39,11 @@ port module App.Effect exposing
 # Callbacks
 
 @docs sendMsg, sendMsgAfter
+
+
+# Local Storage
+
+@docs saveToLocalStorage, clearLocalStorageKey
 
 
 # Random generation
@@ -176,6 +182,35 @@ sendMsgAfter delay msg =
 sendToJs : { tag : String, details : Maybe Json.Encode.Value } -> Effect msg
 sendToJs =
     SendToWorld
+
+
+{-| -}
+saveToLocalStorage : String -> Json.Encode.Value -> Effect msg
+saveToLocalStorage key value =
+    SendToWorld
+        { tag = "local-storage"
+        , details =
+            Just
+                (Json.Encode.object
+                    [ ( "key", Json.Encode.string key )
+                    , ( "value", value )
+                    ]
+                )
+        }
+
+
+{-| -}
+clearLocalStorageKey : String -> Effect msg
+clearLocalStorageKey key =
+    SendToWorld
+        { tag = "local-storage-clear"
+        , details =
+            Just
+                (Json.Encode.object
+                    [ ( "key", Json.Encode.string key )
+                    ]
+                )
+        }
 
 
 {-| Get the current time

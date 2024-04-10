@@ -232,22 +232,29 @@ updateResources resources pages =
 
 toEmptyResources : List Options.App.Resource -> Elm.Declaration
 toEmptyResources resources =
-    Elm.declaration "resourcesEmpty"
-        (Elm.record
-            (resources
-                |> List.map
-                    (\resource ->
-                        ( resource.id
-                        , Elm.value
-                            { importFrom = [ "Resource", resource.id ]
-                            , name = "resource"
-                            , annotation = Nothing
-                            }
-                            |> Elm.get "init"
-                        )
+    Elm.declaration "initResources"
+        (Elm.fn
+            ( "flags", Just Gen.Json.Encode.annotation_.value )
+            (\flags ->
+                Elm.record
+                    (resources
+                        |> List.map
+                            (\resource ->
+                                ( resource.id
+                                , Elm.apply
+                                    (Elm.value
+                                        { importFrom = [ "Resource", resource.id ]
+                                        , name = "resource"
+                                        , annotation = Nothing
+                                        }
+                                        |> Elm.get "init"
+                                    )
+                                    [ flags ]
+                                )
+                            )
                     )
+                    |> Elm.withType resourcesType
             )
-            |> Elm.withType resourcesType
         )
 
 
@@ -561,6 +568,7 @@ app routes getPageInit loadPage =
                                         (\( newModel, effect ) ->
                                             Elm.tuple newModel
                                                 (Press.Model.toCmd config
+                                                    (Elm.get "resources" newModel)
                                                     (Elm.get "key" newModel)
                                                     (Elm.get "frame" newModel)
                                                     effect
@@ -580,7 +588,9 @@ app routes getPageInit loadPage =
                                     Elm.Let.letIn
                                         (\( newModel, effect ) ->
                                             Elm.tuple newModel
-                                                (Press.Model.toCmd config
+                                                (Press.Model.toCmd
+                                                    config
+                                                    (Elm.get "resources" newModel)
                                                     (Elm.get "key" newModel)
                                                     (Elm.get "frame" newModel)
                                                     effect
@@ -625,13 +635,16 @@ app routes getPageInit loadPage =
             }
 
 
-initResources : Elm.Expression
-initResources =
-    Elm.value
-        { importFrom = []
-        , name = "resourcesEmpty"
-        , annotation = Just resourcesType
-        }
+initResources : Elm.Expression -> Elm.Expression
+initResources flags =
+    Elm.apply
+        (Elm.value
+            { importFrom = []
+            , name = "initResources"
+            , annotation = Just resourcesType
+            }
+        )
+        [ flags ]
 
 
 init getPageInit loadPage config flags url key =
@@ -658,7 +671,7 @@ init getPageInit loadPage config flags url key =
                           , Press.Generate.Regions.values.empty
                           )
                         , ( "frame", frameModel )
-                        , ( "resources", initResources )
+                        , ( "resources", initResources flags )
                         , ( "limits", Gen.App.State.initLimit )
                         , ( "states"
                           , Gen.App.State.init
@@ -796,7 +809,8 @@ update routes getPageInit loadPage =
                             let
                                 updatedFrame =
                                     Elm.apply (Elm.get "update" config)
-                                        [ appMsg
+                                        [ Elm.get "resources" model
+                                        , appMsg
                                         , Elm.get "frame" model
                                         ]
                             in
@@ -842,7 +856,8 @@ view routes =
                     frameView pageView =
                         Elm.apply
                             (Elm.get "view" config)
-                            [ Elm.val "Global"
+                            [ Elm.get "resources" model
+                            , Elm.val "Global"
                             , Elm.get "frame" model
                             , pageView
                             ]
@@ -995,10 +1010,10 @@ getSubscriptions pages =
                 Gen.App.Sub.batch
                     [ Elm.apply
                         (Elm.get "subscriptions" config)
-                        [ Elm.get "frame" model ]
+                        [ Elm.get "resources" model
+                        , Elm.get "frame" model
+                        ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
-
-                    -- |> toSub config (Elm.get "frame" model)
                     , Elm.apply Press.Generate.Regions.values.toList
                         [ Elm.get "views" model ]
                         |> Gen.List.call_.filterMap
@@ -1039,7 +1054,7 @@ subscriptions pages =
             ( "config", Just types.frameSub )
             ( "model", Just types.model )
             (\config model ->
-                toSub config (Elm.get "frame" model) <|
+                toSub config (Elm.get "resources" model) (Elm.get "frame" model) <|
                     Elm.apply
                         (Elm.val "getSubscriptions")
                         [ config
@@ -1100,7 +1115,6 @@ pageInfoToSubscriptioon config model pageId pageInfo =
             Elm.Case.branch1 stateKey
                 ( "pageModel", Type.named pageModule "Model" )
                 (\pageState ->
-                    -- toSub config (Elm.get "frame" model) <|
                     Press.Model.withPageHelper
                         (Elm.value
                             { importFrom = pageModule

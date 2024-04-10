@@ -16,7 +16,7 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/Resource.elm")) && !skip)) {
     const filepath = path.join(baseDir, "/App/Resource.elm");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "module App.Resource exposing (Resource, resource)\n\n{-|\n\n@docs Resource, resource\n\n-}\n\n\n{-| -}\ntype alias Resource msg model =\n    { init : model\n    , update : msg -> model -> model\n    }\n\n\n{-| -}\nresource :\n    { init : model\n    , update : msg -> model -> model\n    }\n    -> Resource msg model\nresource options =\n    options\n");
+    fs.writeFileSync(filepath, "module App.Resource exposing (Resource, resource)\n\n{-|\n\n@docs Resource, resource\n\n-}\n\nimport Json.Encode as Json\n\n\n{-| -}\ntype alias Resource msg model =\n    { init : Json.Value -> model\n    , update : msg -> model -> model\n    }\n\n\n{-| -}\nresource :\n    { init : Json.Value -> model\n    , update : msg -> model -> model\n    }\n    -> Resource msg model\nresource options =\n    options\n");
     const generated = { outputDir: baseDir, path: filepath}
     Options.addGenerated(summary, generated);
   }
