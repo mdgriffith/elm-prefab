@@ -10,7 +10,7 @@ port module App.Effect exposing
     , file, files, fileToUrl
     , copyToClipboard
     , request, Expect, expectString, expectJson, expectBytes, expectWhatever
-    , toCmd, sendToJs
+    , toCmd, sendToJs, sendToResource
     )
 
 {-|
@@ -67,11 +67,12 @@ port module App.Effect exposing
 
 # Effects
 
-@docs toCmd, sendToJs
+@docs toCmd, sendToJs, sendToResource
 
 -}
 
 import App.Page.Id
+import App.Resource.Msg
 import App.Route
 import App.View.Id
 import Browser
@@ -154,6 +155,11 @@ forward =
 back : Int -> Effect msg
 back =
     Back
+
+
+sendToResource : App.Resource.Msg.Msg -> Effect msg
+sendToResource =
+    SendToResource
 
 
 sendMsg : msg -> Effect msg
@@ -280,6 +286,7 @@ type Effect msg
         { tag : String
         , details : Maybe Json.Encode.Value
         }
+    | SendToResource App.Resource.Msg.Msg
 
 
 type alias RequestDetails msg =
@@ -327,8 +334,9 @@ toCmd :
     { options
         | navKey : Browser.Navigation.Key
         , preload : App.Page.Id.Id -> msg
+        , sendToResource : App.Resource.Msg.Msg -> msg
         , dropPageCache : msg
-        , regionUpdate : App.View.Id.Operation App.Page.Id.Id -> msg
+        , viewRequested : App.View.Id.Operation App.Page.Id.Id -> msg
     }
     -> Effect msg
     -> Cmd msg
@@ -373,7 +381,7 @@ toCmd options effect =
             Task.succeed ()
                 |> Task.perform
                     (\_ ->
-                        options.regionUpdate op
+                        options.viewRequested op
                     )
 
         Load url ->
@@ -390,6 +398,13 @@ toCmd options effect =
 
         SendToWorld outgoingMsg ->
             outgoing outgoingMsg
+
+        SendToResource resourceMsg ->
+            Task.succeed ()
+                |> Task.perform
+                    (\_ ->
+                        options.sendToResource resourceMsg
+                    )
 
         SendMsg msg ->
             Task.succeed ()
@@ -455,6 +470,9 @@ map f effect =
 
         Back n ->
             Back n
+
+        SendToResource msg ->
+            SendToResource msg
 
         SendToWorld { tag, details } ->
             SendToWorld { tag = tag, details = details }

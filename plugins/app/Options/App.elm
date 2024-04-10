@@ -1,6 +1,8 @@
 module Options.App exposing
-    ( PageUsage
-    , decodePageUsages
+    ( Options
+    , PageUsage
+    , Resource
+    , decode
     )
 
 {-| -}
@@ -29,6 +31,12 @@ import Options.Route
 import Set exposing (Set)
 
 
+type alias Options =
+    { pages : List PageUsage
+    , resources : List Resource
+    }
+
+
 type alias PageUsage =
     { id : String
     , moduleName : List String
@@ -40,6 +48,24 @@ type alias PageUsage =
     --
     , route : Maybe Options.Route.ParsedPage
     }
+
+
+type alias Resource =
+    { id : String
+    }
+
+
+decode : Json.Decode.Decoder Options
+decode =
+    Json.Decode.map2 Options
+        (Json.Decode.field "pages" decodePageUsages)
+        (Json.Decode.field "resources" (Json.Decode.list decodeResource))
+
+
+decodeResource : Json.Decode.Decoder Resource
+decodeResource =
+    Json.Decode.map Resource
+        (Json.Decode.field "id" Json.Decode.string)
 
 
 decodePageUsages : Json.Decode.Decoder (List PageUsage)

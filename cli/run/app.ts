@@ -44,12 +44,31 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
         path.join(runOptions.src, "Page"),
         pages
       );
+
+      const resources = scanResources(path.join(runOptions.src, "Resource"));
+
       const newSummary = await Generator.run(runOptions.internalSrc, {
-        app: verifiedPages,
+        app: { pages: verifiedPages, resources: resources },
       });
       return Options.mergeSummaries(summary, newSummary);
     },
   };
+};
+
+const scanResources = (dir: string): { id: string }[] => {
+  try {
+    const elmFiles = fs
+      .readdirSync(dir)
+      .filter((file) => path.extname(file) === ".elm");
+    const elmFileNames = elmFiles.map((file) => path.basename(file, ".elm"));
+    const resources: { id: string }[] = [];
+    for (const fileName of elmFileNames) {
+      resources.push({ id: fileName });
+    }
+    return resources;
+  } catch (error) {
+    return [];
+  }
 };
 
 type PageUsage = {

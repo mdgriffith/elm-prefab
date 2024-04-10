@@ -7,7 +7,6 @@ import App.Effect
 import App.Flags
 import App.Page.Id
 import App.Route
-import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
@@ -19,8 +18,7 @@ import Url
 
 
 type alias Model =
-    { shared : App.Shared.Shared
-    , flags : Result Json.Decode.Error App.Flags.Flags
+    { flags : Result Json.Decode.Error App.Flags.Flags
     }
 
 
@@ -35,7 +33,6 @@ main =
         , subscriptions = subscriptions
         , toCmd = toCmd
         , toSub = toSub
-        , toShared = .shared
         , view =
             \fromFrameMsg model regions ->
                 case regions.primary of
@@ -76,11 +73,7 @@ init flagsValue url =
             App.Route.parse url
 
         model =
-            { shared =
-                { authenticated =
-                    App.Shared.Unauthenticated
-                }
-            , flags = decodedFlags
+            { flags = decodedFlags
             }
     in
     gotoUrl url model App.Effect.none
@@ -181,11 +174,12 @@ gotoRoute { isRedirect, route } model eff =
             Nothing ->
                 case route of
                     App.Route.Logout params ->
-                        ( { model
-                            | shared =
-                                { authenticated = App.Shared.Unauthenticated
-                                }
-                          }
+                        ( --     { model
+                          --     | shared =
+                          --         { authenticated = App.Shared.Unauthenticated
+                          --         }
+                          --   }
+                          model
                         , App.Effect.batch
                             [ App.Effect.replaceUrl "/"
                             , eff

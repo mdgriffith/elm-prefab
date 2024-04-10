@@ -24,7 +24,7 @@ These are used internally and you shouldn't need to worry about them!
 
 import App.Effect
 import App.Page.Error
-import App.Shared
+import App.Resources
 import App.Sub
 import App.View
 import App.View.Id
@@ -43,12 +43,12 @@ type Page shared params msg model
 
 {-| -}
 page :
-    { init : params -> App.Shared.Shared -> Maybe model -> Init msg model
-    , update : App.Shared.Shared -> msg -> model -> ( model, App.Effect.Effect msg )
-    , subscriptions : App.Shared.Shared -> model -> App.Sub.Sub msg
-    , view : App.View.Id.Id -> App.Shared.Shared -> model -> App.View.View msg
+    { init : params -> App.Resources.Resources -> Maybe model -> Init msg model
+    , update : App.Resources.Resources -> msg -> model -> ( model, App.Effect.Effect msg )
+    , subscriptions : App.Resources.Resources -> model -> App.Sub.Sub msg
+    , view : App.View.Id.Id -> App.Resources.Resources -> model -> App.View.View msg
     }
-    -> Page App.Shared.Shared params msg model
+    -> Page App.Resources.Resources params msg model
 page options =
     Page
         { toKey = Nothing
@@ -84,40 +84,40 @@ withPageCacheLimit limit (Page options) =
 
 {-| -}
 withGuard :
-    (shared -> Result App.Page.Error.Error newShared)
-    -> Page newShared params msg model
-    -> Page shared params msg model
-withGuard toShared (Page options) =
+    (resources -> Result App.Page.Error.Error newResources)
+    -> Page newResources params msg model
+    -> Page resources params msg model
+withGuard toResources (Page options) =
     Page
         { toKey = options.toKey
         , pageCacheLimit = options.pageCacheLimit
         , init =
-            \params shared maybeModel ->
-                case toShared shared of
+            \params resources maybeModel ->
+                case toResources resources of
                     Err err ->
                         Error err
 
                     Ok newShared ->
                         options.init params newShared maybeModel
         , update =
-            \shared msg model ->
-                case toShared shared of
+            \resources msg model ->
+                case toResources resources of
                     Err err ->
                         ( model, App.Effect.none )
 
                     Ok newShared ->
                         options.update newShared msg model
         , subscriptions =
-            \shared model ->
-                case toShared shared of
+            \resources model ->
+                case toResources resources of
                     Err err ->
                         App.Sub.none
 
                     Ok newShared ->
                         options.subscriptions newShared model
         , view =
-            \region shared model ->
-                case toShared shared of
+            \region resources model ->
+                case toResources resources of
                     Err err ->
                         Err err
 

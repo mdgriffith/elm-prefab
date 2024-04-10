@@ -1,10 +1,11 @@
 port module App.Sub exposing
-    ( none, batch
+    ( Sub
+    , none, batch
     , onKeyPress
     , every
     , onResize, onLocalStorageUpdated
     , map, toSubscription
-    , Sub
+    , onResourceUpdated, toResourceListeners
     )
 
 {-|
@@ -12,7 +13,7 @@ port module App.Sub exposing
 
 # Subscriptions
 
-@docs Subscription
+@docs Sub
 
 @docs none, batch
 
@@ -24,8 +25,11 @@ port module App.Sub exposing
 
 @docs map, toSubscription
 
+@docs onResourceUpdated, toResourceListeners
+
 -}
 
+import App.Resource.Msg
 import Browser.Events
 import Json.Decode
 import Json.Encode
@@ -34,7 +38,7 @@ import Time
 
 
 type Sub msg
-    = Sub (Platform.Sub.Sub msg)
+    = None
     | Batch (List (Sub msg))
       -- Common subscriptions
     | Every Float (Time.Posix -> msg)
@@ -45,6 +49,7 @@ type Sub msg
         , key : String
         }
         msg
+    | OnResourceUpdated (App.Resource.Msg.Msg -> Maybe msg)
       --
     | OnLocalStorageUpdated
         { key : String
@@ -55,7 +60,7 @@ type Sub msg
 {-| -}
 none : Sub msg
 none =
-    Sub Platform.Sub.none
+    None
 
 
 {-| -}
@@ -82,6 +87,16 @@ onResize msg =
     OnWindowResize msg
 
 
+{-| Use `App.Resources.listen` to listen to resource updates.
+
+It's just slightly more convenient than using `onResourceUpdated` directly.
+
+-}
+onResourceUpdated : (App.Resource.Msg.Msg -> Maybe msg) -> Sub msg
+onResourceUpdated =
+    OnResourceUpdated
+
+
 onLocalStorageUpdated :
     { key : String
     , decoder : Json.Decode.Decoder msg
@@ -95,8 +110,8 @@ onLocalStorageUpdated options =
 map : (a -> b) -> Sub a -> Sub b
 map func sub =
     case sub of
-        Sub subscription ->
-            Sub (Platform.Sub.map func subscription)
+        None ->
+            None
 
         Batch subs ->
             Batch (List.map (map func) subs)
@@ -110,6 +125,9 @@ map func sub =
         OnWindowResize msg ->
             OnWindowResize (\w h -> func <| msg w h)
 
+        OnResourceUpdated toMaybeMsg ->
+            OnResourceUpdated (Maybe.map func << toMaybeMsg)
+
         OnLocalStorageUpdated { key, decoder } ->
             OnLocalStorageUpdated
                 { key = key
@@ -121,8 +139,8 @@ map func sub =
 toSubscription : { ignore : String -> msg } -> Sub msg -> Platform.Sub.Sub msg
 toSubscription options sub =
     case sub of
-        Sub subscription ->
-            subscription
+        None ->
+            Platform.Sub.none
 
         Batch subs ->
             Platform.Sub.batch (List.map (toSubscription options) subs)
@@ -132,6 +150,9 @@ toSubscription options sub =
 
         OnWindowResize toMsg ->
             Browser.Events.onResize toMsg
+
+        OnResourceUpdated toMaybeMsg ->
+            Platform.Sub.none
 
         OnKeyPress keyOptions msg ->
             Browser.Events.onKeyDown
@@ -190,3 +211,21 @@ port localStorageUpdated :
      -> msg
     )
     -> Platform.Sub.Sub msg
+
+
+toResourceListeners : App.Resource.Msg.Msg -> Sub msg -> List msg
+toResourceListeners resource sub =
+    case sub of
+        OnResourceUpdated toMaybeMsg ->
+            case toMaybeMsg resource of
+                Just msg ->
+                    [ msg ]
+
+                Nothing ->
+                    []
+
+        Batch subs ->
+            List.concatMap (toResourceListeners resource) subs
+
+        _ ->
+            []

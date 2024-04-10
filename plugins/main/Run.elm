@@ -21,7 +21,7 @@ import Theme.Generate
 
 
 type PluginRun
-    = App (List Options.App.PageUsage)
+    = App Options.App.Options
     | AppView Press.Model.ViewRegions
     | Route (List Options.Route.ParsedPage)
     | Assets (List Options.Assets.AssetGroup)
@@ -96,7 +96,7 @@ main =
 decodePlugin : Json.Decode.Decoder PluginRun
 decodePlugin =
     Json.Decode.oneOf
-        [ Json.Decode.field "app" (Json.Decode.map App Options.App.decodePageUsages)
+        [ Json.Decode.field "app" (Json.Decode.map App Options.App.decode)
         , Json.Decode.field "app-view" (Json.Decode.map AppView Press.Model.decodeViewRegions)
         , Json.Decode.field "routes" (Json.Decode.map Route (Json.Decode.list Options.Route.decodePage))
         , Json.Decode.field "assets" (Json.Decode.map Assets (Json.Decode.list Options.Assets.decodeAssetGroup))

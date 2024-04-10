@@ -17,7 +17,6 @@ This pairs with some js code in localStorage.ts!
 -}
 
 import App.Effect
-import App.Shared
 import App.Sub
 import Json.Decode
 import Json.Encode

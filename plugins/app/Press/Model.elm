@@ -238,7 +238,7 @@ toConfig configType =
                         (Gen.App.Effect.annotation_.effect (Type.var "msg"))
                     )
               )
-            , ( [ SubscriptionConfig ]
+            , ( [ SubscriptionConfig, UpdateConfig, TestConfig ]
               , "subscriptions"
               , Type.function
                     [ Type.var "model"
@@ -268,7 +268,7 @@ toConfig configType =
                     ]
                     (Gen.Platform.Cmd.annotation_.cmd appMsg)
               )
-            , ( [ SubscriptionConfig ]
+            , ( [ SubscriptionConfig, UpdateConfig, TestConfig ]
               , "toSub"
               , Type.function
                     [ Type.namedWith [] "SubOptions" [ Type.var "msg" ]
@@ -276,13 +276,6 @@ toConfig configType =
                     , Gen.App.Sub.annotation_.sub appMsg
                     ]
                     (Gen.Platform.Sub.annotation_.sub appMsg)
-              )
-            , ( [ ViewConfig, UpdateConfig, SubscriptionConfig, TestConfig ]
-              , "toShared"
-              , Type.function
-                    [ Type.var "model"
-                    ]
-                    sharedType
               )
             , ( [ TestConfig ]
               , "onUrlChange"
@@ -306,11 +299,6 @@ toConfig configType =
 appMsg : Type.Annotation
 appMsg =
     Type.namedWith [] "Msg" [ Type.var "msg" ]
-
-
-sharedType : Type.Annotation
-sharedType =
-    Type.named [ "App", "Shared" ] "Shared"
 
 
 routePath =
@@ -350,10 +338,25 @@ pageIdType =
     Type.named [ "App", "Page", "Id" ] "Id"
 
 
+resourcesType =
+    Type.named [ "App", "Resources" ] "Resources"
+
+
+resourceMsgType =
+    Type.named [ "App", "Resource", "Msg" ] "Msg"
+
+
+toResourceListeners =
+    Elm.value
+        { importFrom = [ "App", "Sub" ]
+        , name = "toResourceListeners"
+        , annotation = Nothing
+        }
+
+
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
-    , sharedType = sharedType
     , routePath = routePath
     , routeType = routeType
     , pageId = pageIdType
@@ -365,10 +368,9 @@ types =
         Type.record
             [ ( "key", Type.var "key" )
             , ( "limits", Gen.App.State.annotation_.limit )
-            , ( "states"
-              , stateCache
-              )
+            , ( "states", stateCache )
             , ( "views", regionsRecord )
+            , ( "resources", resourcesType )
             , ( "frame", Type.var "frame" )
             ]
     , pageLoadResult =
@@ -398,8 +400,11 @@ types =
             , ( "preload"
               , Type.function [ pageIdType ] appMsg
               )
-            , ( "regionUpdate"
+            , ( "viewRequested"
               , Type.function [ regionOperation ] appMsg
+              )
+            , ( "sendToResource"
+              , Type.function [ Type.named [ "App", "Resource", "Msg" ] "Msg" ] appMsg
               )
             ]
     , frame =
@@ -426,11 +431,6 @@ types =
 {- 'Frame' helpers -}
 
 
-toShared : Elm.Expression -> Elm.Expression -> Elm.Expression
-toShared config frameModel =
-    Elm.apply (Elm.get "toShared" config) [ frameModel ]
-
-
 toCmd : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
 toCmd config navKey frameModel effect =
     Elm.apply (Elm.get "toCmd" config)
@@ -438,7 +438,8 @@ toCmd config navKey frameModel effect =
             [ ( "navKey", navKey )
             , ( "toApp", Elm.val "Global" )
             , ( "dropPageCache", Elm.val "PageCacheCleared" )
-            , ( "regionUpdate", Elm.val "ViewUpdated" )
+            , ( "viewRequested", Elm.val "ViewUpdated" )
+            , ( "sendToResource", Elm.val "Resource" )
             , ( "preload", Elm.val "Preload" )
             ]
         , frameModel
@@ -769,9 +770,9 @@ getPageInit :
 getPageInit pages =
     Elm.Declare.fn3 "getPageInit"
         ( "pageId", Just types.pageId )
-        ( "shared", Just sharedType )
+        ( "resources", Just resourcesType )
         ( "cache", Just (Gen.App.State.annotation_.cache (Type.named [] "State")) )
-        (\pageId shared cache ->
+        (\pageId resources cache ->
             Elm.Case.custom pageId
                 types.pageId
                 (pages
@@ -809,7 +810,7 @@ getPageInit pages =
                                                 Elm.apply
                                                     (Elm.get "init" pageDetails)
                                                     [ params
-                                                    , shared
+                                                    , resources
                                                     , getPage pageKey
                                                         pageInfo.id
                                                         cache

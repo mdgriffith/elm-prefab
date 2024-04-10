@@ -66,14 +66,14 @@ errorToDetails error =
     Generate.Route.errorToDetails error
 
 
-generate : List Options.App.PageUsage -> Result (List Error) (List Elm.File)
-generate pageUsages =
+generate : Options.App.Options -> Result (List Error) (List Elm.File)
+generate options =
     let
         routes =
-            List.filterMap .route pageUsages
+            List.filterMap .route options.pages
 
         pages =
-            List.map populateParamType pageUsages
+            List.map populateParamType options.pages
     in
     case Generate.Route.generate routes of
         Err err ->
@@ -81,15 +81,149 @@ generate pageUsages =
 
         Ok routeFile ->
             Ok
-                [ Press.Generate.Engine.generate pages
-                , generatePageId pageUsages
-                , routeFile
-                ]
+                (Press.Generate.Engine.generate options.resources pages
+                    :: generatePageId options.pages
+                    :: routeFile
+                    :: generateResources options.resources
+                )
 
 
 populateParamType : Options.App.PageUsage -> Options.App.PageUsage
 populateParamType page =
     { page | paramType = Just (page.id ++ "_Params") }
+
+
+generateResourceMsg : List Options.App.Resource -> Elm.File
+generateResourceMsg resources =
+    let
+        msg =
+            if List.isEmpty resources then
+                Elm.customType "Msg" [ Elm.variant "NoResources" ]
+
+            else
+                Elm.customType "Msg"
+                    (List.map
+                        (\resource ->
+                            Elm.variantWith ("To" ++ resource.id)
+                                [ Type.named [ "Resource", resource.id ] "Msg" ]
+                        )
+                        resources
+                    )
+    in
+    Elm.file [ "App", "Resource", "Msg" ]
+        [ msg ]
+
+
+generateResources : List Options.App.Resource -> List Elm.File
+generateResources resources =
+    [ generateResourceMsg resources
+    , Elm.file [ "App", "Resources" ]
+        [ Elm.alias "Resources"
+            (Type.record
+                (List.map
+                    (\resource ->
+                        ( resource.id
+                        , Type.named [ "Resource", resource.id ] "Model"
+                        )
+                    )
+                    resources
+                )
+            )
+        , Elm.declaration "send"
+            (Elm.record
+                (List.map
+                    (\resource ->
+                        ( resource.id
+                        , Elm.fn
+                            ( "msg", Just (Type.named [ "Resource", resource.id ] "Msg") )
+                            (\msg ->
+                                Elm.apply
+                                    (Elm.value
+                                        { importFrom = [ "App", "Effect" ]
+                                        , name = "sendToResource"
+                                        , annotation = Nothing
+                                        }
+                                    )
+                                    [ Elm.apply
+                                        (Elm.value
+                                            { importFrom = [ "App", "Resource", "Msg" ]
+                                            , name = "To" ++ resource.id
+                                            , annotation = Nothing
+                                            }
+                                        )
+                                        [ msg ]
+                                    ]
+                                    |> Elm.withType
+                                        (Type.namedWith [ "App", "Effect" ]
+                                            "Effect"
+                                            [ Type.var "msg" ]
+                                        )
+                            )
+                        )
+                    )
+                    resources
+                )
+            )
+        , Elm.declaration "listen"
+            (Elm.record
+                (List.map
+                    (\resource ->
+                        ( resource.id
+                        , Elm.fn
+                            ( "toMsg"
+                            , Just
+                                (Type.function
+                                    [ Type.named [ "Resource", resource.id ] "Msg"
+                                    ]
+                                    (Type.maybe (Type.var "msg"))
+                                )
+                            )
+                            (\toMsg ->
+                                Elm.apply
+                                    (Elm.value
+                                        { importFrom = [ "App", "Sub" ]
+                                        , name = "onResourceUpdated"
+                                        , annotation = Nothing
+                                        }
+                                    )
+                                    [ let
+                                        msgType =
+                                            Type.named [ "App", "Resource", "Msg" ] "Msg"
+                                      in
+                                      Elm.fn
+                                        ( "msg", Just msgType )
+                                        (\msg ->
+                                            Elm.Case.custom msg
+                                                msgType
+                                                (List.filterMap identity
+                                                    [ Elm.Case.branch1 ("To" ++ resource.id)
+                                                        ( "inner", Type.named [ "Resource", resource.id ] "Msg" )
+                                                        (\inner ->
+                                                            Elm.apply toMsg [ inner ]
+                                                        )
+                                                        |> Just
+                                                    , if List.length resources == 1 then
+                                                        Nothing
+
+                                                      else
+                                                        Just (Elm.Case.otherwise (\_ -> Elm.nothing))
+                                                    ]
+                                                )
+                                        )
+                                    ]
+                                    |> Elm.withType
+                                        (Type.namedWith [ "App", "Sub" ]
+                                            "Sub"
+                                            [ Type.var "msg" ]
+                                        )
+                            )
+                        )
+                    )
+                    resources
+                )
+            )
+        ]
+    ]
 
 
 generatePageId : List Options.App.PageUsage -> Elm.File
