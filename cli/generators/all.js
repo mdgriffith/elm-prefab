@@ -18759,7 +18759,7 @@
             _Utils_Tuple2("states", $author$project$Press$Model$stateCache),
             _Utils_Tuple2("views", $author$project$Press$Model$regionsRecord),
             _Utils_Tuple2("resources", $author$project$Press$Model$resourcesType),
-            _Utils_Tuple2("frame", $mdgriffith$elm_codegen$Elm$Annotation$var("frame"))
+            _Utils_Tuple2("app", $mdgriffith$elm_codegen$Elm$Annotation$var("app"))
         ])),
         J: $author$project$Press$Model$appMsg,
         F: $author$project$Press$Model$pageIdType,
@@ -18826,14 +18826,14 @@
     };
     var $author$project$Press$Generate$Engine$init_fn = function (getPageInit, loadPage, config, flags, url, key) {
         var frameInitialized = $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("init", config), _List_fromArray([flags, url]));
-        return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("frameModel", "frameEffect", frameInitialized, $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v0) {
+        return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("appModel", "appEffect", frameInitialized, $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v0) {
             var frameModel = _v0.a;
             var frameEffect = _v0.b;
             var globalFrameEffect = A2($author$project$Gen$App$Effect$call_.fy, $mdgriffith$elm_codegen$Elm$val("Global"), frameEffect);
             var model = $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Press$Model$types._, $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
                 _Utils_Tuple2("key", key),
                 _Utils_Tuple2("views", $author$project$Press$Generate$Regions$values.ko),
-                _Utils_Tuple2("frame", frameModel),
+                _Utils_Tuple2("app", frameModel),
                 _Utils_Tuple2("resources", $author$project$Press$Generate$Engine$initResources(flags)),
                 _Utils_Tuple2("limits", $author$project$Gen$App$State$initLimit),
                 _Utils_Tuple2("states", $author$project$Gen$App$State$init)
@@ -18869,14 +18869,14 @@
                     return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("newModel", "effect", $author$project$Press$Generate$Engine$init_fn(getPageInit, loadPage, config, flags, url, key), $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v0) {
                         var newModel = _v0.a;
                         var effect = _v0.b;
-                        return $mdgriffith$elm_codegen$Elm$tuple_fn(newModel, $author$project$Press$Model$toCmd_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", newModel), $mdgriffith$elm_codegen$Elm$get_fn("key", newModel), $mdgriffith$elm_codegen$Elm$get_fn("frame", newModel), effect));
+                        return $mdgriffith$elm_codegen$Elm$tuple_fn(newModel, $author$project$Press$Model$toCmd_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", newModel), $mdgriffith$elm_codegen$Elm$get_fn("key", newModel), $mdgriffith$elm_codegen$Elm$get_fn("app", newModel), effect));
                     })));
                 })),
                 _Utils_Tuple2("update", $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("msg", $elm$core$Maybe$Just($author$project$Press$Model$types.J)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types._)), function (msg, model) {
                     return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("newModel", "effect", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("update"), _List_fromArray([config, msg, model])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v1) {
                         var newModel = _v1.a;
                         var effect = _v1.b;
-                        return $mdgriffith$elm_codegen$Elm$tuple_fn(newModel, $author$project$Press$Model$toCmd_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", newModel), $mdgriffith$elm_codegen$Elm$get_fn("key", newModel), $mdgriffith$elm_codegen$Elm$get_fn("frame", newModel), effect));
+                        return $mdgriffith$elm_codegen$Elm$tuple_fn(newModel, $author$project$Press$Model$toCmd_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", newModel), $mdgriffith$elm_codegen$Elm$get_fn("key", newModel), $mdgriffith$elm_codegen$Elm$get_fn("app", newModel), effect));
                     })));
                 })),
                 _Utils_Tuple2("view", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("view"), _List_fromArray([config]))),
@@ -19879,7 +19879,7 @@
             return $author$project$Gen$App$Sub$batch(_List_fromArray([
                 A2($author$project$Gen$App$Sub$call_.fy, $mdgriffith$elm_codegen$Elm$val("Global"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("subscriptions", config), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$get_fn("resources", model),
-                    $mdgriffith$elm_codegen$Elm$get_fn("frame", model)
+                    $mdgriffith$elm_codegen$Elm$get_fn("app", model)
                 ]))),
                 $author$project$Gen$App$Sub$call_.cx(A2($author$project$Gen$List$call_.d0, $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("pageId", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$string)), function (pageId) {
                     var pageKey = $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("toPageKey"), _List_fromArray([pageId]));
@@ -20510,7 +20510,7 @@
     }, $author$project$Press$Model$toSub = F4($author$project$Press$Model$toSub_fn);
     var $author$project$Press$Generate$Engine$subscriptions = function (pages) {
         return $mdgriffith$elm_codegen$Elm$declaration_fn("subscriptions", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.aU, $author$project$Press$Model$types._]), $author$project$Gen$Platform$Sub$annotation_.mN($author$project$Press$Model$types.J)), $mdgriffith$elm_codegen$Elm$fn2_fn_unwrapped(_Utils_Tuple2("config", $elm$core$Maybe$Just($author$project$Press$Model$types.aU)), _Utils_Tuple2("model", $elm$core$Maybe$Just($author$project$Press$Model$types._)), function (config, model) {
-            return $author$project$Press$Model$toSub_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", model), $mdgriffith$elm_codegen$Elm$get_fn("frame", model), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("getSubscriptions"), _List_fromArray([config, model])));
+            return $author$project$Press$Model$toSub_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", model), $mdgriffith$elm_codegen$Elm$get_fn("app", model), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("getSubscriptions"), _List_fromArray([config, model])));
         })));
     };
     var $author$project$Press$Generate$Engine$test_fn = function (getPageInit, loadPage) {
@@ -20760,13 +20760,13 @@
                     var updatedFrame = $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("update", config), _List_fromArray([
                         $mdgriffith$elm_codegen$Elm$get_fn("resources", model),
                         appMsg,
-                        $mdgriffith$elm_codegen$Elm$get_fn("frame", model)
+                        $mdgriffith$elm_codegen$Elm$get_fn("app", model)
                     ]));
                     return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$tuple_fn("newFrame", "frameEffect", updatedFrame, $mdgriffith$elm_codegen$Elm$Let$letIn(function (_v4) {
                         var newFrame = _v4.a;
                         var frameEffect = _v4.b;
                         return $mdgriffith$elm_codegen$Elm$tuple_fn($mdgriffith$elm_codegen$Elm$updateRecord_fn(_List_fromArray([
-                            _Utils_Tuple2("frame", newFrame)
+                            _Utils_Tuple2("app", newFrame)
                         ]), model), A2($author$project$Gen$App$Effect$call_.fy, $mdgriffith$elm_codegen$Elm$val("Global"), frameEffect));
                     })));
                 }),
@@ -20819,7 +20819,7 @@
                 return $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Gen$Browser$annotation_.ba($author$project$Press$Model$types.J), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("view", config), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$get_fn("resources", model),
                     $mdgriffith$elm_codegen$Elm$val("Global"),
-                    $mdgriffith$elm_codegen$Elm$get_fn("frame", model),
+                    $mdgriffith$elm_codegen$Elm$get_fn("app", model),
                     pageView
                 ])));
             };

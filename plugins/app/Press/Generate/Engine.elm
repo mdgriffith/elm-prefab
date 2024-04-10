@@ -570,7 +570,7 @@ app routes getPageInit loadPage =
                                                 (Press.Model.toCmd config
                                                     (Elm.get "resources" newModel)
                                                     (Elm.get "key" newModel)
-                                                    (Elm.get "frame" newModel)
+                                                    (Elm.get "app" newModel)
                                                     effect
                                                 )
                                         )
@@ -592,7 +592,7 @@ app routes getPageInit loadPage =
                                                     config
                                                     (Elm.get "resources" newModel)
                                                     (Elm.get "key" newModel)
-                                                    (Elm.get "frame" newModel)
+                                                    (Elm.get "app" newModel)
                                                     effect
                                                 )
                                         )
@@ -670,7 +670,7 @@ init getPageInit loadPage config flags url key =
                         , ( "views"
                           , Press.Generate.Regions.values.empty
                           )
-                        , ( "frame", frameModel )
+                        , ( "app", frameModel )
                         , ( "resources", initResources flags )
                         , ( "limits", Gen.App.State.initLimit )
                         , ( "states"
@@ -682,7 +682,7 @@ init getPageInit loadPage config flags url key =
             Elm.tuple model
                 globalFrameEffect
         )
-        |> Elm.Let.tuple "frameModel" "frameEffect" frameInitialized
+        |> Elm.Let.tuple "appModel" "appEffect" frameInitialized
         |> Elm.Let.toExpression
 
 
@@ -811,7 +811,7 @@ update routes getPageInit loadPage =
                                     Elm.apply (Elm.get "update" config)
                                         [ Elm.get "resources" model
                                         , appMsg
-                                        , Elm.get "frame" model
+                                        , Elm.get "app" model
                                         ]
                             in
                             Elm.Let.letIn
@@ -819,7 +819,7 @@ update routes getPageInit loadPage =
                                     Elm.tuple
                                         (model
                                             |> Elm.updateRecord
-                                                [ ( "frame", newFrame )
+                                                [ ( "app", newFrame )
                                                 ]
                                         )
                                         (frameEffect
@@ -858,7 +858,7 @@ view routes =
                             (Elm.get "view" config)
                             [ Elm.get "resources" model
                             , Elm.val "Global"
-                            , Elm.get "frame" model
+                            , Elm.get "app" model
                             , pageView
                             ]
                             |> Elm.withType (Gen.Browser.annotation_.document types.msg)
@@ -1011,7 +1011,7 @@ getSubscriptions pages =
                     [ Elm.apply
                         (Elm.get "subscriptions" config)
                         [ Elm.get "resources" model
-                        , Elm.get "frame" model
+                        , Elm.get "app" model
                         ]
                         |> Gen.App.Sub.call_.map (Elm.val "Global")
                     , Elm.apply Press.Generate.Regions.values.toList
@@ -1054,7 +1054,7 @@ subscriptions pages =
             ( "config", Just types.frameSub )
             ( "model", Just types.model )
             (\config model ->
-                toSub config (Elm.get "resources" model) (Elm.get "frame" model) <|
+                toSub config (Elm.get "resources" model) (Elm.get "app" model) <|
                     Elm.apply
                         (Elm.val "getSubscriptions")
                         [ config

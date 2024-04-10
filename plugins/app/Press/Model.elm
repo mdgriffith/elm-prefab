@@ -376,7 +376,7 @@ types =
             , ( "states", stateCache )
             , ( "views", regionsRecord )
             , ( "resources", resourcesType )
-            , ( "frame", Type.var "frame" )
+            , ( "app", Type.var "app" )
             ]
     , pageLoadResult =
         Gen.App.Page.annotation_.init
