@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Elm } from "../src/Main.elm";
-import * as Clipboard from "./webcomponents/clipboard";
-import * as LocalStorage from "./webcomponents/localStorage";
+import * as Clipboard from "./js/clipboard";
+import * as LocalStorage from "./js/localStorage";
 
 // Boot up the Elm App
 const app = Elm.Main.init({

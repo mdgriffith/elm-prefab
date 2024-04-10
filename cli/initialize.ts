@@ -15,8 +15,6 @@ const defaultOptions: Options.Config = {
   app: {
     pages: {
       Home: Options.toUrl("/"),
-      Login: Options.toUrl("/login"),
-      Logout: Options.toUrlOnly("/logout"),
     },
   },
   assets: { Assets: { src: "./public", onServer: "assets" } },

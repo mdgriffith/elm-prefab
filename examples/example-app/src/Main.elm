@@ -6,8 +6,8 @@ import App
 import App.Effect
 import App.Flags
 import App.Page.Id
+import App.Resources
 import App.Route
-import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
@@ -19,8 +19,7 @@ import Url
 
 
 type alias Model =
-    { shared : App.Shared.Shared
-    , flags : Result Json.Decode.Error App.Flags.Flags
+    { flags : Result Json.Decode.Error App.Flags.Flags
     }
 
 
@@ -35,9 +34,8 @@ main =
         , subscriptions = subscriptions
         , toCmd = toCmd
         , toSub = toSub
-        , toShared = .shared
         , view =
-            \fromFrameMsg model regions ->
+            \resources toAppMsg model regions ->
                 case regions.primary of
                     Nothing ->
                         { title = "Nothing"
@@ -62,7 +60,7 @@ main =
                         }
 
                     Just (App.View page) ->
-                        view fromFrameMsg model page
+                        view resources toAppMsg model page
         }
 
 
@@ -76,11 +74,7 @@ init flagsValue url =
             App.Route.parse url
 
         model =
-            { shared =
-                { authenticated =
-                    App.Shared.Unauthenticated
-                }
-            , flags = decodedFlags
+            { flags = decodedFlags
             }
     in
     gotoUrl url model App.Effect.none
@@ -93,18 +87,18 @@ init flagsValue url =
 -}
 
 
-subscriptions : Model -> App.Sub.Sub Msg
-subscriptions model =
+subscriptions : App.Resources.Resources -> Model -> App.Sub.Sub Msg
+subscriptions resources model =
     App.Sub.none
 
 
-toSub : App.SubOptions Msg -> Model -> App.Sub.Sub (App.Msg Msg) -> Sub.Sub (App.Msg Msg)
-toSub options model sub =
+toSub : App.Resources.Resources -> App.SubOptions Msg -> Model -> App.Sub.Sub (App.Msg Msg) -> Sub.Sub (App.Msg Msg)
+toSub resources options model sub =
     App.Sub.toSubscription options sub
 
 
-toCmd : App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
-toCmd options model effect =
+toCmd : App.Resources.Resources -> App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
+toCmd resources options model effect =
     case model.flags of
         Err _ ->
             Cmd.none
@@ -114,11 +108,12 @@ toCmd options model effect =
 
 
 view :
-    (Msg -> App.Msg Msg)
+    App.Resources.Resources
+    -> (Msg -> App.Msg Msg)
     -> Model
     -> App.View.View (App.Msg Msg)
     -> Browser.Document (App.Msg Msg)
-view fromFrameMsg model innerView =
+view resources toAppMsg model innerView =
     { title = innerView.title
     , body =
         [ innerView.body
@@ -137,8 +132,8 @@ type Msg
     | UrlRequested Browser.UrlRequest
 
 
-update : Msg -> Model -> ( Model, App.Effect.Effect Msg )
-update msg model =
+update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update resources msg model =
     case msg of
         UrlRequested (Browser.Internal url) ->
             case App.Route.parse url of
@@ -173,49 +168,18 @@ gotoUrl url model eff =
 
 gotoRoute : { isRedirect : Bool, route : App.Route.Route } -> Model -> App.Effect.Effect Msg -> ( Model, App.Effect.Effect Msg )
 gotoRoute { isRedirect, route } model eff =
-    case route of
-        App.Route.Logout params ->
-            ( { model
-                | shared =
-                    { authenticated = App.Shared.Unauthenticated
-                    }
-              }
-            , App.Effect.batch
-                [ App.Effect.replaceUrl "/"
-                , eff
-                ]
-            )
+    if isRedirect then
+        ( model, App.Effect.replaceUrl (App.Route.toString route) )
 
-        _ ->
-            let
-                pageId =
-                    if routeRequiresAuthentication route && not (App.Shared.isLoggedIn model.shared) then
-                        App.Page.Id.Home {}
+    else
+        case App.Page.Id.fromRoute route of
+            Nothing ->
+                ( model, App.Effect.none )
 
-                    else
-                        routeToPageId route
-            in
-            ( model
-            , App.Effect.batch
-                [ App.Effect.loadAt App.View.Id.Primary pageId
-                , eff
-                ]
-            )
-
-
-routeRequiresAuthentication : App.Route.Route -> Bool
-routeRequiresAuthentication route =
-    True
-
-
-routeToPageId : App.Route.Route -> App.Page.Id.Id
-routeToPageId route =
-    case route of
-        App.Route.Home _ ->
-            App.Page.Id.Home {}
-
-        App.Route.Logout _ ->
-            App.Page.Id.Home {}
-
-        App.Route.Login _ ->
-            App.Page.Id.Home {}
+            Just pageId ->
+                ( model
+                , App.Effect.batch
+                    [ App.Effect.loadAt App.View.Id.Primary pageId
+                    , eff
+                    ]
+                )

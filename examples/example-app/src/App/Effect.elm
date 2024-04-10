@@ -5,12 +5,13 @@ port module App.Effect exposing
     , forward, back
     , preload, load, loadAt, reload
     , sendMsg, sendMsgAfter
+    , saveToLocalStorage, clearLocalStorageKey
     , generate
     , focus, blur
     , file, files, fileToUrl
     , copyToClipboard
     , request, Expect, expectString, expectJson, expectBytes, expectWhatever
-    , toCmd, sendToJs
+    , toCmd, sendToJs, sendToResource
     )
 
 {-|
@@ -40,6 +41,11 @@ port module App.Effect exposing
 @docs sendMsg, sendMsgAfter
 
 
+# Local Storage
+
+@docs saveToLocalStorage, clearLocalStorageKey
+
+
 # Random generation
 
 @docs generate
@@ -67,11 +73,12 @@ port module App.Effect exposing
 
 # Effects
 
-@docs toCmd, sendToJs
+@docs toCmd, sendToJs, sendToResource
 
 -}
 
 import App.Page.Id
+import App.Resource.Msg
 import App.Route
 import App.View.Id
 import Browser
@@ -156,6 +163,11 @@ back =
     Back
 
 
+sendToResource : App.Resource.Msg.Msg -> Effect msg
+sendToResource =
+    SendToResource
+
+
 sendMsg : msg -> Effect msg
 sendMsg =
     SendMsg
@@ -170,6 +182,35 @@ sendMsgAfter delay msg =
 sendToJs : { tag : String, details : Maybe Json.Encode.Value } -> Effect msg
 sendToJs =
     SendToWorld
+
+
+{-| -}
+saveToLocalStorage : String -> Json.Encode.Value -> Effect msg
+saveToLocalStorage key value =
+    SendToWorld
+        { tag = "local-storage"
+        , details =
+            Just
+                (Json.Encode.object
+                    [ ( "key", Json.Encode.string key )
+                    , ( "value", value )
+                    ]
+                )
+        }
+
+
+{-| -}
+clearLocalStorageKey : String -> Effect msg
+clearLocalStorageKey key =
+    SendToWorld
+        { tag = "local-storage-clear"
+        , details =
+            Just
+                (Json.Encode.object
+                    [ ( "key", Json.Encode.string key )
+                    ]
+                )
+        }
 
 
 {-| Get the current time
@@ -280,6 +321,7 @@ type Effect msg
         { tag : String
         , details : Maybe Json.Encode.Value
         }
+    | SendToResource App.Resource.Msg.Msg
 
 
 type alias RequestDetails msg =
@@ -327,7 +369,9 @@ toCmd :
     { options
         | navKey : Browser.Navigation.Key
         , preload : App.Page.Id.Id -> msg
-        , regionUpdate : App.View.Id.Operation App.Page.Id.Id -> msg
+        , sendToResource : App.Resource.Msg.Msg -> msg
+        , dropPageCache : msg
+        , viewRequested : App.View.Id.Operation App.Page.Id.Id -> msg
     }
     -> Effect msg
     -> Cmd msg
@@ -372,7 +416,7 @@ toCmd options effect =
             Task.succeed ()
                 |> Task.perform
                     (\_ ->
-                        options.regionUpdate op
+                        options.viewRequested op
                     )
 
         Load url ->
@@ -389,6 +433,13 @@ toCmd options effect =
 
         SendToWorld outgoingMsg ->
             outgoing outgoingMsg
+
+        SendToResource resourceMsg ->
+            Task.succeed ()
+                |> Task.perform
+                    (\_ ->
+                        options.sendToResource resourceMsg
+                    )
 
         SendMsg msg ->
             Task.succeed ()
@@ -454,6 +505,9 @@ map f effect =
 
         Back n ->
             Back n
+
+        SendToResource msg ->
+            SendToResource msg
 
         SendToWorld { tag, details } ->
             SendToWorld { tag = tag, details = details }

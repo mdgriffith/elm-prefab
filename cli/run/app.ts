@@ -45,8 +45,7 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
         pages
       );
 
-      // const resources = scanResources(path.join(runOptions.src, "Resource"));
-      const resources = [{ id: "Auth" }];
+      const resources = scanResources(path.join(runOptions.src, "Resource"));
 
       const newSummary = await Generator.run(runOptions.internalSrc, {
         app: { pages: verifiedPages, resources: resources },

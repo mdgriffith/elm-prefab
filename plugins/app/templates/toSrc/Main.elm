@@ -174,22 +174,7 @@ gotoRoute { isRedirect, route } model eff =
     else
         case App.Page.Id.fromRoute route of
             Nothing ->
-                case route of
-                    App.Route.Logout params ->
-                        ( --     { model
-                          --     | shared =
-                          --         { authenticated = App.Shared.Unauthenticated
-                          --         }
-                          --   }
-                          model
-                        , App.Effect.batch
-                            [ App.Effect.replaceUrl "/"
-                            , eff
-                            ]
-                        )
-
-                    _ ->
-                        ( model, App.Effect.none )
+                ( model, App.Effect.none )
 
             Just pageId ->
                 ( model
