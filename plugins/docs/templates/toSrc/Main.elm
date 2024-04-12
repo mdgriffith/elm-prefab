@@ -8,7 +8,6 @@ import App.Flags
 import App.Page.Id
 import App.Resources
 import App.Route
-import App.Shared
 import App.Sub
 import App.View
 import App.View.Id
@@ -16,12 +15,14 @@ import Browser
 import Html
 import Json.Decode
 import Json.Encode as Json
+import Ui
+import Ui.Anim
 import Url
 
 
 type alias Model =
-    { shared : App.Shared.Shared
-    , flags : Result Json.Decode.Error App.Flags.Flags
+    { flags : Result Json.Decode.Error App.Flags.Flags
+    , ui : Ui.Anim.State
     }
 
 
@@ -36,7 +37,6 @@ main =
         , subscriptions = subscriptions
         , toCmd = toCmd
         , toSub = toSub
-        , toShared = .shared
         , view =
             \resources toAppMsg model regions ->
                 case regions.primary of
@@ -77,11 +77,8 @@ init flagsValue url =
             App.Route.parse url
 
         model =
-            { shared =
-                { authenticated =
-                    App.Shared.Unauthenticated
-                }
-            , flags = decodedFlags
+            { flags = decodedFlags
+            , ui = Ui.Anim.init
             }
     in
     gotoUrl url model App.Effect.none
@@ -123,7 +120,14 @@ view :
 view resources toAppMsg model innerView =
     { title = innerView.title
     , body =
-        [ innerView.body
+        [ Ui.Anim.layout
+            { options = []
+            , toMsg = toAppMsg << Ui
+            , breakpoints = Nothing
+            }
+            model.ui
+            []
+            innerView.body
         ]
     }
 
@@ -137,10 +141,11 @@ view resources toAppMsg model innerView =
 type Msg
     = UrlChanged Url.Url
     | UrlRequested Browser.UrlRequest
+    | Ui Ui.Anim.Msg
 
 
-update : Msg -> Model -> ( Model, App.Effect.Effect Msg )
-update msg model =
+update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update resources msg model =
     case msg of
         UrlRequested (Browser.Internal url) ->
             case App.Route.parse url of
@@ -159,6 +164,15 @@ update msg model =
 
         UrlChanged url ->
             gotoUrl url model App.Effect.none
+
+        Ui animMsg ->
+            let
+                ( ui, eff ) =
+                    Ui.Anim.update Ui animMsg model.ui
+            in
+            ( { model | ui = ui }
+            , App.Effect.none
+            )
 
 
 gotoUrl : Url.Url -> Model -> App.Effect.Effect Msg -> ( Model, App.Effect.Effect Msg )
