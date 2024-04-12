@@ -3,6 +3,7 @@ module Theme exposing (..)
 {-| First, a basic language for our design system
 -}
 
+import Dict
 import Elm
 import Gen.CodeGen.Generate as Generate
 import Json.Decode
@@ -29,17 +30,28 @@ type Color
 
 
 type alias Theme =
-    { colors : List (Named Color)
+    { colors : Dict.Dict String Color
+    , palettes : List (Named ColorPalette)
     , spacing : List (Named Int)
-    , typography : List (Named (List (Named Typeface)))
+    , typography : List (Named Typeface)
     , borders : List (Named BorderVariant)
     }
 
 
 type alias ColorPalette =
-    { foreground : Color
-    , background : Color
-    , border : Color
+    { text : Maybe Color
+    , background : Maybe Color
+    , border : Maybe Color
+    , hover : Maybe InnerColorPalette
+    , focus : Maybe InnerColorPalette
+    , active : Maybe InnerColorPalette
+    }
+
+
+type alias InnerColorPalette =
+    { text : Maybe Color
+    , background : Maybe Color
+    , border : Maybe Color
     }
 
 

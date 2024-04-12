@@ -1,4 +1,4 @@
-module Ui.Markdown exposing (parse, render)
+module Ui.Markdown exposing (parse, render, view)
 
 import Html exposing (Html)
 import Html.Attributes
@@ -6,10 +6,25 @@ import Http
 import Markdown.Block as Block
 import Markdown.Parser
 import Markdown.Renderer
+import Theme.Color as Color
+import Theme.Layout as Layout
+import Theme.Text as Text
 import Ui
+import Ui.Divider
 import Ui.Font
+import Ui.Prose
 import Ui.Table
-import Ui.Theme
+
+
+view : String -> Ui.Element msg
+view src =
+    case parse src of
+        Ok blocks ->
+            Layout.column.sm []
+                (List.map render blocks)
+
+        Err errors ->
+            Ui.text src
 
 
 parse : String -> Result (List String) (List Block.Block)
@@ -22,15 +37,15 @@ render : Block.Block -> Ui.Element msg
 render block =
     case block of
         Block.Heading Block.H1 content ->
-            Ui.Theme.h1 []
+            Text.h1
                 (Block.extractInlineText content)
 
         Block.Heading Block.H2 content ->
-            Ui.Theme.h2 []
+            Text.h2
                 (Block.extractInlineText content)
 
         Block.Heading _ content ->
-            Ui.Theme.h2 []
+            Text.h2
                 (Block.extractInlineText content)
 
         Block.Paragraph inlines ->
@@ -41,10 +56,10 @@ render block =
             Ui.none
 
         Block.UnorderedList tight items ->
-            Ui.column [ Ui.Theme.spacing.sm ]
+            Layout.column.sm []
                 (List.map
                     (\(Block.ListItem checked innerBlocks) ->
-                        Ui.row [ Ui.Theme.spacing.sm ]
+                        Layout.row.sm []
                             [ Ui.text "•"
                             , paragraph [] (List.map render innerBlocks)
                             ]
@@ -53,10 +68,10 @@ render block =
                 )
 
         Block.OrderedList tight startingIndex items ->
-            Ui.column [ Ui.Theme.spacing.sm ]
+            Layout.column.sm []
                 (List.indexedMap
                     (\index innerBlocks ->
-                        Ui.row [ Ui.Theme.spacing.sm ]
+                        Layout.row.sm []
                             [ Ui.text (String.fromInt (startingIndex + index))
                             , paragraph [] (List.map render innerBlocks)
                             ]
@@ -65,18 +80,18 @@ render block =
                 )
 
         Block.CodeBlock codeBlock ->
-            Ui.none
+            Ui.el
+                [ Layout.padding.sm3
+                , Ui.background Color.grey100
+                , Ui.rounded 4
+                ]
+                (Ui.text codeBlock.code)
 
         Block.ThematicBreak ->
-            Ui.el
-                [ Ui.height (Ui.px 1)
-                , Ui.background (Ui.rgb 0 0 0)
-                , Ui.width Ui.fill
-                ]
-                Ui.none
+            Ui.Divider.horizontal
 
         Block.BlockQuote nestedBlocks ->
-            paragraph [ Ui.Theme.padding.lg ]
+            paragraph [ Layout.padding.lg ]
                 (List.map render nestedBlocks)
 
         Block.Table headers rows ->
@@ -161,8 +176,9 @@ renderInline inline =
 
         Block.CodeSpan string ->
             Ui.el
-                [ Ui.Theme.padding.lg
-                , Ui.Theme.border.small
+                [ Layout.padding.sm4
+                , Ui.background Color.grey100
+                , Ui.rounded 4
                 ]
                 (Ui.text string)
 
@@ -199,16 +215,14 @@ getIndex index items =
 
 header attrs content =
     Ui.Table.cell
-        [ Ui.borderWith
-            { color = Ui.rgb 200 200 200
-            , width =
-                { top = 0
-                , left = 0
-                , right = 0
-                , bottom = 1
-                }
+        [ Ui.borderColor (Ui.rgb 200 200 200)
+        , Ui.borderWith
+            { top = 0
+            , left = 0
+            , right = 0
+            , bottom = 1
             }
-        , Ui.paddingEach
+        , Ui.paddingWith
             { top = 16
             , left = 16
             , right = 16
@@ -222,4 +236,4 @@ header attrs content =
 
 
 paragraph attrs =
-    Ui.paragraph (Ui.Font.lineHeight 1.4 :: attrs)
+    Ui.Prose.paragraph (Ui.Font.lineHeight 1.4 :: attrs)

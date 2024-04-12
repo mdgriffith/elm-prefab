@@ -2,6 +2,7 @@ module Theme.Decoder exposing (decode)
 
 {-| -}
 
+import Dict
 import Json.Decode
 import Parser exposing ((|.), (|=))
 import Theme exposing (..)
@@ -14,45 +15,77 @@ nameToString (Name str) =
 
 decode : Json.Decode.Decoder Theme
 decode =
-    Json.Decode.map4 Theme
-        (Json.Decode.field "colors"
-            decodeColorSwatch
-        )
-        (Json.Decode.field "spacing"
-            (decodeNamed Json.Decode.int)
-        )
-        (Json.Decode.field "typography"
-            (decodeNamed decodeTypeface)
-        )
-        (Json.Decode.field "borders"
-            (decodeNamed decodeBorderVariant)
-        )
-
-
-decodeColorPalette : Json.Decode.Decoder (List (Named ColorPalette))
-decodeColorPalette =
-    Json.Decode.keyValuePairs
-        (Json.Decode.map3 ColorPalette
-            (Json.Decode.field "foreground" decodeColor)
-            (Json.Decode.field "background" decodeColor)
-            (Json.Decode.field "border" decodeColor)
-        )
-        |> Json.Decode.map
-            (List.map
-                (\( key, palette ) ->
-                    { name = Name key
-                    , item = palette
-                    }
-                )
+    Json.Decode.field "colors" decodeColorSwatch
+        |> Json.Decode.andThen
+            (\colorSwatches ->
+                Json.Decode.map4 (Theme colorSwatches)
+                    (Json.Decode.field "palettes"
+                        (decodeNamed (decodeColorPalette colorSwatches))
+                    )
+                    (Json.Decode.field "spacing"
+                        (decodeNamed Json.Decode.int)
+                    )
+                    (Json.Decode.field "typography"
+                        (Json.Decode.map List.concat (Json.Decode.list decodeTypeface))
+                    )
+                    (Json.Decode.field "borders"
+                        (decodeNamed decodeBorderVariant)
+                    )
             )
 
 
-decodeColorSwatch : Json.Decode.Decoder (List (Named Color))
+decodeColorReference : Dict.Dict String Color -> Json.Decode.Decoder Color
+decodeColorReference colors =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\string ->
+                case Dict.get string colors of
+                    Just color ->
+                        Json.Decode.succeed color
+
+                    Nothing ->
+                        Json.Decode.fail ("I don't recognize this color: " ++ string)
+            )
+
+
+decodeColorPalette : Dict.Dict String Color -> Json.Decode.Decoder ColorPalette
+decodeColorPalette colors =
+    Json.Decode.map6 ColorPalette
+        (Json.Decode.maybe (Json.Decode.field "text" (decodeColorReference colors)))
+        (Json.Decode.maybe (Json.Decode.field "background" (decodeColorReference colors)))
+        (Json.Decode.maybe (Json.Decode.field "border" (decodeColorReference colors)))
+        (Json.Decode.maybe (Json.Decode.field "hover" (decodeInnerColorPalette colors)))
+        (Json.Decode.maybe (Json.Decode.field "active" (decodeInnerColorPalette colors)))
+        (Json.Decode.maybe (Json.Decode.field "focus" (decodeInnerColorPalette colors)))
+
+
+decodeInnerColorPalette : Dict.Dict String Color -> Json.Decode.Decoder InnerColorPalette
+decodeInnerColorPalette colors =
+    Json.Decode.map3 InnerColorPalette
+        (Json.Decode.maybe (Json.Decode.field "text" (decodeColorReference colors)))
+        (Json.Decode.maybe (Json.Decode.field "background" (decodeColorReference colors)))
+        (Json.Decode.maybe (Json.Decode.field "border" (decodeColorReference colors)))
+
+
+decodeColorSwatch : Json.Decode.Decoder (Dict.Dict String Color)
 decodeColorSwatch =
     Json.Decode.keyValuePairs
-        (decodePalette decodeColor)
+        (Json.Decode.oneOf
+            [ Json.Decode.map (List.singleton << Tuple.pair "") decodeColor
+            , Json.Decode.keyValuePairs decodeColor
+            ]
+        )
         |> Json.Decode.map
-            (List.concatMap flattenPalette)
+            (List.concatMap
+                (\( key, innerList ) ->
+                    List.map
+                        (\( innerKey, value ) ->
+                            ( key ++ innerKey, value )
+                        )
+                        innerList
+                )
+                >> Dict.fromList
+            )
 
 
 flattenPalette ( key, palette ) =

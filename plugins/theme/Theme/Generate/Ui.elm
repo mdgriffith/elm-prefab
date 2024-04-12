@@ -2,6 +2,7 @@ module Theme.Generate.Ui exposing (generate)
 
 {-| -}
 
+import Dict
 import Elm
 import Elm.Annotation
 import Elm.Op
@@ -30,29 +31,7 @@ generateLayout : Theme.Theme -> Elm.File
 generateLayout theme =
     Elm.file [ "Theme", "Layout" ]
         (List.concat
-            [ [ Elm.declaration "layout"
-                    (Elm.fn2
-                        ( "attrs"
-                        , Just
-                            (Elm.Annotation.list
-                                (Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg"))
-                            )
-                        )
-                        ( "body", Nothing )
-                        (\attrs body ->
-                            Gen.Ui.call_.layout
-                                (Elm.Op.cons
-                                    (Elm.get "default"
-                                        (Elm.val "font")
-                                    )
-                                    attrs
-                                )
-                                body
-                        )
-                    )
-                    |> Elm.expose
-              ]
-            , [ Elm.declaration "border"
+            [ [ Elm.declaration "border"
                     (toFields
                         (\border ->
                             Gen.Ui.border border.width
@@ -147,47 +126,41 @@ generateText : Theme.Theme -> Elm.File
 generateText theme =
     Elm.file [ "Theme", "Text" ]
         (List.concat
-            [ List.concatMap
-                (\{ name, item } ->
-                    List.map
-                        (\typeface ->
-                            Elm.fn
-                                ( "label", Just Elm.Annotation.string )
-                                (\label ->
-                                    Gen.Ui.call_.el
-                                        (Elm.list
-                                            [ Elm.val
-                                                "attr"
-                                                |> Elm.get (Theme.nameToString typeface.name)
-                                            ]
-                                        )
-                                        (Gen.Ui.call_.text label)
+            [ List.map
+                (\typeface ->
+                    Elm.fn
+                        ( "label", Just Elm.Annotation.string )
+                        (\label ->
+                            Gen.Ui.call_.el
+                                (Elm.list
+                                    [ Elm.val
+                                        "attr"
+                                        |> Elm.get (Theme.nameToString typeface.name)
+                                    ]
                                 )
-                                |> Elm.declaration (Theme.nameToString typeface.name)
-                                |> Elm.expose
+                                (Gen.Ui.call_.text label)
                         )
-                        item
+                        |> Elm.declaration (Theme.nameToString typeface.name)
+                        |> Elm.expose
                 )
                 theme.typography
 
             -- as attributes
             , [ Elm.declaration "attr"
-                    (List.concatMap
-                        (\{ name, item } ->
-                            List.map
-                                (\typeface ->
-                                    ( Theme.nameToString typeface.name
-                                    , Gen.Ui.Font.font
-                                        { name = typeface.item.face
-                                        , fallback = [ Gen.Ui.Font.serif ]
-                                        , variants = []
-                                        , weight =
-                                            toWeight typeface.item.weight
-                                        , size = typeface.item.size
-                                        }
-                                    )
-                                )
-                                item
+                    (List.map
+                        (\typeface ->
+                            ( Theme.nameToString typeface.name
+                            , Gen.Ui.Font.font
+                                { name = typeface.item.face
+                                , fallback = [ Gen.Ui.Font.serif ]
+                                , variants = []
+                                , weight =
+                                    toWeight typeface.item.weight
+                                , size = typeface.item.size
+                                , lineSpacing = round (toFloat typeface.item.size * 1.4)
+                                , capitalSizeRatio = 1
+                                }
+                            )
                         )
                         theme.typography
                         |> Elm.record
@@ -246,12 +219,15 @@ toWeight weight =
 generateColors : Theme.Theme -> Elm.File
 generateColors theme =
     Elm.file [ "Theme", "Color" ]
-        (toFields toColor theme.colors
-            |> List.map
-                (\( name, val ) ->
-                    Elm.declaration name val
-                        |> Elm.expose
+        (Dict.foldl
+            (\name val list ->
+                (Elm.declaration name (toColor val)
+                    |> Elm.expose
                 )
+                    :: list
+            )
+            []
+            theme.colors
         )
 
 
