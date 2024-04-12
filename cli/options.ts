@@ -56,14 +56,27 @@ export const DocsConfig = z.object({
   modules: z.array(z.string()).optional().default([]),
 });
 
-const Color = z.object({
-  hex: z.string(),
-  name: z.string(),
-});
+const Swatch = mapObject(z.string());
 
 const FontDetails = z.object({
   size: z.number().int(),
   weight: z.number().int().optional(),
+});
+
+const PaletteInner = z.object({
+  background: z.string().optional(),
+  border: z.string().optional(),
+  text: z.string().optional(),
+});
+
+const Palette = z.object({
+  background: z.string().optional(),
+  border: z.string().optional(),
+  text: z.string().optional(),
+  //
+  hover: PaletteInner.optional(),
+  active: PaletteInner.optional(),
+  focus: PaletteInner.optional(),
 });
 
 export const Font = z.object({
@@ -77,9 +90,10 @@ export const Border = z.object({
 });
 
 export const ThemeConfig = z.object({
-  colors: mapObject(Color),
+  colors: mapObject(z.string().or(Swatch)),
+  palettes: mapObject(Palette),
   spacing: mapObject(z.number()),
-  typography: mapObject(mapObject(Font)),
+  typography: z.array(Font),
   borders: mapObject(Border),
 });
 

@@ -78,7 +78,7 @@ const runGeneration = async (
     plugins.push(GraphQL.generator(config.graphql));
   }
   if (config.docs != null) {
-    plugins.push(Docs.generator(config.docs));
+    plugins.push(Docs.generator(config));
   }
 
   const summary = await generate(

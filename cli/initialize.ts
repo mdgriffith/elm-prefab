@@ -26,7 +26,7 @@ const defaultOptions: Options.Config = {
     colors: {
       black: "#000000",
       white: "#ffffff",
-      neutral: {
+      grey: {
         "50": "#fafafa",
         "100": "#f5f5f5",
         "200": "#e5e5e5",
@@ -39,7 +39,9 @@ const defaultOptions: Options.Config = {
         "900": "#171717",
         "950": "#0a0a0a",
       },
+      primary: { swatch: "#6b21a8" },
     },
+    palettes: {},
     spacing: {
       zero: 0,
       sm4: 2,
@@ -53,8 +55,8 @@ const defaultOptions: Options.Config = {
       lg3: 40,
       lg4: 80,
     },
-    typography: {
-      prose: {
+    typography: [
+      {
         font: ["EB Garamond", "serif"],
         sizes: {
           h1: { size: 28 },
@@ -63,7 +65,7 @@ const defaultOptions: Options.Config = {
           huge: { size: 120 },
         },
       },
-      interface: {
+      {
         font: ["Noto Sans", "sans-serif"],
         sizes: {
           default: { size: 16 },
@@ -71,14 +73,14 @@ const defaultOptions: Options.Config = {
           small: { size: 10 },
         },
       },
-    },
+    ],
     borders: {
       small: { rounded: 2, width: 1 },
     },
   },
 };
 
-const defaultPlugins = ["app", "routes"];
+const defaultPlugins = ["app", "routes", "theme"];
 
 const composeDefaultConfig = (
   pluginsRequested: string[],
