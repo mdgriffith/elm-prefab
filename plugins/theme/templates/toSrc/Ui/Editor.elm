@@ -64,11 +64,6 @@ borderRadius =
     Attr.style "border-radius" "4px"
 
 
-
--- import Ui
--- import Ui.Theme
-
-
 type alias Element msg =
     Html.Html msg
 
@@ -173,7 +168,8 @@ type TipTapCommand
 
 type ControlBar msg
     = ControlBar
-        { attrs : List (Html.Attribute msg)
+        { elem : List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg
+        , attrs : List (Html.Attribute msg)
         , controls : List (Control msg)
         }
 
@@ -183,9 +179,17 @@ noControls =
     ControlBar { attrs = [], controls = [] }
 
 
-controls : List (Html.Attribute msg) -> List (Control msg) -> ControlBar msg
-controls attrs children =
-    ControlBar { attrs = attrs, controls = children }
+controls :
+    (List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg)
+    -> List (Html.Attribute msg)
+    -> List (Control msg)
+    -> ControlBar msg
+controls elem attrs children =
+    ControlBar
+        { elem = elem
+        , attrs = attrs
+        , controls = children
+        }
 
 
 type Control msg
@@ -196,7 +200,11 @@ type Control msg
         }
 
 
-control : TipTapCommand -> List (Html.Attribute msg) -> Element msg -> Control msg
+control :
+    TipTapCommand
+    -> List (Html.Attribute msg)
+    -> Element msg
+    -> Control msg
 control command attrs element =
     Control
         { command = command
@@ -334,7 +342,8 @@ type alias Content =
 
 
 view :
-    List (Html.Attribute msg)
+    (List (Html.Attribute msg) -> List (Html.Html msg) -> Html.Html msg)
+    -> List (Html.Attribute msg)
     ->
         { text : Model
         , controls :
@@ -348,8 +357,8 @@ view :
         , onUpdate : Msg -> msg
         }
     -> Element msg
-view attrs model =
-    column
+view layout attrs model =
+    layout
         (Attr.class "tiptap-editor-container" :: attrs)
         [ viewControlBar model.controls.top
         , Html.node "tiptap-editor"
@@ -427,7 +436,7 @@ viewControlBar (ControlBar bar) =
         none
 
     else
-        row bar.attrs
+        bar.elem bar.attrs
             (List.map
                 (\(Control ctrl) ->
                     Html.node "tiptap-control" ctrl.attrs [ ctrl.children ]
@@ -440,7 +449,6 @@ toEventHandlers : (Event -> Maybe msg) -> (Msg -> msg) -> List (Html.Attribute m
 toEventHandlers onEvent onUpdate =
     let
         on eventName decoder =
-            -- Ui.htmlAttribute
             Event.on eventName
                 (decoder
                     |> Decode.andThen
@@ -625,10 +633,10 @@ encodeBlock block =
                   )
                 ]
 
-        Block.CodeBlock codeBlockDetails ->
+        Block.CodeBlock { body, language } ->
             Encode.object
                 [ ( "type", Encode.string "codeBlock" )
-                , ( "content", Encode.list identity (List.concatMap encodeInline inlines) )
+                , ( "content", encodeText [] body )
                 ]
 
         Block.ThematicBreak ->
@@ -746,6 +754,12 @@ wrapMark marks text =
 
                 "italic" ->
                     "*" ++ txt ++ "*"
+
+                "strike" ->
+                    "~" ++ txt ++ "~"
+
+                "code" ->
+                    "`" ++ txt ++ "`"
 
                 _ ->
                     txt

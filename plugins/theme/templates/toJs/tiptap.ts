@@ -88,7 +88,6 @@ export default function include() {
       // Base custom element stuff
       connectedCallback() {
         const self = this;
-        console.log(this._elementStyles);
         this._editor = new Editor({
           element: this,
           extensions: [
@@ -161,6 +160,7 @@ export default function include() {
             self.dispatchEvent(new Event("editor-blurred"));
           },
           onSelectionUpdate: (options) => {
+            console.log(options);
             self.dispatchEvent(new Event("editor-selection-updated"));
           },
           onDestroy: (_) => {
