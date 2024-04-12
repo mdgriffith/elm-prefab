@@ -13,7 +13,7 @@ Anxiety kills your development speed and is no fun. :heart:
 
 ## Why not Filesystem based routing?
 
-One of the differentiators between this project and something like [Elm Land](https://elm.land/) is that we describe routes in a config as opposed to generating them from a directory structure.
+A decent number of projects use filesystem routing, where an app's url hierarchy is inferred from a directory structure.
 
 Filesystem routing is pretty cool! So, why the heck aren't we using it?
 
