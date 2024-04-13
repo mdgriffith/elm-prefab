@@ -39,21 +39,43 @@ const defaultOptions: Options.Config = {
         "900": "#171717",
         "950": "#0a0a0a",
       },
-      primary: { swatch: "#6b21a8" },
+      primary: {
+        50: "#faf5ff",
+        100: "#f3e8ff",
+        200: "#e9d5ff",
+        300: "#d8b4fe",
+        400: "#c084fc",
+        500: "#a855f7",
+        600: "#9333ea",
+        700: "#7e22ce",
+        800: "#6b21a8",
+        900: "#581c87",
+        950: "#3b0764",
+      },
     },
-    palettes: {},
+    palettes: {
+      default: { background: "white", text: "grey900" },
+      card: {
+        background: "white",
+        text: "grey900",
+        border: "grey200",
+        hover: {
+          border: "grey300",
+          background: "grey50",
+        },
+      },
+    },
+    borders: {
+      small: { rounded: 2, width: 1 },
+    },
     spacing: {
       zero: 0,
-      sm4: 2,
-      sm3: 4,
-      sm2: 8,
-      sm: 12,
-      md: 16,
-      lg: 20,
-      lg1: 24,
-      lg2: 32,
-      lg3: 40,
-      lg4: 80,
+      xxSmall: 2,
+      xSmall: 4,
+      small: 8,
+      medium: 16,
+      large: 32,
+      xLarge: 64,
     },
     typography: [
       {
@@ -68,19 +90,16 @@ const defaultOptions: Options.Config = {
       {
         font: ["Noto Sans", "sans-serif"],
         sizes: {
-          default: { size: 16 },
+          text: { size: 16 },
           bold: { size: 16, weight: 700 },
           small: { size: 10 },
         },
       },
     ],
-    borders: {
-      small: { rounded: 2, width: 1 },
-    },
   },
 };
 
-const defaultPlugins = ["app", "routes", "theme"];
+const defaultPlugins = ["app", "routes"];
 
 const composeDefaultConfig = (
   pluginsRequested: string[],

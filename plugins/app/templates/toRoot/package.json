@@ -2,7 +2,11 @@
   "devDependencies": {
     "vite": "^5.2.6",
     "vite-plugin-elm": "^3.0.0",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "@tiptap/core": "^2.2.4",
+    "@tiptap/extension-link": "^2.2.4",
+    "@tiptap/pm": "^2.2.4",
+    "@tiptap/starter-kit": "^2.2.4"
   },
   "name": "placeholder",
   "type": "module",
