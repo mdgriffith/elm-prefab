@@ -12,6 +12,8 @@ What we can do is create a global `Resource`, which allows us to
 
 This is pretty cool, but the intention is for any individual `Resources` to remain small and uncomplicated. They're primarily a way to share state.
 
+You can think of it like a local pubsub system if you're familiar with that!
+
 ## Defining `Resource.Auth`
 
 To get this party started, copy the below file into `src/Resource/Auth.elm` and rerun `elm-prefab`.
