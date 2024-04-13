@@ -1,6 +1,6 @@
 # Sharing Data and Globally Available Resources
 
-Once you have the standard setup of a global `App` and as many `Pages` as you'd like, you'll probably run into situations where you have some global data that you'd like to share some data.
+Once you have the standard setup of a global `App` and as many `Pages` as you'd like, you'll probably run into situations where you have some global data that you'd like to share.
 
 One of the most common cases of this is ✨**authentication**✨.
 
@@ -96,14 +96,14 @@ listen =
     }
 ```
 
-Cool! So, if we are on any given page, we can run
+Cool! So, if we are on any given page, we can run:
 
 ```elm
     -- This is an App.Effect.
     App.Resources.send.auth Resources.Auth.LoggedOut
 ```
 
-Or we can listen for changes by adding the following to our `subscriptions`
+Or we can listen for changes by adding the following to our `subscriptions`:
 
 ```elm
 subscriptions =
