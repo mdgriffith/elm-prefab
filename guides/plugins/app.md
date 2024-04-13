@@ -25,6 +25,7 @@ Checkout the overview of generated files and then head over to one of these guid
 
 ```bash
     # Files generated in the .elm-prefab folder are not meant to be modified
+    # In fact, make sure to add `.elm-prefab` to your gitignore!
     # But take a look at them if you're interested!
     .elm-prefab/App.elm
     .elm-prefab/App/Page.elm
