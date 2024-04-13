@@ -14,15 +14,14 @@
 }
 ```
 
-**pages** is an object where the keys are capitalized, and the value is a [URL template](#UrlTemplate)
+**pages** is an object where the keys are capitalized, and the value is a [URL template](#UrlTemplate).
 
 When specifying pages above, a few things happen.
 
-1. Routes are generated in `App/Route.elm`
+1. Routes are generated in `App/Route.elm`.
 2. If a page in `src/Page/{PageName}.elm` doesn't exist, a placeholder page will be generated for you.
-3.
 
-This will generate `App/Route.elm` in the `.elm-prefab` directory, which will have
+This will generate `App/Route.elm` in the `.elm-prefab` directory, which will have:
 
 ```elm
 {-| A type
@@ -51,14 +50,12 @@ We are introducing a way to describe a URL, but hopefully it'll feel pretty intu
 - `/home` - Parses `/home`
 - `/post/:id` - Parses something like `/post/ABC1234` and provides `ABC1234` as an `id` field.
 - `/posts/*` - Parses the full path after `/posts`.
-  - So, if you have `/posts/containing/tag/whatever`:
-  - you'd get a type
-    `Posts { path_ = ["containing", "tag", "whatever" ]}`
+  - So, if you have `/posts/containing/tag/whatever` you'd get a type `Posts { path_ = ["containing", "tag", "whatever" ]}`
   - You can only have one `*` at the end
 
 Handling URL query parameters.
 
-Add a `?` to the end of the url, and any values within the braces are the URL query parameters
+Add a `?` to the end of the url, and any values within the braces are the URL query parameters.
 
 So, here's a dashboard where we care about the params `search`, `filter` and `sort`:
 
