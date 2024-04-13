@@ -2,6 +2,7 @@ module Theme.Decoder exposing (decode)
 
 {-| -}
 
+import Color
 import Dict
 import Json.Decode
 import Parser exposing ((|.), (|=))
@@ -18,7 +19,7 @@ decode =
     Json.Decode.field "colors" decodeColorSwatch
         |> Json.Decode.andThen
             (\colorSwatches ->
-                Json.Decode.map4 (Theme colorSwatches)
+                Json.Decode.map4 (Theme "ui" colorSwatches)
                     (Json.Decode.field "palettes"
                         (decodeNamed (decodeColorPalette colorSwatches))
                     )
@@ -51,7 +52,7 @@ decodeColorReference colors =
 decodeColorPalette : Dict.Dict String Color -> Json.Decode.Decoder ColorPalette
 decodeColorPalette colors =
     Json.Decode.map6 ColorPalette
-        (Json.Decode.maybe (Json.Decode.field "text" (decodeColorReference colors)))
+        (Json.Decode.field "text" (decodeColorReference colors))
         (Json.Decode.maybe (Json.Decode.field "background" (decodeColorReference colors)))
         (Json.Decode.maybe (Json.Decode.field "border" (decodeColorReference colors)))
         (Json.Decode.maybe (Json.Decode.field "hover" (decodeInnerColorPalette colors)))
@@ -245,7 +246,7 @@ parseColor =
 
 parseRgb : Parser.Parser Color
 parseRgb =
-    Parser.succeed Color
+    Parser.succeed Color.rgb255
         |. Parser.symbol "rgb("
         |. Parser.spaces
         |= Parser.int
@@ -263,7 +264,7 @@ parseRgb =
 
 parseHex : Parser.Parser Color
 parseHex =
-    Parser.succeed Color
+    Parser.succeed Color.rgb255
         |. Parser.symbol "#"
         |= parseHex16
         |= parseHex16

@@ -3,11 +3,16 @@ module Theme exposing (..)
 {-| First, a basic language for our design system
 -}
 
+import Color
 import Dict
 import Elm
 import Gen.CodeGen.Generate as Generate
 import Json.Decode
 import Parser exposing ((|.), (|=))
+
+
+type alias Color =
+    Color.Color
 
 
 type Name
@@ -25,12 +30,9 @@ type alias Named thing =
     }
 
 
-type Color
-    = Color Int Int Int
-
-
 type alias Theme =
-    { colors : Dict.Dict String Color
+    { namespace : String
+    , colors : Dict.Dict String Color
     , palettes : List (Named ColorPalette)
     , spacing : List (Named Int)
     , typography : List (Named Typeface)
@@ -39,7 +41,7 @@ type alias Theme =
 
 
 type alias ColorPalette =
-    { text : Maybe Color
+    { text : Color
     , background : Maybe Color
     , border : Maybe Color
     , hover : Maybe InnerColorPalette

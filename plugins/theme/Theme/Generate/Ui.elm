@@ -2,36 +2,92 @@ module Theme.Generate.Ui exposing (generate)
 
 {-| -}
 
+import Color
 import Dict
 import Elm
 import Elm.Annotation
 import Elm.Op
+import Gen.Html.Attributes
 import Gen.Ui
 import Gen.Ui.Font
 import Gen.Ui.Input
 import Theme
+import Theme.Generate.Stylesheet as Style
 
 
 attr : Elm.Expression -> Elm.Expression
 attr a =
     a
-        |> Elm.withType
-            (Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg"))
+        |> Elm.withType attrType
+
+
+attrType : Elm.Annotation.Annotation
+attrType =
+    Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg")
 
 
 generate : Theme.Theme -> List Elm.File
 generate theme =
     [ generateColors theme
-    , generateText theme
-    , generateLayout theme
+    , generateTheme theme
+    , stylesheet theme
     ]
 
 
-generateLayout : Theme.Theme -> Elm.File
-generateLayout theme =
-    Elm.file [ "Theme", "Layout" ]
+type Tag
+    = Layout
+    | Typography
+    | Palettes
+    | Spacing
+
+
+tagToString : Tag -> String
+tagToString tag =
+    case tag of
+        Layout ->
+            "Layout"
+
+        Typography ->
+            "Typography"
+
+        Palettes ->
+            "Palettes"
+
+        Spacing ->
+            "Spacing"
+
+
+expose tag =
+    Elm.exposeWith
+        { group = Just (tagToString tag)
+        , exposeConstructor = True
+        }
+
+
+addNamespace : String -> String -> String
+addNamespace namespace name =
+    if namespace == "" then
+        name
+
+    else
+        namespace ++ "-" ++ name
+
+
+generateTheme : Theme.Theme -> Elm.File
+generateTheme theme =
+    Elm.file [ "Ui", "Theme" ]
         (List.concat
-            [ [ Elm.declaration "border"
+            [ layout theme
+            , theme.palettes
+                |> List.map
+                    (\{ name, item } ->
+                        Elm.declaration (Theme.nameToString name)
+                            (Gen.Ui.htmlAttribute
+                                (Gen.Html.Attributes.class (addNamespace theme.namespace (Theme.nameToString name)))
+                            )
+                            |> expose Palettes
+                    )
+            , [ Elm.declaration "border"
                     (toFields
                         (\border ->
                             Gen.Ui.border border.width
@@ -40,135 +96,173 @@ generateLayout theme =
                         |> Elm.record
                     )
                     |> Elm.expose
-              , Elm.declaration "spacing"
-                    (Elm.record
-                        (toFields (attr << Gen.Ui.spacing)
-                            theme.spacing
-                        )
-                    )
-                    |> Elm.expose
-              , Elm.declaration "row"
-                    (Elm.record
-                        (toFields
-                            (\spacing ->
-                                Elm.fn2
-                                    ( "attrs", Nothing )
-                                    ( "children", Nothing )
-                                    (\attrs children ->
-                                        Gen.Ui.call_.row (Elm.Op.cons (Gen.Ui.spacing spacing) attrs) children
-                                    )
-                            )
-                            theme.spacing
-                        )
-                    )
-                    |> Elm.expose
-              , Elm.declaration "column"
-                    (Elm.record
-                        (toFields
-                            (\spacing ->
-                                Elm.fn2
-                                    ( "attrs", Nothing )
-                                    ( "children", Nothing )
-                                    (\attrs children ->
-                                        Gen.Ui.call_.column (Elm.Op.cons (Gen.Ui.spacing spacing) attrs) children
-                                    )
-                            )
-                            theme.spacing
-                        )
-                    )
-                    |> Elm.expose
-              , Elm.declaration "padding"
-                    (Elm.record
-                        (toFields (attr << Gen.Ui.padding)
-                            theme.spacing
-                            ++ [ ( "xy"
-                                 , Elm.record
-                                    (toFields
-                                        (\spacingX ->
-                                            Elm.record
-                                                (toFields
-                                                    (\spacingY ->
-                                                        attr
-                                                            (Gen.Ui.paddingXY spacingX spacingY)
-                                                    )
-                                                    theme.spacing
-                                                )
-                                        )
-                                        theme.spacing
-                                    )
-                                 )
-                               , ( "top"
-                                 , Elm.record
-                                    (toFields (attr << Gen.Ui.paddingTop) theme.spacing)
-                                 )
-                               , ( "right"
-                                 , Elm.record
-                                    (toFields (attr << Gen.Ui.paddingRight) theme.spacing)
-                                 )
-                               , ( "bottom"
-                                 , Elm.record
-                                    (toFields (attr << Gen.Ui.paddingBottom) theme.spacing)
-                                 )
-                               , ( "left"
-                                 , Elm.record
-                                    (toFields (attr << Gen.Ui.paddingLeft) theme.spacing)
-                                 )
-                               ]
-                        )
-                    )
-                    |> Elm.expose
               ]
+            , spacing theme
+            , typography theme
             ]
         )
 
 
-generateText : Theme.Theme -> Elm.File
-generateText theme =
-    Elm.file [ "Theme", "Text" ]
-        (List.concat
-            [ List.map
-                (\typeface ->
-                    Elm.fn
-                        ( "label", Just Elm.Annotation.string )
-                        (\label ->
-                            Gen.Ui.call_.el
-                                (Elm.list
-                                    [ Elm.val
-                                        "attr"
-                                        |> Elm.get (Theme.nameToString typeface.name)
-                                    ]
-                                )
-                                (Gen.Ui.call_.text label)
+layout : Theme.Theme -> List Elm.Declaration
+layout theme =
+    [ Elm.declaration "el"
+        Gen.Ui.values_.el
+        |> expose Layout
+    , Elm.declaration "row"
+        (Elm.record
+            (toFields
+                (\space ->
+                    Elm.fn2
+                        ( "attrs", Nothing )
+                        ( "children", Nothing )
+                        (\attrs children ->
+                            Gen.Ui.call_.row (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
                         )
-                        |> Elm.declaration (Theme.nameToString typeface.name)
-                        |> Elm.expose
                 )
-                theme.typography
-
-            -- as attributes
-            , [ Elm.declaration "attr"
-                    (List.map
-                        (\typeface ->
-                            ( Theme.nameToString typeface.name
-                            , Gen.Ui.Font.font
-                                { name = typeface.item.face
-                                , fallback = [ Gen.Ui.Font.serif ]
-                                , variants = []
-                                , weight =
-                                    toWeight typeface.item.weight
-                                , size = typeface.item.size
-                                , lineSpacing = round (toFloat typeface.item.size * 1.4)
-                                , capitalSizeRatio = 1
-                                }
-                            )
-                        )
-                        theme.typography
-                        |> Elm.record
-                    )
-                    |> Elm.expose
-              ]
-            ]
+                theme.spacing
+            )
         )
+        |> expose Layout
+    , Elm.declaration "column"
+        (Elm.record
+            (toFields
+                (\space ->
+                    Elm.fn2
+                        ( "attrs", Nothing )
+                        ( "children", Nothing )
+                        (\attrs children ->
+                            Gen.Ui.call_.column (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
+                        )
+                )
+                theme.spacing
+            )
+        )
+        |> expose Layout
+    ]
+
+
+spacing : Theme.Theme -> List Elm.Declaration
+spacing theme =
+    [ Elm.declaration "space"
+        (Elm.record
+            (toFields Elm.int
+                theme.spacing
+            )
+        )
+    , Elm.declaration "mapSpace"
+        (Elm.fn
+            ( "f", Nothing )
+            (\f ->
+                Elm.record
+                    (toFields
+                        (\s ->
+                            Elm.apply f [ Elm.int s ]
+                        )
+                        theme.spacing
+                    )
+            )
+        )
+    , Elm.declaration "spacing"
+        (Elm.record
+            (toFields (attr << Gen.Ui.spacing)
+                theme.spacing
+            )
+        )
+        |> expose Spacing
+    , Elm.alias "Spaced"
+        (toFieldsType (\_ -> Elm.Annotation.var "item") theme.spacing)
+    , Elm.alias "AttrSpacing"
+        (Elm.Annotation.namedWith [] "Spaced" [ attrType ])
+    , Elm.declaration "padding"
+        (Elm.record
+            (toFields (attr << Gen.Ui.padding)
+                theme.spacing
+                ++ [ ( "xy"
+                     , Elm.apply (Elm.val "mapSpace")
+                        [ Elm.fn
+                            ( "spacingX", Just Elm.Annotation.int )
+                            (\spacingX ->
+                                Elm.apply (Elm.val "mapSpace")
+                                    [ Elm.fn
+                                        ( "spacingY", Just Elm.Annotation.int )
+                                        (\spacingY ->
+                                            Gen.Ui.call_.paddingXY spacingX spacingY
+                                        )
+                                    ]
+                            )
+                        ]
+                        |> Elm.withType
+                            (Elm.Annotation.namedWith []
+                                "Spaced"
+                                [ Elm.Annotation.named [] "AttrSpacing"
+                                ]
+                            )
+                     )
+                   , ( "top"
+                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingTop ]
+                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                     )
+                   , ( "right"
+                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingRight ]
+                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                     )
+                   , ( "bottom"
+                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingBottom ]
+                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                     )
+                   , ( "left"
+                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingLeft ]
+                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                     )
+                   ]
+            )
+        )
+        |> expose Spacing
+    ]
+
+
+typography : Theme.Theme -> List Elm.Declaration
+typography theme =
+    List.concat
+        [ List.map
+            (\typeface ->
+                Elm.fn
+                    ( "label", Just Elm.Annotation.string )
+                    (\label ->
+                        Gen.Ui.call_.el
+                            (Elm.list
+                                [ Elm.val "typography"
+                                    |> Elm.get (Theme.nameToString typeface.name)
+                                ]
+                            )
+                            (Gen.Ui.call_.text label)
+                    )
+                    |> Elm.declaration (Theme.nameToString typeface.name)
+                    |> expose Typography
+            )
+            theme.typography
+        , [ Elm.declaration "typography"
+                (List.map
+                    (\typeface ->
+                        ( Theme.nameToString typeface.name
+                        , Gen.Ui.Font.font
+                            { name = typeface.item.face
+                            , fallback = [ Gen.Ui.Font.serif ]
+                            , variants = []
+                            , weight =
+                                toWeight typeface.item.weight
+                            , size = typeface.item.size
+                            , lineSpacing = round (toFloat typeface.item.size * 1.4)
+                            , capitalSizeRatio = 1
+                            }
+                        )
+                    )
+                    theme.typography
+                    |> Elm.record
+                )
+                |> expose Typography
+          ]
+        ]
 
 
 capitalize : String -> String
@@ -218,7 +312,7 @@ toWeight weight =
 
 generateColors : Theme.Theme -> Elm.File
 generateColors theme =
-    Elm.file [ "Theme", "Color" ]
+    Elm.file [ "Ui", "Theme", "Color" ]
         (Dict.foldl
             (\name val list ->
                 (Elm.declaration name (toColor val)
@@ -232,28 +326,44 @@ generateColors theme =
 
 
 
--- generatePalettes : Theme.Theme -> Elm.File
--- generatePalettes theme =
---     Elm.file [ "Ui", "Theme", "Palette" ]
---         (theme.palettes
---             |> List.map
---                 (\{ name, item } ->
---                     Elm.declaration (Theme.nameToString name)
---                         (Gen.Ui.palette
---                             { background = toColor item.background
---                             , font = toColor item.foreground
---                             , border = toColor item.border
---                             }
---                         )
---                         |> Elm.expose
---                 )
---         )
 {- HELPERS -}
 
 
+maybeColor : Maybe Theme.Color -> Elm.Expression
+maybeColor maybe =
+    case maybe of
+        Just color ->
+            toColor color
+
+        Nothing ->
+            Gen.Ui.rgba 0 0 0 0
+
+
+to255 : Float -> Int
+to255 value =
+    round (value * 255)
+
+
 toColor : Theme.Color -> Elm.Expression
-toColor (Theme.Color r g b) =
-    Gen.Ui.rgb r g b
+toColor clr =
+    let
+        rgb =
+            Color.toRgba clr
+    in
+    Gen.Ui.rgb
+        (to255 rgb.red)
+        (to255 rgb.green)
+        (to255 rgb.blue)
+
+
+toFieldsType : (thing -> Elm.Annotation.Annotation) -> List (Theme.Named thing) -> Elm.Annotation.Annotation
+toFieldsType toType fields =
+    fields
+        |> List.map
+            (\named ->
+                ( Theme.nameToString named.name, toType named.item )
+            )
+        |> Elm.Annotation.record
 
 
 toFields : (thing -> Elm.Expression) -> List (Theme.Named thing) -> List ( String, Elm.Expression )
@@ -275,3 +385,65 @@ record toExp fields =
 field : Theme.Named thing -> (thing -> Elm.Expression) -> ( String, Elm.Expression )
 field named toVal =
     ( Theme.nameToString named.name, toVal named.item )
+
+
+
+{---}
+
+
+stylesheet : Theme.Theme -> Elm.File
+stylesheet theme =
+    Style.file (Just theme.namespace)
+        [ "elm-ui.css" ]
+        (theme.palettes
+            |> List.concatMap
+                (\{ name, item } ->
+                    let
+                        class =
+                            Theme.nameToString name
+                    in
+                    List.filterMap identity
+                        [ Style.class class
+                            [ Style.color "color" item.text
+                            , Style.maybe (Style.color "background-color") item.background
+                            , Style.maybe (Style.color "border-color") item.border
+                            , if item.hover /= Nothing || item.focus /= Nothing || item.active /= Nothing then
+                                Style.transition 200
+
+                              else
+                                Style.none
+                            ]
+                            |> Just
+                        , item.hover
+                            |> Maybe.map
+                                (\hover ->
+                                    Style.hover class
+                                        [ Style.maybe (Style.color "color") hover.text
+                                        , Style.maybe (Style.color "background-color") hover.background
+                                        , Style.maybe (Style.color "border-color") hover.border
+                                        , Style.transition 0
+                                        ]
+                                )
+                        , item.focus
+                            |> Maybe.map
+                                (\hover ->
+                                    Style.hover class
+                                        [ Style.maybe (Style.color "color") hover.text
+                                        , Style.maybe (Style.color "background-color") hover.background
+                                        , Style.maybe (Style.color "border-color") hover.border
+                                        , Style.transition 0
+                                        ]
+                                )
+                        , item.active
+                            |> Maybe.map
+                                (\hover ->
+                                    Style.hover class
+                                        [ Style.maybe (Style.color "color") hover.text
+                                        , Style.maybe (Style.color "background-color") hover.background
+                                        , Style.maybe (Style.color "border-color") hover.border
+                                        , Style.transition 0
+                                        ]
+                                )
+                        ]
+                )
+        )
