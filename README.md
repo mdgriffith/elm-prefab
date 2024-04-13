@@ -23,7 +23,7 @@ Each plugin is independent, so you can pick and choose what you want.
 
 [The Elm Architecture](https://guide.elm-lang.org/architecture/) is a very stable way to build apps, but there are some nuances to master.
 
-This project is born out of years of experience working on large(>500k lines) Elm apps at Blissfully and now [Vendr](vendr.com).
+This project is born out of years of experience working on large (>500k lines) Elm apps at Blissfully and now [Vendr](vendr.com).
 
 This is for those who want to speed up development for new projects and avoid some tricky situations that become expensive to fix later on.
 
@@ -34,8 +34,8 @@ In general, `elm-prefab` has a config file called `elm.generate.json`, and you r
 Getting started
 
 ```bash
-# navigate to your projects directory and install `elm-prefab`
-npm install --savedev elm-prefab
+# navigate to your project directory and install `elm-prefab`
+npm install --save-dev elm-prefab
 
 # Running `elm-prefab` will generate working
 npm run elm-prefab
@@ -65,13 +65,13 @@ Once you've run `npm run elm-prefab`, you now have a working [`Vite`](https://vi
 
 `npm run dev` will start a dev server so you can get coding!
 
-Running `npm run build` will build things for production, with the resultant files in the `dist` folder. Feel free to check out the [ViteJS docs](https://vitejs.dev/guide/)
+Running `npm run build` will build things for production, with the resultant files in the `dist` folder. Feel free to check out the [ViteJS docs](https://vitejs.dev/guide/).
 
 ## The first place to look
 
 `elm-prefab` has generated [`src/Page/Home.elm`](https://github.com/mdgriffith/elm-prefab/blob/main/examples/example-app/src/Page/Home.elm) for you, let's take a look.
 
-If you've worked with elm before it should be pretty familiar as a standard `model/update/Msg/view` thing.
+If you've worked with Elm before it should be pretty familiar as a standard `model/update/Msg/view` thing.
 
 The next place to look is [`src/Main.elm`](https://github.com/mdgriffith/elm-prefab/blob/main/examples/example-app/src/Main.elm).
 
@@ -81,7 +81,7 @@ This is the _global_ part of the app. This is where you can control:
 - Authentication logic.
 - Any other "App-wide" thing you might want.
 
-Now go build something! If you have a questions, check out the below guides.
+Now go build something! If you have questions, check out the below guides.
 
 - [Adding a new page](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/add-a-page.md)
 - [Using local storage](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/using-localstorage.md)

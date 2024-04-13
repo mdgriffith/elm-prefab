@@ -1,8 +1,8 @@
 # Why?
 
-The Elm Architecture is based on a single source of state (`Model`), a single place to update that state(your `update` function), a way to describe what signals your app accepts(`Msg`), and a way to view your state (`view`).
+The Elm Architecture is based on a single source of state (`Model`), a single place to update that state (your `update` function), a way to describe what signals your app accepts (`Msg`), and a way to view your state (`view`).
 
-As your app grows, it's very common to model each page as having it's own `Model`/`Msg`/`update`/`view`, and then the global app will handle forwarding page messages on to pages.
+As your app grows, it's very common to model each page as having its own `Model`/`Msg`/`update`/`view`, and then the global app will handle forwarding page messages on to pages.
 
 The [Realworld SPA example](https://github.com/rtfeldman/elm-spa-example/tree/master) is a really good example of what that looks like.
 
@@ -23,17 +23,17 @@ Which means your model is one of the above values.
 
 This is honestly pretty great because it's so clear!
 
-However, there are a few situations that I really wanted to explore with `elm-prefab`
+However, there are a few situations that I really wanted to explore with `elm-prefab`.
 
 ## Speed
 
 There's a small, subtle problem with modeling your app this way and it's that whenever you navigate to a new page, you drop the entire state of the previous page.
 
-This becomes a bit of a problem if the server you're talking to is slow for whatever reason(which you may or maynot be able to control).
+This becomes a bit of a problem if the server you're talking to is slow for whatever reason (which you may or may not be able to control).
 
 I reaaally care about load times. The types of apps I personally want to make bank heavily on user delight and speed is one of the most fundamental factors you need to make a truly superlative experience.
 
-_One of the prime motivations for building an [SPA_](https://en.wikipedia.org/wiki/Single-page_application) is to decouple server performance from perceived app.
+_One of the prime motivations for building an [SPA](https://en.wikipedia.org/wiki/Single-page_application)_ is to decouple server performance from perceived app.
 
 So, this means that:
 
@@ -41,7 +41,7 @@ So, this means that:
 - I want the back button to show content immediately instead of rerequesting info.
 - For truly interactive pages, I didn't want the state to be dropped at all, I want to return to things as how I left them. Object permanence is a nice feature of reality that I want in my apps.
 
-## Modern Flexibility
+## Modern flexibility
 
 If you open [Notion](https://www.notion.so), it's common to have one note open in the main pane, and a separate note in the side pane. And you can easily expand the sidepane to be in the main pane.
 
@@ -57,15 +57,15 @@ When we say a Single-page-app, we don't want the single finger of the monkey paw
 
 ## Page transitions
 
-Being able to track mulitple page states also sets us up for seamless page transitions.
+Being able to track multiple page states also sets us up for seamless page transitions.
 
 ## Page state from a dictionary
 
 So, what does this mean for `elm-prefab`?
 
-It means at it's core, `elm-prefab` tracks page state in a key-value dictionary.
+It means at its core, `elm-prefab` tracks page state in a key-value dictionary.
 
-Ultimately there is still this central type for pages(which is generated for you)
+Ultimately there is still this central type for pages (which is generated for you):
 
 ```elm
 type Page
@@ -124,11 +124,11 @@ type alias Regions view =
     }
 ```
 
-The `Regions` type is read via some :magic*wand: (we ask a special version of the Elm Compiler to read it for us), and what it means is that `primary`, `nav` and `detail` are the top-level \_view regions* for our app.
+The `Regions` type is read via some 🪄 (we ask a special version of the Elm Compiler to read it for us), and what it means is that `primary`, `nav` and `detail` are the top-level *view regions* for our app.
 
 Concretely this means that you can send a command that says "load this page in this region".
 
-Here's us loading the `Home` page in the `Primary`
+Here's us loading the `Home` page in the `Primary` page:
 
 ```elm
  App.Effect.loadAt App.View.Id.Primary App.Page.Id.Home
