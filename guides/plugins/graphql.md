@@ -14,7 +14,7 @@ Example config:
 ```
 
 For the `schema` and `headers` fields, if a `$VAR` is found, it'll be replaced by that environment variable internally.
-Environment variables must start with a dollarsign and only include uppercase letters and underscore.
+Environment variables must start with a dollar sign and only include uppercase letters and underscore.
 
 Any `*.gql` files in your project will be checked against the schema. You'll either get a nice error message describing what needs to be adjusted in the file, or it'll generate some Elm code for you to use to make that query/mutation in Elm. All generated files will end up in `.elm-prefab` directory!
 
