@@ -24,7 +24,7 @@ Checkout the overview of generated files and then head over to one of these guid
 ## Overview of generated files
 
 ```bash
-    # Files generated in the .elm-prefab folder are not meant to be modified
+    # Files generated in the .elm-prefab folder are not meant to be modified.
     # But take a look at them if you're interested!
     .elm-prefab/App.elm
     .elm-prefab/App/Page.elm
@@ -43,14 +43,14 @@ Checkout the overview of generated files and then head over to one of these guid
     src/App/View.elm
     src/App/Route.elm
 
-    # In the same folder you'll see thse files
+    # In the same folder you'll see these files.
     # These are what you should check out first!
     src/Page/Home.elm
     src/Page/Post.elm
     src/Page/Posts.elm
     src/Main.elm
 
-    # You own these file as well
+    # You own these files as well.
     # You can do whatever you want with them.
     src-js/webcomponents/clipboard.ts
     src-js/webcomponents/localStorage.ts
