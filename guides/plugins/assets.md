@@ -11,11 +11,11 @@
 }
 ```
 
-The `assets` field is an object where you can have any number of entires and you can list the local directory as `src` and the directory on the server as `onServer`.
+The `assets` field is an object where you can have any number of entries and you can list the local directory as `src` and the directory on the server as `onServer`.
 
 So, the `Posts` entry above will generate a file `.elm-prefab/Assets/Posts.elm`, which will have the following:
 
-Let's assume there are 2 markdown files in `./path/to/your/posts`: `first-post.md`, and `recipes/carrots_with_hummus.md`.
+Let's assume there are 2 Markdown files in `./path/to/your/posts`: `first-post.md`, and `recipes/carrots_with_hummus.md`.
 
 ```elm
 module Assets.Posts exposing (firstPost, recipes_carrotsWithHummus, directory_)
@@ -74,14 +74,14 @@ directory_ =
 
 Which means you can have:
 
-- a typesafe URL to a static file.
+- A typesafe URL to a static file.
 - And a `directory_` which lists all the files it found as well as some metadata if it's available.
 
 The `directory_` can be really nice to build a quick nav bar!
 
 ## Asset.Src Type
 
-`elm-prefab` also generatd a file called `Asset.elm`, and looks like this:
+`elm-prefab` also generated a file called `Asset.elm`, and looks like this:
 
 ```elm
 
@@ -99,7 +99,7 @@ toString (Src src) =
 
 ```
 
-Which means, if you encounter a `Asset.Src` type, you can use it by running it through `Asset.toString`
+Which means, if you encounter a `Asset.Src` type, you can use it by running it through `Asset.toString`:
 
 ```elm
 
