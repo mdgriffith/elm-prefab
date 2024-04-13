@@ -88,7 +88,7 @@ type alias LocalStorage =
     }
 ```
 
-We add everything as a `Maybe` just in case in case it's not present.
+We add everything as a `Maybe` just in case it's not present.
 
 Now we can add it to our decoder:
 
