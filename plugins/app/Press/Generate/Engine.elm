@@ -16,11 +16,13 @@ import Gen.App.Sub
 import Gen.App.View
 import Gen.Browser
 import Gen.Browser.Navigation
+import Gen.Json.Decode
 import Gen.Json.Encode
 import Gen.List
 import Gen.Maybe
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
+import Gen.Result
 import Gen.Url
 import Options.App
 import Press.Generate.Regions
@@ -141,6 +143,14 @@ generate resources allPageDefinitions =
         ]
 
 
+noneEffect =
+    Elm.value
+        { importFrom = [ "App", "Effect" ]
+        , name = "none"
+        , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
+        }
+
+
 updateResources : List Options.App.Resource -> List Options.App.PageUsage -> Elm.Declaration
 updateResources resources pages =
     Elm.declaration "updateResource"
@@ -151,12 +161,7 @@ updateResources resources pages =
             (\config outerResourceMsg model ->
                 if List.isEmpty resources then
                     Elm.tuple model
-                        (Elm.value
-                            { importFrom = [ "App", "Effect" ]
-                            , name = "none"
-                            , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
-                            }
-                        )
+                        noneEffect
 
                 else
                     Elm.Case.custom outerResourceMsg
@@ -186,6 +191,27 @@ updateResources resources pages =
                                             Elm.Let.letIn
                                                 (\newResourceModel allSubs ->
                                                     let
+                                                        localStorageSync =
+                                                            Elm.Case.maybe (resourceValue resource.id "codec")
+                                                                { nothing = noneEffect
+                                                                , just =
+                                                                    ( "codec"
+                                                                    , \codec ->
+                                                                        Elm.apply
+                                                                            (Elm.value
+                                                                                { importFrom = [ "App", "Effect" ]
+                                                                                , name = "saveToLocalStorage"
+                                                                                , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
+                                                                                }
+                                                                            )
+                                                                            [ Elm.string resource.id
+                                                                            , Elm.apply
+                                                                                (Elm.get "encode" codec)
+                                                                                [ newResourceModel ]
+                                                                            ]
+                                                                    )
+                                                                }
+
                                                         listeners =
                                                             Elm.apply
                                                                 toResourceListeners
@@ -199,7 +225,6 @@ updateResources resources pages =
                                                                         , annotation = Nothing
                                                                         }
                                                                     )
-                                                                |> Gen.App.Effect.call_.batch
                                                     in
                                                     Elm.tuple
                                                         (model
@@ -214,7 +239,11 @@ updateResources resources pages =
                                                                   )
                                                                 ]
                                                         )
-                                                        listeners
+                                                        (Gen.App.Effect.batch
+                                                            [ localStorageSync
+                                                            , Gen.App.Effect.call_.batch listeners
+                                                            ]
+                                                        )
                                                 )
                                                 |> Elm.Let.value "newResourceModel" resourceUpdate
                                                 |> Elm.Let.value "allSubs"
@@ -233,16 +262,42 @@ updateResources resources pages =
         )
 
 
+resourceValue resourceId name =
+    Elm.value
+        { importFrom = [ "Resource", resourceId ]
+        , name = "resource"
+        , annotation = Nothing
+        }
+        |> Elm.get name
+
+
 toEmptyResources : List Options.App.Resource -> Elm.Declaration
 toEmptyResources resources =
     Elm.declaration "initResources"
-        (Elm.fn
+        (Elm.fn2
             ( "flags", Just Gen.Json.Encode.annotation_.value )
-            (\flags ->
+            ( "url", Just Gen.Url.annotation_.url )
+            (\flags url ->
                 Elm.record
                     (resources
                         |> List.map
                             (\resource ->
+                                let
+                                    cachedModel =
+                                        Elm.Case.maybe (resourceValue resource.id "codec")
+                                            { nothing = Elm.nothing
+                                            , just =
+                                                ( "codec"
+                                                , \codec ->
+                                                    let
+                                                        decoder =
+                                                            Gen.Json.Decode.field "localStorage"
+                                                                (Gen.Json.Decode.field resource.id (Elm.get "decoder" codec))
+                                                    in
+                                                    Gen.Result.toMaybe (Gen.Json.Decode.decodeValue decoder flags)
+                                                )
+                                            }
+                                in
                                 ( resource.id
                                 , Elm.apply
                                     (Elm.value
@@ -252,7 +307,10 @@ toEmptyResources resources =
                                         }
                                         |> Elm.get "init"
                                     )
-                                    [ flags ]
+                                    [ flags
+                                    , url
+                                    , cachedModel
+                                    ]
                                 )
                             )
                     )
@@ -638,8 +696,8 @@ app routes getPageInit loadPage =
             }
 
 
-initResources : Elm.Expression -> Elm.Expression
-initResources flags =
+initResources : Elm.Expression -> Elm.Expression -> Elm.Expression
+initResources flags url =
     Elm.apply
         (Elm.value
             { importFrom = []
@@ -647,45 +705,50 @@ initResources flags =
             , annotation = Just resourcesType
             }
         )
-        [ flags ]
+        [ flags, url ]
 
 
 init getPageInit loadPage config flags url key =
-    let
-        frameInitialized =
-            Elm.apply
-                (Elm.get "init" config)
-                [ flags
-                , url
-                ]
-    in
     Elm.Let.letIn
-        (\( frameModel, frameEffect ) ->
+        (\resources ->
             let
-                globalFrameEffect =
-                    frameEffect
-                        |> Gen.App.Effect.call_.map (Elm.val "Global")
-            in
-            let
-                model =
-                    Elm.record
-                        [ ( "key", key )
-                        , ( "views"
-                          , Press.Generate.Regions.values.empty
-                          )
-                        , ( "app", frameModel )
-                        , ( "resources", initResources flags )
-                        , ( "limits", Gen.App.State.initLimit )
-                        , ( "states"
-                          , Gen.App.State.init
-                          )
+                frameInitialized =
+                    Elm.apply
+                        (Elm.get "init" config)
+                        [ resources
+                        , flags
+                        , url
                         ]
-                        |> Elm.withType types.model
             in
-            Elm.tuple model
-                globalFrameEffect
+            Elm.Let.letIn
+                (\( frameModel, frameEffect ) ->
+                    let
+                        globalFrameEffect =
+                            frameEffect
+                                |> Gen.App.Effect.call_.map (Elm.val "Global")
+
+                        model =
+                            Elm.record
+                                [ ( "key", key )
+                                , ( "views"
+                                  , Press.Generate.Regions.values.empty
+                                  )
+                                , ( "app", frameModel )
+                                , ( "resources", resources )
+                                , ( "limits", Gen.App.State.initLimit )
+                                , ( "states"
+                                  , Gen.App.State.init
+                                  )
+                                ]
+                                |> Elm.withType types.model
+                    in
+                    Elm.tuple model
+                        globalFrameEffect
+                )
+                |> Elm.Let.tuple "appModel" "appEffect" frameInitialized
+                |> Elm.Let.toExpression
         )
-        |> Elm.Let.tuple "appModel" "appEffect" frameInitialized
+        |> Elm.Let.value "resources" (initResources flags url)
         |> Elm.Let.toExpression
 
 

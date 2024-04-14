@@ -64,8 +64,8 @@ main =
         }
 
 
-init : Json.Value -> Url.Url -> ( Model, App.Effect.Effect Msg )
-init flagsValue url =
+init : App.Resources.Resources -> Json.Value -> Url.Url -> ( Model, App.Effect.Effect Msg )
+init resources flagsValue url =
     let
         decodedFlags =
             App.Flags.decode flagsValue

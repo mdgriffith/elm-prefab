@@ -219,7 +219,8 @@ toConfig configType =
             [ ( [ TestConfig ]
               , "init"
               , Type.function
-                    [ Gen.Json.Encode.annotation_.value
+                    [ resourcesType
+                    , Gen.Json.Encode.annotation_.value
                     , Gen.Url.annotation_.url
                     ]
                     (Type.tuple
