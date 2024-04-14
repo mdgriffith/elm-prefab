@@ -63,8 +63,11 @@ pageRecordType =
 
 
 generate : List Options.App.Resource -> List Options.App.PageUsage -> Elm.File
-generate resources pageUsages =
+generate resources allPageDefinitions =
     let
+        pageUsages =
+            List.filter (\pageInfo -> not pageInfo.urlOnly) allPageDefinitions
+
         loadPage =
             Press.Model.loadPage pageUsages
 

@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import * as Options from "./options";
 import * as Args from "./args";
 import * as Initialize from "./initialize";
@@ -9,7 +8,6 @@ import * as Docs from "./run/docs";
 import * as Assets from "./run/assets";
 import * as GraphQL from "./run/graphql";
 import * as Output from "./output/summary";
-import Chalk from "chalk";
 
 type GenerateOptions = {
   src: string;
@@ -103,7 +101,7 @@ const run = async (argString: string[]) => {
       console.log(args.message);
       process.exit(1);
     case "version":
-      console.log("0.1.6");
+      console.log("0.1.7");
       break;
   }
   process.exit(0);

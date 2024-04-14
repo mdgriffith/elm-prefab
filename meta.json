@@ -1,0 +1,1156 @@
+{
+  "inputs": {
+    "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js": {
+      "bytes": 4617,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js": {
+      "bytes": 17040,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js",
+          "kind": "require-call",
+          "original": "color-name"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js": {
+      "bytes": 2257,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js",
+          "kind": "require-call",
+          "original": "./conversions"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js": {
+      "bytes": 1708,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js",
+          "kind": "require-call",
+          "original": "./conversions"
+        },
+        {
+          "path": "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js",
+          "kind": "require-call",
+          "original": "./route"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js": {
+      "bytes": 4139,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js",
+          "kind": "require-call",
+          "original": "color-convert"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/has-flag@4.0.0/node_modules/has-flag/index.js": {
+      "bytes": 330,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/index.js": {
+      "bytes": 2748,
+      "imports": [
+        {
+          "path": "os",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "tty",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "node_modules/.pnpm/has-flag@4.0.0/node_modules/has-flag/index.js",
+          "kind": "require-call",
+          "original": "has-flag"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js": {
+      "bytes": 1035,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js": {
+      "bytes": 3367,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js": {
+      "bytes": 6075,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js",
+          "kind": "require-call",
+          "original": "ansi-styles"
+        },
+        {
+          "path": "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/index.js",
+          "kind": "require-call",
+          "original": "supports-color"
+        },
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js",
+          "kind": "require-call",
+          "original": "./util"
+        },
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js",
+          "kind": "require-call",
+          "original": "./templates"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/zod@3.22.4/node_modules/zod/lib/index.mjs": {
+      "bytes": 139540,
+      "imports": [],
+      "format": "esm"
+    },
+    "cli/options.ts": {
+      "bytes": 4473,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/zod@3.22.4/node_modules/zod/lib/index.mjs",
+          "kind": "import-statement",
+          "original": "zod"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/args.ts": {
+      "bytes": 7615,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js",
+          "kind": "import-statement",
+          "original": "chalk"
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "./options"
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node_modules/.pnpm/zod@3.22.4/node_modules/zod/lib/index.mjs",
+          "kind": "import-statement",
+          "original": "zod"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/initialize.ts": {
+      "bytes": 5588,
+      "imports": [
+        {
+          "path": "readline",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js",
+          "kind": "import-statement",
+          "original": "chalk"
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "./options"
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/generators/all.js": {
+      "bytes": 1506005,
+      "imports": [],
+      "format": "cjs"
+    },
+    "cli/run/run_generator.ts": {
+      "bytes": 1507,
+      "imports": [
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../options",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/generators/all.js",
+          "kind": "require-call",
+          "original": "../generators/all"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/app/toHidden.ts": {
+      "bytes": 10184,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/app/toSrc.ts": {
+      "bytes": 30120,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/app/toJs.ts": {
+      "bytes": 3488,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/app/toRoot.ts": {
+      "bytes": 3931,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/app/copyAll.ts": {
+      "bytes": 556,
+      "imports": [
+        {
+          "path": "../../options",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/templates/app/toHidden.ts",
+          "kind": "import-statement",
+          "original": "./toHidden"
+        },
+        {
+          "path": "cli/templates/app/toSrc.ts",
+          "kind": "import-statement",
+          "original": "./toSrc"
+        },
+        {
+          "path": "cli/templates/app/toJs.ts",
+          "kind": "import-statement",
+          "original": "./toJs"
+        },
+        {
+          "path": "cli/templates/app/toRoot.ts",
+          "kind": "import-statement",
+          "original": "./toRoot"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/elm_dev.ts": {
+      "bytes": 796,
+      "imports": [
+        {
+          "path": "child_process",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/app/oneOff/Page.elm.ts": {
+      "bytes": 1662,
+      "imports": [],
+      "format": "esm"
+    },
+    "cli/run/app.ts": {
+      "bytes": 6151,
+      "imports": [
+        {
+          "path": "cli/run/run_generator.ts",
+          "kind": "import-statement",
+          "original": "./run_generator"
+        },
+        {
+          "path": "cli/templates/app/copyAll.ts",
+          "kind": "import-statement",
+          "original": "../templates/app/copyAll"
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../options"
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/elm_dev.ts",
+          "kind": "import-statement",
+          "original": "../elm_dev"
+        },
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js",
+          "kind": "import-statement",
+          "original": "chalk"
+        },
+        {
+          "path": "cli/templates/app/oneOff/Page.elm.ts",
+          "kind": "require-call",
+          "original": "../templates/app/oneOff/Page.elm.ts"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/theme/toHidden.ts": {
+      "bytes": 8510,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/theme/toSrc.ts": {
+      "bytes": 51451,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/theme/toJs.ts": {
+      "bytes": 9459,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/theme/copyAll.ts": {
+      "bytes": 443,
+      "imports": [
+        {
+          "path": "../../options",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/templates/theme/toHidden.ts",
+          "kind": "import-statement",
+          "original": "./toHidden"
+        },
+        {
+          "path": "cli/templates/theme/toSrc.ts",
+          "kind": "import-statement",
+          "original": "./toSrc"
+        },
+        {
+          "path": "cli/templates/theme/toJs.ts",
+          "kind": "import-statement",
+          "original": "./toJs"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/run/theme.ts": {
+      "bytes": 657,
+      "imports": [
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../options"
+        },
+        {
+          "path": "cli/run/run_generator.ts",
+          "kind": "import-statement",
+          "original": "./run_generator"
+        },
+        {
+          "path": "cli/templates/theme/copyAll.ts",
+          "kind": "import-statement",
+          "original": "../templates/theme/copyAll"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/docs/toSrc.ts": {
+      "bytes": 16584,
+      "imports": [
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../../options"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/templates/docs/copyAll.ts": {
+      "bytes": 237,
+      "imports": [
+        {
+          "path": "../../options",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/templates/docs/toSrc.ts",
+          "kind": "import-statement",
+          "original": "./toSrc"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/run/docs.ts": {
+      "bytes": 7412,
+      "imports": [
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../options"
+        },
+        {
+          "path": "cli/run/run_generator.ts",
+          "kind": "import-statement",
+          "original": "./run_generator"
+        },
+        {
+          "path": "cli/elm_dev.ts",
+          "kind": "import-statement",
+          "original": "../elm_dev"
+        },
+        {
+          "path": "cli/templates/docs/copyAll.ts",
+          "kind": "import-statement",
+          "original": "../templates/docs/copyAll"
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/run/app.ts",
+          "kind": "import-statement",
+          "original": "./app"
+        },
+        {
+          "path": "cli/run/theme.ts",
+          "kind": "import-statement",
+          "original": "./theme"
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/run/assets.ts": {
+      "bytes": 5595,
+      "imports": [
+        {
+          "path": "cli/run/run_generator.ts",
+          "kind": "import-statement",
+          "original": "./run_generator"
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../options"
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/vendor/XMLHttpRequest.js": {
+      "bytes": 23448,
+      "imports": [
+        {
+          "path": "url",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "child_process",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "http",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "https",
+          "kind": "require-call",
+          "external": true
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/generators/schema.js": {
+      "bytes": 1178847,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/Engine.elm.js": {
+      "bytes": 25288,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/InputObject.elm.js": {
+      "bytes": 3408,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/Decode.elm.js": {
+      "bytes": 1094,
+      "imports": [],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/run.js": {
+      "bytes": 26903,
+      "imports": [
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js",
+          "kind": "require-call",
+          "original": "chalk"
+        },
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/vendor/XMLHttpRequest.js",
+          "kind": "require-call",
+          "original": "./vendor/XMLHttpRequest"
+        },
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/generators/schema.js",
+          "kind": "require-call",
+          "original": "./generators/schema"
+        },
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/Engine.elm.js",
+          "kind": "require-call",
+          "original": "./templates/Engine.elm"
+        },
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/InputObject.elm.js",
+          "kind": "require-call",
+          "original": "./templates/InputObject.elm"
+        },
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/Decode.elm.js",
+          "kind": "require-call",
+          "original": "./templates/Decode.elm"
+        }
+      ],
+      "format": "cjs"
+    },
+    "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/index.js": {
+      "bytes": 5632,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/run.js",
+          "kind": "require-call",
+          "original": "./run"
+        }
+      ],
+      "format": "cjs"
+    },
+    "cli/run/graphql.ts": {
+      "bytes": 2760,
+      "imports": [
+        {
+          "path": "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/index.js",
+          "kind": "import-statement",
+          "original": "elm-gql"
+        },
+        {
+          "path": "cli/options.ts",
+          "kind": "import-statement",
+          "original": "../options"
+        },
+        {
+          "path": "./run_generator",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/output/summary.ts": {
+      "bytes": 1903,
+      "imports": [
+        {
+          "path": "../options",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js",
+          "kind": "import-statement",
+          "original": "chalk"
+        },
+        {
+          "path": "path",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "cli/run.ts": {
+      "bytes": 2736,
+      "imports": [
+        {
+          "path": "./options",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "cli/args.ts",
+          "kind": "import-statement",
+          "original": "./args"
+        },
+        {
+          "path": "cli/initialize.ts",
+          "kind": "import-statement",
+          "original": "./initialize"
+        },
+        {
+          "path": "cli/run/app.ts",
+          "kind": "import-statement",
+          "original": "./run/app"
+        },
+        {
+          "path": "cli/run/theme.ts",
+          "kind": "import-statement",
+          "original": "./run/theme"
+        },
+        {
+          "path": "cli/run/docs.ts",
+          "kind": "import-statement",
+          "original": "./run/docs"
+        },
+        {
+          "path": "cli/run/assets.ts",
+          "kind": "import-statement",
+          "original": "./run/assets"
+        },
+        {
+          "path": "cli/run/graphql.ts",
+          "kind": "import-statement",
+          "original": "./run/graphql"
+        },
+        {
+          "path": "cli/output/summary.ts",
+          "kind": "import-statement",
+          "original": "./output/summary"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "dist/elm-prefab.js": {
+      "imports": [
+        {
+          "path": "os",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "tty",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "url",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "child_process",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "http",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "https",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "crypto",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "readline",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "child_process",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "fs",
+          "kind": "require-call",
+          "external": true
+        },
+        {
+          "path": "path",
+          "kind": "require-call",
+          "external": true
+        }
+      ],
+      "exports": [],
+      "entryPoint": "cli/run.ts",
+      "inputs": {
+        "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js": {
+          "bytesInOutput": 5357
+        },
+        "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js": {
+          "bytesInOutput": 19239
+        },
+        "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js": {
+          "bytesInOutput": 2180
+        },
+        "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js": {
+          "bytesInOutput": 1887
+        },
+        "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js": {
+          "bytesInOutput": 4935
+        },
+        "node_modules/.pnpm/has-flag@4.0.0/node_modules/has-flag/index.js": {
+          "bytesInOutput": 493
+        },
+        "node_modules/.pnpm/supports-color@7.2.0/node_modules/supports-color/index.js": {
+          "bytesInOutput": 3172
+        },
+        "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/util.js": {
+          "bytesInOutput": 1321
+        },
+        "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/templates.js": {
+          "bytesInOutput": 4041
+        },
+        "node_modules/.pnpm/chalk@4.1.2/node_modules/chalk/source/index.js": {
+          "bytesInOutput": 5964
+        },
+        "cli/generators/all.js": {
+          "bytesInOutput": 1424775
+        },
+        "cli/templates/app/oneOff/Page.elm.ts": {
+          "bytesInOutput": 1728
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/vendor/XMLHttpRequest.js": {
+          "bytesInOutput": 14256
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/generators/schema.js": {
+          "bytesInOutput": 1110748
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/Engine.elm.js": {
+          "bytesInOutput": 24353
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/InputObject.elm.js": {
+          "bytesInOutput": 3582
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/templates/Decode.elm.js": {
+          "bytesInOutput": 1258
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/run.js": {
+          "bytesInOutput": 25595
+        },
+        "node_modules/.pnpm/elm-gql@0.13.0/node_modules/elm-gql/dist/index.js": {
+          "bytesInOutput": 6482
+        },
+        "cli/run.ts": {
+          "bytesInOutput": 2151
+        },
+        "cli/args.ts": {
+          "bytesInOutput": 6773
+        },
+        "node_modules/.pnpm/zod@3.22.4/node_modules/zod/lib/index.mjs": {
+          "bytesInOutput": 109576
+        },
+        "cli/options.ts": {
+          "bytesInOutput": 2917
+        },
+        "cli/initialize.ts": {
+          "bytesInOutput": 5096
+        },
+        "cli/run/run_generator.ts": {
+          "bytesInOutput": 1172
+        },
+        "cli/templates/app/toHidden.ts": {
+          "bytesInOutput": 10097
+        },
+        "cli/templates/app/toSrc.ts": {
+          "bytesInOutput": 29979
+        },
+        "cli/templates/app/toJs.ts": {
+          "bytesInOutput": 3382
+        },
+        "cli/templates/app/toRoot.ts": {
+          "bytesInOutput": 3645
+        },
+        "cli/templates/app/copyAll.ts": {
+          "bytesInOutput": 309
+        },
+        "cli/run/app.ts": {
+          "bytesInOutput": 3604
+        },
+        "cli/elm_dev.ts": {
+          "bytesInOutput": 715
+        },
+        "cli/templates/theme/toHidden.ts": {
+          "bytesInOutput": 7991
+        },
+        "cli/templates/theme/toSrc.ts": {
+          "bytesInOutput": 50793
+        },
+        "cli/templates/theme/toJs.ts": {
+          "bytesInOutput": 9331
+        },
+        "cli/templates/theme/copyAll.ts": {
+          "bytesInOutput": 238
+        },
+        "cli/run/theme.ts": {
+          "bytesInOutput": 368
+        },
+        "cli/templates/docs/toSrc.ts": {
+          "bytesInOutput": 16498
+        },
+        "cli/templates/docs/copyAll.ts": {
+          "bytesInOutput": 112
+        },
+        "cli/run/docs.ts": {
+          "bytesInOutput": 5793
+        },
+        "cli/run/assets.ts": {
+          "bytesInOutput": 4280
+        },
+        "cli/run/graphql.ts": {
+          "bytesInOutput": 1886
+        },
+        "cli/output/summary.ts": {
+          "bytesInOutput": 1762
+        }
+      },
+      "bytes": 2944246
+    }
+  }
+}

@@ -21114,7 +21114,10 @@
             $author$project$Gen$App$View$annotation_.oC($mdgriffith$elm_codegen$Elm$Annotation$var("appMsg"))
         ]))
     ])));
-    var $author$project$Press$Generate$Engine$generate_fn = function (resources, pageUsages) {
+    var $author$project$Press$Generate$Engine$generate_fn = function (resources, allPageDefinitions) {
+        var pageUsages = $elm$core$List$filter_fn(function (pageInfo) {
+            return !pageInfo.ox;
+        }, allPageDefinitions);
         var loadPage = $author$project$Press$Model$loadPage(pageUsages);
         var getPageInit = $author$project$Press$Model$getPageInit(pageUsages);
         return $mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray(["App"]), _List_fromArray([
