@@ -111,3 +111,44 @@ subscriptions =
 ```
 
 Now, whenever the auth resource is changed, we'll get the `AuthUpdated` message sent to our update function.
+
+## Persisting to Local Storage
+
+Resources can also be synced to local storage if you provide an encoder and a decoder.
+
+You can use `App.Resources.withLocalStorage` to persist a resource to local storage.
+
+Using the above example, it'd look something like this
+
+```elm
+import Json.Decode
+import Json.Encode
+
+resource : App.Resource.Resource Msg Model
+resource =
+    App.Resource.resource
+        { init =
+            \flags -> Unauthenticated
+        , update =
+            \msg model ->
+                case msg of
+                    LoggedIn user ->
+                        Authenticated user
+
+                    LoggedOut ->
+                        Unauthenticated
+        }
+        |> App.Resource.withLocalStorage
+            { encode = encode
+            , decoder = decoder
+            }
+
+encode : Model -> Json.Encode.Value
+encode model =
+    -- write an encoder for your model
+
+
+decoder : Json.Decode.Decoder Model
+decoder =
+    -- write a decoder for your model
+```
