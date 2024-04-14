@@ -9,6 +9,7 @@ import * as Docs from "./run/docs";
 import * as Assets from "./run/assets";
 import * as GraphQL from "./run/graphql";
 import * as Output from "./output/summary";
+import Chalk from "chalk";
 
 type GenerateOptions = {
   src: string;
@@ -37,23 +38,6 @@ export const generate = async (
     results[generator.name] = await generator.run(runOptions);
   }
   return results;
-};
-
-const readConfig = async (
-  filepath: string,
-  plugins: string[]
-): Promise<Options.Config | null> => {
-  if (!fs.existsSync(filepath)) {
-    return null;
-  }
-  try {
-    let config = JSON.parse(fs.readFileSync(filepath, "utf-8"));
-    config = Options.Config.parse(config);
-    return config;
-  } catch (e) {
-    console.log(e);
-    process.exit(1);
-  }
 };
 
 const runGeneration = async (
@@ -92,7 +76,7 @@ const runGeneration = async (
 };
 
 const runWithConfig = async (plugins: string[]) => {
-  const config = await readConfig("./elm.generate.json", plugins);
+  const config = await Args.readConfig("./elm.generate.json", plugins);
 
   if (config == null) {
     const newConfig = await Initialize.config(plugins, config);

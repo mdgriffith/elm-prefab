@@ -13,6 +13,7 @@ export const PageConfig = z.union([
       url: z.string(),
       redirectFrom: z.optional(z.array(z.string())).default([]),
     })
+    .strict()
     .transform((obj) => {
       return { url: obj.url, redirectFrom: obj.redirectFrom, urlOnly: false };
     }),
@@ -21,6 +22,7 @@ export const PageConfig = z.union([
       urlOnly: z.string(),
       redirectFrom: z.optional(z.array(z.string())).default([]),
     })
+    .strict()
     .transform((obj) => {
       return {
         url: obj.urlOnly,
@@ -30,82 +32,104 @@ export const PageConfig = z.union([
     }),
 ]);
 
-export const AppConfig = z.object({
-  pages: mapObject(PageConfig),
-});
+export const AppConfig = z
+  .object({
+    pages: mapObject(PageConfig),
+  })
+  .strict();
 
 export const AssetConfig = mapObject(
-  z.object({
-    src: z.string(),
-    onServer: z.string(),
-  })
+  z
+    .object({
+      src: z.string(),
+      onServer: z.string(),
+    })
+    .strict()
 );
 
-export const GraphQLConfig = z.object({
-  schema: z.string(),
-  namespace: z.string().optional(),
-  header: z.array(z.string()),
-  generateMocks: z.boolean().optional(),
-  queries: z.string().optional(),
-  globalFragments: z.string().optional(),
-  existingEnumDefinitions: z.string().optional(),
-});
+export const GraphQLConfig = z
+  .object({
+    schema: z.string(),
+    namespace: z.string().optional(),
+    header: z.array(z.string()),
+    generateMocks: z.boolean().optional(),
+    queries: z.string().optional(),
+    globalFragments: z.string().optional(),
+    existingEnumDefinitions: z.string().optional(),
+  })
+  .strict();
 
-export const DocsConfig = z.object({
-  src: z.string(),
-  modules: z.array(z.string()).optional().default([]),
-});
+export const DocsConfig = z
+  .object({
+    src: z.string(),
+    modules: z.array(z.string()).optional().default([]),
+  })
+  .strict();
 
 const Swatch = mapObject(z.string());
 
-const FontDetails = z.object({
-  size: z.number().int(),
-  weight: z.number().int().optional(),
-});
+const FontDetails = z
+  .object({
+    size: z.number().int(),
+    weight: z.number().int().optional(),
+  })
+  .strict();
 
-const PaletteInner = z.object({
-  background: z.string().optional(),
-  border: z.string().optional(),
-  text: z.string().optional(),
-});
+const PaletteInner = z
+  .object({
+    background: z.string().optional(),
+    border: z.string().optional(),
+    text: z.string().optional(),
+  })
+  .strict();
 
-const Palette = z.object({
-  background: z.string().optional(),
-  border: z.string().optional(),
-  text: z.string().optional(),
-  //
-  hover: PaletteInner.optional(),
-  active: PaletteInner.optional(),
-  focus: PaletteInner.optional(),
-});
+const Palette = z
+  .object({
+    background: z.string().optional(),
+    border: z.string().optional(),
+    text: z.string().optional(),
+    //
+    hover: PaletteInner.optional(),
+    active: PaletteInner.optional(),
+    focus: PaletteInner.optional(),
+  })
+  .strict();
 
-export const Font = z.object({
-  font: z.array(z.string()),
-  sizes: mapObject(FontDetails),
-});
+export const Font = z
+  .object({
+    font: z.array(z.string()),
+    sizes: mapObject(FontDetails),
+  })
+  .strict();
 
-export const Border = z.object({
-  width: z.number(),
-  rounded: z.number().optional(),
-});
+export const Border = z
+  .object({
+    width: z.number(),
+    rounded: z.number().optional(),
+  })
+  .strict();
 
-export const ThemeConfig = z.object({
-  colors: mapObject(z.string().or(Swatch)),
-  palettes: mapObject(Palette),
-  spacing: mapObject(z.number()),
-  typography: z.array(Font),
-  borders: mapObject(Border),
-});
+export const ThemeConfig = z
+  .object({
+    colors: mapObject(z.string().or(Swatch)),
+    palettes: mapObject(Palette),
+    spacing: mapObject(z.number()),
+    typography: z.array(Font),
+    borders: mapObject(Border),
+  })
+  .strict();
 
-export const Config = z.object({
-  src: z.optional(z.string()).default("src"),
-  js: z.optional(z.string()).default("src-js"),
-  app: z.optional(AppConfig),
-  assets: z.optional(AssetConfig),
-  theme: z.optional(ThemeConfig),
-  graphql: z.optional(GraphQLConfig),
-  docs: z.optional(DocsConfig),
-});
+export const Config = z
+  .object({
+    src: z.optional(z.string()).default("src"),
+    js: z.optional(z.string()).default("src-js"),
+    app: z.optional(AppConfig),
+    assets: z.optional(AssetConfig),
+    theme: z.optional(ThemeConfig),
+    graphql: z.optional(GraphQLConfig),
+    docs: z.optional(DocsConfig),
+  })
+  .strict();
 
 export type Config = z.infer<typeof Config>;
 export type PageOptions = {
