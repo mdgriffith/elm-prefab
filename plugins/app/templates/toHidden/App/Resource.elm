@@ -13,6 +13,7 @@ module App.Resource exposing
 
 import Json.Decode as Decode
 import Json.Encode as Json
+import Url
 
 
 {-| -}
@@ -47,5 +48,5 @@ withLocalStorage :
     }
     -> Resource msg model
     -> Resource msg model
-withLocalStorage codec resource =
-    { resource | codec = Just codec }
+withLocalStorage codec res =
+    { res | codec = Just codec }

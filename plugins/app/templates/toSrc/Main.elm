@@ -4,7 +4,6 @@ module Main exposing (main)
 
 import App
 import App.Effect
-import App.Flags
 import App.Page.Id
 import App.Resources
 import App.Route
@@ -19,8 +18,7 @@ import Url
 
 
 type alias Model =
-    { flags : Result Json.Decode.Error App.Flags.Flags
-    }
+    {}
 
 
 {-| -}
@@ -67,15 +65,11 @@ main =
 init : App.Resources.Resources -> Json.Value -> Url.Url -> ( Model, App.Effect.Effect Msg )
 init resources flagsValue url =
     let
-        decodedFlags =
-            App.Flags.decode flagsValue
-
         initial =
             App.Route.parse url
 
         model =
-            { flags = decodedFlags
-            }
+            {}
     in
     gotoUrl url model App.Effect.none
 
@@ -99,12 +93,7 @@ toSub resources options model sub =
 
 toCmd : App.Resources.Resources -> App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
 toCmd resources options model effect =
-    case model.flags of
-        Err _ ->
-            Cmd.none
-
-        Ok flags ->
-            App.Effect.toCmd options effect
+    App.Effect.toCmd options effect
 
 
 view :
