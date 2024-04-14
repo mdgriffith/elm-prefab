@@ -231,38 +231,48 @@ generatePageId pageUsages =
     let
         pageIdType =
             Elm.customType "Id"
-                (List.map
+                (List.filterMap
                     (\page ->
-                        Elm.variantWith page.id [ Type.named [] (page.id ++ "_Params") ]
+                        if page.urlOnly then
+                            Nothing
+
+                        else
+                            Just
+                                (Elm.variantWith page.id [ Type.named [] (page.id ++ "_Params") ])
                     )
                     pageUsages
                 )
 
         paramAliases =
-            List.map
+            List.filterMap
                 (\page ->
-                    case page.route of
-                        Nothing ->
-                            Elm.alias
-                                (page.id ++ "_Params")
-                                (Type.record [])
+                    if page.urlOnly then
+                        Nothing
 
-                        Just parsedRoute ->
-                            case Generate.Route.checkForErrors [ parsedRoute ] of
-                                Err _ ->
+                    else
+                        Just <|
+                            case page.route of
+                                Nothing ->
                                     Elm.alias
                                         (page.id ++ "_Params")
                                         (Type.record [])
 
-                                Ok [ route ] ->
-                                    Elm.alias
-                                        (page.id ++ "_Params")
-                                        (Type.named [ "App", "Route" ] (page.id ++ "_Params"))
+                                Just parsedRoute ->
+                                    case Generate.Route.checkForErrors [ parsedRoute ] of
+                                        Err _ ->
+                                            Elm.alias
+                                                (page.id ++ "_Params")
+                                                (Type.record [])
 
-                                _ ->
-                                    Elm.alias
-                                        (page.id ++ "_Params")
-                                        (Type.record [])
+                                        Ok [ route ] ->
+                                            Elm.alias
+                                                (page.id ++ "_Params")
+                                                (Type.named [ "App", "Route" ] (page.id ++ "_Params"))
+
+                                        _ ->
+                                            Elm.alias
+                                                (page.id ++ "_Params")
+                                                (Type.record [])
                 )
                 pageUsages
 

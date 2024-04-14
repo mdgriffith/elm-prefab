@@ -21168,33 +21168,35 @@
         ]));
     }, $author$project$Press$Generate$Engine$generate = F2($author$project$Press$Generate$Engine$generate_fn);
     var $author$project$Press$Generate$generatePageId = function (pageUsages) {
-        var paramAliases = $elm$core$List$map_fn(function (page) {
-            var _v3 = page.nI;
-            if (_v3.$ === 1) {
-                return $mdgriffith$elm_codegen$Elm$alias_fn(page.fa + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
-            }
-            else {
-                var parsedRoute = _v3.a;
-                var _v4 = $author$project$Generate$Route$checkForErrors(_List_fromArray([parsedRoute]));
-                if (_v4.$ === 1) {
+        var paramAliases = $elm$core$List$filterMap_fn(function (page) {
+            return page.ox ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(function () {
+                var _v3 = page.nI;
+                if (_v3.$ === 1) {
                     return $mdgriffith$elm_codegen$Elm$alias_fn(page.fa + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
                 }
                 else {
-                    if (_v4.a.b && (!_v4.a.b.b)) {
-                        var _v5 = _v4.a;
-                        var route = _v5.a;
-                        return $mdgriffith$elm_codegen$Elm$alias_fn(page.fa + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), page.fa + "_Params"));
-                    }
-                    else {
+                    var parsedRoute = _v3.a;
+                    var _v4 = $author$project$Generate$Route$checkForErrors(_List_fromArray([parsedRoute]));
+                    if (_v4.$ === 1) {
                         return $mdgriffith$elm_codegen$Elm$alias_fn(page.fa + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
                     }
+                    else {
+                        if (_v4.a.b && (!_v4.a.b.b)) {
+                            var _v5 = _v4.a;
+                            var route = _v5.a;
+                            return $mdgriffith$elm_codegen$Elm$alias_fn(page.fa + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), page.fa + "_Params"));
+                        }
+                        else {
+                            return $mdgriffith$elm_codegen$Elm$alias_fn(page.fa + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
+                        }
+                    }
                 }
-            }
+            }());
         }, pageUsages);
-        var pageIdType = $mdgriffith$elm_codegen$Elm$customType_fn("Id", $elm$core$List$map_fn(function (page) {
-            return $mdgriffith$elm_codegen$Elm$Variant_fn(page.fa, _List_fromArray([
+        var pageIdType = $mdgriffith$elm_codegen$Elm$customType_fn("Id", $elm$core$List$filterMap_fn(function (page) {
+            return page.ox ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Variant_fn(page.fa, _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, page.fa + "_Params")
-            ]));
+            ])));
         }, pageUsages));
         var fromRoute = $mdgriffith$elm_codegen$Elm$declaration_fn("fromRoute", $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("route", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), "Route"))), function (route) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$maybe($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Id")), $mdgriffith$elm_codegen$Elm$Case$custom_fn(route, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), "Route"), $elm$core$List$filterMap_fn(function (page) {
