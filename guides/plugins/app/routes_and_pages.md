@@ -21,10 +21,10 @@ When specifying pages above, a few things happen.
 1. Routes are generated in `App/Route.elm`.
 2. If a page in `src/Page/{PageName}.elm` doesn't exist, a placeholder page will be generated for you.
 
-This will generate `App/Route.elm` in the `.elm-prefab` directory, which will have:
+Let's take a look at the generated `App/Route.elm` file which will be in the `.elm-prefab` directory.
 
 ```elm
-{-| A type
+{-| A type representing our route.
 -}
 type Route
     = Home {}
@@ -39,13 +39,16 @@ type Route
         , sort : Maybe String
         }
 
-parse : Url.Url -> Maybe Route
+-- A way to parse a route
+parse : Url.Url -> Maybe { route : Route, isRedirect : Bool }
+
+-- A way to turn a route back into a string.
 toString : Route -> String
 ```
 
 ## URL Templates
 
-We are introducing a way to describe a URL, but hopefully it'll feel pretty intuitive.
+Let's break down the URL format, hopefully it'll feel pretty intuitive.
 
 - `/home` - Parses `/home`
 - `/post/:id` - Parses something like `/post/ABC1234` and provides `ABC1234` as an `id` field.
@@ -53,7 +56,7 @@ We are introducing a way to describe a URL, but hopefully it'll feel pretty intu
   - So, if you have `/posts/containing/tag/whatever` you'd get a type `Posts { path_ = ["containing", "tag", "whatever" ]}`
   - You can only have one `*` at the end
 
-Handling URL query parameters.
+Though what if you want to handle query parameters?
 
 Add a `?` to the end of the url, and any values within the braces are the URL query parameters.
 
@@ -111,7 +114,7 @@ If you use `urlOnly`, then only a route will be generated, and no actual `Page/{
 ```json
 {
   "pages": {
-    "Logout": { "urlONly": "/logout" }
+    "Logout": { "urlOnly": "/logout" }
   }
 }
 ```
