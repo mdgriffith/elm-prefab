@@ -98,7 +98,7 @@ const verifyElmFilesExist = (
 
     // Check for PageUsage entries without a corresponding file
     pages.forEach((page) => {
-      if (!elmFileNames.includes(page.id)) {
+      if (!elmFileNames.includes(page.id) && !page.urlOnly) {
         if (!silent) {
           logError(
             `Missing Elm Page`,
