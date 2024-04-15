@@ -101,7 +101,7 @@ const run = async (argString: string[]) => {
       console.log(args.message);
       process.exit(1);
     case "version":
-      console.log("0.1.10");
+      console.log("0.1.11");
       break;
   }
   process.exit(0);
