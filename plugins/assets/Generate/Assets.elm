@@ -134,10 +134,50 @@ declarationName : Options.Assets.File -> String
 declarationName file =
     case file.crumbs of
         [] ->
-            file.name
+            toCamelCase file.name
 
         _ ->
-            String.join "_" file.crumbs ++ "_" ++ file.name
+            String.join "_" (List.map toCamelCase file.crumbs) ++ "_" ++ toCamelCase file.name
+
+
+toCamelCase : String -> String
+toCamelCase str =
+    let
+        parts =
+            String.split "-" str
+    in
+    case parts of
+        [] ->
+            ""
+
+        top :: tail ->
+            decapitalize top
+                ++ String.join ""
+                    (List.map capitalize tail)
+
+
+decapitalize : String -> String
+decapitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toLower top ++ remain
+
+
+capitalize : String -> String
+capitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toUpper top ++ remain
 
 
 {-| The directory file contains
@@ -173,7 +213,7 @@ generateAssetGroupDirectory group =
                                     (Type.record
                                         [ ( "name", Type.string )
                                         , ( "crumbs", Type.list Type.string )
-                                        , ( "pathOnServer", Type.string )
+                                        , ( "pathOnServer", Type.named [ "Asset" ] "Src" )
                                         , ( "content", Type.named [ "Asset" ] "Content" )
                                         ]
                                     )

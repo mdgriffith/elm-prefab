@@ -10099,13 +10099,34 @@
             _Utils_Tuple2("content", $author$project$Generate$Assets$encodeContent(info.aO))
         ]));
     };
+    var $author$project$Generate$Assets$capitalize = function (str) {
+        var top = $elm$core$String$left_fn(1, str);
+        var remain = $elm$core$String$dropLeft_fn(1, str);
+        return _Utils_ap($elm$core$String$toUpper(top), remain);
+    };
+    var $author$project$Generate$Assets$decapitalize = function (str) {
+        var top = $elm$core$String$left_fn(1, str);
+        var remain = $elm$core$String$dropLeft_fn(1, str);
+        return _Utils_ap($elm$core$String$toLower(top), remain);
+    };
+    var $author$project$Generate$Assets$toCamelCase = function (str) {
+        var parts = $elm$core$String$split_fn("-", str);
+        if (!parts.b) {
+            return "";
+        }
+        else {
+            var top = parts.a;
+            var tail = parts.b;
+            return _Utils_ap($author$project$Generate$Assets$decapitalize(top), $elm$core$String$join_fn("", $elm$core$List$map_fn($author$project$Generate$Assets$capitalize, tail)));
+        }
+    };
     var $author$project$Generate$Assets$declarationName = function (file) {
         var _v0 = file.ak;
         if (!_v0.b) {
-            return file.d;
+            return $author$project$Generate$Assets$toCamelCase(file.d);
         }
         else {
-            return $elm$core$String$join_fn("_", file.ak) + ("_" + file.d);
+            return $elm$core$String$join_fn("_", $elm$core$List$map_fn($author$project$Generate$Assets$toCamelCase, file.ak)) + ("_" + $author$project$Generate$Assets$toCamelCase(file.d));
         }
     };
     var $mdgriffith$elm_codegen$Internal$Compiler$Exposed = function (a) {
@@ -15172,7 +15193,7 @@
                     $mdgriffith$elm_codegen$Elm$declaration_fn("directory_", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$record(_List_fromArray([
                         _Utils_Tuple2("name", $mdgriffith$elm_codegen$Elm$Annotation$string),
                         _Utils_Tuple2("crumbs", $mdgriffith$elm_codegen$Elm$Annotation$list($mdgriffith$elm_codegen$Elm$Annotation$string)),
-                        _Utils_Tuple2("pathOnServer", $mdgriffith$elm_codegen$Elm$Annotation$string),
+                        _Utils_Tuple2("pathOnServer", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["Asset"]), "Src")),
                         _Utils_Tuple2("content", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["Asset"]), "Content"))
                     ]))), $mdgriffith$elm_codegen$Elm$list($elm$core$List$map_fn($author$project$Generate$Assets$encodeFileInfo, directoryItems))))
                 ]);
@@ -23624,6 +23645,9 @@
     var $author$project$Theme$Generate$Ui$attr = function (a) {
         return $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Theme$Generate$Ui$attrType, a);
     };
+    var $author$project$Theme$Generate$Ui$attrSpacingType = $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "AttrSpacing", _List_fromArray([
+        $mdgriffith$elm_codegen$Elm$Annotation$var("msg")
+    ]));
     var $author$project$Gen$Ui$padding = function (paddingArg) {
         return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
             b: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$mdgriffith$elm_codegen$Elm$Annotation$int]), $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_fromArray(["Ui"]), "Attribute", _List_fromArray([
@@ -23656,9 +23680,7 @@
             }, theme.i9)),
             $mdgriffith$elm_codegen$Elm$alias_fn("AttrSpacing", $mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Spaced", _List_fromArray([$author$project$Theme$Generate$Ui$attrType]))),
             A2($author$project$Theme$Generate$Ui$expose, 3, $mdgriffith$elm_codegen$Elm$declaration_fn("padding", $mdgriffith$elm_codegen$Elm$record(_Utils_ap($author$project$Theme$Generate$Ui$toFields_fn(A2($elm$core$Basics$composeL, $author$project$Theme$Generate$Ui$attr, $author$project$Gen$Ui$padding), theme.i9), _List_fromArray([
-                _Utils_Tuple2("xy", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Spaced", _List_fromArray([
-                    $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "AttrSpacing")
-                ])), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([
+                _Utils_Tuple2("xy", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$namedWith_fn(_List_Nil, "Spaced", _List_fromArray([$author$project$Theme$Generate$Ui$attrSpacingType])), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("spacingX", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$int)), function (spacingX) {
                         return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([
                             $mdgriffith$elm_codegen$Elm$fn_fn(_Utils_Tuple2("spacingY", $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$int)), function (spacingY) {
@@ -23667,10 +23689,10 @@
                         ]));
                     })
                 ])))),
-                _Utils_Tuple2("top", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "AttrSpacing"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.hr])))),
-                _Utils_Tuple2("right", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "AttrSpacing"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.hq])))),
-                _Utils_Tuple2("bottom", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "AttrSpacing"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.ho])))),
-                _Utils_Tuple2("left", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "AttrSpacing"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.hp]))))
+                _Utils_Tuple2("top", $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Theme$Generate$Ui$attrSpacingType, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.hr])))),
+                _Utils_Tuple2("right", $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Theme$Generate$Ui$attrSpacingType, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.hq])))),
+                _Utils_Tuple2("bottom", $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Theme$Generate$Ui$attrSpacingType, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.ho])))),
+                _Utils_Tuple2("left", $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Theme$Generate$Ui$attrSpacingType, $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("mapSpace"), _List_fromArray([$author$project$Gen$Ui$values_.hp]))))
             ])))))
         ]);
     };

@@ -185,7 +185,7 @@
       "format": "esm"
     },
     "cli/generators/all.js": {
-      "bytes": 1506005,
+      "bytes": 1513430,
       "imports": [],
       "format": "cjs"
     },
@@ -216,7 +216,7 @@
       "format": "esm"
     },
     "cli/templates/app/toHidden.ts": {
-      "bytes": 10184,
+      "bytes": 10781,
       "imports": [
         {
           "path": "path",
@@ -237,7 +237,7 @@
       "format": "esm"
     },
     "cli/templates/app/toSrc.ts": {
-      "bytes": 30120,
+      "bytes": 26460,
       "imports": [
         {
           "path": "path",
@@ -767,7 +767,7 @@
       "format": "esm"
     },
     "cli/run.ts": {
-      "bytes": 2736,
+      "bytes": 2737,
       "imports": [
         {
           "path": "./options",
@@ -1051,7 +1051,7 @@
           "bytesInOutput": 5964
         },
         "cli/generators/all.js": {
-          "bytesInOutput": 1424775
+          "bytesInOutput": 1431876
         },
         "cli/templates/app/oneOff/Page.elm.ts": {
           "bytesInOutput": 1728
@@ -1078,7 +1078,7 @@
           "bytesInOutput": 6482
         },
         "cli/run.ts": {
-          "bytesInOutput": 2151
+          "bytesInOutput": 2152
         },
         "cli/args.ts": {
           "bytesInOutput": 6773
@@ -1096,10 +1096,10 @@
           "bytesInOutput": 1172
         },
         "cli/templates/app/toHidden.ts": {
-          "bytesInOutput": 10097
+          "bytesInOutput": 10694
         },
         "cli/templates/app/toSrc.ts": {
-          "bytesInOutput": 29979
+          "bytesInOutput": 26333
         },
         "cli/templates/app/toJs.ts": {
           "bytesInOutput": 3382
@@ -1150,7 +1150,7 @@
           "bytesInOutput": 1762
         }
       },
-      "bytes": 2944246
+      "bytes": 2948299
     }
   }
 }
