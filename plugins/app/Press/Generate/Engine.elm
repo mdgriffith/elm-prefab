@@ -135,6 +135,7 @@ generate resources allPageDefinitions =
         , msgType pageUsages
         , update pageUsages getPageInit loadPage
         , updateResources resources pageUsages
+        , syncResourcesToLocalStorage resources
         , getPageInit.declaration
         , loadPage.declaration
         , view pageUsages
@@ -149,6 +150,46 @@ noneEffect =
         , name = "none"
         , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
         }
+
+
+syncResourcesToLocalStorage : List Options.App.Resource -> Elm.Declaration
+syncResourcesToLocalStorage resources =
+    Elm.declaration "syncResourcesToLocalStorage"
+        (Elm.fn
+            ( "resources", Just resourcesType )
+            (\resourcesState ->
+                if List.isEmpty resources then
+                    noneEffect
+
+                else
+                    resources
+                        |> List.map
+                            (\resource ->
+                                Elm.Case.maybe (resourceValue resource.id "codec")
+                                    { nothing = noneEffect
+                                    , just =
+                                        ( "codec"
+                                        , \codec ->
+                                            Elm.apply
+                                                (Elm.value
+                                                    { importFrom = [ "App", "Effect" ]
+                                                    , name = "saveToLocalStorage"
+                                                    , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
+                                                    }
+                                                )
+                                                [ Elm.string resource.id
+                                                , Elm.apply
+                                                    (Elm.get "encode" codec)
+                                                    [ Elm.get resource.id resourcesState
+                                                    ]
+                                                ]
+                                        )
+                                    }
+                            )
+                        |> Gen.App.Effect.batch
+                        |> Elm.withType (Gen.App.Effect.annotation_.effect types.msg)
+            )
+        )
 
 
 updateResources : List Options.App.Resource -> List Options.App.PageUsage -> Elm.Declaration
@@ -743,7 +784,13 @@ init getPageInit loadPage config flags url key =
                                 |> Elm.withType types.model
                     in
                     Elm.tuple model
-                        globalFrameEffect
+                        (Gen.App.Effect.batch
+                            [ globalFrameEffect
+                            , Elm.apply (Elm.val "syncResourcesToLocalStorage")
+                                [ resources
+                                ]
+                            ]
+                        )
                 )
                 |> Elm.Let.tuple "appModel" "appEffect" frameInitialized
                 |> Elm.Let.toExpression

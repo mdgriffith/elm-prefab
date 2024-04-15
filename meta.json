@@ -185,7 +185,7 @@
       "format": "esm"
     },
     "cli/generators/all.js": {
-      "bytes": 1513430,
+      "bytes": 1515574,
       "imports": [],
       "format": "cjs"
     },
@@ -1051,7 +1051,7 @@
           "bytesInOutput": 5964
         },
         "cli/generators/all.js": {
-          "bytesInOutput": 1431876
+          "bytesInOutput": 1433876
         },
         "cli/templates/app/oneOff/Page.elm.ts": {
           "bytesInOutput": 1728
@@ -1150,7 +1150,7 @@
           "bytesInOutput": 1762
         }
       },
-      "bytes": 2948299
+      "bytes": 2950299
     }
   }
 }
