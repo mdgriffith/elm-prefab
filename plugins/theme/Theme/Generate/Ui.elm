@@ -141,6 +141,10 @@ layout theme =
     ]
 
 
+attrSpacingType =
+    Elm.Annotation.namedWith [] "AttrSpacing" [ Elm.Annotation.var "msg" ]
+
+
 spacing : Theme.Theme -> List Elm.Declaration
 spacing theme =
     [ Elm.declaration "space"
@@ -194,25 +198,25 @@ spacing theme =
                         |> Elm.withType
                             (Elm.Annotation.namedWith []
                                 "Spaced"
-                                [ Elm.Annotation.named [] "AttrSpacing"
+                                [ attrSpacingType
                                 ]
                             )
                      )
                    , ( "top"
                      , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingTop ]
-                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                        |> Elm.withType attrSpacingType
                      )
                    , ( "right"
                      , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingRight ]
-                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                        |> Elm.withType attrSpacingType
                      )
                    , ( "bottom"
                      , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingBottom ]
-                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                        |> Elm.withType attrSpacingType
                      )
                    , ( "left"
                      , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingLeft ]
-                        |> Elm.withType (Elm.Annotation.named [] "AttrSpacing")
+                        |> Elm.withType attrSpacingType
                      )
                    ]
             )
