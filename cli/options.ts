@@ -72,26 +72,9 @@ const FontDetails = z
   .object({
     size: z.number().int(),
     weight: z.number().int().optional(),
-  })
-  .strict();
-
-const PaletteInner = z
-  .object({
-    background: z.string().optional(),
-    border: z.string().optional(),
-    text: z.string().optional(),
-  })
-  .strict();
-
-const Palette = z
-  .object({
-    background: z.string().optional(),
-    border: z.string().optional(),
-    text: z.string().optional(),
-    //
-    hover: PaletteInner.optional(),
-    active: PaletteInner.optional(),
-    focus: PaletteInner.optional(),
+    weights: z.array(z.number().int()).optional(),
+    variant: z.string().optional(),
+    variants: z.array(z.string()).optional(),
   })
   .strict();
 
@@ -112,7 +95,6 @@ export const Border = z
 export const ThemeConfig = z
   .object({
     colors: mapObject(z.string().or(Swatch)),
-    palettes: mapObject(Palette),
     spacing: mapObject(z.number()),
     typography: z.array(Font),
     borders: mapObject(Border),

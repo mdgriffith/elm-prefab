@@ -12,6 +12,7 @@ import Gen.Ui
 import Gen.Ui.Font
 import Gen.Ui.Input
 import Theme
+import Theme.Color
 import Theme.Generate.Stylesheet as Style
 
 
@@ -73,20 +74,28 @@ addNamespace namespace name =
         namespace ++ "-" ++ name
 
 
+classNameString : String -> Theme.Name -> String -> String
+classNameString namespace name suffix =
+    addNamespace namespace (Theme.nameToString name ++ suffix)
+
+
+classAttr : String -> Elm.Expression
+classAttr name =
+    Gen.Ui.htmlAttribute
+        (Gen.Html.Attributes.class name)
+
+
+className : String -> Theme.Name -> String -> Elm.Expression
+className namespace name suffix =
+    Gen.Ui.htmlAttribute
+        (Gen.Html.Attributes.class (classNameString namespace name suffix))
+
+
 generateTheme : Theme.Theme -> Elm.File
 generateTheme theme =
     Elm.file [ "Ui", "Theme" ]
         (List.concat
             [ layout theme
-            , theme.palettes
-                |> List.map
-                    (\{ name, item } ->
-                        Elm.declaration (Theme.nameToString name)
-                            (Gen.Ui.htmlAttribute
-                                (Gen.Html.Attributes.class (addNamespace theme.namespace (Theme.nameToString name)))
-                            )
-                            |> expose Palettes
-                    )
             , [ Elm.declaration "border"
                     (toFields
                         (\border ->
@@ -228,44 +237,63 @@ spacing theme =
 typography : Theme.Theme -> List Elm.Declaration
 typography theme =
     List.concat
-        [ List.map
-            (\typeface ->
-                Elm.fn
-                    ( "label", Just Elm.Annotation.string )
-                    (\label ->
-                        Gen.Ui.call_.el
-                            (Elm.list
-                                [ Elm.val "typography"
-                                    |> Elm.get (Theme.nameToString typeface.name)
-                                ]
-                            )
-                            (Gen.Ui.call_.text label)
+        [ Elm.declaration "font"
+            (theme.typography
+                |> List.foldl
+                    (\typeface gathered ->
+                        let
+                            basename =
+                                Theme.nameToString typeface.name
+
+                            fullClassName =
+                                -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
+                                typographyClassName typeface.name (Tuple.first typeface.item.weight)
+                                    |> addNamespace theme.namespace
+                                    |> classAttr
+
+                            innerName =
+                                Theme.weightNameField (Tuple.first typeface.item.weight)
+                        in
+                        case Tuple.first typeface.item.weight of
+                            Theme.Default ->
+                                Dict.insert basename
+                                    [ ( innerName, fullClassName )
+                                    ]
+                                    gathered
+
+                            _ ->
+                                Dict.update basename
+                                    (\maybe ->
+                                        case maybe of
+                                            Just fields ->
+                                                Just (( innerName, fullClassName ) :: fields)
+
+                                            Nothing ->
+                                                Just
+                                                    [ ( innerName, fullClassName )
+                                                    ]
+                                    )
+                                    gathered
                     )
-                    |> Elm.declaration (Theme.nameToString typeface.name)
-                    |> expose Typography
+                    Dict.empty
+                |> Dict.foldl
+                    (\name fields typographyRecord ->
+                        case fields of
+                            [] ->
+                                typographyRecord
+
+                            [ single ] ->
+                                ( name, Tuple.second single )
+                                    :: typographyRecord
+
+                            many ->
+                                ( name, Elm.record many )
+                                    :: typographyRecord
+                    )
+                    []
+                |> Elm.record
             )
-            theme.typography
-        , [ Elm.declaration "typography"
-                (List.map
-                    (\typeface ->
-                        ( Theme.nameToString typeface.name
-                        , Gen.Ui.Font.font
-                            { name = typeface.item.face
-                            , fallback = [ Gen.Ui.Font.serif ]
-                            , variants = []
-                            , weight =
-                                toWeight typeface.item.weight
-                            , size = typeface.item.size
-                            , lineSpacing = round (toFloat typeface.item.size * 1.4)
-                            , capitalSizeRatio = 1
-                            }
-                        )
-                    )
-                    theme.typography
-                    |> Elm.record
-                )
-                |> expose Typography
-          ]
+            |> expose Typography
         ]
 
 
@@ -319,10 +347,15 @@ generateColors theme =
     Elm.file [ "Ui", "Theme", "Color" ]
         (Dict.foldl
             (\name val list ->
-                (Elm.declaration name (toColor val)
-                    |> Elm.expose
-                )
-                    :: list
+                case val of
+                    Theme.Color.Color clr ->
+                        (Elm.declaration name (toColor clr)
+                            |> Elm.expose
+                        )
+                            :: list
+
+                    Theme.Color.Grad _ ->
+                        list
             )
             []
             theme.colors
@@ -333,22 +366,12 @@ generateColors theme =
 {- HELPERS -}
 
 
-maybeColor : Maybe Theme.Color -> Elm.Expression
-maybeColor maybe =
-    case maybe of
-        Just color ->
-            toColor color
-
-        Nothing ->
-            Gen.Ui.rgba 0 0 0 0
-
-
 to255 : Float -> Int
 to255 value =
     round (value * 255)
 
 
-toColor : Theme.Color -> Elm.Expression
+toColor : Color.Color -> Elm.Expression
 toColor clr =
     let
         rgb =
@@ -395,59 +418,51 @@ field named toVal =
 {---}
 
 
+color : String -> Theme.Color.Color -> Style.Rule
+color name clr =
+    case clr of
+        Theme.Color.Color c ->
+            Style.color name c
+
+        Theme.Color.Grad gradient ->
+            Style.string name gradient
+
+
 stylesheet : Theme.Theme -> Elm.File
 stylesheet theme =
     Style.file (Just theme.namespace)
         [ "elm-ui.css" ]
-        (theme.palettes
-            |> List.concatMap
-                (\{ name, item } ->
-                    let
-                        class =
-                            Theme.nameToString name
-                    in
-                    List.filterMap identity
-                        [ Style.class class
-                            [ Style.color "color" item.text
-                            , Style.maybe (Style.color "background-color") item.background
-                            , Style.maybe (Style.color "border-color") item.border
-                            , if item.hover /= Nothing || item.focus /= Nothing || item.active /= Nothing then
-                                Style.transition 200
-
-                              else
-                                Style.none
-                            ]
-                            |> Just
-                        , item.hover
-                            |> Maybe.map
-                                (\hover ->
-                                    Style.hover class
-                                        [ Style.maybe (Style.color "color") hover.text
-                                        , Style.maybe (Style.color "background-color") hover.background
-                                        , Style.maybe (Style.color "border-color") hover.border
-                                        , Style.transition 0
-                                        ]
-                                )
-                        , item.focus
-                            |> Maybe.map
-                                (\hover ->
-                                    Style.hover class
-                                        [ Style.maybe (Style.color "color") hover.text
-                                        , Style.maybe (Style.color "background-color") hover.background
-                                        , Style.maybe (Style.color "border-color") hover.border
-                                        , Style.transition 0
-                                        ]
-                                )
-                        , item.active
-                            |> Maybe.map
-                                (\hover ->
-                                    Style.hover class
-                                        [ Style.maybe (Style.color "color") hover.text
-                                        , Style.maybe (Style.color "background-color") hover.background
-                                        , Style.maybe (Style.color "border-color") hover.border
-                                        , Style.transition 0
-                                        ]
-                                )
-                        ]
-                )
+        (List.concat
+            [ typographyStyles theme
+            ]
         )
+
+
+typographyClassName : Theme.Name -> Theme.WeightName -> String
+typographyClassName name weight =
+    "font-" ++ Theme.nameToString name ++ Theme.weightNameToString weight
+
+
+typographyStyles : Theme.Theme -> List Style.Rule
+typographyStyles theme =
+    theme.typography
+        |> List.concatMap
+            (\{ name, item } ->
+                [ Style.class (typographyClassName name (Tuple.first item.weight))
+                    [ Style.string "font-family" (fontFamily (item.face :: item.fallback))
+                    , Style.int "font-weight" (Tuple.second item.weight)
+                    , Style.px "font-size" item.size
+                    , case item.variants of
+                        [] ->
+                            Style.none
+
+                        _ ->
+                            Style.string "font-variant" (String.join " " item.variants)
+                    ]
+                ]
+            )
+
+
+fontFamily : List String -> String
+fontFamily fonts =
+    String.join ", " (List.map (\f -> "\"" ++ f ++ "\"") fonts)

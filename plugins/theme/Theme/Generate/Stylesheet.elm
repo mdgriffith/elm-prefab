@@ -1,15 +1,16 @@
 module Theme.Generate.Stylesheet exposing
     ( File, file
-    , none, color, string, transition, maybe
+    , none, color, string, transition, maybe, px, int
     , class, id
     , hover, focus, active
+    , Rule
     )
 
 {-|
 
 @docs File, file
 
-@docs none, color, string, transition, maybe
+@docs none, color, string, transition, maybe, px, int
 
 @docs class, id
 
@@ -57,6 +58,16 @@ maybe f m =
 color : String -> Color.Color -> Rule
 color key c =
     Prop (Color key c)
+
+
+int : String -> Int -> Rule
+int key value =
+    Prop (Str key (String.fromInt value))
+
+
+px : String -> Int -> Rule
+px key value =
+    Prop (Str key (String.fromInt value ++ "px"))
 
 
 string : String -> String -> Rule

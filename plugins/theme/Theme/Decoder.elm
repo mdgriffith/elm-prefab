@@ -7,6 +7,7 @@ import Dict
 import Json.Decode
 import Parser exposing ((|.), (|=))
 import Theme exposing (..)
+import Theme.Color
 
 
 nameToString : Name -> String
@@ -19,10 +20,7 @@ decode =
     Json.Decode.field "colors" decodeColorSwatch
         |> Json.Decode.andThen
             (\colorSwatches ->
-                Json.Decode.map4 (Theme "ui" colorSwatches)
-                    (Json.Decode.field "palettes"
-                        (decodeNamed (decodeColorPalette colorSwatches))
-                    )
+                Json.Decode.map3 (Theme "ui" colorSwatches)
                     (Json.Decode.field "spacing"
                         (decodeNamed Json.Decode.int)
                     )
@@ -35,7 +33,7 @@ decode =
             )
 
 
-decodeColorReference : Dict.Dict String Color -> Json.Decode.Decoder Color
+decodeColorReference : Dict.Dict String Theme.Color.Color -> Json.Decode.Decoder Theme.Color.Color
 decodeColorReference colors =
     Json.Decode.string
         |> Json.Decode.andThen
@@ -49,26 +47,7 @@ decodeColorReference colors =
             )
 
 
-decodeColorPalette : Dict.Dict String Color -> Json.Decode.Decoder ColorPalette
-decodeColorPalette colors =
-    Json.Decode.map6 ColorPalette
-        (Json.Decode.field "text" (decodeColorReference colors))
-        (Json.Decode.maybe (Json.Decode.field "background" (decodeColorReference colors)))
-        (Json.Decode.maybe (Json.Decode.field "border" (decodeColorReference colors)))
-        (Json.Decode.maybe (Json.Decode.field "hover" (decodeInnerColorPalette colors)))
-        (Json.Decode.maybe (Json.Decode.field "active" (decodeInnerColorPalette colors)))
-        (Json.Decode.maybe (Json.Decode.field "focus" (decodeInnerColorPalette colors)))
-
-
-decodeInnerColorPalette : Dict.Dict String Color -> Json.Decode.Decoder InnerColorPalette
-decodeInnerColorPalette colors =
-    Json.Decode.map3 InnerColorPalette
-        (Json.Decode.maybe (Json.Decode.field "text" (decodeColorReference colors)))
-        (Json.Decode.maybe (Json.Decode.field "background" (decodeColorReference colors)))
-        (Json.Decode.maybe (Json.Decode.field "border" (decodeColorReference colors)))
-
-
-decodeColorSwatch : Json.Decode.Decoder (Dict.Dict String Color)
+decodeColorSwatch : Json.Decode.Decoder (Dict.Dict String Theme.Color.Color)
 decodeColorSwatch =
     Json.Decode.keyValuePairs
         (Json.Decode.oneOf
@@ -107,12 +86,12 @@ flattenPalette ( key, palette ) =
                 colors
 
 
-decodeColor : Json.Decode.Decoder Color
+decodeColor : Json.Decode.Decoder Theme.Color.Color
 decodeColor =
     Json.Decode.string
         |> Json.Decode.andThen
             (\string ->
-                case Parser.run parseColor string of
+                case Parser.run Theme.Color.cssParser string of
                     Ok color ->
                         Json.Decode.succeed color
 
@@ -153,19 +132,23 @@ decodeNamed inner =
 decodeTypeface : Json.Decode.Decoder (List (Named Typeface))
 decodeTypeface =
     Json.Decode.map2
-        (\( font, fallback ) sizes ->
-            List.map
-                (\( name, size ) ->
-                    Named (Name name)
-                        { face = font
-                        , fallback = fallback
-                        , weight = size.weight
-                        , size = size.size
-                        , lineSpacing = size.lineSpacing
-                        , colors = size.color
-                        }
+        (\( font, fallback ) namedSizes ->
+            List.concatMap
+                (\( name, sizes ) ->
+                    List.map
+                        (\size ->
+                            Named (Name name)
+                                { face = font
+                                , fallback = fallback
+                                , weight = size.weight
+                                , size = size.size
+                                , lineSpacing = size.lineSpacing
+                                , variants = size.variants
+                                }
+                        )
+                        sizes
                 )
-                sizes
+                namedSizes
         )
         (Json.Decode.field "font" (nonEmptyList Json.Decode.string))
         (Json.Decode.field "sizes"
@@ -175,32 +158,78 @@ decodeTypeface =
 
 decodeTypefaceSize :
     Json.Decode.Decoder
-        { size : Int
-        , weight : Int
-        , lineSpacing : Int
-        , color : Maybe (Palette Color)
-        }
-decodeTypefaceSize =
-    Json.Decode.map4
-        (\size weight lineSpacing color ->
-            { size = size
-            , weight = weight
-            , lineSpacing = lineSpacing
-            , color = color
+        (List
+            { size : Int
+            , weight : ( WeightName, Int )
+            , lineSpacing : Int
+            , variants : List String
             }
         )
-        (Json.Decode.field "size" Json.Decode.int)
-        (Json.Decode.maybe (Json.Decode.field "weight" Json.Decode.int)
-            |> Json.Decode.map (Maybe.withDefault 400)
+decodeTypefaceSize =
+    Json.Decode.map4
+        (\size weights variants lineSpacing ->
+            List.map
+                (\weight ->
+                    { size = size
+                    , weight = weight
+                    , lineSpacing = lineSpacing
+                    , variants = variants
+                    }
+                )
+                weights
         )
+        (Json.Decode.field "size" Json.Decode.int)
+        decodeWeights
+        decodeVariants
         (Json.Decode.maybe (Json.Decode.field "lineSpacing" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 1)
         )
-        (Json.Decode.maybe (Json.Decode.field "color" (decodePalette decodeColor)))
 
 
+decodeWeights : Json.Decode.Decoder (List ( WeightName, Int ))
+decodeWeights =
+    Json.Decode.oneOf
+        [ Json.Decode.field "weight" (Json.Decode.map (\weight -> [ ( Default, weight ) ]) Json.Decode.int)
+        , Json.Decode.field "weights"
+            (Json.Decode.andThen
+                (\weights ->
+                    case List.sort weights of
+                        [] ->
+                            Json.Decode.succeed [ ( Default, 400 ) ]
 
--- )
+                        [ weightOne ] ->
+                            Json.Decode.succeed [ ( Default, weightOne ) ]
+
+                        [ weightOne, weightTwo ] ->
+                            if weightOne < 400 then
+                                Json.Decode.succeed [ ( Light, weightOne ), ( Regular, weightTwo ) ]
+
+                            else
+                                Json.Decode.succeed [ ( Regular, weightOne ), ( Bold, weightTwo ) ]
+
+                        [ weightOne, weightTwo, weightThree ] ->
+                            Json.Decode.succeed
+                                [ ( Light, weightOne )
+                                , ( Regular, weightTwo )
+                                , ( Bold, weightThree )
+                                ]
+
+                        tooMany ->
+                            Json.Decode.fail
+                                ("I can only support a max of 3 distinct weights for a given typography size!  But I found " ++ String.join ", " (List.map String.fromInt weights))
+                )
+                (Json.Decode.list Json.Decode.int)
+            )
+        , Json.Decode.succeed [ ( Default, 400 ) ]
+        ]
+
+
+decodeVariants =
+    Json.Decode.oneOf
+        [ Json.Decode.field "variant" (Json.Decode.map List.singleton Json.Decode.string)
+        , Json.Decode.field "variants" (Json.Decode.list Json.Decode.string)
+        , Json.Decode.succeed []
+        ]
 
 
 nonEmptyList : Json.Decode.Decoder a -> Json.Decode.Decoder ( a, List a )
@@ -234,104 +263,3 @@ decodeBorderVariant =
         (Json.Decode.maybe (Json.Decode.field "width" Json.Decode.int)
             |> Json.Decode.map (Maybe.withDefault 1)
         )
-
-
-parseColor : Parser.Parser Color
-parseColor =
-    Parser.oneOf
-        [ parseRgb
-        , parseHex
-        ]
-
-
-parseRgb : Parser.Parser Color
-parseRgb =
-    Parser.succeed Color.rgb255
-        |. Parser.symbol "rgb("
-        |. Parser.spaces
-        |= Parser.int
-        |. Parser.spaces
-        |. Parser.symbol ","
-        |. Parser.spaces
-        |= Parser.int
-        |. Parser.spaces
-        |. Parser.symbol ","
-        |. Parser.spaces
-        |= Parser.int
-        |. Parser.spaces
-        |. Parser.symbol ")"
-
-
-parseHex : Parser.Parser Color
-parseHex =
-    Parser.succeed Color.rgb255
-        |. Parser.symbol "#"
-        |= parseHex16
-        |= parseHex16
-        |= parseHex16
-
-
-parseHex16 : Parser.Parser Int
-parseHex16 =
-    Parser.succeed
-        (\one two ->
-            (one * 16) + two
-        )
-        |= hex8
-        |= hex8
-
-
-hex8 : Parser.Parser Int
-hex8 =
-    Parser.oneOf
-        [ Parser.succeed 0
-            |. Parser.symbol "0"
-        , Parser.succeed 1
-            |. Parser.symbol "1"
-        , Parser.succeed 2
-            |. Parser.symbol "2"
-        , Parser.succeed 3
-            |. Parser.symbol "3"
-        , Parser.succeed 4
-            |. Parser.symbol "4"
-        , Parser.succeed 5
-            |. Parser.symbol "5"
-        , Parser.succeed 6
-            |. Parser.symbol "6"
-        , Parser.succeed 7
-            |. Parser.symbol "7"
-        , Parser.succeed 8
-            |. Parser.symbol "8"
-        , Parser.succeed 9
-            |. Parser.symbol "9"
-        , Parser.succeed 10
-            |. Parser.oneOf
-                [ Parser.symbol "a"
-                , Parser.symbol "A"
-                ]
-        , Parser.succeed 11
-            |. Parser.oneOf
-                [ Parser.symbol "b"
-                , Parser.symbol "B"
-                ]
-        , Parser.succeed 12
-            |. Parser.oneOf
-                [ Parser.symbol "c"
-                , Parser.symbol "C"
-                ]
-        , Parser.succeed 13
-            |. Parser.oneOf
-                [ Parser.symbol "d"
-                , Parser.symbol "D"
-                ]
-        , Parser.succeed 14
-            |. Parser.oneOf
-                [ Parser.symbol "e"
-                , Parser.symbol "E"
-                ]
-        , Parser.succeed 15
-            |. Parser.oneOf
-                [ Parser.symbol "f"
-                , Parser.symbol "F"
-                ]
-        ]

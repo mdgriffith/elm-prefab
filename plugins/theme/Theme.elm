@@ -9,10 +9,7 @@ import Elm
 import Gen.CodeGen.Generate as Generate
 import Json.Decode
 import Parser exposing ((|.), (|=))
-
-
-type alias Color =
-    Color.Color
+import Theme.Color
 
 
 type Name
@@ -32,39 +29,60 @@ type alias Named thing =
 
 type alias Theme =
     { namespace : String
-    , colors : Dict.Dict String Color
-    , palettes : List (Named ColorPalette)
+    , colors : Dict.Dict String Theme.Color.Color
     , spacing : List (Named Int)
     , typography : List (Named Typeface)
     , borders : List (Named BorderVariant)
     }
 
 
-type alias ColorPalette =
-    { text : Color
-    , background : Maybe Color
-    , border : Maybe Color
-    , hover : Maybe InnerColorPalette
-    , focus : Maybe InnerColorPalette
-    , active : Maybe InnerColorPalette
-    }
-
-
-type alias InnerColorPalette =
-    { text : Maybe Color
-    , background : Maybe Color
-    , border : Maybe Color
-    }
-
-
 type alias Typeface =
     { face : String
     , fallback : List String
-    , weight : Int
+    , weight : ( WeightName, Int )
     , size : Int
     , lineSpacing : Int
-    , colors : Maybe (Palette Color)
+    , variants : List String
     }
+
+
+type WeightName
+    = Default
+    | Regular
+    | Bold
+    | Light
+
+
+weightNameField : WeightName -> String
+weightNameField weightName =
+    case weightName of
+        Default ->
+            "default"
+
+        Regular ->
+            "regular"
+
+        Bold ->
+            "bold"
+
+        Light ->
+            "light"
+
+
+weightNameToString : WeightName -> String
+weightNameToString weightName =
+    case weightName of
+        Default ->
+            ""
+
+        Regular ->
+            "-reg"
+
+        Bold ->
+            "-bold"
+
+        Light ->
+            "-light"
 
 
 type Palette thing
@@ -86,6 +104,6 @@ type alias Shadows =
 type alias Shadow =
     { x : Int
     , y : Int
-    , color : Color
+    , color : Color.Color
     , opacity : Int
     }
