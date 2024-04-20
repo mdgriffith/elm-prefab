@@ -193,7 +193,7 @@ const defaultOptions: Options.Config = {
   theme: defaultTheme,
 };
 
-const defaultPlugins = ["app", "routes", "theme"];
+const defaultPlugins = ["app", "routes"];
 
 const composeDefaultConfig = (
   pluginsRequested: string[],
