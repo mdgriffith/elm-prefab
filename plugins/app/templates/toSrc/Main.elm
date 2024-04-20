@@ -34,32 +34,29 @@ main =
         , toSub = toSub
         , view =
             \resources toAppMsg model regions ->
-                case regions.primary of
-                    Nothing ->
-                        { title = "Nothing"
-                        , body = [ Html.text "Nothing" ]
-                        }
-
-                    Just (App.Loading _) ->
-                        { title = "Loading"
-                        , body = [ Html.text "Loading" ]
-                        }
-
-                    Just App.NotFound ->
-                        --
-                        { title = "Not found"
-                        , body = [ Html.text "Not found" ]
-                        }
-
-                    Just (App.Error error) ->
-                        -- error is a type you control that lives at App.Page.Error
-                        { title = "Not found"
-                        , body = [ Html.text "Not found" ]
-                        }
-
-                    Just (App.View page) ->
-                        view resources toAppMsg model page
+                { title = toTitle regions
+                , body = [ viewLayout resources toAppMsg model regions ]
+                }
         }
+
+
+toTitle : App.View.Regions (App.View msg) -> String
+toTitle regions =
+    case regions.primary of
+        Nothing ->
+            "Nothing"
+
+        Just (App.Loading _) ->
+            "Loading"
+
+        Just App.NotFound ->
+            "Not found"
+
+        Just (App.Error error) ->
+            "Not found"
+
+        Just (App.View page) ->
+            page.title
 
 
 init : App.Resources.Resources -> Json.Value -> Url.Url -> ( Model, App.Effect.Effect Msg )
@@ -94,20 +91,6 @@ toSub resources options model sub =
 toCmd : App.Resources.Resources -> App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
 toCmd resources options model effect =
     App.Effect.toCmd options effect
-
-
-view :
-    App.Resources.Resources
-    -> (Msg -> App.Msg Msg)
-    -> Model
-    -> App.View.View (App.Msg Msg)
-    -> Browser.Document (App.Msg Msg)
-view resources toAppMsg model innerView =
-    { title = innerView.title
-    , body =
-        [ innerView.body
-        ]
-    }
 
 
 
@@ -172,3 +155,44 @@ gotoRoute { isRedirect, route } model eff =
                     , eff
                     ]
                 )
+
+
+
+{- View -}
+
+
+{-| -}
+viewLayout :
+    App.Resources.Resources
+    -> (Msg -> msg)
+    -> Model
+    -> App.View.Regions (App.View msg)
+    -> Html.Html msg
+viewLayout resources toAppMsg model regions =
+    case regions.primary of
+        Nothing ->
+            Html.text ""
+
+        Just region ->
+            viewRegion resources toAppMsg model region
+
+
+viewRegion :
+    App.Resources.Resources
+    -> (Msg -> msg)
+    -> Model
+    -> App.View msg
+    -> Html.Html msg
+viewRegion resources toAppMsg model region =
+    case region of
+        App.Loading _ ->
+            Html.text ""
+
+        App.NotFound ->
+            Html.text ""
+
+        App.Error error ->
+            Html.text ""
+
+        App.View page ->
+            page.body

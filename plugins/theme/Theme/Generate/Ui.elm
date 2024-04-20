@@ -236,65 +236,64 @@ spacing theme =
 
 typography : Theme.Theme -> List Elm.Declaration
 typography theme =
-    List.concat
-        [ Elm.declaration "font"
-            (theme.typography
-                |> List.foldl
-                    (\typeface gathered ->
-                        let
-                            basename =
-                                Theme.nameToString typeface.name
+    [ Elm.declaration "font"
+        (theme.typography
+            |> List.foldl
+                (\typeface gathered ->
+                    let
+                        basename =
+                            Theme.nameToString typeface.name
 
-                            fullClassName =
-                                -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
-                                typographyClassName typeface.name (Tuple.first typeface.item.weight)
-                                    |> addNamespace theme.namespace
-                                    |> classAttr
+                        fullClassName =
+                            -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
+                            typographyClassName typeface.name (Tuple.first typeface.item.weight)
+                                |> addNamespace theme.namespace
+                                |> classAttr
 
-                            innerName =
-                                Theme.weightNameField (Tuple.first typeface.item.weight)
-                        in
-                        case Tuple.first typeface.item.weight of
-                            Theme.Default ->
-                                Dict.insert basename
-                                    [ ( innerName, fullClassName )
-                                    ]
-                                    gathered
+                        innerName =
+                            Theme.weightNameField (Tuple.first typeface.item.weight)
+                    in
+                    case Tuple.first typeface.item.weight of
+                        Theme.Default ->
+                            Dict.insert basename
+                                [ ( innerName, fullClassName )
+                                ]
+                                gathered
 
-                            _ ->
-                                Dict.update basename
-                                    (\maybe ->
-                                        case maybe of
-                                            Just fields ->
-                                                Just (( innerName, fullClassName ) :: fields)
+                        _ ->
+                            Dict.update basename
+                                (\maybe ->
+                                    case maybe of
+                                        Just fields ->
+                                            Just (( innerName, fullClassName ) :: fields)
 
-                                            Nothing ->
-                                                Just
-                                                    [ ( innerName, fullClassName )
-                                                    ]
-                                    )
-                                    gathered
-                    )
-                    Dict.empty
-                |> Dict.foldl
-                    (\name fields typographyRecord ->
-                        case fields of
-                            [] ->
-                                typographyRecord
+                                        Nothing ->
+                                            Just
+                                                [ ( innerName, fullClassName )
+                                                ]
+                                )
+                                gathered
+                )
+                Dict.empty
+            |> Dict.foldl
+                (\name fields typographyRecord ->
+                    case fields of
+                        [] ->
+                            typographyRecord
 
-                            [ single ] ->
-                                ( name, Tuple.second single )
-                                    :: typographyRecord
+                        [ single ] ->
+                            ( name, Tuple.second single )
+                                :: typographyRecord
 
-                            many ->
-                                ( name, Elm.record many )
-                                    :: typographyRecord
-                    )
-                    []
-                |> Elm.record
-            )
-            |> expose Typography
-        ]
+                        many ->
+                            ( name, Elm.record many )
+                                :: typographyRecord
+                )
+                []
+            |> Elm.record
+        )
+        |> expose Typography
+    ]
 
 
 capitalize : String -> String
