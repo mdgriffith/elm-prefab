@@ -6,7 +6,7 @@
 > **Prefab** _(Adjective)_
 > A portmanteau of "Pretty" and "Fabulous" :sparkles:
 
-Elm Prefab is a collection of codegeneration plugins for generating and maintaining an Elm app.
+Elm Prefab is a codegeneration tool for generating and maintaining an Elm app.
 
 Each plugin is independent, so you can pick and choose what you want.
 
@@ -29,9 +29,15 @@ This is for those who want to speed up development for new projects and avoid so
 
 ## Getting started
 
-In general, `elm-prefab` has a config file called `elm.generate.json`, and you run `elm-prefab` to generate the code.
+Generate a new Elm project!:
 
-Getting started
+```bash
+npx elm-prefab
+```
+
+- [Check out an example of what's generated.](https://github.com/mdgriffith/elm-prefab/blob/main/examples/example-app/README.md)
+
+Or, if you want to get started more "traditionally":
 
 ```bash
 # navigate to your project directory and install `elm-prefab`
@@ -41,29 +47,9 @@ npm install --save-dev elm-prefab
 npm run elm-prefab
 ```
 
-> **Note for PNPM** - If you're using pnpm, you may run into an error that says `elm-dev` not found
-> In this case you may need to run `pnpm install --save-dev elm-dev, elm-gql`
-
-When running `elm-prefab` for the first time, a number of files will be generated.
-
-[You can take a look in the examples folder to see what is generated on the first run.](https://github.com/mdgriffith/elm-prefab/tree/main/examples/example-app)
-
-- `.elm-prefab` - Files in the `.elm-prefab` directory are owned by `elm-prefab`. Take a look, but know that they will be overwritten as needed.
-- `src/*` - Elm files will be generated in the `src` directory and are owned by _you_, meaning you can modify them as you want! Once they're generated, `elm-prefab` doesn't modify them.
-- `src-js/*` - These are some JS, HTML, and CSS files that are also owned by you!
-- There are also a number of config files that will be generated at the root of your project, including
-  - elm.json
-  - package.json
-  - tsconfig.json
-  - vite.config.js
-
-**Note** - Vite, Typescript, and NPM are not _required_ to use `elm-prefab`, it's just convenient to include them.
-
 ## Starting the Vite development server
 
-Once you've run `npm run elm-prefab`, you now have a working [`Vite`](https://vitejs.dev/) setup.
-
-`npm run dev` will start a dev server so you can get coding!
+`npm run dev` will start a dev server using [`Vite`](https://vitejs.dev/) so you can get coding!
 
 Running `npm run build` will build things for production, with the resultant files in the `dist` folder. Feel free to check out the [ViteJS docs](https://vitejs.dev/guide/).
 
