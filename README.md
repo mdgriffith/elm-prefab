@@ -6,9 +6,9 @@
 > **Prefab** _(Adjective)_
 > A portmanteau of "Pretty" and "Fabulous" :sparkles:
 
-Elm Prefab is a codegeneration tool for generating and maintaining an Elm app.
+Elm Prefab is a codegeneration tool for generating and maintaining Elm apps.
 
-Each plugin is independent, so you can pick and choose what you want.
+It's organized via plugins, where each plugin is independent. You can pick and choose what you want.
 
 - **App** - A base app architecture that has
 
@@ -25,7 +25,7 @@ Each plugin is independent, so you can pick and choose what you want.
 
 This project is born out of years of experience working on large (>500k lines) Elm apps at Blissfully and now [Vendr](vendr.com).
 
-This is for those who want to speed up development for new projects and avoid some tricky situations that become expensive to fix later on.
+This is for those who want to speed up development for new projects, avoid some tricky situations that become expensive to fix, and get some super powers along the way 🚀.
 
 ## Getting started
 
@@ -80,3 +80,4 @@ Now go build something! If you have questions, check out the below guides.
 
 - [Why does this thing exist?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/app_architecture.md)
 - [Why is routing handled like it is?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/routes.md)
+- [Is Elm Prefab a Framework?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/is_this_a_framework.md)
