@@ -39,13 +39,11 @@ Checkout the overview of generated files and then head over to one of these guid
 
     # You now own these files.
     # Elm Prefab expects that they exist, but you can modify them as you need to.
-    src/App/Effect/LocalStorage.elm
-    src/App/Page/Error.elm
     src/App/Effect.elm
-    src/App/Flags.elm
+    src/App/Page/Error.elm
     src/App/Sub.elm
     src/App/View.elm
-    src/App/Route.elm
+    src/Main.elm
 
     # In the same folder you'll see these files.
     # These are what you should check out first!
@@ -56,9 +54,9 @@ Checkout the overview of generated files and then head over to one of these guid
 
     # You own these files as well.
     # You can do whatever you want with them.
-    src-js/webcomponents/clipboard.ts
-    src-js/webcomponents/localStorage.ts
     src-js/index.html
+    src-js/js/clipboard.ts
+    src-js/js/localStorage.ts
     src-js/main.ts
 
     # These are common configs for Elm, Typescript and Vite.

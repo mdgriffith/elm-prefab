@@ -23806,48 +23806,46 @@
         }
     };
     var $author$project$Theme$Generate$Ui$typography = function (theme) {
-        return $elm$core$List$concat(_List_fromArray([
-            _List_fromArray([
-                A2($author$project$Theme$Generate$Ui$expose, 1, $mdgriffith$elm_codegen$Elm$declaration_fn("font", $mdgriffith$elm_codegen$Elm$record($elm$core$Dict$foldl_fn_unwrapped(function (name, fields, typographyRecord) {
-                    if (!fields.b) {
-                        return typographyRecord;
+        return _List_fromArray([
+            A2($author$project$Theme$Generate$Ui$expose, 1, $mdgriffith$elm_codegen$Elm$declaration_fn("font", $mdgriffith$elm_codegen$Elm$record($elm$core$Dict$foldl_fn_unwrapped(function (name, fields, typographyRecord) {
+                if (!fields.b) {
+                    return typographyRecord;
+                }
+                else {
+                    if (!fields.b.b) {
+                        var single = fields.a;
+                        return _List_Cons(_Utils_Tuple2(name, single.b), typographyRecord);
                     }
                     else {
-                        if (!fields.b.b) {
-                            var single = fields.a;
-                            return _List_Cons(_Utils_Tuple2(name, single.b), typographyRecord);
+                        var many = fields;
+                        return _List_Cons(_Utils_Tuple2(name, $mdgriffith$elm_codegen$Elm$record(many)), typographyRecord);
+                    }
+                }
+            }, _List_Nil, $elm$core$List$foldl_fn_unwrapped(function (typeface, gathered) {
+                var innerName = $author$project$Theme$weightNameField(typeface.mA.bw.a);
+                var fullClassName = $author$project$Theme$Generate$Ui$classAttr($author$project$Theme$Generate$Ui$addNamespace_fn(theme.mY, $author$project$Theme$Generate$Ui$typographyClassName_fn(typeface.d, typeface.mA.bw.a)));
+                var basename = $author$project$Theme$nameToString(typeface.d);
+                var _v0 = typeface.mA.bw.a;
+                if (!_v0) {
+                    return $elm$core$Dict$insert_fn(basename, _List_fromArray([
+                        _Utils_Tuple2(innerName, fullClassName)
+                    ]), gathered);
+                }
+                else {
+                    return $elm$core$Dict$update_fn(basename, function (maybe) {
+                        if (!maybe.$) {
+                            var fields = maybe.a;
+                            return $elm$core$Maybe$Just(_List_Cons(_Utils_Tuple2(innerName, fullClassName), fields));
                         }
                         else {
-                            var many = fields;
-                            return _List_Cons(_Utils_Tuple2(name, $mdgriffith$elm_codegen$Elm$record(many)), typographyRecord);
+                            return $elm$core$Maybe$Just(_List_fromArray([
+                                _Utils_Tuple2(innerName, fullClassName)
+                            ]));
                         }
-                    }
-                }, _List_Nil, $elm$core$List$foldl_fn_unwrapped(function (typeface, gathered) {
-                    var innerName = $author$project$Theme$weightNameField(typeface.mA.bw.a);
-                    var fullClassName = $author$project$Theme$Generate$Ui$classAttr($author$project$Theme$Generate$Ui$addNamespace_fn(theme.mY, $author$project$Theme$Generate$Ui$typographyClassName_fn(typeface.d, typeface.mA.bw.a)));
-                    var basename = $author$project$Theme$nameToString(typeface.d);
-                    var _v0 = typeface.mA.bw.a;
-                    if (!_v0) {
-                        return $elm$core$Dict$insert_fn(basename, _List_fromArray([
-                            _Utils_Tuple2(innerName, fullClassName)
-                        ]), gathered);
-                    }
-                    else {
-                        return $elm$core$Dict$update_fn(basename, function (maybe) {
-                            if (!maybe.$) {
-                                var fields = maybe.a;
-                                return $elm$core$Maybe$Just(_List_Cons(_Utils_Tuple2(innerName, fullClassName), fields));
-                            }
-                            else {
-                                return $elm$core$Maybe$Just(_List_fromArray([
-                                    _Utils_Tuple2(innerName, fullClassName)
-                                ]));
-                            }
-                        }, gathered);
-                    }
-                }, $elm$core$Dict$empty, theme.oB)))))
-            ])
-        ]));
+                    }, gathered);
+                }
+            }, $elm$core$Dict$empty, theme.oB)))))
+        ]);
     };
     var $author$project$Theme$Generate$Ui$generateTheme = function (theme) {
         return $mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray(["Ui", "Theme"]), $elm$core$List$concat(_List_fromArray([
