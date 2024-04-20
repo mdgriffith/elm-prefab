@@ -20,15 +20,24 @@ decode =
     Json.Decode.field "colors" decodeColorSwatch
         |> Json.Decode.andThen
             (\colorSwatches ->
-                Json.Decode.map3 (Theme "ui" colorSwatches)
+                Json.Decode.map4 (Theme "ui" colorSwatches)
                     (Json.Decode.field "spacing"
                         (decodeNamed Json.Decode.int)
                     )
                     (Json.Decode.field "typography"
                         (Json.Decode.map List.concat (Json.Decode.list decodeTypeface))
                     )
-                    (Json.Decode.field "borders"
-                        (decodeNamed decodeBorderVariant)
+                    (Json.Decode.maybe
+                        (Json.Decode.field "borders"
+                            (Json.Decode.field "radius" (decodeNamed Json.Decode.int))
+                        )
+                        |> Json.Decode.map (Maybe.withDefault [])
+                    )
+                    (Json.Decode.maybe
+                        (Json.Decode.field "borders"
+                            (Json.Decode.field "width" (decodeNamed Json.Decode.int))
+                        )
+                        |> Json.Decode.map (Maybe.withDefault [])
                     )
             )
 
@@ -252,14 +261,3 @@ decodePalette decodeThing =
         [ Json.Decode.map Single decodeThing
         , Json.Decode.map Palette (decodeNamed decodeThing)
         ]
-
-
-decodeBorderVariant : Json.Decode.Decoder BorderVariant
-decodeBorderVariant =
-    Json.Decode.map2 BorderVariant
-        (Json.Decode.maybe (Json.Decode.field "rounded" Json.Decode.int)
-            |> Json.Decode.map (Maybe.withDefault 0)
-        )
-        (Json.Decode.maybe (Json.Decode.field "width" Json.Decode.int)
-            |> Json.Decode.map (Maybe.withDefault 1)
-        )

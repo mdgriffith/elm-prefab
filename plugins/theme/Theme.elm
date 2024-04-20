@@ -32,7 +32,8 @@ type alias Theme =
     , colors : Dict.Dict String Theme.Color.Color
     , spacing : List (Named Int)
     , typography : List (Named Typeface)
-    , borders : List (Named BorderVariant)
+    , borderRadii : List (Named Int)
+    , borderWidths : List (Named Int)
     }
 
 
@@ -88,12 +89,6 @@ weightNameToString weightName =
 type Palette thing
     = Single thing
     | Palette (List (Named thing))
-
-
-type alias BorderVariant =
-    { rounded : Int
-    , width : Int
-    }
 
 
 type alias Shadows =

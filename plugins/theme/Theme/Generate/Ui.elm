@@ -8,6 +8,7 @@ import Elm
 import Elm.Annotation
 import Elm.Op
 import Gen.Html.Attributes
+import Gen.String
 import Gen.Ui
 import Gen.Ui.Font
 import Gen.Ui.Input
@@ -40,6 +41,7 @@ type Tag
     | Typography
     | Palettes
     | Spacing
+    | Borders
 
 
 tagToString : Tag -> String
@@ -56,6 +58,9 @@ tagToString tag =
 
         Spacing ->
             "Spacing"
+
+        Borders ->
+            "Borders"
 
 
 expose tag =
@@ -95,21 +100,78 @@ generateTheme : Theme.Theme -> Elm.File
 generateTheme theme =
     Elm.file [ "Ui", "Theme" ]
         (List.concat
-            [ layout theme
-            , [ Elm.declaration "border"
-                    (toFields
-                        (\border ->
-                            Gen.Ui.border border.width
-                        )
-                        theme.borders
-                        |> Elm.record
-                    )
-                    |> Elm.expose
-              ]
+            [ typography theme
+            , layout theme
             , spacing theme
-            , typography theme
+            , borders theme
             ]
         )
+
+
+attrBorderWidthsType =
+    Elm.Annotation.namedWith [] "BorderWidths" [ attrType ]
+
+
+border side =
+    Elm.fn ( "width", Just Elm.Annotation.int )
+        (\widthInt ->
+            Gen.Ui.htmlAttribute
+                (Gen.Html.Attributes.call_.style (Elm.string ("border-width-" ++ side))
+                    (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+                )
+        )
+
+
+borders : Theme.Theme -> List Elm.Declaration
+borders theme =
+    [ Elm.alias "BorderWidths"
+        (toFieldsType (\_ -> Elm.Annotation.var "item") theme.borderWidths)
+    , Elm.declaration "mapBorderWidths"
+        (Elm.fn
+            ( "f", Nothing )
+            (\f ->
+                Elm.record
+                    (toFields
+                        (\s ->
+                            Elm.apply f [ Elm.int s ]
+                        )
+                        theme.borderWidths
+                    )
+            )
+        )
+    , Elm.declaration "borderWidth"
+        ([ toFields
+            Gen.Ui.border
+            theme.borderWidths
+         , [ ( "top"
+             , Elm.apply (Elm.val "mapBorderWidths") [ border "top" ]
+                |> Elm.withType attrBorderWidthsType
+             )
+           , ( "right"
+             , Elm.apply (Elm.val "mapBorderWidths") [ border "right" ]
+                |> Elm.withType attrBorderWidthsType
+             )
+           , ( "bottom"
+             , Elm.apply (Elm.val "mapBorderWidths") [ border "bottom" ]
+                |> Elm.withType attrBorderWidthsType
+             )
+           , ( "left"
+             , Elm.apply (Elm.val "mapBorderWidths") [ border "left" ]
+                |> Elm.withType attrBorderWidthsType
+             )
+           ]
+         ]
+            |> List.concat
+            |> Elm.record
+        )
+        |> expose Borders
+    , Elm.declaration "borderRadius"
+        (toFields Gen.Ui.rounded
+            theme.borderRadii
+            |> Elm.record
+        )
+        |> expose Borders
+    ]
 
 
 layout : Theme.Theme -> List Elm.Declaration
@@ -151,7 +213,7 @@ layout theme =
 
 
 attrSpacingType =
-    Elm.Annotation.namedWith [] "AttrSpacing" [ Elm.Annotation.var "msg" ]
+    Elm.Annotation.namedWith [] "Spaced" [ attrType ]
 
 
 spacing : Theme.Theme -> List Elm.Declaration
@@ -184,8 +246,6 @@ spacing theme =
         |> expose Spacing
     , Elm.alias "Spaced"
         (toFieldsType (\_ -> Elm.Annotation.var "item") theme.spacing)
-    , Elm.alias "AttrSpacing"
-        (Elm.Annotation.namedWith [] "Spaced" [ attrType ])
     , Elm.declaration "padding"
         (Elm.record
             (toFields (attr << Gen.Ui.padding)

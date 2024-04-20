@@ -25,7 +25,7 @@ It's organized via plugins, where each plugin is independent. You can pick and c
 
 This project is born out of years of experience working on large (>500k lines) Elm apps at Blissfully and now [Vendr](vendr.com).
 
-This is for those who want to speed up development for new projects, avoid some tricky situations that become expensive to fix, and get some super powers along the way 🚀.
+This is for those who want to speed up development for new projects, avoid some tricky situations that can be expensive to fix, and get some super powers along the way 🚀.
 
 ## Getting started
 

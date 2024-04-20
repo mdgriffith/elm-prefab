@@ -8,7 +8,7 @@ const minimalConfig: Options.Config = {
   js: "src-js",
 };
 
-const testTheme = {
+const testTheme: Options.ThemeOptions = {
   colors: {
     white: "#ffffff",
     greyscale: {
@@ -108,11 +108,12 @@ const testTheme = {
     },
   ],
   borders: {
-    small: { rounded: 2, width: 1 },
+    radius: { small: 4, medium: 8, large: 16 },
+    width: { small: 1 },
   },
 };
 
-const defaultTheme = {
+const defaultTheme: Options.ThemeOptions = {
   colors: {
     black: "#000000",
     white: "#ffffff",
@@ -144,7 +145,8 @@ const defaultTheme = {
     },
   },
   borders: {
-    small: { rounded: 2, width: 1 },
+    radius: { small: 4, medium: 8, large: 16 },
+    width: { small: 1 },
   },
   spacing: {
     zero: 0,
@@ -193,7 +195,7 @@ const defaultOptions: Options.Config = {
   theme: defaultTheme,
 };
 
-const defaultPlugins = ["app", "routes"];
+const defaultPlugins = ["app", "routes", "theme"];
 
 const composeDefaultConfig = (
   pluginsRequested: string[],

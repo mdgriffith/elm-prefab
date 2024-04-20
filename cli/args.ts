@@ -98,18 +98,6 @@ const examples: Options.Config = {
         "950": "#0a0a0a",
       },
     },
-    palettes: {
-      default: { background: "white", text: "grey900" },
-      card: {
-        background: "white",
-        text: "grey900",
-        border: "grey200",
-        hover: {
-          border: "grey300",
-          background: "grey50",
-        },
-      },
-    },
     borders: {
       small: { rounded: 2, width: 1 },
     },

@@ -85,10 +85,10 @@ export const Font = z
   })
   .strict();
 
-export const Border = z
+export const BorderConfig = z
   .object({
-    width: z.number(),
-    rounded: z.number().optional(),
+    radius: mapObject(z.number()).optional(),
+    width: mapObject(z.number()).optional(),
   })
   .strict();
 
@@ -97,7 +97,7 @@ export const ThemeConfig = z
     colors: mapObject(z.string().or(Swatch)),
     spacing: mapObject(z.number()),
     typography: z.array(Font),
-    borders: mapObject(Border),
+    borders: BorderConfig,
   })
   .strict();
 
