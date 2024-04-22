@@ -91,8 +91,10 @@ decodeColorTree colors =
                                 lookupColorPath colorVar colors
                         in
                         List.map
-                            (\( colorName, colorVariant, color ) ->
-                                ( pathToFullColorName path colorName colorVariant, color )
+                            (\found ->
+                                ( pathToFullColorName path found
+                                , found.color
+                                )
                             )
                             namedColors
                     )
@@ -104,42 +106,50 @@ decodeColorTree colors =
 
     A color var can be:
 
+        - purple: matches the full swatch
         - primary: matches the full swatch
         - 700: Matches a slice of each swatch
         - primary700: matches exactly one color
+        - purple700: matches exactly one color
 
 -}
-lookupColorPath : String -> List Theme.ColorInstance -> List ( String, Maybe String, Theme.Color.Color )
+lookupColorPath :
+    String
+    -> List Theme.ColorInstance
+    -> List Theme.ColorInstance
 lookupColorPath colorVar colors =
     let
+        matchVariant instance =
+            case instance.variant of
+                Just variant ->
+                    colorVar == variant
+
+                Nothing ->
+                    False
+
+        matchAlias instance =
+            case instance.alias of
+                Just alias ->
+                    colorVar == alias
+
+                Nothing ->
+                    False
+
         match instance =
-            if colorVar == instance.name then
-                True
-
-            else
-                case instance.variant of
-                    Just variant ->
-                        (colorVar == variant)
-                            || (colorVar == Theme.toColorName instance)
-
-                    Nothing ->
-                        False
+            (colorVar == instance.name)
+                || matchVariant instance
+                || matchAlias instance
+                || (colorVar == Theme.toColorName instance)
+                || (colorVar == Theme.toColorAlias instance)
     in
-    List.filterMap
-        (\instance ->
-            if match instance then
-                Just ( instance.name, instance.variant, instance.color )
-
-            else
-                Nothing
-        )
-        colors
+    List.filter match colors
 
 
-pathToFullColorName : List String -> String -> Maybe String -> Theme.FullColorName
-pathToFullColorName path name variant =
-    { base = name -- primary
-    , variant = variant -- 700
+pathToFullColorName : List String -> Theme.ColorInstance -> Theme.FullColorName
+pathToFullColorName path instance =
+    { base = instance.name -- purple
+    , variant = instance.variant -- 700
+    , alias = instance.alias -- primary
     , state = getState path -- hover
     , nuance = getNuance path -- subtle
     }
@@ -219,39 +229,77 @@ decodeColorTreeHelper =
 --                     Nothing ->
 --                         Json.Decode.fail ("I don't recognize this color: " ++ string)
 --             )
+-- type alias ColorInstance =
+--     { color : Theme.Color.Color
+--     , name : String
+--     , variant : Maybe String
+--     }
 
 
-type alias ColorInstance =
-    { color : Theme.Color.Color
-    , name : String
-    , variant : Maybe String
-    }
+type ColorIntermediate
+    = SingleColor Theme.Color.Color
+    | PaletteColor
+        { alias_ : Maybe String
+        , colors : List { name : String, color : Theme.Color.Color }
+        }
 
 
-decodeColorSwatch : Json.Decode.Decoder (List ColorInstance)
+decodeColorSwatch : Json.Decode.Decoder (List Theme.ColorInstance)
 decodeColorSwatch =
     Json.Decode.keyValuePairs
         (Json.Decode.oneOf
-            [ Json.Decode.map (List.singleton << Tuple.pair "") decodeColor
-            , Json.Decode.keyValuePairs decodeColor
+            [ Json.Decode.map SingleColor decodeColor
+            , Json.Decode.maybe (Json.Decode.field "alias" Json.Decode.string)
+                |> Json.Decode.andThen
+                    (\maybeAlias ->
+                        Json.Decode.keyValuePairs (Json.Decode.maybe decodeColor)
+                            |> Json.Decode.andThen
+                                (\colorPairs ->
+                                    Json.Decode.succeed
+                                        (PaletteColor
+                                            { alias_ = maybeAlias
+                                            , colors =
+                                                List.filterMap
+                                                    (\( name, maybeColor ) ->
+                                                        case maybeColor of
+                                                            Nothing ->
+                                                                Nothing
+
+                                                            Just color ->
+                                                                Just
+                                                                    { name = name
+                                                                    , color = color
+                                                                    }
+                                                    )
+                                                    colorPairs
+                                            }
+                                        )
+                                )
+                    )
             ]
         )
         |> Json.Decode.map
             (List.concatMap
-                (\( key, innerList ) ->
-                    List.map
-                        (\( innerKey, value ) ->
-                            { color = value
-                            , name = key
-                            , variant =
-                                if innerKey == "" then
-                                    Nothing
+                (\( key, inner ) ->
+                    case inner of
+                        SingleColor color ->
+                            [ { color = color
+                              , name = key
+                              , alias = Nothing
+                              , variant = Nothing
+                              }
+                            ]
 
-                                else
-                                    Just innerKey
-                            }
-                        )
-                        innerList
+                        PaletteColor pal ->
+                            List.map
+                                (\item ->
+                                    { color = item.color
+                                    , name = key
+                                    , alias = pal.alias_
+                                    , variant = Just item.name
+                                    }
+                                )
+                                pal.colors
                 )
             )
 

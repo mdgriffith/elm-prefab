@@ -35,6 +35,7 @@ type alias ColorThemeDefinitions =
 
 type alias FullColorName =
     { base : String -- primary
+    , alias : Maybe String -- primary
     , variant : Maybe String -- 700
     , state : Maybe State -- hover
     , nuance : Maybe String -- subtle
@@ -74,6 +75,14 @@ toFullColorDescription fullColorName =
 toFullColorName : String -> FullColorName -> String
 toFullColorName functionName fullColorName =
     let
+        base =
+            case fullColorName.alias of
+                Just alias ->
+                    alias
+
+                Nothing ->
+                    fullColorName.base
+
         variant =
             case fullColorName.variant of
                 Just v ->
@@ -98,7 +107,7 @@ toFullColorName functionName fullColorName =
                 Nothing ->
                     ""
     in
-    fullColorName.base ++ capitalize functionName ++ state ++ nuance
+    base ++ capitalize functionName ++ state ++ nuance
 
 
 stateToString : State -> String
@@ -141,6 +150,7 @@ type alias Theme =
 type alias ColorInstance =
     { color : Theme.Color.Color
     , name : String
+    , alias : Maybe String
     , variant : Maybe String
     }
 
@@ -153,6 +163,21 @@ toColorName colorInstance =
 
         Nothing ->
             colorInstance.name
+
+
+toColorAlias : ColorInstance -> String
+toColorAlias colorInstance =
+    let
+        alias =
+            colorInstance.alias
+                |> Maybe.withDefault colorInstance.name
+    in
+    case colorInstance.variant of
+        Just variant ->
+            alias ++ capitalize variant
+
+        Nothing ->
+            alias
 
 
 capitalize : String -> String

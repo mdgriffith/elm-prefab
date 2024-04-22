@@ -130,7 +130,8 @@ const defaultTheme: Options.ThemeOptions = {
       "900": "#171717",
       "950": "#0a0a0a",
     },
-    primary: {
+    purple: {
+      alias: "primary",
       50: "#faf5ff",
       100: "#f3e8ff",
       200: "#e9d5ff",
@@ -202,7 +203,7 @@ const defaultOptions: Options.Config = {
   theme: defaultTheme,
 };
 
-const defaultPlugins = ["app", "routes", "theme"];
+const defaultPlugins = ["app"];
 
 const composeDefaultConfig = (
   pluginsRequested: string[],
