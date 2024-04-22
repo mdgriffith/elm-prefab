@@ -92,9 +92,23 @@ export const BorderConfig = z
   })
   .strict();
 
+// special keys of color/active/hover/focus
+type ColorTree = { [key: string]: ColorTree } | string;
+
+export const ColorTree: z.ZodType<ColorTree> = z
+  .string()
+  .or(mapObject(z.lazy(() => ColorTree)));
+
+export const ColorAliasTheme = z.object({
+  text: ColorTree.optional(),
+  background: ColorTree.optional(),
+  border: ColorTree.optional(),
+});
+
 export const ThemeConfig = z
   .object({
     colors: mapObject(z.string().or(Swatch)),
+    themes: mapObject(ColorAliasTheme).optional(),
     spacing: mapObject(z.number()),
     typography: z.array(Font),
     borders: BorderConfig,

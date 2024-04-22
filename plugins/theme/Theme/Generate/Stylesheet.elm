@@ -1,6 +1,6 @@
 module Theme.Generate.Stylesheet exposing
     ( File, file
-    , none, color, string, transition, maybe, px, int
+    , none, color, string, transition, maybe, px, int, fontSizeInPxAsRem
     , class, id
     , hover, focus, active
     , Rule
@@ -10,7 +10,7 @@ module Theme.Generate.Stylesheet exposing
 
 @docs File, file
 
-@docs none, color, string, transition, maybe, px, int
+@docs none, color, string, transition, maybe, px, int, fontSizeInPxAsRem
 
 @docs class, id
 
@@ -68,6 +68,15 @@ int key value =
 px : String -> Int -> Rule
 px key value =
     Prop (Str key (String.fromInt value ++ "px"))
+
+
+fontSizeInPxAsRem : Float -> Rule
+fontSizeInPxAsRem value =
+    let
+        rem =
+            value / 16
+    in
+    Prop (Str "font-size" (String.fromFloat rem ++ "rem"))
 
 
 string : String -> String -> Rule
@@ -212,7 +221,7 @@ ruleToString namespace (Compiled selector props) =
         renderedProps =
             renderProps props ""
     in
-    selectorToString namespace selector ++ " {\n" ++ renderedProps ++ "}"
+    ".s" ++ selectorToString namespace selector ++ " {\n" ++ renderedProps ++ "}"
 
 
 renderProps : List Property -> String -> String

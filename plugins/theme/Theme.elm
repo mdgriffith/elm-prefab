@@ -27,14 +27,144 @@ type alias Named thing =
     }
 
 
+type alias ColorThemeDefinitions =
+    { default : ColorTheme
+    , alternates : List (Named ColorTheme)
+    }
+
+
+type alias FullColorName =
+    { base : String -- primary
+    , variant : Maybe String -- 700
+    , state : Maybe State -- hover
+    , nuance : Maybe String -- subtle
+    }
+
+
+toFullColorDescription : FullColorName -> String
+toFullColorDescription fullColorName =
+    let
+        variant =
+            case fullColorName.variant of
+                Just v ->
+                    v
+
+                Nothing ->
+                    ""
+
+        state =
+            case fullColorName.state of
+                Just s ->
+                    stateToString s
+
+                Nothing ->
+                    ""
+
+        nuance =
+            case fullColorName.nuance of
+                Just n ->
+                    n
+
+                Nothing ->
+                    ""
+    in
+    fullColorName.base ++ variant
+
+
+toFullColorName : String -> FullColorName -> String
+toFullColorName functionName fullColorName =
+    let
+        variant =
+            case fullColorName.variant of
+                Just v ->
+                    capitalize v
+
+                Nothing ->
+                    ""
+
+        state =
+            case fullColorName.state of
+                Just s ->
+                    stateToString s
+
+                Nothing ->
+                    ""
+
+        nuance =
+            case fullColorName.nuance of
+                Just n ->
+                    capitalize n
+
+                Nothing ->
+                    ""
+    in
+    fullColorName.base ++ capitalize functionName ++ state ++ nuance
+
+
+stateToString : State -> String
+stateToString state =
+    case state of
+        Hover ->
+            "Hover"
+
+        Active ->
+            "Active"
+
+        Focus ->
+            "Focus"
+
+
+type State
+    = Hover
+    | Active
+    | Focus
+
+
+type alias ColorTheme =
+    { text : List ( FullColorName, Theme.Color.Color )
+    , background : List ( FullColorName, Theme.Color.Color )
+    , border : List ( FullColorName, Theme.Color.Color )
+    }
+
+
 type alias Theme =
     { namespace : String
-    , colors : Dict.Dict String Theme.Color.Color
+    , colors : List ColorInstance
+    , themes : Maybe ColorThemeDefinitions
     , spacing : List (Named Int)
     , typography : List (Named Typeface)
     , borderRadii : List (Named Int)
     , borderWidths : List (Named Int)
     }
+
+
+type alias ColorInstance =
+    { color : Theme.Color.Color
+    , name : String
+    , variant : Maybe String
+    }
+
+
+toColorName : ColorInstance -> String
+toColorName colorInstance =
+    case colorInstance.variant of
+        Just variant ->
+            colorInstance.name ++ capitalize variant
+
+        Nothing ->
+            colorInstance.name
+
+
+capitalize : String -> String
+capitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toUpper top ++ remain
 
 
 type alias Typeface =

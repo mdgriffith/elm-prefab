@@ -10,6 +10,7 @@ import Elm.Op
 import Gen.Html.Attributes
 import Gen.String
 import Gen.Ui
+import Gen.Ui.Anim
 import Gen.Ui.Font
 import Gen.Ui.Input
 import Theme
@@ -31,6 +32,7 @@ attrType =
 generate : Theme.Theme -> List Elm.File
 generate theme =
     [ generateColors theme
+    , generateColorTheme theme
     , generateTheme theme
     , stylesheet theme
     ]
@@ -176,7 +178,10 @@ borders theme =
 
 layout : Theme.Theme -> List Elm.Declaration
 layout theme =
-    [ Elm.declaration "el"
+    [ Elm.declaration "layout"
+        Gen.Ui.Anim.values_.layout
+        |> expose Layout
+    , Elm.declaration "el"
         Gen.Ui.values_.el
         |> expose Layout
     , Elm.declaration "row"
@@ -403,12 +408,12 @@ toWeight weight =
 
 generateColors : Theme.Theme -> Elm.File
 generateColors theme =
-    Elm.file [ "Ui", "Theme", "Color" ]
-        (Dict.foldl
-            (\name val list ->
-                case val of
+    Elm.file [ "Ui", "Theme", "Color", "Palette" ]
+        (List.foldl
+            (\colorInstance list ->
+                case colorInstance.color of
                     Theme.Color.Color clr ->
-                        (Elm.declaration name (toColor clr)
+                        (Elm.declaration (Theme.toColorName colorInstance) (toColor clr)
                             |> Elm.expose
                         )
                             :: list
@@ -418,6 +423,72 @@ generateColors theme =
             )
             []
             theme.colors
+        )
+
+
+generateColorTheme : Theme.Theme -> Elm.File
+generateColorTheme theme =
+    Elm.file [ "Ui", "Theme", "Color" ]
+        (case theme.themes of
+            Nothing ->
+                []
+
+            Just themes ->
+                [ List.foldl
+                    (\( fullColorName, colorVal ) list ->
+                        case colorVal of
+                            Theme.Color.Color clr ->
+                                (Elm.declaration (Theme.toFullColorName "Text" fullColorName)
+                                    (Gen.Ui.Font.color (toColor clr))
+                                    |> Elm.expose
+                                    |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
+                                    |> Tuple.pair (Theme.toFullColorName "Text" fullColorName)
+                                )
+                                    :: list
+
+                            Theme.Color.Grad _ ->
+                                list
+                    )
+                    []
+                    themes.default.text
+                , List.foldl
+                    (\( fullColorName, colorVal ) list ->
+                        case colorVal of
+                            Theme.Color.Color clr ->
+                                (Elm.declaration (Theme.toFullColorName "Background" fullColorName)
+                                    (Gen.Ui.background (toColor clr))
+                                    |> Elm.expose
+                                    |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
+                                    |> Tuple.pair (Theme.toFullColorName "Background" fullColorName)
+                                )
+                                    :: list
+
+                            Theme.Color.Grad _ ->
+                                list
+                    )
+                    []
+                    themes.default.background
+                , List.foldl
+                    (\( fullColorName, colorVal ) list ->
+                        case colorVal of
+                            Theme.Color.Color clr ->
+                                (Elm.declaration (Theme.toFullColorName "Border" fullColorName)
+                                    (Gen.Ui.borderColor (toColor clr))
+                                    |> Elm.expose
+                                    |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
+                                    |> Tuple.pair (Theme.toFullColorName "Border" fullColorName)
+                                )
+                                    :: list
+
+                            Theme.Color.Grad _ ->
+                                list
+                    )
+                    []
+                    themes.default.border
+                ]
+                    |> List.concat
+                    |> List.sortBy Tuple.first
+                    |> List.map Tuple.second
         )
 
 
@@ -510,7 +581,7 @@ typographyStyles theme =
                 [ Style.class (typographyClassName name (Tuple.first item.weight))
                     [ Style.string "font-family" (fontFamily (item.face :: item.fallback))
                     , Style.int "font-weight" (Tuple.second item.weight)
-                    , Style.px "font-size" item.size
+                    , Style.fontSizeInPxAsRem (toFloat item.size)
                     , case item.variants of
                         [] ->
                             Style.none

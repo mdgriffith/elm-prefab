@@ -144,6 +144,13 @@ const defaultTheme: Options.ThemeOptions = {
       950: "#3b0764",
     },
   },
+  themes: {
+    default: {
+      text: "800",
+      background: "50",
+      border: "400",
+    },
+  },
   borders: {
     radius: { small: 4, medium: 8, large: 16 },
     width: { small: 1 },
