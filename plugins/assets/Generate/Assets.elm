@@ -219,6 +219,10 @@ generateAssetGroupDirectory group =
                                     )
                                 )
                         )
+                        |> Elm.exposeWith
+                            { exposeConstructor = True
+                            , group = Just "Directory"
+                            }
                     ]
     in
     if List.isEmpty entries then
