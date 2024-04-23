@@ -151,30 +151,34 @@ pathToFullColorName path instance =
     , variant = instance.variant -- 700
     , alias = instance.alias -- primary
     , state = getState path -- hover
-    , nuance = getNuance path -- subtle
+    , nuance = getNuance instance.name path -- subtle
     }
 
 
-getNuance : List String -> Maybe String
-getNuance path =
+getNuance : String -> List String -> Maybe String
+getNuance base path =
     case path of
         [] ->
             Nothing
 
         "color" :: remaining ->
-            getNuance remaining
+            getNuance base remaining
 
         "active" :: remaining ->
-            getNuance remaining
+            getNuance base remaining
 
         "focus" :: remaining ->
-            getNuance remaining
+            getNuance base remaining
 
         "hover" :: remaining ->
-            getNuance remaining
+            getNuance base remaining
 
         nuance :: remain ->
-            Just nuance
+            if base /= nuance then
+                Just nuance
+
+            else
+                getNuance base remain
 
 
 getState : List String -> Maybe Theme.State

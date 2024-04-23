@@ -118,7 +118,7 @@ border side =
     Elm.fn ( "width", Just Elm.Annotation.int )
         (\widthInt ->
             Gen.Ui.htmlAttribute
-                (Gen.Html.Attributes.call_.style (Elm.string ("border-width-" ++ side))
+                (Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ side ++ "-width"))
                     (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
                 )
         )
@@ -168,8 +168,31 @@ borders theme =
         )
         |> expose Borders
     , Elm.declaration "borderRadius"
-        (toFields Gen.Ui.rounded
+        ([ toFields Gen.Ui.rounded
             theme.borderRadii
+         , [ ( "top"
+             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = radii, topRight = radii, bottomRight = 0, bottomLeft = 0 })
+                theme.borderRadii
+                |> Elm.record
+             )
+           , ( "right"
+             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = 0, topRight = radii, bottomRight = radii, bottomLeft = 0 })
+                theme.borderRadii
+                |> Elm.record
+             )
+           , ( "bottom"
+             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = 0, topRight = 0, bottomRight = radii, bottomLeft = radii })
+                theme.borderRadii
+                |> Elm.record
+             )
+           , ( "left"
+             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = radii, topRight = 0, bottomRight = 0, bottomLeft = radii })
+                theme.borderRadii
+                |> Elm.record
+             )
+           ]
+         ]
+            |> List.concat
             |> Elm.record
         )
         |> expose Borders
@@ -438,7 +461,7 @@ generateColorTheme theme =
                     (\( fullColorName, colorVal ) list ->
                         case colorVal of
                             Theme.Color.Color clr ->
-                                (Elm.declaration (Theme.toFullColorName "Text" fullColorName)
+                                (Elm.declaration (Theme.toFullColorName "text" fullColorName)
                                     (Gen.Ui.Font.color (toColor clr))
                                     |> Elm.expose
                                     |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
@@ -455,11 +478,11 @@ generateColorTheme theme =
                     (\( fullColorName, colorVal ) list ->
                         case colorVal of
                             Theme.Color.Color clr ->
-                                (Elm.declaration (Theme.toFullColorName "Background" fullColorName)
+                                (Elm.declaration (Theme.toFullColorName "background" fullColorName)
                                     (Gen.Ui.background (toColor clr))
                                     |> Elm.expose
                                     |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
-                                    |> Tuple.pair (Theme.toFullColorName "Background" fullColorName)
+                                    |> Tuple.pair (Theme.toFullColorName "background" fullColorName)
                                 )
                                     :: list
 
@@ -472,11 +495,11 @@ generateColorTheme theme =
                     (\( fullColorName, colorVal ) list ->
                         case colorVal of
                             Theme.Color.Color clr ->
-                                (Elm.declaration (Theme.toFullColorName "Border" fullColorName)
+                                (Elm.declaration (Theme.toFullColorName "border" fullColorName)
                                     (Gen.Ui.borderColor (toColor clr))
                                     |> Elm.expose
                                     |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
-                                    |> Tuple.pair (Theme.toFullColorName "Border" fullColorName)
+                                    |> Tuple.pair (Theme.toFullColorName "border" fullColorName)
                                 )
                                     :: list
 

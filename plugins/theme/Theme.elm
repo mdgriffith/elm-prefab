@@ -107,7 +107,7 @@ toFullColorName functionName fullColorName =
                 Nothing ->
                     ""
     in
-    base ++ capitalize functionName ++ state ++ nuance
+    functionName ++ capitalize base ++ state ++ nuance
 
 
 stateToString : State -> String
