@@ -178,8 +178,7 @@ const defaultTheme: Options.ThemeOptions = {
     {
       font: ["Noto Sans", "sans-serif"],
       sizes: {
-        text: { size: 16 },
-        bold: { size: 16, weight: 700 },
+        text: { size: 16, weights: [400, 700] },
         small: { size: 10 },
       },
     },

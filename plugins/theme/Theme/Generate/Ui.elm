@@ -10,6 +10,7 @@ import Elm.Op
 import Gen.Html.Attributes
 import Gen.String
 import Gen.Ui
+import Gen.Ui.Accessibility
 import Gen.Ui.Anim
 import Gen.Ui.Font
 import Gen.Ui.Input
@@ -33,6 +34,7 @@ generate : Theme.Theme -> List Elm.File
 generate theme =
     [ generateColors theme
     , generateColorTheme theme
+    , generateTextElements theme
     , generateTheme theme
     , stylesheet theme
     ]
@@ -427,6 +429,133 @@ toWeight weight =
 
     else
         Gen.Ui.Font.regular
+
+
+getHeaderAttr : String -> Maybe Elm.Expression
+getHeaderAttr cls =
+    String.split "-" cls
+        |> List.foldl
+            (\val found ->
+                case found of
+                    Nothing ->
+                        case val of
+                            "h1" ->
+                                Just Gen.Ui.Accessibility.h1
+
+                            "h2" ->
+                                Just Gen.Ui.Accessibility.h2
+
+                            "h3" ->
+                                Just Gen.Ui.Accessibility.h3
+
+                            "h4" ->
+                                Just Gen.Ui.Accessibility.h4
+
+                            "h5" ->
+                                Just Gen.Ui.Accessibility.h5
+
+                            "h6" ->
+                                Just Gen.Ui.Accessibility.h6
+
+                            _ ->
+                                Nothing
+
+                    Just _ ->
+                        found
+            )
+            Nothing
+
+
+generateTextElements : Theme.Theme -> Elm.File
+generateTextElements theme =
+    Elm.file [ "Ui", "Theme", "Text" ]
+        (theme.typography
+            |> List.foldl
+                (\typeface gathered ->
+                    let
+                        basename =
+                            Theme.nameToString typeface.name
+
+                        fullClassName =
+                            -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
+                            typographyClassName typeface.name (Tuple.first typeface.item.weight)
+                                |> addNamespace theme.namespace
+
+                        fullClassAttr =
+                            classAttr fullClassName
+
+                        addAcccessibilityAttrs : Elm.Expression -> Elm.Expression
+                        addAcccessibilityAttrs attrs =
+                            case getHeaderAttr fullClassName of
+                                Nothing ->
+                                    attrs
+
+                                Just headerAttr ->
+                                    Elm.Op.cons
+                                        headerAttr
+                                        attrs
+
+                        elFn =
+                            Elm.fn2
+                                ( "attrs", Nothing )
+                                ( "child", Just Elm.Annotation.string )
+                                (\attrs child ->
+                                    Gen.Ui.call_.el
+                                        (addAcccessibilityAttrs (Elm.Op.cons fullClassAttr attrs))
+                                        (Gen.Ui.call_.text child)
+                                )
+
+                        innerName =
+                            Theme.weightNameField (Tuple.first typeface.item.weight)
+                    in
+                    case Tuple.first typeface.item.weight of
+                        Theme.Default ->
+                            Dict.insert basename
+                                [ ( innerName, elFn )
+                                ]
+                                gathered
+
+                        _ ->
+                            Dict.update basename
+                                (\maybe ->
+                                    case maybe of
+                                        Just fields ->
+                                            Just (( innerName, elFn ) :: fields)
+
+                                        Nothing ->
+                                            Just
+                                                [ ( innerName, elFn )
+                                                ]
+                                )
+                                gathered
+                )
+                Dict.empty
+            |> Dict.foldl
+                (\name fields typographyRecord ->
+                    case fields of
+                        [] ->
+                            typographyRecord
+
+                        [ single ] ->
+                            (Elm.declaration name (Tuple.second single)
+                                |> Elm.expose
+                            )
+                                :: typographyRecord
+
+                        many ->
+                            let
+                                new =
+                                    List.map
+                                        (\( innerName, body ) ->
+                                            Elm.declaration (name ++ capitalize innerName) body
+                                                |> Elm.expose
+                                        )
+                                        many
+                            in
+                            new ++ typographyRecord
+                )
+                []
+        )
 
 
 generateColors : Theme.Theme -> Elm.File
