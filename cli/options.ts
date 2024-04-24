@@ -117,8 +117,8 @@ export const ThemeConfig = z
 
 export const Config = z
   .object({
-    src: z.optional(z.string()).default("src"),
-    js: z.optional(z.string()).default("src-js"),
+    src: z.optional(z.string()).default("src/app"),
+    js: z.optional(z.string()).default("src"),
     app: z.optional(AppConfig),
     assets: z.optional(AssetConfig),
     theme: z.optional(ThemeConfig),

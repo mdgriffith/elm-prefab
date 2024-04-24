@@ -4,8 +4,8 @@ import * as Options from "./options";
 import * as fs from "fs";
 
 const minimalConfig: Options.Config = {
-  src: "src",
-  js: "src-js",
+  src: "src/app",
+  js: "src",
 };
 
 const testTheme: Options.ThemeOptions = {
@@ -187,8 +187,8 @@ const defaultTheme: Options.ThemeOptions = {
 
 // This isn't quite an `Options.Config` because some fields like urls aren't expanded
 const defaultOptions: Options.Config = {
-  src: "src",
-  js: "src-js",
+  src: "src/app",
+  js: "src",
   app: {
     pages: {
       Home: Options.toUrl("/"),

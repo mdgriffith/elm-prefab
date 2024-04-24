@@ -68,8 +68,8 @@ Read more at (https://github.com/mdgriffith/elm-prefab)
 `;
 
 const examples: Options.Config = {
-  src: "src",
-  js: "src-js",
+  src: "src/app",
+  js: "src",
   app: {
     pages: {
       Home: Options.toUrl("/"),

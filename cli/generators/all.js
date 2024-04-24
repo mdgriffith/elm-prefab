@@ -15492,9 +15492,27 @@
         }();
         return $elm$core$List$isEmpty(entries) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray(["Assets", group.d]), $elm$core$List$concat(_List_fromArray([entries, directory]))));
     };
+    var $author$project$Generate$Assets$toSourceDeclaration = function (file) {
+        var _v0 = file.aM;
+        if (_v0.$ === 1) {
+            return $elm$core$Maybe$Nothing;
+        }
+        else {
+            var source = _v0.a;
+            return $elm$core$Maybe$Just($mdgriffith$elm_codegen$Internal$Compiler$exposeWith_fn({
+                ec: true,
+                e_: $elm$core$Maybe$Just($elm$core$String$join_fn("/", file.ai))
+            }, $mdgriffith$elm_codegen$Elm$declaration_fn($author$project$Generate$Assets$declarationName(file), $mdgriffith$elm_codegen$Elm$string(source))));
+        }
+    };
+    var $author$project$Generate$Assets$generateAssetGroupSource = function (group) {
+        var assetSources = $elm$core$List$filterMap_fn($author$project$Generate$Assets$toSourceDeclaration, group.es);
+        return $elm$core$List$isEmpty(assetSources) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$file_fn(_List_fromArray(["Assets", group.d, "Source"]), assetSources));
+    };
     var $author$project$Generate$Assets$generateAssetGroup = function (group) {
         return _List_Cons($author$project$Generate$Assets$assetRootFile, $elm$core$List$filterMap_fn($elm$core$Basics$identity, _List_fromArray([
-            $author$project$Generate$Assets$generateAssetGroupDirectory(group)
+            $author$project$Generate$Assets$generateAssetGroupDirectory(group),
+            $author$project$Generate$Assets$generateAssetGroupSource(group)
         ])));
     };
     var $author$project$Generate$Assets$generate = function (assetGroups) {

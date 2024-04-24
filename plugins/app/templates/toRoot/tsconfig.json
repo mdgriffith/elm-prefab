@@ -17,5 +17,5 @@
     "noFallthroughCasesInSwitch": true
   },
 
-  "include": ["src-js"]
+  "include": ["src"]
 }

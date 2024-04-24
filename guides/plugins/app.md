@@ -39,25 +39,25 @@ Checkout the overview of generated files and then head over to one of these guid
 
     # You now own these files.
     # Elm Prefab expects that they exist, but you can modify them as you need to.
-    src/App/Effect.elm
-    src/App/Page/Error.elm
-    src/App/Sub.elm
-    src/App/View.elm
-    src/Main.elm
+    src/app/App/Effect.elm
+    src/app/App/Page/Error.elm
+    src/app/App/Sub.elm
+    src/app/App/View.elm
+    src/app/Main.elm
 
     # In the same folder you'll see these files.
     # These are what you should check out first!
-    src/Page/Home.elm
-    src/Page/Post.elm
-    src/Page/Posts.elm
-    src/Main.elm
+    src/app/Page/Home.elm
+    src/app/Page/Post.elm
+    src/app/Page/Posts.elm
+    src/app/Main.elm
 
     # You own these files as well.
     # You can do whatever you want with them.
-    src-js/index.html
-    src-js/js/clipboard.ts
-    src-js/js/localStorage.ts
-    src-js/main.ts
+    src/index.html
+    src/js/clipboard.ts
+    src/js/localStorage.ts
+    src/main.ts
 
     # These are common configs for Elm, Typescript and Vite.
     # Elm Prefab only really cares about elm.generate.json though.

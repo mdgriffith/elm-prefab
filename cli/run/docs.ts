@@ -247,8 +247,8 @@ const runAppGenerator = async (
     initializing: true,
     generateDefaultFiles: true,
     internalSrc: internalSrc,
-    js: path.join(docsPath, "src-js"),
-    src: path.join(docsPath, "src"),
+    js: path.join(docsPath, "src"),
+    src: path.join(docsPath, "src/app"),
     root: docsPath,
   };
 
@@ -268,7 +268,7 @@ const runAppGenerator = async (
       initializing: true,
       generateDefaultFiles: true,
       internalSrc: internalSrc,
-      js: path.join(docsPath, "src-js"),
+      js: path.join(docsPath, "src", "app"),
       src: path.join(docsPath, "src"),
       root: docsPath,
     },
