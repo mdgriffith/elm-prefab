@@ -40,8 +40,7 @@ generateAssetGroup group =
     assetRootFile
         :: List.filterMap identity
             [ generateAssetGroupDirectory group
-
-            -- , generateAssetGroupSource group
+            , generateAssetGroupSource group
             ]
 
 
