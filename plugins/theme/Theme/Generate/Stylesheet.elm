@@ -1,18 +1,21 @@
 module Theme.Generate.Stylesheet exposing
     ( File, file
-    , none, color, string, transition, maybe, px, int, fontSizeInPxAsRem
+    , none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
     , class, id
+    , Selector(..), custom
     , hover, focus, active
-    , Rule, float
+    , Rule
     )
 
 {-|
 
 @docs File, file
 
-@docs none, color, string, transition, maybe, px, int, fontSizeInPxAsRem
+@docs none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
 
 @docs class, id
+
+@docs Selector, custom
 
 @docs hover, focus, active
 
@@ -139,6 +142,11 @@ type PseudoClass
     = Active
     | Focus
     | Hover
+
+
+custom : Selector -> List Rule -> Rule
+custom selector rules =
+    Rule selector rules
 
 
 type Rule

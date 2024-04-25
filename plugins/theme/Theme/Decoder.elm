@@ -161,7 +161,7 @@ getNuance base path =
         [] ->
             Nothing
 
-        "color" :: remaining ->
+        "default" :: remaining ->
             getNuance base remaining
 
         "active" :: remaining ->

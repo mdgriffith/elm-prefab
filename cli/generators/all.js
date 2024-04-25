@@ -3369,7 +3369,7 @@
             }
             else {
                 switch (path.a) {
-                    case "color":
+                    case "default":
                         var remaining = path.b;
                         var $temp$base = base, $temp$path = remaining;
                         base = $temp$base;
@@ -25842,6 +25842,18 @@
             kO: _List_Nil
         };
     }, $author$project$Theme$Generate$Stylesheet$file = F3($author$project$Theme$Generate$Stylesheet$file_fn);
+    var $author$project$Theme$Generate$Stylesheet$After = function (a) {
+        return { $: 6, a: a };
+    };
+    var $author$project$Theme$Generate$Stylesheet$AllChildren_fn = function (a, b) {
+        return { $: 5, a: a, b: b };
+    }, $author$project$Theme$Generate$Stylesheet$AllChildren = F2($author$project$Theme$Generate$Stylesheet$AllChildren_fn);
+    var $author$project$Theme$Generate$Stylesheet$Before = function (a) {
+        return { $: 7, a: a };
+    };
+    var $author$project$Theme$Generate$Stylesheet$Class = function (a) {
+        return { $: 1, a: a };
+    };
     var $author$project$Theme$Generate$Ui$captureVariants_fn = function (textTransform, italic, variants, vars) {
         captureVariants: while (true) {
             if (!vars.b) {
@@ -25890,15 +25902,15 @@
             }
         }
     }, $author$project$Theme$Generate$Ui$captureVariants = F4($author$project$Theme$Generate$Ui$captureVariants_fn);
-    var $author$project$Theme$Generate$Stylesheet$Class = function (a) {
-        return { $: 1, a: a };
-    };
     var $author$project$Theme$Generate$Stylesheet$Rule_fn = function (a, b) {
         return { $: 0, a: a, b: b };
     }, $author$project$Theme$Generate$Stylesheet$Rule = F2($author$project$Theme$Generate$Stylesheet$Rule_fn);
     var $author$project$Theme$Generate$Stylesheet$class_fn = function (name, rules) {
         return $author$project$Theme$Generate$Stylesheet$Rule_fn($author$project$Theme$Generate$Stylesheet$Class(name), rules);
     }, $author$project$Theme$Generate$Stylesheet$class = F2($author$project$Theme$Generate$Stylesheet$class_fn);
+    var $author$project$Theme$Generate$Stylesheet$custom_fn = function (selector, rules) {
+        return $author$project$Theme$Generate$Stylesheet$Rule_fn(selector, rules);
+    }, $author$project$Theme$Generate$Stylesheet$custom = F2($author$project$Theme$Generate$Stylesheet$custom_fn);
     var $author$project$Theme$Generate$Stylesheet$Prop = function (a) {
         return { $: 2, a: a };
     };
@@ -25930,23 +25942,24 @@
             var name = _v0.d;
             var item = _v0.m7;
             var fontSize = function () {
-                var _v4 = $elm$core$Maybe$andThen_fn(function ($) {
+                var _v8 = $elm$core$Maybe$andThen_fn(function ($) {
                     return $.mG;
                 }, item.lG);
-                if (_v4.$ === 1) {
+                if (_v8.$ === 1) {
                     return item.jh;
                 }
                 else {
-                    var ratio = _v4.a;
+                    var ratio = _v8.a;
                     return item.jh * ratio;
                 }
             }();
+            var fontClass = $author$project$Theme$Generate$Ui$typographyClassName_fn(name, item.bv.a);
             var _v1 = $author$project$Theme$Generate$Ui$captureVariants_fn($elm$core$Maybe$Nothing, false, _List_Nil, item.bZ);
             var textTransform = _v1.a;
             var italic = _v1.b;
             var variants = _v1.c;
             return _List_fromArray([
-                $author$project$Theme$Generate$Stylesheet$class_fn($author$project$Theme$Generate$Ui$typographyClassName_fn(name, item.bv.a), _List_fromArray([
+                $author$project$Theme$Generate$Stylesheet$class_fn(fontClass, _List_fromArray([
                     $author$project$Theme$Generate$Stylesheet$string_fn("font-family", $author$project$Theme$Generate$Ui$fontFamily(_List_Cons(item.my, item.mA))),
                     $author$project$Theme$Generate$Stylesheet$int_fn("font-weight", item.bv.b),
                     $author$project$Theme$Generate$Stylesheet$fontSizeInPxAsRem(fontSize),
@@ -25966,10 +25979,66 @@
                             return $author$project$Theme$Generate$Stylesheet$none;
                         }
                         else {
-                            return $author$project$Theme$Generate$Stylesheet$string_fn("font-variant", $elm$core$String$join_fn(" ", item.bZ));
+                            return $author$project$Theme$Generate$Stylesheet$string_fn("font-variant", $elm$core$String$join_fn(" ", variants));
                         }
                     }()
-                ]))
+                ])),
+                function () {
+                    var _v4 = item.lG;
+                    if (_v4.$ === 1) {
+                        return $author$project$Theme$Generate$Stylesheet$none;
+                    }
+                    else {
+                        var capitalSizing = _v4.a;
+                        return $author$project$Theme$Generate$Stylesheet$custom_fn($author$project$Theme$Generate$Stylesheet$After($author$project$Theme$Generate$Stylesheet$AllChildren_fn($author$project$Theme$Generate$Stylesheet$Class(fontClass), $author$project$Theme$Generate$Stylesheet$Class("p"))), _List_fromArray([
+                            $author$project$Theme$Generate$Stylesheet$string_fn("content", "\" \""),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("margin-top", "calc(1em * " + ($elm$core$String$fromFloat(capitalSizing.ly) + ")")),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("display", "table")
+                        ]));
+                    }
+                }(),
+                function () {
+                    var _v5 = item.lG;
+                    if (_v5.$ === 1) {
+                        return $author$project$Theme$Generate$Stylesheet$none;
+                    }
+                    else {
+                        var capitalSizing = _v5.a;
+                        return $author$project$Theme$Generate$Stylesheet$custom_fn($author$project$Theme$Generate$Stylesheet$Before($author$project$Theme$Generate$Stylesheet$AllChildren_fn($author$project$Theme$Generate$Stylesheet$Class(fontClass), $author$project$Theme$Generate$Stylesheet$Class("p"))), _List_fromArray([
+                            $author$project$Theme$Generate$Stylesheet$string_fn("content", "\" \""),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("margin-bottom", "calc(1em * " + ($elm$core$String$fromFloat(capitalSizing.pd) + ")")),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("display", "table")
+                        ]));
+                    }
+                }(),
+                function () {
+                    var _v6 = item.lG;
+                    if (_v6.$ === 1) {
+                        return $author$project$Theme$Generate$Stylesheet$none;
+                    }
+                    else {
+                        var capitalSizing = _v6.a;
+                        return $author$project$Theme$Generate$Stylesheet$custom_fn($author$project$Theme$Generate$Stylesheet$After($author$project$Theme$Generate$Stylesheet$AllChildren_fn($author$project$Theme$Generate$Stylesheet$Class(fontClass), $author$project$Theme$Generate$Stylesheet$Class("t"))), _List_fromArray([
+                            $author$project$Theme$Generate$Stylesheet$string_fn("content", "\" \""),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("margin-top", "calc(1em * " + ($elm$core$String$fromFloat(capitalSizing.ly) + ")")),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("display", "table")
+                        ]));
+                    }
+                }(),
+                function () {
+                    var _v7 = item.lG;
+                    if (_v7.$ === 1) {
+                        return $author$project$Theme$Generate$Stylesheet$none;
+                    }
+                    else {
+                        var capitalSizing = _v7.a;
+                        return $author$project$Theme$Generate$Stylesheet$custom_fn($author$project$Theme$Generate$Stylesheet$Before($author$project$Theme$Generate$Stylesheet$AllChildren_fn($author$project$Theme$Generate$Stylesheet$Class(fontClass), $author$project$Theme$Generate$Stylesheet$Class("t"))), _List_fromArray([
+                            $author$project$Theme$Generate$Stylesheet$string_fn("content", "\" \""),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("margin-bottom", "calc(1em * " + ($elm$core$String$fromFloat(capitalSizing.pd) + ")")),
+                            $author$project$Theme$Generate$Stylesheet$string_fn("display", "table")
+                        ]));
+                    }
+                }()
             ]);
         }, theme.ph);
     };

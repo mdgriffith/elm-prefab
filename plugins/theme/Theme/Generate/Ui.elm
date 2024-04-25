@@ -741,8 +741,11 @@ typographyStyles theme =
 
                             Just ratio ->
                                 toFloat item.size * ratio
+
+                    fontClass =
+                        typographyClassName name (Tuple.first item.weight)
                 in
-                [ Style.class (typographyClassName name (Tuple.first item.weight))
+                [ Style.class fontClass
                     [ Style.string "font-family" (fontFamily (item.face :: item.fallback))
                     , Style.int "font-weight" (Tuple.second item.weight)
                     , Style.fontSizeInPxAsRem fontSize
@@ -765,6 +768,78 @@ typographyStyles theme =
                         _ ->
                             Style.string "font-variant" (String.join " " variants)
                     ]
+                , case item.capitalSizing of
+                    Nothing ->
+                        Style.none
+
+                    Just capitalSizing ->
+                        Style.custom
+                            (Style.AllChildren
+                                (Style.Class fontClass)
+                                -- Paragraph class in elm-ui
+                                (Style.Class "p")
+                                |> Style.After
+                            )
+                            [ Style.string "content" "\" \""
+                            , Style.string "margin-top"
+                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                ("calc(1em * " ++ String.fromFloat capitalSizing.bottom ++ ")")
+                            , Style.string "display" "table"
+                            ]
+                , case item.capitalSizing of
+                    Nothing ->
+                        Style.none
+
+                    Just capitalSizing ->
+                        Style.custom
+                            (Style.AllChildren
+                                (Style.Class fontClass)
+                                -- Paragraph class in elm-ui
+                                (Style.Class "p")
+                                |> Style.Before
+                            )
+                            [ Style.string "content" "\" \""
+                            , Style.string "margin-bottom"
+                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                ("calc(1em * " ++ String.fromFloat capitalSizing.top ++ ")")
+                            , Style.string "display" "table"
+                            ]
+                , case item.capitalSizing of
+                    Nothing ->
+                        Style.none
+
+                    Just capitalSizing ->
+                        Style.custom
+                            (Style.AllChildren
+                                (Style.Class fontClass)
+                                -- text class in elm-ui
+                                (Style.Class "t")
+                                |> Style.After
+                            )
+                            [ Style.string "content" "\" \""
+                            , Style.string "margin-top"
+                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                ("calc(1em * " ++ String.fromFloat capitalSizing.bottom ++ ")")
+                            , Style.string "display" "table"
+                            ]
+                , case item.capitalSizing of
+                    Nothing ->
+                        Style.none
+
+                    Just capitalSizing ->
+                        Style.custom
+                            (Style.AllChildren
+                                (Style.Class fontClass)
+                                -- text class in elm-ui
+                                (Style.Class "t")
+                                |> Style.Before
+                            )
+                            [ Style.string "content" "\" \""
+                            , Style.string "margin-bottom"
+                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                ("calc(1em * " ++ String.fromFloat capitalSizing.top ++ ")")
+                            , Style.string "display" "table"
+                            ]
                 ]
             )
 
