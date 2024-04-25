@@ -8,7 +8,7 @@ cd test
 
 node ../../dist/elm-prefab.js
 
-elm make src/Main.elm --output=/dev/null
+elm make src/app/Main.elm --output=/dev/null
 
 pnpm install
 # pnpm build

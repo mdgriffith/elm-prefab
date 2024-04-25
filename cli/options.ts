@@ -71,6 +71,7 @@ const Swatch = mapObject(z.string());
 const FontDetails = z
   .object({
     size: z.number().int(),
+    lineHeight: z.number().optional(),
     weight: z.number().int().optional(),
     weights: z.array(z.number().int()).optional(),
     variant: z.string().optional(),
@@ -81,6 +82,14 @@ const FontDetails = z
 export const Font = z
   .object({
     font: z.array(z.string()),
+    capitalSizing: z
+      .object({
+        top: z.number().optional(),
+        bottom: z.number().optional(),
+        fontSizeByCapital: z.number().optional(),
+      })
+      .optional(),
+
     sizes: mapObject(FontDetails),
   })
   .strict();

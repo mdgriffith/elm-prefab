@@ -3,7 +3,7 @@ module Theme.Generate.Stylesheet exposing
     , none, color, string, transition, maybe, px, int, fontSizeInPxAsRem
     , class, id
     , hover, focus, active
-    , Rule
+    , Rule, float
     )
 
 {-|
@@ -63,6 +63,11 @@ color key c =
 int : String -> Int -> Rule
 int key value =
     Prop (Str key (String.fromInt value))
+
+
+float : String -> Float -> Rule
+float key value =
+    Prop (Str key (String.fromFloat value))
 
 
 px : String -> Int -> Rule

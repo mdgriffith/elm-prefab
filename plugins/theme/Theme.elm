@@ -197,8 +197,14 @@ type alias Typeface =
     , fallback : List String
     , weight : ( WeightName, Int )
     , size : Int
-    , lineSpacing : Int
+    , lineHeight : Float
     , variants : List String
+    , capitalSizing :
+        Maybe
+            { top : Float
+            , bottom : Float
+            , fontSizeByCapital : Maybe Float
+            }
     }
 
 

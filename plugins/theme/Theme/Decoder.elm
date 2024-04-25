@@ -371,8 +371,8 @@ decodeNamed inner =
 -}
 decodeTypeface : Json.Decode.Decoder (List (Named Typeface))
 decodeTypeface =
-    Json.Decode.map2
-        (\( font, fallback ) namedSizes ->
+    Json.Decode.map3
+        (\( font, fallback ) maybeCapitalSizing namedSizes ->
             List.concatMap
                 (\( name, sizes ) ->
                     List.map
@@ -382,8 +382,9 @@ decodeTypeface =
                                 , fallback = fallback
                                 , weight = size.weight
                                 , size = size.size
-                                , lineSpacing = size.lineSpacing
+                                , lineHeight = size.lineHeight
                                 , variants = size.variants
+                                , capitalSizing = maybeCapitalSizing
                                 }
                         )
                         sizes
@@ -391,9 +392,29 @@ decodeTypeface =
                 namedSizes
         )
         (Json.Decode.field "font" (nonEmptyList Json.Decode.string))
+        (Json.Decode.maybe (Json.Decode.field "capitalSizing" decodeCapitalSizing))
         (Json.Decode.field "sizes"
             (Json.Decode.keyValuePairs decodeTypefaceSize)
         )
+
+
+decodeCapitalSizing :
+    Json.Decode.Decoder
+        { top : Float
+        , bottom : Float
+        , fontSizeByCapital : Maybe Float
+        }
+decodeCapitalSizing =
+    Json.Decode.map3
+        (\top bottom fontSizeByCapital ->
+            { top = Maybe.withDefault 0 top
+            , bottom = Maybe.withDefault 0 bottom
+            , fontSizeByCapital = fontSizeByCapital
+            }
+        )
+        (Json.Decode.maybe (Json.Decode.field "top" Json.Decode.float))
+        (Json.Decode.maybe (Json.Decode.field "bottom" Json.Decode.float))
+        (Json.Decode.maybe (Json.Decode.field "fontSizeByCapital" Json.Decode.float))
 
 
 decodeTypefaceSize :
@@ -401,18 +422,18 @@ decodeTypefaceSize :
         (List
             { size : Int
             , weight : ( WeightName, Int )
-            , lineSpacing : Int
+            , lineHeight : Float
             , variants : List String
             }
         )
 decodeTypefaceSize =
     Json.Decode.map4
-        (\size weights variants lineSpacing ->
+        (\size weights variants lineHeight ->
             List.map
                 (\weight ->
                     { size = size
                     , weight = weight
-                    , lineSpacing = lineSpacing
+                    , lineHeight = lineHeight
                     , variants = variants
                     }
                 )
@@ -421,8 +442,8 @@ decodeTypefaceSize =
         (Json.Decode.field "size" Json.Decode.int)
         decodeWeights
         decodeVariants
-        (Json.Decode.maybe (Json.Decode.field "lineSpacing" Json.Decode.int)
-            |> Json.Decode.map (Maybe.withDefault 1)
+        (Json.Decode.maybe (Json.Decode.field "lineHeight" Json.Decode.float)
+            |> Json.Decode.map (Maybe.withDefault 1.2)
         )
 
 

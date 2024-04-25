@@ -730,11 +730,35 @@ typographyStyles theme =
     theme.typography
         |> List.concatMap
             (\{ name, item } ->
+                let
+                    ( textTransform, italic, variants ) =
+                        captureVariants Nothing False [] item.variants
+
+                    fontSize =
+                        case Maybe.andThen .fontSizeByCapital item.capitalSizing of
+                            Nothing ->
+                                toFloat item.size
+
+                            Just ratio ->
+                                toFloat item.size * ratio
+                in
                 [ Style.class (typographyClassName name (Tuple.first item.weight))
                     [ Style.string "font-family" (fontFamily (item.face :: item.fallback))
                     , Style.int "font-weight" (Tuple.second item.weight)
-                    , Style.fontSizeInPxAsRem (toFloat item.size)
-                    , case item.variants of
+                    , Style.fontSizeInPxAsRem fontSize
+                    , Style.float "line-height" item.lineHeight
+                    , if italic then
+                        Style.string "font-style" "italic"
+
+                      else
+                        Style.none
+                    , case textTransform of
+                        Just transform ->
+                            Style.string "text-transform" transform
+
+                        Nothing ->
+                            Style.none
+                    , case variants of
                         [] ->
                             Style.none
 
@@ -743,6 +767,35 @@ typographyStyles theme =
                     ]
                 ]
             )
+
+
+captureVariants :
+    Maybe String
+    -> Bool
+    -> List String
+    -> List String
+    -> ( Maybe String, Bool, List String )
+captureVariants textTransform italic variants vars =
+    case vars of
+        [] ->
+            ( textTransform, italic, variants )
+
+        var :: rest ->
+            case var of
+                "italic" ->
+                    captureVariants textTransform True variants rest
+
+                "uppercase" ->
+                    captureVariants (Just "uppercase") italic variants rest
+
+                "lowercase" ->
+                    captureVariants (Just "lowercase") italic variants rest
+
+                "capitalize" ->
+                    captureVariants (Just "capitalize") italic variants rest
+
+                _ ->
+                    captureVariants textTransform italic (var :: variants) rest
 
 
 fontFamily : List String -> String
