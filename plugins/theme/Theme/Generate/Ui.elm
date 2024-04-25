@@ -763,7 +763,7 @@ typographyStyles theme =
                             Style.none
 
                         _ ->
-                            Style.string "font-variant" (String.join " " item.variants)
+                            Style.string "font-variant" (String.join " " variants)
                     ]
                 ]
             )
