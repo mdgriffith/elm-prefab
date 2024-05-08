@@ -8,7 +8,7 @@ Example config:
 {
   "graphql": {
     "schema": "https://api.github.com/graphql",
-    "headers": ["Authorization: bearer $GITHUB_API_TOKEN"]
+    "header": ["Authorization: bearer $GITHUB_API_TOKEN"]
   }
 }
 ```
