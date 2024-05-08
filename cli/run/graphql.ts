@@ -1,6 +1,5 @@
 import * as GQL from "elm-gql";
 import * as Options from "../options";
-import * as Generator from "./run_generator";
 
 // Some slight differences from elm-gql the cli
 // elm-gql has ourputDir and outputAll, but for elm-prefab we just want outputAll
@@ -20,7 +19,7 @@ export const generator = (
   options: Options.GraphQLOptions
 ): Options.Generator => {
   return {
-    name: "theme",
+    name: "graphql",
     generatorType: Options.GeneratorType.Standard,
     run: async (runOptions: Options.RunOptions) => {
       const schema = replaceEnvVars(options.schema);
@@ -74,7 +73,7 @@ export const generator = (
 
 const replaceEnvVars = (input: string): string | Options.Error => {
   const envVars = Object.keys(process.env);
-  const envVarRegex = /\$[AZ_]+/g;
+  const envVarRegex = /\$[A-Z_]+/g;
   let matches = input.match(envVarRegex);
   if (!matches) {
     return input;
