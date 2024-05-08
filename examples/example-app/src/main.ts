@@ -1,5 +1,5 @@
 // @ts-ignore
-import { Elm } from "../src/Main.elm";
+import { Elm } from "./src/app/Main.elm";
 import * as Clipboard from "./js/clipboard";
 import * as LocalStorage from "./js/localStorage";
 

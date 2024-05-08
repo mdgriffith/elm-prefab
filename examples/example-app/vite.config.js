@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
       minify: "esbuild",
       outDir: "../dist",
     },
-    root: "./src-js/",
+    root: "src",
     plugins: [
       elmPlugin({
         debug: isDev,

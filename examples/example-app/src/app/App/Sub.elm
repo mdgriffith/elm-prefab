@@ -192,7 +192,7 @@ toSubscription options sub =
             localStorageUpdated
                 (\payload ->
                     if payload.key == key then
-                        case Json.Decode.decodeValue decoder payload.value of
+                        case Json.Decode.decodeValue decoder payload.details of
                             Ok value ->
                                 value
 
@@ -206,7 +206,7 @@ toSubscription options sub =
 
 port localStorageUpdated :
     ({ key : String
-     , value : Json.Encode.Value
+     , details : Json.Encode.Value
      }
      -> msg
     )

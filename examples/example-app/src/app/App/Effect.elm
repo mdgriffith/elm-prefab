@@ -10,7 +10,7 @@ port module App.Effect exposing
     , focus, blur
     , file, files, fileToUrl
     , copyToClipboard
-    , request, Expect, expectString, expectJson, expectBytes, expectWhatever
+    , get, request, Expect, expectString, expectJson, expectBytes, expectWhatever
     , toCmd, sendToJs, sendToResource
     )
 
@@ -68,7 +68,7 @@ port module App.Effect exposing
 
 # Http
 
-@docs request, Expect, expectString, expectJson, expectBytes, expectWhatever
+@docs get, request, Expect, expectString, expectJson, expectBytes, expectWhatever
 
 
 # Effects
@@ -269,6 +269,19 @@ copyToClipboard text =
     SendToWorld
         { tag = "copy-to-clipboard"
         , details = Just (Json.Encode.string text)
+        }
+
+
+get : String -> Expect msg -> Effect msg
+get url expect =
+    request
+        { method = "GET"
+        , headers = []
+        , url = url
+        , body = Http.emptyBody
+        , expect = expect
+        , timeout = Nothing
+        , tracker = Nothing
         }
 
 
