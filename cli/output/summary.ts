@@ -38,7 +38,25 @@ function sortByDirectory(records: Options.Generated[]) {
   });
 }
 
-//
+// Initialization Message
+
+export const initialization = (summaryMap: Options.SummaryMap) => {
+  console.log("");
+  console.log(`Welcome to ${chalk.cyan("Elm Prefab")}!
+
+I've generated a bunch of files for you.
+
+1. Run ${chalk.yellow("npm install")}.
+2. Run ${chalk.yellow("npm run dev")} to start the dev server.
+3. All files are generated in the ${chalk.yellow(".elm-prefab")} directory by default.
+   Add this to your .gitignore file.
+4. Running ${chalk.yellow("elm-prefab")} again will regenerate everything based on the ${chalk.yellow("elm.generate.json")} file.
+
+
+  `);
+};
+
+//  Summary
 
 export const summary = (summaryMap: Options.SummaryMap) => {
   console.log("");

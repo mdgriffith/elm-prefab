@@ -18,7 +18,7 @@ type GenerateOptions = {
 export const generate = async (
   options: GenerateOptions,
   initializing: boolean,
-  pluginsInitializing: string[]
+  pluginsInitializing: string[],
 ): Promise<Options.SummaryMap> => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
@@ -41,7 +41,7 @@ export const generate = async (
 const runGeneration = async (
   pluginsInitializing: string[],
   config: Options.Config,
-  initializing: boolean
+  initializing: boolean,
 ) => {
   const plugins: Options.Generator[] = [];
   const src = config.src;
@@ -66,10 +66,14 @@ const runGeneration = async (
   const summary = await generate(
     { src, js, plugins: plugins },
     initializing,
-    pluginsInitializing
+    pluginsInitializing,
   );
+  if (initializing) {
+    Output.initialization(summary);
+  } else {
+    Output.summary(summary);
+  }
 
-  Output.summary(summary);
   process.exit(0);
 };
 
