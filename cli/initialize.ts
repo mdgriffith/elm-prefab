@@ -206,7 +206,7 @@ const defaultPlugins = ["app"];
 
 const composeDefaultConfig = (
   pluginsRequested: string[],
-  config: Options.Config
+  config: Options.Config,
 ): Options.Config => {
   const plugins =
     pluginsRequested.length > 0 ? pluginsRequested : defaultPlugins;
@@ -268,19 +268,19 @@ export const writeConfig = (config: Options.Config) => {
 
 export const config = async (
   plugins: string[],
-  existing: Options.Config | null
+  existing: Options.Config | null,
 ): Promise<Options.Config | null> => {
   const answer = await question(
-    `No ${Chalk.yellow(
-      "elm.generate.json"
-    )} file found. Do you want to generate it? (Y/n) `
+    `It looks like you're starting a new ${Chalk.yellow("Elm Prefab")} project!
+
+Want me to generate everything you need to get started? (Y/n)`,
   );
 
   // If the user answers 'Y' or 'y', generate the file
   if (answer.toLowerCase() === "y" || answer.trim() === "") {
     const config = await composeDefaultConfig(
       plugins,
-      existing ? existing : minimalConfig
+      existing ? existing : minimalConfig,
     );
 
     writeConfig(config);
@@ -288,23 +288,23 @@ export const config = async (
     if ("graphql" in plugins && existing != null && !("graphql" in existing)) {
       console.log(
         `I've added some default graphQL settings to ${Chalk.yellow(
-          "elm.generate.json"
+          "elm.generate.json",
         )} which use the following environment variables:
 
 - ${Chalk.yellow(
-          "$GRAPHQL_SCHEMA"
+          "$GRAPHQL_SCHEMA",
         )} - The HTTP endpoint for the GraphQL schema, or the path to a local schema file in JSON format.
 - ${Chalk.yellow(
-          "$GRAPHQL_API_TOKEN"
+          "$GRAPHQL_API_TOKEN",
         )} - The API token needed for querying for the schema.
 
 Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
-`
+`,
       );
       process.exit(0);
     } else if (existing == null) {
       console.log(
-        `${Chalk.yellow("elm.generate.json")} file has been generated!`
+        `${Chalk.yellow("elm.generate.json")} file has been generated!`,
       );
     } else {
       const pluginsAdded = plugins
@@ -313,8 +313,8 @@ Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
 
       console.log(
         `I've added the following plugins to your ${Chalk.yellow(
-          "elm.generate.json"
-        )} file!\n\n${pluginsAdded.join("\n    ")}`
+          "elm.generate.json",
+        )} file!\n\n${pluginsAdded.join("\n    ")}`,
       );
     }
 
