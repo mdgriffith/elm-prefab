@@ -78,4 +78,3 @@ Now go build something! If you have questions, check out the below guides.
 
 - [Why does this thing exist?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/app_architecture.md)
 - [Why is routing handled like it is?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/routes.md)
-- [Is Elm Prefab a Framework?](https://github.com/mdgriffith/elm-prefab/blob/main/guides/why/is_this_a_framework.md)
