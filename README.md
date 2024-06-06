@@ -1,6 +1,6 @@
 # Elm Prefab
 
-> **Prefab** _(Noun)_  
+> **Prefab** _(Noun)_
 > A prefabricated building or structure that is manufactured in sections, typically in a factory, and then transported and assembled on site to form a complete structure.
 
 > **Prefab** _(Adjective)_
@@ -69,10 +69,8 @@ This is the _global_ part of the app. This is where you can control:
 
 Now go build something! If you have questions, check out the below guides.
 
-- [Adding a new page](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/add-a-page.md)
-- [Using local storage](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/using-localstorage.md)
-
 - [Managing routes and pages](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/app/routes_and_pages.md)
+- [Using local storage](https://github.com/mdgriffith/elm-prefab/blob/main/guides/how-to/using-localstorage.md)
 - [Managing assets](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/assets.md)
 - [Using GraphQL](https://github.com/mdgriffith/elm-prefab/blob/main/guides/plugins/graphql.md)
 
