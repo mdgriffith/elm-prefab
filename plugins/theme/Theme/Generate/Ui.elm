@@ -400,35 +400,7 @@ capitalize str =
 
 toWeight : Int -> Elm.Expression
 toWeight weight =
-    if weight == 100 then
-        Gen.Ui.Font.hairline
-
-    else if weight == 200 then
-        Gen.Ui.Font.extraLight
-
-    else if weight == 300 then
-        Gen.Ui.Font.light
-
-    else if weight == 400 then
-        Gen.Ui.Font.regular
-
-    else if weight == 500 then
-        Gen.Ui.Font.medium
-
-    else if weight == 600 then
-        Gen.Ui.Font.semiBold
-
-    else if weight == 700 then
-        Gen.Ui.Font.bold
-
-    else if weight == 800 then
-        Gen.Ui.Font.extraBold
-
-    else if weight == 900 then
-        Gen.Ui.Font.heavy
-
-    else
-        Gen.Ui.Font.regular
+    Gen.Ui.Font.weight weight
 
 
 getHeaderAttr : String -> Maybe Elm.Expression
