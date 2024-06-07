@@ -24,7 +24,7 @@ app.ports?.outgoing?.subscribe?.((message: any) => {
       break;
 
     case "copy-to-clipboard":
-      Clipboard.copy(message.details.text);
+      Clipboard.copy(message.details);
       break;
 
     default:
