@@ -6,6 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as App from "./app";
 import * as Theme from "./theme";
+import { ensureDirSync } from "../ext/filesystem";
 
 const defaultDocsElmJson = {
   type: "application",
@@ -62,7 +63,7 @@ export const generator = (options: Options.Config): Options.Generator => {
       let elmJson: any = null;
       try {
         elmJson = JSON.parse(
-          fs.readFileSync(path.join(runOptions.root, "elm.json"), "utf-8")
+          fs.readFileSync(path.join(runOptions.root, "elm.json"), "utf-8"),
         );
       } catch (e) {
         elmJson = defaultDocsElmJson;
@@ -81,7 +82,7 @@ export const generator = (options: Options.Config): Options.Generator => {
       try {
         readme = fs.readFileSync(
           path.join(runOptions.root, "README.md"),
-          "utf-8"
+          "utf-8",
         );
       } catch (e) {}
 
@@ -231,15 +232,9 @@ const defaultDocsTheme = {
   },
 };
 
-const ensureDirSync = (dir: string) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
 const runAppGenerator = async (
   runOptions: Options.RunOptions,
-  docsPath: string
+  docsPath: string,
 ): Promise<Options.Summary> => {
   const summary: Options.Summary = { generated: [] };
   const internalSrc = path.join(docsPath, ".elm-prefab");
@@ -259,7 +254,7 @@ const runAppGenerator = async (
     ensureDirSync(docsPath);
     fs.writeFileSync(
       path.join(docsPath, "elm.json"),
-      JSON.stringify(defaultDocsElmJson, null, 2)
+      JSON.stringify(defaultDocsElmJson, null, 2),
     );
   }
 
@@ -272,7 +267,7 @@ const runAppGenerator = async (
       src: path.join(docsPath, "src"),
       root: docsPath,
     },
-    summary
+    summary,
   );
 
   ensureDirSync(docsPath);

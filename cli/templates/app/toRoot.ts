@@ -5,6 +5,14 @@ import * as Options from "../../options";
 
 export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => { 
   
+  if (overwrite || (!fs.existsSync(path.join(baseDir, "/.gitignore")) && !skip)) {
+    const filepath = path.join(baseDir, "/.gitignore");
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+    fs.writeFileSync(filepath, "node_modules\nelm_stuff\n.elm-prefab\ndist\n");
+    const generated = { outputDir: baseDir, path: filepath}
+    Options.addGenerated(summary, generated);
+  }
+
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/elm.json")) && !skip)) {
     const filepath = path.join(baseDir, "/elm.json");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });

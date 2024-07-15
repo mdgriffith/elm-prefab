@@ -3,10 +3,7 @@ import Chalk from "chalk";
 import * as Options from "./options";
 import * as fs from "fs";
 
-const minimalConfig: Options.Config = {
-  src: "src/app",
-  js: "src",
-};
+const minimalConfig: Options.Config = {};
 
 const testTheme: Options.ThemeOptions = {
   colors: {
@@ -186,7 +183,7 @@ const defaultTheme: Options.ThemeOptions = {
 };
 
 // This isn't quite an `Options.Config` because some fields like urls aren't expanded
-const defaultOptions: Options.Config = {
+export const defaultOptions: Options.Config = {
   src: "src/app",
   js: "src",
   app: {
@@ -278,7 +275,7 @@ Want me to generate everything you need to get started? (Y/n)`,
 
   // If the user answers 'Y' or 'y', generate the file
   if (answer.toLowerCase() === "y" || answer.trim() === "") {
-    const config = await composeDefaultConfig(
+    const config = composeDefaultConfig(
       plugins,
       existing ? existing : minimalConfig,
     );

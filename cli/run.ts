@@ -44,8 +44,8 @@ const runGeneration = async (
   initializing: boolean,
 ) => {
   const plugins: Options.Generator[] = [];
-  const src = config.src;
-  const js = config.js;
+  const src = config.src ? config.src : "src/app";
+  const js = config.js ? config.js : "src";
 
   if (config.theme != null) {
     plugins.push(Theme.generator(config.theme));
@@ -53,9 +53,10 @@ const runGeneration = async (
   if (config.app != null) {
     plugins.push(App.generator(config.app));
   }
-  if (config.assets != null) {
-    plugins.push(Assets.generator(config.assets));
-  }
+
+  // Always generate assets
+  plugins.push(Assets.generator(config.assets));
+
   if (config.graphql != null) {
     plugins.push(GraphQL.generator(config.graphql));
   }

@@ -44,7 +44,7 @@ export const AssetConfig = mapObject(
       src: z.string(),
       onServer: z.string(),
     })
-    .strict()
+    .strict(),
 );
 
 export const GraphQLConfig = z
@@ -126,8 +126,8 @@ export const ThemeConfig = z
 
 export const Config = z
   .object({
-    src: z.optional(z.string()).default("src/app"),
-    js: z.optional(z.string()).default("src"),
+    src: z.optional(z.string()),
+    js: z.optional(z.string()),
     app: z.optional(AppConfig),
     assets: z.optional(AssetConfig),
     theme: z.optional(ThemeConfig),
@@ -197,7 +197,7 @@ export type Generated = { outputDir: string; path: string };
 
 export const addGenerated = (
   summary: Summary,
-  generatedFile: Generated
+  generatedFile: Generated,
 ): Summary => {
   if ("generated" in summary) {
     summary.generated.push(generatedFile);

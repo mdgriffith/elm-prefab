@@ -5,14 +5,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as ElmDev from "../elm_dev";
 import chalk from "chalk";
+import { ensureDirSync } from "../ext/filesystem";
 
 const Page = require("../templates/app/oneOff/Page.elm.ts");
-
-const ensureDirSync = (dir: string) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
 
 export const generator = (options: Options.AppOptions): Options.Generator => {
   return {
@@ -27,7 +22,7 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
 
       const viewRegions = await ElmDev.execute(
         "explain App.View.Regions",
-        runOptions.root
+        runOptions.root,
       );
 
       await Generator.run(runOptions.internalSrc, {
@@ -42,7 +37,7 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
         // Silence warnings if we're initializing
         runOptions.initializing,
         path.join(runOptions.src, "Page"),
-        pages
+        pages,
       );
 
       const resources = scanResources(path.join(runOptions.src, "Resource"));
@@ -88,7 +83,7 @@ const logError = (title: string, body: string) => {
 const verifyElmFilesExist = (
   silent: boolean,
   dir: string,
-  pages: PageUsage[]
+  pages: PageUsage[],
 ): PageUsage[] => {
   try {
     const elmFiles = fs
@@ -103,7 +98,7 @@ const verifyElmFilesExist = (
           logError(
             `Missing Elm Page`,
             `I found Page.Id.${page.id}, but wasn't able to find a corresponding .elm file for it in src/Page!
-  For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`
+  For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`,
           );
         }
 
@@ -121,7 +116,7 @@ const verifyElmFilesExist = (
       if (!pages.some((page) => page.id === fileName) && !silent) {
         logError(
           `Unused Elm Page`,
-          `I found ${fileName}.elm, but there is no entry in Page.Id for it, so it's not used.  I'd recommend adding a new entry to Page.Id for it, or delete the file!`
+          `I found ${fileName}.elm, but there is no entry in Page.Id for it, so it's not used.  I'd recommend adding a new entry to Page.Id for it, or delete the file!`,
         );
       }
     });
@@ -141,7 +136,7 @@ const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
   const pages: PageUsage[] = [];
   if (!pageIds.definition.type.definition.variants) {
     console.log(
-      "I wasn't able to find any variants for `App.Page.Id.Id`, is it a normal custom type?"
+      "I wasn't able to find any variants for `App.Page.Id.Id`, is it a normal custom type?",
     );
     process.exit(1);
   }
