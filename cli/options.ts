@@ -116,11 +116,11 @@ export const ColorAliasTheme = z.object({
 
 export const ThemeConfig = z
   .object({
-    colors: mapObject(z.string().or(Swatch)),
+    colors: mapObject(z.string().or(Swatch)).optional(),
     themes: mapObject(ColorAliasTheme).optional(),
-    spacing: mapObject(z.number()),
-    typography: z.array(Font),
-    borders: BorderConfig,
+    spacing: mapObject(z.number()).optional(),
+    typography: z.array(Font).optional(),
+    borders: BorderConfig.optional(),
   })
   .strict();
 
