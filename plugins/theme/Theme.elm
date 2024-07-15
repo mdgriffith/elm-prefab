@@ -4,10 +4,6 @@ module Theme exposing (..)
 -}
 
 import Color
-import Dict
-import Elm
-import Gen.CodeGen.Generate as Generate
-import Json.Decode
 import Parser exposing ((|.), (|=))
 import Theme.Color
 

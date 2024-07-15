@@ -2,7 +2,7 @@
 
 `elm-prefab` supports GraphQL by calling [vendrinc/elm-gql](https://github.com/Vendrinc/elm-gql) behind the scenes.
 
-Example config:
+Add this to your `elm.generate.json` file:
 
 ```json
 {

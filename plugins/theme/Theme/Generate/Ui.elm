@@ -203,10 +203,7 @@ borders theme =
 
 layout : Theme.Theme -> List Elm.Declaration
 layout theme =
-    [ Elm.declaration "layout"
-        Gen.Ui.Anim.values_.layout
-        |> expose Layout
-    , Elm.declaration "el"
+    [ Elm.declaration "el"
         Gen.Ui.values_.el
         |> expose Layout
     , Elm.declaration "row"
