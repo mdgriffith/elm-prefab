@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import elmPlugin from "vite-plugin-elm";
+import * as path from "path";
 
 function elmPrefabPlugin() {
   return {
@@ -45,9 +46,9 @@ export default defineConfig(({ mode }) => {
 
     build: {
       minify: "esbuild",
-      outDir: "../dist",
+      outDir: "dist",
     },
-    root: "src",
+
     plugins: [
       elmPrefabPlugin(),
       elmPlugin({

@@ -21,14 +21,6 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
     Options.addGenerated(summary, generated);
   }
 
-  if (overwrite || (!fs.existsSync(path.join(baseDir, "/index.html")) && !skip)) {
-    const filepath = path.join(baseDir, "/index.html");
-    fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "<html>\n  <head>\n    <meta charset=\"UTF-8\" />\n    <title>My Elm App</title>\n    <!--  -->\n    <script type=\"module\" src=\"/main.ts\"></script>\n  </head>\n  <body></body>\n</html>\n");
-    const generated = { outputDir: baseDir, path: filepath}
-    Options.addGenerated(summary, generated);
-  }
-
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/main.ts")) && !skip)) {
     const filepath = path.join(baseDir, "/main.ts");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
