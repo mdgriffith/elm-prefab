@@ -100,7 +100,9 @@ const prepareDefaultAssetGroups = async (
 ): Promise<AssetGroup[]> => {
   const assetGroups: AssetGroup[] = [];
   const publicDir = path.join(".", runOptions.js, "public");
-  const serverDir = "assets";
+  const serverDir = "/";
+
+  ensureDirSync(path.join(runOptions.js, "public"));
 
   const defaultAssetOptions = { src: publicDir, onServer: serverDir };
   const topFiles: File[] = [];
@@ -146,6 +148,7 @@ const gatherFiles = (
   assetConfig: { src: string; onServer: string },
   files: File[],
 ): AssetFile[] => {
+  console.log(assetConfig);
   const gatheredFiles: AssetFile[] = [];
   for (let file of files) {
     const basePath = stripSrc(assetConfig.src, file.path);
