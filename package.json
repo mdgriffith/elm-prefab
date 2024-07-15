@@ -6,14 +6,17 @@
     "elm-prefab": "./bin/elm-prefab"
   },
   "main": "dist/elm-prefab.js",
-  "files": ["dist", "bin"],
+  "files": [
+    "dist",
+    "bin"
+  ],
   "scripts": {
     "build": "bash scripts/build.sh",
     "test": "cd plugins ; elm-test",
     "gen:install": "(cd plugins/codegen ; elm-codegen install)",
     "test:init": "bash scripts/init-test.sh",
     "test:greeting": "bash scripts/test-greeting.sh",
-    "test:playground": "bash scripts/test-playground.sh"
+    "test:playground": "pnpm build ; bash scripts/test-playground.sh"
   },
   "repository": {
     "type": "git",
@@ -28,6 +31,7 @@
   "dependencies": {
     "elm-dev": "^0.1.3",
     "elm-gql": "^0.13.0",
+    "isbinaryfile": "^5.0.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
