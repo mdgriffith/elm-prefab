@@ -152,18 +152,11 @@ const guaranteeDefaults = (options: Options.ThemeOptions) => {
   }
 
   if (!options.colors) {
-    options.colors = {};
+    options.colors = defaultColors;
   }
-  options.colors = { ...defaultColors, ...options.colors };
 
   if (!options.themes) {
-    options.themes = {};
-  }
-  for (const key in defaultTheme) {
-    if (!(key in options.themes)) {
-      // @ts-ignore
-      options.themes[key] = defaultTheme[key];
-    }
+    options.themes = defaultTheme;
   }
 };
 
