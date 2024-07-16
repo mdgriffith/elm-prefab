@@ -32,7 +32,7 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/package.json")) && !skip)) {
     const filepath = path.join(baseDir, "/package.json");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "{\n  \"name\": \"placeholder\",\n  \"type\": \"module\",\n  \"description\": \"\",\n  \"version\": \"0.1.0\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc && vite build\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"^5.2.6\",\n    \"vite-plugin-elm\": \"^3.0.0\",\n    \"typescript\": \"^5.4.3\",\n    \"elm-dev\": \"^0.1.3\",\n    \"elm-prefab\": \"^0.1.12\",\n    \"@tiptap/core\": \"^2.2.4\",\n    \"@tiptap/extension-link\": \"^2.2.4\",\n    \"@tiptap/pm\": \"^2.2.4\",\n    \"@tiptap/starter-kit\": \"^2.2.4\"\n  }\n}\n");
+    fs.writeFileSync(filepath, "{\n  \"name\": \"placeholder\",\n  \"type\": \"module\",\n  \"description\": \"\",\n  \"version\": \"0.1.0\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"tsc && vite build\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"^5.2.6\",\n    \"vite-plugin-elm\": \"^3.0.0\",\n    \"typescript\": \"^5.4.3\",\n    \"elm-dev\": \"^0.1.3\",\n    \"elm-prefab\": \"^0.1.21\",\n    \"@tiptap/core\": \"^2.2.4\",\n    \"@tiptap/extension-link\": \"^2.2.4\",\n    \"@tiptap/pm\": \"^2.2.4\",\n    \"@tiptap/starter-kit\": \"^2.2.4\"\n  }\n}\n");
     const generated = { outputDir: baseDir, path: filepath}
     Options.addGenerated(summary, generated);
   }
