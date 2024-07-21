@@ -1,4 +1,4 @@
-module Ui.Switch exposing
+module Ui.Input.Switch exposing
     ( Switch, switch
     , view
     )
