@@ -23,6 +23,7 @@ import Gen.Maybe
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.Result
+import Gen.Tuple
 import Gen.Url
 import Options.App
 import Press.Generate.Regions
@@ -132,9 +133,8 @@ generate resources allPageDefinitions =
             )
         , viewType
         , viewPageModel pageUsages
-        , msgType pageUsages
-        , update pageUsages getPageInit loadPage
-        , updateResources resources pageUsages
+        , msgType resources pageUsages
+        , update resources pageUsages getPageInit loadPage
         , syncResourcesToLocalStorage resources
         , getPageInit.declaration
         , loadPage.declaration
@@ -192,117 +192,6 @@ syncResourcesToLocalStorage resources =
         )
 
 
-updateResources : List Options.App.Resource -> List Options.App.PageUsage -> Elm.Declaration
-updateResources resources pages =
-    Elm.declaration "updateResource"
-        (Elm.fn3
-            ( "config", Just types.frameSub )
-            ( "outerResourceMsg", Just resourceMsgType )
-            ( "model", Just types.model )
-            (\config outerResourceMsg model ->
-                if List.isEmpty resources then
-                    Elm.tuple model
-                        noneEffect
-
-                else
-                    Elm.Case.custom outerResourceMsg
-                        resourceMsgType
-                        (resources
-                            |> List.map
-                                (\resource ->
-                                    Elm.Case.branch1 ("To" ++ resource.id)
-                                        ( "resourceMsg", Type.named [ "Resource", resource.id ] "Msg" )
-                                        (\resourceMsg ->
-                                            let
-                                                resourceUpdate =
-                                                    Elm.apply
-                                                        (Elm.value
-                                                            { importFrom = [ "Resource", resource.id ]
-                                                            , name = "resource"
-                                                            , annotation = Nothing
-                                                            }
-                                                            |> Elm.get "update"
-                                                        )
-                                                        [ resourceMsg
-                                                        , model
-                                                            |> Elm.get "resources"
-                                                            |> Elm.get resource.id
-                                                        ]
-                                            in
-                                            Elm.Let.letIn
-                                                (\newResourceModel allSubs ->
-                                                    let
-                                                        localStorageSync =
-                                                            Elm.Case.maybe (resourceValue resource.id "codec")
-                                                                { nothing = noneEffect
-                                                                , just =
-                                                                    ( "codec"
-                                                                    , \codec ->
-                                                                        Elm.apply
-                                                                            (Elm.value
-                                                                                { importFrom = [ "App", "Effect" ]
-                                                                                , name = "saveToLocalStorage"
-                                                                                , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
-                                                                                }
-                                                                            )
-                                                                            [ Elm.string resource.id
-                                                                            , Elm.apply
-                                                                                (Elm.get "encode" codec)
-                                                                                [ newResourceModel ]
-                                                                            ]
-                                                                    )
-                                                                }
-
-                                                        listeners =
-                                                            Elm.apply
-                                                                toResourceListeners
-                                                                [ outerResourceMsg
-                                                                , allSubs
-                                                                ]
-                                                                |> Gen.List.call_.map
-                                                                    (Elm.value
-                                                                        { importFrom = [ "App", "Effect" ]
-                                                                        , name = "sendMsg"
-                                                                        , annotation = Nothing
-                                                                        }
-                                                                    )
-                                                    in
-                                                    Elm.tuple
-                                                        (model
-                                                            |> Elm.updateRecord
-                                                                [ ( "resources"
-                                                                  , Elm.updateRecord
-                                                                        [ ( resource.id
-                                                                          , newResourceModel
-                                                                          )
-                                                                        ]
-                                                                        (Elm.get "resources" model)
-                                                                  )
-                                                                ]
-                                                        )
-                                                        (Gen.App.Effect.batch
-                                                            [ localStorageSync
-                                                            , Gen.App.Effect.call_.batch listeners
-                                                            ]
-                                                        )
-                                                )
-                                                |> Elm.Let.value "newResourceModel" resourceUpdate
-                                                |> Elm.Let.value "allSubs"
-                                                    (Elm.apply
-                                                        (Elm.val "getSubscriptions")
-                                                        [ config
-                                                        , model
-                                                        ]
-                                                    )
-                                                |> Elm.Let.toExpression
-                                        )
-                                )
-                        )
-                        |> Elm.withType (Type.tuple types.model (Gen.App.Effect.annotation_.effect types.msg))
-            )
-        )
-
-
 resourceValue resourceId name =
     Elm.value
         { importFrom = [ "Resource", resourceId ]
@@ -319,43 +208,76 @@ toEmptyResources resources =
             ( "flags", Just Gen.Json.Encode.annotation_.value )
             ( "url", Just Gen.Url.annotation_.url )
             (\flags url ->
-                Elm.record
-                    (resources
-                        |> List.map
-                            (\resource ->
-                                let
-                                    cachedModel =
-                                        Elm.Case.maybe (resourceValue resource.id "codec")
-                                            { nothing = Elm.nothing
-                                            , just =
-                                                ( "codec"
-                                                , \codec ->
-                                                    let
-                                                        decoder =
-                                                            Gen.Json.Decode.field "localStorage"
-                                                                (Gen.Json.Decode.field resource.id (Elm.get "decoder" codec))
-                                                    in
-                                                    Gen.Result.toMaybe (Gen.Json.Decode.decodeValue decoder flags)
-                                                )
-                                            }
-                                in
-                                ( resource.id
-                                , Elm.apply
-                                    (Elm.value
-                                        { importFrom = [ "Resource", resource.id ]
-                                        , name = "resource"
-                                        , annotation = Nothing
-                                        }
-                                        |> Elm.get "init"
-                                    )
-                                    [ flags
-                                    , url
-                                    , cachedModel
-                                    ]
+                Elm.Let.letIn
+                    (\stateAndEffectRecord ->
+                        let
+                            stateRecord =
+                                resources
+                                    |> List.map
+                                        (\resource ->
+                                            ( resource.id
+                                            , Gen.Tuple.first (Elm.get resource.id stateAndEffectRecord)
+                                            )
+                                        )
+                                    |> Elm.record
+
+                            finalEffects =
+                                resources
+                                    |> List.map
+                                        (\resource ->
+                                            Gen.Tuple.second (Elm.get resource.id stateAndEffectRecord)
+                                                |> Gen.App.Effect.call_.map (Elm.val ("Resource" ++ resource.id))
+                                        )
+                                    |> Gen.App.Effect.batch
+                        in
+                        Elm.tuple stateRecord finalEffects
+                            |> Elm.withType
+                                (Type.tuple
+                                    resourcesType
+                                    (Type.namedWith [ "App", "Effect" ] "Effect" [ types.msg ])
                                 )
-                            )
                     )
-                    |> Elm.withType resourcesType
+                    |> Elm.Let.value "updatedResources"
+                        (resources
+                            |> List.map
+                                (\resource ->
+                                    let
+                                        cachedModel =
+                                            Elm.Case.maybe (resourceValue resource.id "codec")
+                                                { nothing = Elm.nothing
+                                                , just =
+                                                    ( "codec"
+                                                    , \codec ->
+                                                        let
+                                                            decoder =
+                                                                Gen.Json.Decode.field "localStorage"
+                                                                    (Gen.Json.Decode.field resource.id (Elm.get "decoder" codec))
+                                                        in
+                                                        Gen.Result.toMaybe (Gen.Json.Decode.decodeValue decoder flags)
+                                                    )
+                                                }
+
+                                        updatedResourcePair =
+                                            Elm.apply
+                                                (Elm.value
+                                                    { importFrom = [ "Resource", resource.id ]
+                                                    , name = "resource"
+                                                    , annotation = Nothing
+                                                    }
+                                                    |> Elm.get "init"
+                                                )
+                                                [ flags
+                                                , url
+                                                , cachedModel
+                                                ]
+                                    in
+                                    ( resource.id
+                                    , updatedResourcePair
+                                    )
+                                )
+                            |> Elm.record
+                        )
+                    |> Elm.Let.toExpression
             )
         )
 
@@ -519,8 +441,8 @@ toPageKey pages =
             )
 
 
-msgType : List Options.App.PageUsage -> Elm.Declaration
-msgType pageUsages =
+msgType : List Options.App.Resource -> List Options.App.PageUsage -> Elm.Declaration
+msgType resources pageUsages =
     let
         pageVariants =
             pageUsages
@@ -538,19 +460,27 @@ msgType pageUsages =
                         else
                             Nothing
                     )
+
+        resourceVariants =
+            resources
+                |> List.map
+                    (\resource ->
+                        Elm.variantWith ("Resource" ++ resource.id)
+                            [ Type.named [ "Resource", resource.id ] "Msg" ]
+                    )
     in
     Elm.customType "Msg"
         ([ Elm.variant "PageCacheCleared"
          , Elm.variantWith "Preload" [ types.pageId ]
          , Elm.variantWith "ViewUpdated" [ types.regionOperation ]
          , Elm.variantWith "SubscriptionEventIgnored" [ Type.string ]
-         , Elm.variantWith "Resource" [ resourceMsgType ]
          , Elm.variantWith "Global" [ Type.var "msg" ]
          , Elm.variantWith "Loaded"
             [ types.pageId
             , types.pageLoadResult
             ]
          ]
+            ++ resourceVariants
             ++ pageVariants
         )
         |> Elm.expose
@@ -743,7 +673,12 @@ initResources flags url =
         (Elm.value
             { importFrom = []
             , name = "initResources"
-            , annotation = Just resourcesType
+            , annotation =
+                Just
+                    (Type.tuple
+                        resourcesType
+                        (Type.namedWith [ "App", "Effect" ] "Effect" [ types.msg ])
+                    )
             }
         )
         [ flags, url ]
@@ -751,7 +686,7 @@ initResources flags url =
 
 init getPageInit loadPage config flags url key =
     Elm.Let.letIn
-        (\resources ->
+        (\( resources, resourceEffects ) ->
             let
                 frameInitialized =
                     Elm.apply
@@ -786,6 +721,7 @@ init getPageInit loadPage config flags url key =
                     Elm.tuple model
                         (Gen.App.Effect.batch
                             [ globalFrameEffect
+                            , resourceEffects
                             , Elm.apply (Elm.val "syncResourcesToLocalStorage")
                                 [ resources
                                 ]
@@ -795,12 +731,13 @@ init getPageInit loadPage config flags url key =
                 |> Elm.Let.tuple "appModel" "appEffect" frameInitialized
                 |> Elm.Let.toExpression
         )
-        |> Elm.Let.value "resources" (initResources flags url)
+        |> Elm.Let.tuple "resources" "resourceEffects" (initResources flags url)
         |> Elm.Let.toExpression
 
 
 update :
-    List Options.App.PageUsage
+    List Options.App.Resource
+    -> List Options.App.PageUsage
     ->
         { a
             | call :
@@ -820,7 +757,7 @@ update :
             , value : List String -> Elm.Expression
         }
     -> Elm.Declaration
-update routes getPageInit loadPage =
+update resources routes getPageInit loadPage =
     Elm.declaration "update"
         (Elm.fn3
             ( "config", Just types.frameUpdate )
@@ -942,12 +879,11 @@ update routes getPageInit loadPage =
                                 |> Elm.Let.tuple "newFrame" "frameEffect" updatedFrame
                                 |> Elm.Let.toExpression
                         )
-                     , Elm.Case.branch1 "Resource"
-                        ( "resourceMsg", Type.var "resourceMsg" )
-                        (\resourceMsg ->
-                            Elm.apply (Elm.val "updateResource") [ config, resourceMsg, model ]
-                        )
                      ]
+                        ++ Press.Model.updateResourceBranches resources
+                            config
+                            (Elm.get "resources" model)
+                            model
                         ++ Press.Model.updatePageBranches routes
                             config
                             (Elm.get "resources" model)

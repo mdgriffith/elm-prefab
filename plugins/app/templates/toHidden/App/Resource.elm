@@ -11,6 +11,7 @@ module App.Resource exposing
 
 -}
 
+import App.Effect
 import Json.Decode as Decode
 import Json.Encode as Json
 import Url
@@ -18,8 +19,8 @@ import Url
 
 {-| -}
 type alias Resource msg model =
-    { init : Json.Value -> Url.Url -> Maybe model -> model
-    , update : msg -> model -> model
+    { init : Json.Value -> Url.Url -> Maybe model -> ( model, App.Effect.Effect msg )
+    , update : msg -> model -> ( model, App.Effect.Effect msg )
     , codec :
         Maybe
             { decoder : Decode.Decoder model
@@ -30,8 +31,8 @@ type alias Resource msg model =
 
 {-| -}
 resource :
-    { init : Json.Value -> Url.Url -> Maybe model -> model
-    , update : msg -> model -> model
+    { init : Json.Value -> Url.Url -> Maybe model -> ( model, App.Effect.Effect msg )
+    , update : msg -> model -> ( model, App.Effect.Effect msg )
     }
     -> Resource msg model
 resource options =

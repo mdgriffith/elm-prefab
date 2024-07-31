@@ -5,7 +5,6 @@ port module App.Sub exposing
     , every
     , onResize, onLocalStorageUpdated
     , map, toSubscription
-    , onResourceUpdated, toResourceListeners
     )
 
 {-|
@@ -25,11 +24,8 @@ port module App.Sub exposing
 
 @docs map, toSubscription
 
-@docs onResourceUpdated, toResourceListeners
-
 -}
 
-import App.Resource.Msg
 import Browser.Events
 import Json.Decode
 import Json.Encode
@@ -49,7 +45,6 @@ type Sub msg
         , key : String
         }
         msg
-    | OnResourceUpdated (App.Resource.Msg.Msg -> Maybe msg)
       --
     | OnLocalStorageUpdated
         { key : String
@@ -87,16 +82,6 @@ onResize msg =
     OnWindowResize msg
 
 
-{-| Use `App.Resources.listen` to listen to resource updates.
-
-It's just slightly more convenient than using `onResourceUpdated` directly.
-
--}
-onResourceUpdated : (App.Resource.Msg.Msg -> Maybe msg) -> Sub msg
-onResourceUpdated =
-    OnResourceUpdated
-
-
 onLocalStorageUpdated :
     { key : String
     , decoder : Json.Decode.Decoder msg
@@ -125,9 +110,6 @@ map func sub =
         OnWindowResize msg ->
             OnWindowResize (\w h -> func <| msg w h)
 
-        OnResourceUpdated toMaybeMsg ->
-            OnResourceUpdated (Maybe.map func << toMaybeMsg)
-
         OnLocalStorageUpdated { key, decoder } ->
             OnLocalStorageUpdated
                 { key = key
@@ -150,9 +132,6 @@ toSubscription options sub =
 
         OnWindowResize toMsg ->
             Browser.Events.onResize toMsg
-
-        OnResourceUpdated toMaybeMsg ->
-            Platform.Sub.none
 
         OnKeyPress keyOptions msg ->
             Browser.Events.onKeyDown
@@ -211,21 +190,3 @@ port localStorageUpdated :
      -> msg
     )
     -> Platform.Sub.Sub msg
-
-
-toResourceListeners : App.Resource.Msg.Msg -> Sub msg -> List msg
-toResourceListeners resource sub =
-    case sub of
-        OnResourceUpdated toMaybeMsg ->
-            case toMaybeMsg resource of
-                Just msg ->
-                    [ msg ]
-
-                Nothing ->
-                    []
-
-        Batch subs ->
-            List.concatMap (toResourceListeners resource) subs
-
-        _ ->
-            []

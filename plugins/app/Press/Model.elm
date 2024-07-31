@@ -352,14 +352,6 @@ resourceMsgType =
     Type.named [ "App", "Resource", "Msg" ] "Msg"
 
 
-toResourceListeners =
-    Elm.value
-        { importFrom = [ "App", "Sub" ]
-        , name = "toResourceListeners"
-        , annotation = Nothing
-        }
-
-
 types =
     { msg = appMsg
     , pageMsg = Type.named [] "PageMsg"
@@ -409,9 +401,10 @@ types =
             , ( "viewRequested"
               , Type.function [ regionOperation ] appMsg
               )
-            , ( "sendToResource"
-              , Type.function [ Type.named [ "App", "Resource", "Msg" ] "Msg" ] appMsg
-              )
+
+            -- , ( "broadcast"
+            --   , Type.function [ Type.named [ "App", "Broadcast" ] "Msg" ] appMsg
+            --   )
             ]
     , frame =
         toConfig FullConfig
@@ -446,7 +439,8 @@ toCmd config resources navKey frameModel effect =
             , ( "toApp", Elm.val "Global" )
             , ( "dropPageCache", Elm.val "PageCacheCleared" )
             , ( "viewRequested", Elm.val "ViewUpdated" )
-            , ( "sendToResource", Elm.val "Resource" )
+
+            -- , ( "sendToResource", Elm.val "Resource" )
             , ( "preload", Elm.val "Preload" )
             ]
         , frameModel
@@ -883,6 +877,101 @@ withPageHelper pageConfig fieldName fn =
                 [ pageConfig ]
             )
         |> Elm.Let.toExpression
+
+
+noneEffect =
+    Elm.value
+        { importFrom = [ "App", "Effect" ]
+        , name = "none"
+        , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
+        }
+
+
+resourceValue resourceId name =
+    Elm.value
+        { importFrom = [ "Resource", resourceId ]
+        , name = "resource"
+        , annotation = Nothing
+        }
+        |> Elm.get name
+
+
+updateResourceBranches :
+    List Options.App.Resource
+    -> Elm.Expression
+    -> Elm.Expression
+    -> Elm.Expression
+    -> List Elm.Case.Branch
+updateResourceBranches resources config resourcesState model =
+    resources
+        |> List.map
+            (\resource ->
+                Elm.Case.branch1 ("Resource" ++ resource.id)
+                    ( "resourceMsg", Type.named [ "Resource", resource.id ] "Msg" )
+                    (\resourceMsg ->
+                        let
+                            resourceUpdate =
+                                Elm.apply
+                                    (Elm.value
+                                        { importFrom = [ "Resource", resource.id ]
+                                        , name = "resource"
+                                        , annotation = Nothing
+                                        }
+                                        |> Elm.get "update"
+                                    )
+                                    [ resourceMsg
+                                    , model
+                                        |> Elm.get "resources"
+                                        |> Elm.get resource.id
+                                    ]
+                        in
+                        Elm.Let.letIn
+                            (\( newResourceModel, newResourceEffect ) ->
+                                let
+                                    localStorageSync =
+                                        Elm.Case.maybe (resourceValue resource.id "codec")
+                                            { nothing = noneEffect
+                                            , just =
+                                                ( "codec"
+                                                , \codec ->
+                                                    Elm.apply
+                                                        (Elm.value
+                                                            { importFrom = [ "App", "Effect" ]
+                                                            , name = "saveToLocalStorage"
+                                                            , annotation = Just (Gen.App.Effect.annotation_.effect types.msg)
+                                                            }
+                                                        )
+                                                        [ Elm.string resource.id
+                                                        , Elm.apply
+                                                            (Elm.get "encode" codec)
+                                                            [ newResourceModel ]
+                                                        ]
+                                                )
+                                            }
+                                in
+                                Elm.tuple
+                                    (model
+                                        |> Elm.updateRecord
+                                            [ ( "resources"
+                                              , Elm.updateRecord
+                                                    [ ( resource.id
+                                                      , newResourceModel
+                                                      )
+                                                    ]
+                                                    (Elm.get "resources" model)
+                                              )
+                                            ]
+                                    )
+                                    (Gen.App.Effect.batch
+                                        [ Gen.App.Effect.call_.map (Elm.val ("Resource" ++ resource.id)) newResourceEffect
+                                        , localStorageSync
+                                        ]
+                                    )
+                            )
+                            |> Elm.Let.tuple "newResourceModel" "newResourceEffect" resourceUpdate
+                            |> Elm.Let.toExpression
+                    )
+            )
 
 
 updatePageBranches :
