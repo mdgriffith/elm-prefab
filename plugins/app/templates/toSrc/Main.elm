@@ -28,7 +28,7 @@ main =
         , onUrlRequest = UrlRequested
         , update = update
         , subscriptions =
-            \resources model -> Sub.none
+            \resources model -> App.Sub.none
         , toCmd =
             \resources options model effect ->
                 App.Effect.toCmd options effect

@@ -29,8 +29,8 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
     Options.addGenerated(summary, generated);
   }
 
-  if (overwrite || (!fs.existsSync(path.join(baseDir, "/js/localStorage.ts")) && !skip)) {
-    const filepath = path.join(baseDir, "/js/localStorage.ts");
+  if (overwrite || (!fs.existsSync(path.join(baseDir, "/js/local-storage.ts")) && !skip)) {
+    const filepath = path.join(baseDir, "/js/local-storage.ts");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
     fs.writeFileSync(filepath, "export const getAll = () => {\n  const data: any = {};\n  for (var i = 0, len = localStorage.length; i < len; ++i) {\n    const key = localStorage.key(i);\n    if (key) {\n      data[key] = get(key);\n    }\n  }\n  return data;\n};\n\nexport const get = (key: string): any => {\n  const item = localStorage.getItem(key);\n  if (item) {\n    try {\n      return JSON.parse(item);\n    } catch (e) {\n      return null;\n    }\n  } else {\n    return null;\n  }\n};\n\nexport const set = (key: string, value: any) => {\n  localStorage.setItem(key, JSON.stringify(value));\n};\n\nexport const clear = (key: string) => {\n  localStorage.removeItem(key);\n};\n");
     const generated = { outputDir: baseDir, path: filepath}
@@ -40,7 +40,15 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/js/ports.ts")) && !skip)) {
     const filepath = path.join(baseDir, "/js/ports.ts");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "import * as Clipboard from \"./clipboard\";\nimport * as LocalStorage from \"./localStorage\";\n\n// Handling data from elm to JS\nexport function connect(app: any) {\n  app.ports?.outgoing?.subscribe?.((message: any) => {\n    switch (message.tag) {\n      case \"local-storage\":\n        LocalStorage.set(message.details.key, message.details.value);\n        if (app.ports?.localStorageUpdated) {\n          app.ports.localStorageUpdated.send(message.details);\n        }\n        break;\n\n      case \"local-storage-clear\":\n        LocalStorage.clear(message.details.key);\n        break;\n\n      case \"copy-to-clipboard\":\n        Clipboard.copy(message.details);\n        break;\n\n      default:\n        break;\n    }\n  });\n}\n");
+    fs.writeFileSync(filepath, "import * as Clipboard from \"./clipboard\";\nimport * as LocalStorage from \"./local-storage\";\nimport * as TextSelection from \"./text-selection\";\n// Handling data from elm to JS\nexport function connect(app: any) {\n  app.ports?.outgoing?.subscribe?.((message: any) => {\n    switch (message.tag) {\n      case \"local-storage\":\n        LocalStorage.set(message.details.key, message.details.value);\n        if (app.ports?.localStorageUpdated) {\n          app.ports.localStorageUpdated.send(message.details);\n        }\n        break;\n\n      case \"local-storage-clear\":\n        LocalStorage.clear(message.details.key);\n        break;\n\n      case \"copy-to-clipboard\":\n        Clipboard.copy(message.details);\n        break;\n\n      case \"focus-and-select\":\n        TextSelection.focus_and_select(message.details);\n        break;\n\n      default:\n        break;\n    }\n  });\n}\n");
+    const generated = { outputDir: baseDir, path: filepath}
+    Options.addGenerated(summary, generated);
+  }
+
+  if (overwrite || (!fs.existsSync(path.join(baseDir, "/js/text-selection.ts")) && !skip)) {
+    const filepath = path.join(baseDir, "/js/text-selection.ts");
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+    fs.writeFileSync(filepath, "export function focus_and_select(id: string) {\n  setTimeout(() => {\n    // in some cases the element hasn't been rendered yet\n    const elem = document.getElementById(id);\n    if (elem) {\n      elem.focus();\n      (elem as HTMLInputElement).select();\n    }\n  }, 100);\n}\n");
     const generated = { outputDir: baseDir, path: filepath}
     Options.addGenerated(summary, generated);
   }
