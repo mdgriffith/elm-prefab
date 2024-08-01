@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import elmPlugin from "vite-plugin-elm";
 import { spawn } from "child_process";
+import * as path from "path";
 
 function elmPrefabPlugin() {
   return {
