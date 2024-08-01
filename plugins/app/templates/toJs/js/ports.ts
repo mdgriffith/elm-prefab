@@ -1,6 +1,6 @@
 import * as Clipboard from "./clipboard";
-import * as LocalStorage from "./localStorage";
-
+import * as LocalStorage from "./local-storage";
+import * as TextSelection from "./text-selection";
 // Handling data from elm to JS
 export function connect(app: any) {
   app.ports?.outgoing?.subscribe?.((message: any) => {
@@ -18,6 +18,10 @@ export function connect(app: any) {
 
       case "copy-to-clipboard":
         Clipboard.copy(message.details);
+        break;
+
+      case "focus-and-select":
+        TextSelection.focus_and_select(message.details);
         break;
 
       default:
