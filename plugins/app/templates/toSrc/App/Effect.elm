@@ -7,7 +7,7 @@ port module App.Effect exposing
     , sendMsg, sendMsgAfter
     , saveToLocalStorage, clearLocalStorageKey
     , generate
-    , focus, blur
+    , focus, blur, select
     , file, files, fileToUrl
     , copyToClipboard
     , get, request, Expect, expectString, expectJson, expectBytes, expectWhatever
@@ -53,7 +53,7 @@ port module App.Effect exposing
 
 # Browser focus
 
-@docs focus, blur
+@docs focus, blur, select
 
 
 # File selection
@@ -262,6 +262,14 @@ copyToClipboard : String -> Effect msg
 copyToClipboard text =
     SendToWorld
         { tag = "copy-to-clipboard"
+        , details = Just (Json.Encode.string text)
+        }
+
+
+select : String -> Effect msg
+select text =
+    SendToWorld
+        { tag = "focus-and-select"
         , details = Just (Json.Encode.string text)
         }
 
