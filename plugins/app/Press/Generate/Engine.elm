@@ -132,7 +132,7 @@ generate resources allPageDefinitions =
         , getPageInit.declaration
         , loadPage.declaration
         , view pageUsages
-        , getSubscriptions pageUsages
+        , getSubscriptions resources pageUsages
         , subscriptions pageUsages
         , Elm.group
             [ testAlias
@@ -1126,8 +1126,8 @@ routeToView resources regionId pageId pageInfo =
         Nothing
 
 
-getSubscriptions : List Options.App.PageUsage -> Elm.Declaration
-getSubscriptions pages =
+getSubscriptions : List Options.App.Resource -> List Options.App.PageUsage -> Elm.Declaration
+getSubscriptions resources pages =
     Elm.declaration "getSubscriptions"
         (Elm.fn2
             (Elm.Arg.varWith "config" types.frameSub)
@@ -1140,6 +1140,24 @@ getSubscriptions pages =
                         , Elm.get "app" model
                         ]
                         |> Gen.Listen.call_.map (Elm.val "Global")
+                    , case resources of
+                        [] ->
+                            Gen.Listen.none
+
+                        _ ->
+                            resources
+                                |> List.map
+                                    (\resource ->
+                                        toSub config
+                                            (Elm.get "resources" model)
+                                            (Elm.get "app" model)
+                                            (Elm.apply
+                                                (resourceValue resource.id "subscriptions")
+                                                [ model
+                                                ]
+                                            )
+                                    )
+                                |> Gen.Listen.batch
                     , Elm.apply Press.Generate.Regions.values.toList
                         [ Elm.get "views" model ]
                         |> Gen.List.call_.filterMap

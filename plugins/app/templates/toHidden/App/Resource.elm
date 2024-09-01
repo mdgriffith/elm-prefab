@@ -14,6 +14,7 @@ module App.Resource exposing
 import Effect
 import Json.Decode as Decode
 import Json.Encode as Json
+import Listen
 import Url
 
 
@@ -21,6 +22,7 @@ import Url
 type alias Resource msg model =
     { init : Json.Value -> Url.Url -> Maybe model -> ( model, Effect.Effect msg )
     , update : msg -> model -> ( model, Effect.Effect msg )
+    , subscriptions : model -> Listen.Listen msg
     , codec :
         Maybe
             { decoder : Decode.Decoder model
@@ -33,11 +35,13 @@ type alias Resource msg model =
 resource :
     { init : Json.Value -> Url.Url -> Maybe model -> ( model, Effect.Effect msg )
     , update : msg -> model -> ( model, Effect.Effect msg )
+    , subscriptions : model -> Listen.Listen msg
     }
     -> Resource msg model
 resource options =
     { init = options.init
     , update = options.update
+    , subscriptions = options.subscriptions
     , codec = Nothing
     }
 

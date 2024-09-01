@@ -19748,13 +19748,40 @@
             return $author$project$Gen$Listen$none;
         }), $elm$core$List$filterMap_fn(A3($author$project$Press$Generate$Engine$pageInfoToSubscriptioon, config, model, pageId), pages))));
     }, $author$project$Press$Generate$Engine$pageModelToSubscription = F5($author$project$Press$Generate$Engine$pageModelToSubscription_fn);
-    var $author$project$Press$Generate$Engine$getSubscriptions = function (pages) {
+    var $author$project$Press$Generate$Engine$resourceValue_fn = function (resourceId, name) {
+        return $mdgriffith$elm_codegen$Elm$get_fn(name, $mdgriffith$elm_codegen$Elm$value({
+            h: $elm$core$Maybe$Nothing,
+            i: _List_fromArray(["Resource", resourceId]),
+            j: "resource"
+        }));
+    }, $author$project$Press$Generate$Engine$resourceValue = F2($author$project$Press$Generate$Engine$resourceValue_fn);
+    var $author$project$Press$Model$toSub_fn = function (config, resources, frameModel, sub) {
+        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("toSub", config), _List_fromArray([
+            resources,
+            $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
+                _Utils_Tuple2("ignore", $mdgriffith$elm_codegen$Elm$val("SubscriptionEventIgnored"))
+            ])),
+            frameModel,
+            sub
+        ]));
+    }, $author$project$Press$Model$toSub = F4($author$project$Press$Model$toSub_fn);
+    var $author$project$Press$Generate$Engine$getSubscriptions_fn = function (resources, pages) {
         return $mdgriffith$elm_codegen$Elm$declaration_fn("getSubscriptions", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.ba, $author$project$Press$Model$types.aa]), $author$project$Gen$Listen$annotation_.fr($author$project$Press$Model$types.lr)), $mdgriffith$elm_codegen$Elm$fn2_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("config", $author$project$Press$Model$types.ba), $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("model", $author$project$Press$Model$types.aa), F2(function (config, model) {
             return $author$project$Gen$Listen$batch(_List_fromArray([
                 A2($author$project$Gen$Listen$call_.fx, $mdgriffith$elm_codegen$Elm$val("Global"), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("subscriptions", config), _List_fromArray([
                     $mdgriffith$elm_codegen$Elm$get_fn("resources", model),
                     $mdgriffith$elm_codegen$Elm$get_fn("app", model)
                 ]))),
+                function () {
+                    if (!resources.b) {
+                        return $author$project$Gen$Listen$none;
+                    }
+                    else {
+                        return $author$project$Gen$Listen$batch($elm$core$List$map_fn(function (resource) {
+                            return $author$project$Press$Model$toSub_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", model), $mdgriffith$elm_codegen$Elm$get_fn("app", model), $mdgriffith$elm_codegen$Elm$apply_fn($author$project$Press$Generate$Engine$resourceValue_fn(resource.eK, "subscriptions"), _List_fromArray([model])));
+                        }, resources));
+                    }
+                }(),
                 $author$project$Gen$Listen$call_.a$(A2($author$project$Gen$List$call_.d4, $mdgriffith$elm_codegen$Elm$fn_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId", $mdgriffith$elm_codegen$Elm$Annotation$string), function (pageId) {
                     var pageKey = $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("toPageKey"), _List_fromArray([pageId]));
                     return $mdgriffith$elm_codegen$Elm$Case$maybe_fn(A2($author$project$Gen$App$State$call_.en, pageKey, $mdgriffith$elm_codegen$Elm$get_fn("states", model)), {
@@ -19768,7 +19795,7 @@
                 ]))))
             ]));
         }))));
-    };
+    }, $author$project$Press$Generate$Engine$getSubscriptions = F2($author$project$Press$Generate$Engine$getSubscriptions_fn);
     var $mdgriffith$elm_codegen$Elm$group = function (decls) {
         return $mdgriffith$elm_codegen$Internal$Compiler$Group(decls);
     };
@@ -20224,16 +20251,6 @@
             $mdgriffith$elm_codegen$Elm$Variant_fn("Loaded", _List_fromArray([$author$project$Press$Model$types.A, $author$project$Press$Model$types.gE]))
         ]), _Utils_ap(resourceVariants, pageVariants))));
     }, $author$project$Press$Generate$Engine$msgType = F2($author$project$Press$Generate$Engine$msgType_fn);
-    var $author$project$Press$Model$toSub_fn = function (config, resources, frameModel, sub) {
-        return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("toSub", config), _List_fromArray([
-            resources,
-            $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
-                _Utils_Tuple2("ignore", $mdgriffith$elm_codegen$Elm$val("SubscriptionEventIgnored"))
-            ])),
-            frameModel,
-            sub
-        ]));
-    }, $author$project$Press$Model$toSub = F4($author$project$Press$Model$toSub_fn);
     var $author$project$Press$Generate$Engine$subscriptions = function (pages) {
         return $mdgriffith$elm_codegen$Elm$declaration_fn("subscriptions", $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([$author$project$Press$Model$types.ba, $author$project$Press$Model$types.aa]), $author$project$Gen$Platform$Sub$annotation_.my($author$project$Press$Model$types.lr)), $mdgriffith$elm_codegen$Elm$fn2_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("config", $author$project$Press$Model$types.ba), $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("model", $author$project$Press$Model$types.aa), F2(function (config, model) {
             return $author$project$Press$Model$toSub_fn(config, $mdgriffith$elm_codegen$Elm$get_fn("resources", model), $mdgriffith$elm_codegen$Elm$get_fn("app", model), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("getSubscriptions"), _List_fromArray([config, model])));
@@ -20244,13 +20261,6 @@
         i: _List_fromArray(["Effect"]),
         j: "none"
     });
-    var $author$project$Press$Generate$Engine$resourceValue_fn = function (resourceId, name) {
-        return $mdgriffith$elm_codegen$Elm$get_fn(name, $mdgriffith$elm_codegen$Elm$value({
-            h: $elm$core$Maybe$Nothing,
-            i: _List_fromArray(["Resource", resourceId]),
-            j: "resource"
-        }));
-    }, $author$project$Press$Generate$Engine$resourceValue = F2($author$project$Press$Generate$Engine$resourceValue_fn);
     var $author$project$Gen$Effect$LocalStorage$save_fn = function (saveArg_, saveArg_0) {
         return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$value({
             h: $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Annotation$function_fn(_List_fromArray([
@@ -20829,7 +20839,7 @@
             getPageInit.j9,
             loadPage.j9,
             $author$project$Press$Generate$Engine$view(pageUsages),
-            $author$project$Press$Generate$Engine$getSubscriptions(pageUsages),
+            $author$project$Press$Generate$Engine$getSubscriptions_fn(resources, pageUsages),
             $author$project$Press$Generate$Engine$subscriptions(pageUsages),
             $mdgriffith$elm_codegen$Elm$group(_List_fromArray([
                 $author$project$Press$Generate$Engine$testAlias,
