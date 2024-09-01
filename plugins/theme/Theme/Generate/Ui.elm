@@ -6,6 +6,7 @@ import Color
 import Dict
 import Elm
 import Elm.Annotation
+import Elm.Arg
 import Elm.Op
 import Gen.Html.Attributes
 import Gen.String
@@ -68,10 +69,7 @@ tagToString tag =
 
 
 expose tag =
-    Elm.exposeWith
-        { group = Just (tagToString tag)
-        , exposeConstructor = True
-        }
+    Elm.exposeConstructor
 
 
 addNamespace : String -> String -> String
@@ -117,7 +115,7 @@ attrBorderWidthsType =
 
 
 border side =
-    Elm.fn ( "width", Just Elm.Annotation.int )
+    Elm.fn (Elm.Arg.varWith "width" Elm.Annotation.int)
         (\widthInt ->
             Gen.Ui.htmlAttribute
                 (Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ side ++ "-width"))
@@ -132,7 +130,7 @@ borders theme =
         (toFieldsType (\_ -> Elm.Annotation.var "item") theme.borderWidths)
     , Elm.declaration "mapBorderWidths"
         (Elm.fn
-            ( "f", Nothing )
+            (Elm.Arg.var "f")
             (\f ->
                 Elm.record
                     (toFields
@@ -211,8 +209,8 @@ layout theme =
             (toFields
                 (\space ->
                     Elm.fn2
-                        ( "attrs", Nothing )
-                        ( "children", Nothing )
+                        (Elm.Arg.var "attrs")
+                        (Elm.Arg.var "children")
                         (\attrs children ->
                             Gen.Ui.call_.row (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
                         )
@@ -226,8 +224,8 @@ layout theme =
             (toFields
                 (\space ->
                     Elm.fn2
-                        ( "attrs", Nothing )
-                        ( "children", Nothing )
+                        (Elm.Arg.var "attrs")
+                        (Elm.Arg.var "children")
                         (\attrs children ->
                             Gen.Ui.call_.column (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
                         )
@@ -253,7 +251,7 @@ spacing theme =
         )
     , Elm.declaration "mapSpace"
         (Elm.fn
-            ( "f", Nothing )
+            (Elm.Arg.var "f")
             (\f ->
                 Elm.record
                     (toFields
@@ -280,11 +278,11 @@ spacing theme =
                 ++ [ ( "xy"
                      , Elm.apply (Elm.val "mapSpace")
                         [ Elm.fn
-                            ( "spacingX", Just Elm.Annotation.int )
+                            (Elm.Arg.varWith "spacingX" Elm.Annotation.int)
                             (\spacingX ->
                                 Elm.apply (Elm.val "mapSpace")
                                     [ Elm.fn
-                                        ( "spacingY", Just Elm.Annotation.int )
+                                        (Elm.Arg.varWith "spacingY" Elm.Annotation.int)
                                         (\spacingY ->
                                             Gen.Ui.call_.paddingXY spacingX spacingY
                                         )
@@ -466,8 +464,8 @@ generateTextElements theme =
 
                         elFn =
                             Elm.fn2
-                                ( "attrs", Nothing )
-                                ( "child", Just Elm.Annotation.string )
+                                (Elm.Arg.var "attrs")
+                                (Elm.Arg.varWith "child" Elm.Annotation.string)
                                 (\attrs child ->
                                     Gen.Ui.call_.el
                                         (addAcccessibilityAttrs (Elm.Op.cons fullClassAttr attrs))

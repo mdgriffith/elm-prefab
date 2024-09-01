@@ -5,29 +5,13 @@ module Generate.Assets exposing (frontmatterParser, generate, trimFrontMatter)
 import Dict exposing (Dict)
 import Elm
 import Elm.Annotation as Type
+import Elm.Arg
 import Elm.Case
-import Elm.Case.Branch as Branch
-import Elm.Let
-import Elm.Op
-import Gen.Dict
-import Gen.Html
-import Gen.Http
-import Gen.Json.Encode
-import Gen.List
-import Gen.Markdown.Parser
-import Gen.Markdown.Renderer
-import Gen.Maybe
-import Gen.Platform.Cmd
-import Gen.Platform.Sub
-import Gen.String
-import Gen.Tuple
-import Json.Decode
 import Markdown.Block
 import Markdown.Parser
 import Options.Assets
 import Parser exposing ((|.), (|=))
 import Path
-import Set exposing (Set)
 
 
 generate : List Options.Assets.AssetGroup -> List Elm.File
@@ -54,15 +38,15 @@ assetRootFile =
                 ]
             ]
         , Elm.declaration "toString"
-            (Elm.fn ( "src", Just (Type.named [] "Src") )
+            (Elm.fn (Elm.Arg.varWith "src" (Type.named [] "Src"))
                 (\src ->
                     Elm.Case.custom src
                         (Type.named [] "Src")
-                        [ Elm.Case.branch1 "Src"
-                            ( "innerSrc", Type.string )
-                            (\innerSrc ->
-                                innerSrc
+                        [ Elm.Case.branch
+                            (Elm.Arg.customType "Src" identity
+                                |> Elm.Arg.item (Elm.Arg.varWith "innerSrc" Type.string)
                             )
+                            identity
                         ]
                 )
             )
@@ -122,10 +106,7 @@ toSourceDeclaration file =
         Options.Assets.Text source ->
             Elm.declaration (declarationName file)
                 (Elm.string source)
-                |> Elm.exposeWith
-                    { exposeConstructor = True
-                    , group = Just (String.join "/" file.crumbs)
-                    }
+                |> Elm.exposeConstructor
                 |> Just
 
 
@@ -218,10 +199,7 @@ generateAssetGroupDirectory group =
                                     )
                                 )
                         )
-                        |> Elm.exposeWith
-                            { exposeConstructor = True
-                            , group = Just "Directory"
-                            }
+                        |> Elm.exposeConstructor
                     ]
     in
     if List.isEmpty entries then

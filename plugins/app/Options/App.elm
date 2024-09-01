@@ -7,25 +7,6 @@ module Options.App exposing
 
 {-| -}
 
-import Elm
-import Elm.Annotation as Type
-import Elm.Case
-import Elm.Declare
-import Elm.Let
-import Elm.Op
-import Gen.App.Effect
-import Gen.App.Page
-import Gen.App.Page.Error
-import Gen.App.State
-import Gen.App.Sub
-import Gen.Browser
-import Gen.Browser.Navigation
-import Gen.Json.Encode
-import Gen.List
-import Gen.Platform.Cmd
-import Gen.Platform.Sub
-import Gen.Set
-import Gen.Url
 import Json.Decode
 import Options.Route
 import Set exposing (Set)

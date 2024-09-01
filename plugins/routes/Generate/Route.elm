@@ -9,33 +9,18 @@ module Generate.Route exposing
 
 import Elm
 import Elm.Annotation as Type
+import Elm.Arg
 import Elm.Case
-import Elm.Case.Branch as Branch
-import Elm.Let
 import Elm.Op
 import Extra.Parser
 import Gen.AppUrl
-import Gen.Browser
-import Gen.Browser.Navigation
 import Gen.Dict
-import Gen.Html
-import Gen.Http
-import Gen.Json.Encode
 import Gen.List
-import Gen.Markdown.Parser
-import Gen.Markdown.Renderer
 import Gen.Maybe
-import Gen.Platform.Cmd
-import Gen.Platform.Sub
 import Gen.String
-import Gen.Tuple
 import Gen.Url
-import Gen.Url.Parser
-import Gen.Url.Parser.Query
-import Json.Decode
 import Options.Route
 import Parser exposing ((|.), (|=))
-import Path
 import Set exposing (Set)
 
 
@@ -397,27 +382,24 @@ generate parsedRoutes =
             Ok <|
                 Elm.fileWith [ "App", "Route" ]
                     { docs =
-                        \groups ->
-                            groups
-                                |> List.sortBy
-                                    (\doc ->
-                                        case doc.group of
-                                            Nothing ->
-                                                0
-
-                                            Just "Route" ->
-                                                1
-
-                                            Just "Params" ->
-                                                2
-
-                                            Just "Encodings" ->
-                                                3
-
-                                            _ ->
-                                                4
-                                    )
-                                |> List.map Elm.docs
+                        -- \groups ->
+                        --     groups
+                        --         |> List.sortBy
+                        --             (\doc ->
+                        --                 case doc.group of
+                        --                     Nothing ->
+                        --                         0
+                        --                     Just "Route" ->
+                        --                         1
+                        --                     Just "Params" ->
+                        --                         2
+                        --                     Just "Encodings" ->
+                        --                         3
+                        --                     _ ->
+                        --                         4
+                        --             )
+                        --         |> List.map Elm.docs
+                        "# Routes"
                     , aliases = []
                     }
                     (List.concat
@@ -431,19 +413,13 @@ generate parsedRoutes =
                                     )
                                     routes
                                 )
-                                |> Elm.exposeWith
-                                    { exposeConstructor = True
-                                    , group = Just "Route"
-                                    }
+                                |> Elm.expose
                           ]
                         , List.map
                             (\route ->
                                 Elm.alias (route.id ++ "_Params")
                                     (paramType route)
-                                    |> Elm.exposeWith
-                                        { exposeConstructor = False
-                                        , group = Just "Params"
-                                        }
+                                    |> Elm.expose
                             )
                             routes
                         , urlEncoder routes
@@ -526,15 +502,17 @@ paramType route =
 urlToId : List Options.Route.Page -> List Elm.Declaration
 urlToId routes =
     [ Elm.declaration "toId"
-        (Elm.fn ( "route", Just (Type.named [] "Route") )
+        (Elm.fn (Elm.Arg.varWith "route" (Type.named [] "Route"))
             (\route ->
                 Elm.Case.custom route
                     (Type.named [] "Route")
                     (routes
                         |> List.map
                             (\individualRoute ->
-                                Elm.Case.branch1 individualRoute.id
-                                    ( "params", paramType individualRoute )
+                                Elm.Case.branch
+                                    (Elm.Arg.customType individualRoute.id identity
+                                        |> Elm.Arg.item (Elm.Arg.varWith "params" (paramType individualRoute))
+                                    )
                                     (\params ->
                                         let
                                             variables =
@@ -562,10 +540,7 @@ urlToId routes =
             |> Elm.withType
                 (Type.function [ Type.named [] "Route" ] Type.string)
         )
-        |> Elm.exposeWith
-            { exposeConstructor = True
-            , group = Just "Encodings"
-            }
+        |> Elm.exposeConstructor
     ]
 
 
@@ -588,15 +563,17 @@ getParamVariableList page =
 urlEncoder : List Options.Route.Page -> List Elm.Declaration
 urlEncoder routes =
     [ Elm.declaration "toString"
-        (Elm.fn ( "route", Just (Type.named [] "Route") )
+        (Elm.fn (Elm.Arg.varWith "route" (Type.named [] "Route"))
             (\route ->
                 Elm.Case.custom route
                     (Type.named [] "Route")
                     (routes
                         |> List.map
                             (\individualRoute ->
-                                Elm.Case.branch1 individualRoute.id
-                                    ( "params", paramType individualRoute )
+                                Elm.Case.branch
+                                    (Elm.Arg.customType individualRoute.id identity
+                                        |> Elm.Arg.item (Elm.Arg.varWith "params" (paramType individualRoute))
+                                    )
                                     (\params ->
                                         let
                                             (Options.Route.UrlPattern { path, includePathTail, queryParams }) =
@@ -610,10 +587,7 @@ urlEncoder routes =
             |> Elm.withType
                 (Type.function [ Type.named [] "Route" ] Type.string)
         )
-        |> Elm.exposeWith
-            { exposeConstructor = True
-            , group = Just "Encodings"
-            }
+        |> Elm.expose
     ]
 
 
@@ -725,39 +699,40 @@ sameRoute routes =
     if List.length routes <= 1 then
         Elm.declaration "sameRouteBase"
             (Elm.fn2
-                ( "one", Just (Type.named [] "Route") )
-                ( "two", Just (Type.named [] "Route") )
+                (Elm.Arg.varWith "one" (Type.named [] "Route"))
+                (Elm.Arg.varWith "two" (Type.named [] "Route"))
                 (\one two ->
                     Elm.bool True
                 )
             )
-            |> Elm.exposeWith
-                { exposeConstructor = False
-                , group = Just "Route"
-                }
+            |> Elm.expose
 
     else
         Elm.declaration "sameRouteBase"
             (Elm.fn2
-                ( "one", Just (Type.named [] "Route") )
-                ( "two", Just (Type.named [] "Route") )
+                (Elm.Arg.varWith "one" (Type.named [] "Route"))
+                (Elm.Arg.varWith "two" (Type.named [] "Route"))
                 (\one two ->
                     Elm.Case.custom one
                         (Type.named [] "Route")
                         (routes
                             |> List.map
                                 (\route ->
-                                    Elm.Case.branch1 route.id
-                                        ( "params", Type.var "params" )
+                                    Elm.Case.branch
+                                        (Elm.Arg.customType route.id identity
+                                            |> Elm.Arg.item (Elm.Arg.varWith "params" (Type.var "params"))
+                                        )
                                         (\_ ->
                                             Elm.Case.custom two
                                                 (Type.named [] "Route")
-                                                [ Elm.Case.branch1 route.id
-                                                    ( "params2", Type.var "params2" )
+                                                [ Elm.Case.branch
+                                                    (Elm.Arg.customType route.id identity
+                                                        |> Elm.Arg.item (Elm.Arg.varWith "params2" (Type.var "params2"))
+                                                    )
                                                     (\_ ->
                                                         Elm.bool True
                                                     )
-                                                , Elm.Case.otherwise
+                                                , Elm.Case.branch Elm.Arg.ignore
                                                     (\_ ->
                                                         Elm.bool False
                                                     )
@@ -767,16 +742,13 @@ sameRoute routes =
                         )
                 )
             )
-            |> Elm.exposeWith
-                { exposeConstructor = False
-                , group = Just "Route"
-                }
+            |> Elm.expose
 
 
 urlParser : List Options.Route.Page -> List Elm.Declaration
 urlParser routes =
     [ Elm.declaration "parse"
-        (Elm.fn ( "url", Just Gen.Url.annotation_.url )
+        (Elm.fn (Elm.Arg.varWith "url" Gen.Url.annotation_.url)
             (\url ->
                 let
                     appUrl =
@@ -797,10 +769,7 @@ urlParser routes =
                     )
                 )
         )
-        |> Elm.exposeWith
-            { exposeConstructor = True
-            , group = Just "Encodings"
-            }
+        |> Elm.exposeConstructor
     , sameRoute routes
     , parseAppUrl routes
     , Elm.unsafe """
@@ -836,13 +805,14 @@ parseAppUrl unsorted =
     in
     Elm.declaration "parseAppUrl"
         (Elm.fn
-            ( "appUrl", Just Gen.AppUrl.annotation_.appUrl )
+            (Elm.Arg.varWith "appUrl" Gen.AppUrl.annotation_.appUrl)
             (\appUrl ->
                 Elm.Case.custom
                     (Elm.get "path" appUrl)
                     (Type.list Type.string)
                     (List.map (toBranchPattern appUrl) paths
-                        ++ [ Branch.ignore Elm.nothing
+                        ++ [ Elm.Case.branch Elm.Arg.ignore
+                                (\_ -> Elm.nothing)
                            ]
                     )
                     |> Elm.withType
@@ -887,7 +857,7 @@ toBranchPattern :
         , redirect : Bool
         , pattern : Options.Route.UrlPattern
         }
-    -> Branch.Pattern Elm.Expression
+    -> Elm.Case.Branch
 toBranchPattern appUrl routeInfo =
     let
         page =
@@ -904,18 +874,21 @@ toBranchPattern appUrl routeInfo =
                 |> Elm.just
     in
     if pattern.includePathTail then
-        Branch.listWithRemaining
-            { patterns = List.map toTokenPattern pattern.path
-            , remaining = Branch.var "andPathTail"
-            , startWith = []
-            , gather =
-                \fields gathered ->
-                    fields ++ gathered
-            , finally =
-                \pathFields remaining ->
+        Elm.Case.branch
+            (Elm.Arg.list
+                (\_ remaining ->
                     let
-                        fields =
-                            pathFields ++ queryParamFields
+                        pathFields =
+                            List.filterMap
+                                (\token ->
+                                    case token of
+                                        Options.Route.Token _ ->
+                                            Nothing
+
+                                        Options.Route.Variable varname ->
+                                            Just ( varname, Elm.val varname )
+                                )
+                                pattern.path
 
                         queryParamFields =
                             pattern.queryParams.specificFields
@@ -932,23 +905,32 @@ toBranchPattern appUrl routeInfo =
                     in
                     Elm.apply
                         (Elm.val page.id)
-                        [ Elm.record (( "path_", remaining ) :: fields)
+                        [ Elm.record
+                            (pathFields ++ queryParamFields ++ [ ( "path_", remaining ) ])
                         ]
                         |> toResult
-            }
+                )
+                |> Elm.Arg.items (List.map toTokenPattern pattern.path)
+                |> Elm.Arg.listRemaining "andPathTail"
+            )
+            identity
 
     else
-        Branch.list
-            { patterns = List.map toTokenPattern pattern.path
-            , startWith = []
-            , gather =
-                \fields gathered ->
-                    fields ++ gathered
-            , finally =
-                \pathFields ->
+        Elm.Case.branch
+            (Elm.Arg.list
+                (\_ ->
                     let
-                        fields =
-                            pathFields ++ queryParamFields
+                        pathFields =
+                            List.filterMap
+                                (\token ->
+                                    case token of
+                                        Options.Route.Token _ ->
+                                            Nothing
+
+                                        Options.Route.Variable varname ->
+                                            Just ( varname, Elm.val varname )
+                                )
+                                pattern.path
 
                         queryParamFields =
                             pattern.queryParams.specificFields
@@ -965,21 +947,21 @@ toBranchPattern appUrl routeInfo =
                     in
                     Elm.apply
                         (Elm.val page.id)
-                        [ Elm.record fields
+                        [ Elm.record
+                            (pathFields ++ queryParamFields)
                         ]
                         |> toResult
-            }
+                )
+                |> Elm.Arg.items (List.map toTokenPattern pattern.path)
+            )
+            identity
 
 
-toTokenPattern : Options.Route.UrlPiece -> Branch.Pattern (List ( String, Elm.Expression ))
+toTokenPattern : Options.Route.UrlPiece -> Elm.Arg Elm.Expression
 toTokenPattern token =
     case token of
         Options.Route.Token string ->
-            Branch.string string []
+            Elm.Arg.string string
 
         Options.Route.Variable varname ->
-            Branch.var varname
-                |> Branch.map
-                    (\var ->
-                        [ ( varname, var ) ]
-                    )
+            Elm.Arg.var varname

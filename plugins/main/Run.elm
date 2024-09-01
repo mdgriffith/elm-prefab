@@ -2,7 +2,6 @@ module Run exposing (..)
 
 {-| -}
 
-import Elm
 import Gen.CodeGen.Generate as Generate
 import Generate.Assets
 import Generate.Docs

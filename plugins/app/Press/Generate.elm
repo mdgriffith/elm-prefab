@@ -23,6 +23,7 @@ It will also generate a full app for you??
 
 import Elm
 import Elm.Annotation as Type
+import Elm.Arg
 import Elm.Case
 import Generate.Route
 import Options.App
@@ -138,7 +139,7 @@ generatePageId pageUsages =
         fromRoute =
             Elm.declaration "fromRoute"
                 (Elm.fn
-                    ( "route", Just (Type.named [ "App", "Route" ] "Route") )
+                    (Elm.Arg.varWith "route" (Type.named [ "App", "Route" ] "Route"))
                     (\route ->
                         Elm.Case.custom route
                             (Type.named [ "App", "Route" ] "Route")
@@ -155,8 +156,10 @@ generatePageId pageUsages =
 
                                                 Ok [ pageRoute ] ->
                                                     Just
-                                                        (Elm.Case.branch1 pageRoute.id
-                                                            ( "params", Type.named [ "App", "Route" ] (pageRoute.id ++ "_Params") )
+                                                        (Elm.Case.branch
+                                                            (Elm.Arg.customType pageRoute.id identity
+                                                                |> Elm.Arg.item (Elm.Arg.varWith "params" (Type.named [ "App", "Route" ] (pageRoute.id ++ "_Params")))
+                                                            )
                                                             (\params ->
                                                                 if page.urlOnly then
                                                                     Elm.nothing

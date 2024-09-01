@@ -2,10 +2,10 @@ module Press.Generate.Regions exposing (generate, values)
 
 import Elm
 import Elm.Annotation as Type
+import Elm.Arg
 import Elm.Case
 import Elm.Let
 import Elm.Op
-import Gen.App.Effect
 import Gen.List
 import Gen.Maybe
 import Press.Model
@@ -116,31 +116,22 @@ generateRegionIndex viewRegions =
             Press.Model.types.routeType
     in
     Elm.fileWith [ "App", "View", "Id" ]
-        { docs = List.map Elm.docs
+        { docs = ""
         , aliases = []
         }
         [ Elm.customType "Region"
             otherRegions
-            |> Elm.exposeWith
-                { exposeConstructor = True
-                , group = Nothing
-                }
+            |> Elm.exposeConstructor
         , Elm.customType "Id"
             otherRegionIds
-            |> Elm.exposeWith
-                { exposeConstructor = True
-                , group = Nothing
-                }
+            |> Elm.exposeConstructor
         , Elm.alias "Changes"
             (Type.record
                 [ ( "added", Type.list (Type.var "view") )
                 , ( "removed", Type.list (Type.var "view") )
                 ]
             )
-            |> Elm.exposeWith
-                { exposeConstructor = True
-                , group = Nothing
-                }
+            |> Elm.exposeConstructor
         , Elm.customType "Operation"
             [ Elm.variantWith "Push" [ types.region, Type.var "view" ]
             , Elm.variantWith "PushTo" [ types.id, Type.var "view" ]
@@ -149,10 +140,7 @@ generateRegionIndex viewRegions =
             , Elm.variantWith "ClearRegion" [ types.region ]
             , Elm.variantWith "ClearView" [ types.id ]
             ]
-            |> Elm.exposeWith
-                { exposeConstructor = True
-                , group = Nothing
-                }
+            |> Elm.exposeConstructor
         , mapOperation
         , update viewRegions
 
@@ -198,15 +186,17 @@ update regions =
     in
     Elm.declaration "update"
         (Elm.fn2
-            ( "operation", Just types.operation )
-            ( "regions", Just types.regionRecord )
+            (Elm.Arg.varWith "operation" types.operation)
+            (Elm.Arg.varWith "regions" types.regionRecord)
             (\operation model ->
                 Elm.Case.custom operation
                     types.operation
-                    [ Elm.Case.branch2 "Push"
-                        ( "region", types.region )
-                        ( "val", Type.var "view" )
-                        (\region pageId ->
+                    [ Elm.Case.branch
+                        (Elm.Arg.customType "Push" Tuple.pair
+                            |> Elm.Arg.item (Elm.Arg.varWith "region" types.region)
+                            |> Elm.Arg.item (Elm.Arg.varWith "val" (Type.var "view"))
+                        )
+                        (\( region, pageId ) ->
                             -- let
                             --     shared =
                             --         Press.Model.toShared config (Elm.get "frame" model)
@@ -233,10 +223,12 @@ update regions =
                                     )
                                 |> Elm.Let.toExpression
                         )
-                    , Elm.Case.branch2 "PushTo"
-                        ( "regionId", types.id )
-                        ( "val", Type.var "view" )
-                        (\regionId pageId ->
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "PushTo" Tuple.pair
+                            |> Elm.Arg.item (Elm.Arg.varWith "regionId" types.id)
+                            |> Elm.Arg.item (Elm.Arg.varWith "val" (Type.var "view"))
+                        )
+                        (\( regionId, pageId ) ->
                             -- let
                             --     shared =
                             --         Press.Model.toShared config (Elm.get "frame" model)
@@ -264,10 +256,12 @@ update regions =
                                     )
                                 |> Elm.Let.toExpression
                         )
-                    , Elm.Case.branch2 "ReplaceAt"
-                        ( "regionId", types.id )
-                        ( "val", Type.var "view" )
-                        (\regionId pageId ->
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "ReplaceAt" Tuple.pair
+                            |> Elm.Arg.item (Elm.Arg.varWith "regionId" types.id)
+                            |> Elm.Arg.item (Elm.Arg.varWith "val" (Type.var "view"))
+                        )
+                        (\( regionId, pageId ) ->
                             -- let
                             --     shared =
                             --         Press.Model.toShared config (Elm.get "frame" model)
@@ -294,17 +288,20 @@ update regions =
                                     )
                                 |> Elm.Let.toExpression
                         )
-                    , Elm.Case.branch0 "Clear"
-                        (Elm.tuple
-                            (Gen.List.call_.foldl
-                                (Elm.val "clearRegion")
-                                model
-                                (Elm.val "allRegions")
-                            )
-                            noChanges
+                    , Elm.Case.branch (Elm.Arg.customType "Clear" ())
+                        (\_ ->
+                            Elm.tuple
+                                (Gen.List.call_.foldl
+                                    (Elm.val "clearRegion")
+                                    model
+                                    (Elm.val "allRegions")
+                                )
+                                noChanges
                         )
-                    , Elm.Case.branch1 "ClearRegion"
-                        ( "region", types.region )
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "ClearRegion" identity
+                            |> Elm.Arg.item (Elm.Arg.varWith "region" types.region)
+                        )
                         (\region ->
                             Elm.tuple
                                 (Elm.apply (Elm.val "clearRegion")
@@ -314,8 +311,10 @@ update regions =
                                 )
                                 noChanges
                         )
-                    , Elm.Case.branch1 "ClearView"
-                        ( "regionId", types.id )
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "ClearView" identity
+                            |> Elm.Arg.item (Elm.Arg.varWith "regionId" types.id)
+                        )
                         (\regionId ->
                             Elm.tuple
                                 (Elm.apply (Elm.val "clearRegionAt")
@@ -374,26 +373,27 @@ setRegion regions =
     in
     Elm.declaration "setRegion"
         (Elm.fn3
-            ( "region", Just types.region )
-            ( "contentId", Just (Type.var "view") )
-            ( "viewRegions", Just types.regionRecord )
+            (Elm.Arg.varWith "region" types.region)
+            (Elm.Arg.varWith "contentId" (Type.var "view"))
+            (Elm.Arg.varWith "viewRegions" types.regionRecord)
             (\region contentId viewRegions ->
                 Elm.Case.custom region
                     types.region
                     (List.map
                         (\( field, regionType ) ->
-                            Elm.Case.branch0 field
-                                (Elm.updateRecord
-                                    [ ( field
-                                      , case regionType of
-                                            Press.Model.One ->
-                                                Elm.just contentId
+                            Elm.Case.branch (Elm.Arg.customType field ())
+                                (\_ ->
+                                    Elm.updateRecord
+                                        [ ( field
+                                          , case regionType of
+                                                Press.Model.One ->
+                                                    Elm.just contentId
 
-                                            Press.Model.Many ->
-                                                Elm.list [ contentId ]
-                                      )
-                                    ]
-                                    viewRegions
+                                                Press.Model.Many ->
+                                                    Elm.list [ contentId ]
+                                          )
+                                        ]
+                                        viewRegions
                                 )
                         )
                         allRegions
@@ -424,77 +424,88 @@ setRegionItem regions =
             regions.regions
     in
     Elm.declaration "setRegionItem"
-        (Elm.fn4
-            ( "regionId", Just types.id )
-            ( "contentId", Just (Type.var "view") )
-            ( "viewRegions", Just types.regionRecord )
-            ( "replaceExisting", Just Type.bool )
-            (\regionId newPageId viewRegions replaceExisting ->
-                Elm.Case.custom regionId
-                    types.id
-                    (List.map
-                        (\( field, regionType ) ->
-                            case regionType of
-                                Press.Model.One ->
-                                    Elm.Case.branch0 (toRegionIdType field)
-                                        (Elm.updateRecord
-                                            [ ( field
-                                              , Elm.just newPageId
-                                              )
-                                            ]
-                                            viewRegions
-                                        )
-
-                                Press.Model.Many ->
-                                    Elm.Case.branch1 (toRegionIdType field)
-                                        ( "index", Type.int )
-                                        (\index ->
-                                            Elm.ifThen (Elm.Op.lte index (Elm.int 0))
-                                                -- Add to the beginning
-                                                (Elm.updateRecord
+        (Elm.fnBuilder
+            (\regionId contentId viewRegions replaceExisting ->
+                { regionId = regionId
+                , contentId = contentId
+                , viewRegions = viewRegions
+                , replaceExisting = replaceExisting
+                }
+            )
+            |> Elm.fnArg (Elm.Arg.varWith "regionId" types.id)
+            |> Elm.fnArg (Elm.Arg.varWith "contentId" (Type.var "view"))
+            |> Elm.fnArg (Elm.Arg.varWith "viewRegions" types.regionRecord)
+            |> Elm.fnArg (Elm.Arg.varWith "replaceExisting" Type.bool)
+            |> Elm.body
+                (\{ regionId, contentId, viewRegions, replaceExisting } ->
+                    Elm.Case.custom regionId
+                        types.id
+                        (List.map
+                            (\( field, regionType ) ->
+                                case regionType of
+                                    Press.Model.One ->
+                                        Elm.Case.branch (Elm.Arg.customType (toRegionIdType field) ())
+                                            (\_ ->
+                                                Elm.updateRecord
                                                     [ ( field
-                                                      , Elm.Op.cons newPageId (Elm.get field viewRegions)
+                                                      , Elm.just contentId
                                                       )
                                                     ]
                                                     viewRegions
-                                                )
-                                                (Elm.ifThen (Elm.Op.gt index (Gen.List.call_.length (Elm.get field viewRegions)))
-                                                    -- Add to the end
+                                            )
+
+                                    Press.Model.Many ->
+                                        Elm.Case.branch
+                                            (Elm.Arg.customType (toRegionIdType field) identity
+                                                |> Elm.Arg.item (Elm.Arg.varWith "index" Type.int)
+                                            )
+                                            (\index ->
+                                                Elm.ifThen (Elm.Op.lte index (Elm.int 0))
+                                                    -- Add to the beginning
                                                     (Elm.updateRecord
                                                         [ ( field
-                                                          , Elm.Op.append
-                                                                (Elm.get field viewRegions)
-                                                                (Elm.list [ newPageId ])
+                                                          , Elm.Op.cons contentId (Elm.get field viewRegions)
                                                           )
                                                         ]
                                                         viewRegions
                                                     )
-                                                    -- Add at the index, pushing whatever back
-                                                    (Elm.updateRecord
-                                                        [ ( field
-                                                          , Elm.get field viewRegions
-                                                                |> Gen.List.call_.indexedMap
-                                                                    (Elm.fn2
-                                                                        ( "itemIndex", Just Type.int )
-                                                                        ( "pageId", Just Type.string )
-                                                                        (\itemIndex pageId ->
-                                                                            Elm.ifThen (Elm.Op.equal itemIndex index)
-                                                                                (Elm.list [ newPageId, pageId ])
-                                                                                (Elm.list [ pageId ])
+                                                    (Elm.ifThen (Elm.Op.gt index (Gen.List.call_.length (Elm.get field viewRegions)))
+                                                        -- Add to the end
+                                                        (Elm.updateRecord
+                                                            [ ( field
+                                                              , Elm.Op.append
+                                                                    (Elm.get field viewRegions)
+                                                                    (Elm.list [ contentId ])
+                                                              )
+                                                            ]
+                                                            viewRegions
+                                                        )
+                                                        -- Add at the index, pushing whatever back
+                                                        (Elm.updateRecord
+                                                            [ ( field
+                                                              , Elm.get field viewRegions
+                                                                    |> Gen.List.call_.indexedMap
+                                                                        (Elm.fn2
+                                                                            (Elm.Arg.varWith "itemIndex" Type.int)
+                                                                            (Elm.Arg.varWith "pageId" Type.string)
+                                                                            (\itemIndex pageId ->
+                                                                                Elm.ifThen (Elm.Op.equal itemIndex index)
+                                                                                    (Elm.list [ contentId, pageId ])
+                                                                                    (Elm.list [ pageId ])
+                                                                            )
                                                                         )
-                                                                    )
-                                                                |> Gen.List.call_.concat
-                                                          )
-                                                        ]
-                                                        viewRegions
+                                                                    |> Gen.List.call_.concat
+                                                              )
+                                                            ]
+                                                            viewRegions
+                                                        )
                                                     )
-                                                )
-                                        )
+                                            )
+                            )
+                            allRegions
                         )
-                        allRegions
-                    )
-                    |> Elm.withType types.regionRecord
-            )
+                        |> Elm.withType types.regionRecord
+                )
         )
 
 
@@ -506,25 +517,26 @@ clearRegion regions =
     in
     Elm.declaration "clearRegion"
         (Elm.fn2
-            ( "region", Just types.region )
-            ( "viewRegions", Just types.regionRecord )
+            (Elm.Arg.varWith "region" types.region)
+            (Elm.Arg.varWith "viewRegions" types.regionRecord)
             (\region viewRegions ->
                 Elm.Case.custom region
                     types.region
                     (List.map
                         (\( field, regionType ) ->
-                            Elm.Case.branch0 field
-                                (Elm.updateRecord
-                                    [ ( field
-                                      , case regionType of
-                                            Press.Model.One ->
-                                                Elm.nothing
+                            Elm.Case.branch (Elm.Arg.customType field ())
+                                (\_ ->
+                                    Elm.updateRecord
+                                        [ ( field
+                                          , case regionType of
+                                                Press.Model.One ->
+                                                    Elm.nothing
 
-                                            Press.Model.Many ->
-                                                Elm.list []
-                                      )
-                                    ]
-                                    viewRegions
+                                                Press.Model.Many ->
+                                                    Elm.list []
+                                          )
+                                        ]
+                                        viewRegions
                                 )
                         )
                         allRegions
@@ -545,8 +557,8 @@ clearRegionAt regions =
     in
     Elm.declaration "clearRegionAt"
         (Elm.fn2
-            ( "regionId", Just types.id )
-            ( "viewRegions", Just types.regionRecord )
+            (Elm.Arg.varWith "regionId" types.id)
+            (Elm.Arg.varWith "viewRegions" types.regionRecord)
             (\regionId viewRegions ->
                 Elm.Case.custom regionId
                     types.id
@@ -554,18 +566,21 @@ clearRegionAt regions =
                         (\( field, regionType ) ->
                             case regionType of
                                 Press.Model.One ->
-                                    Elm.Case.branch0 (toRegionIdType field)
-                                        (Elm.updateRecord
-                                            [ ( field
-                                              , Elm.nothing
-                                              )
-                                            ]
-                                            viewRegions
+                                    Elm.Case.branch (Elm.Arg.customType (toRegionIdType field) ())
+                                        (\_ ->
+                                            Elm.updateRecord
+                                                [ ( field
+                                                  , Elm.nothing
+                                                  )
+                                                ]
+                                                viewRegions
                                         )
 
                                 Press.Model.Many ->
-                                    Elm.Case.branch1 (toRegionIdType field)
-                                        ( "index", Type.int )
+                                    Elm.Case.branch
+                                        (Elm.Arg.customType (toRegionIdType field) identity
+                                            |> Elm.Arg.item (Elm.Arg.varWith "index" Type.int)
+                                        )
                                         (\index ->
                                             -- Add at the index, pushing whatever back
                                             Elm.updateRecord
@@ -573,8 +588,8 @@ clearRegionAt regions =
                                                   , Elm.get field viewRegions
                                                         |> Gen.List.call_.indexedMap
                                                             (Elm.fn2
-                                                                ( "itemIndex", Just Type.int )
-                                                                ( "pageId", Just Type.string )
+                                                                (Elm.Arg.varWith "itemIndex" Type.int)
+                                                                (Elm.Arg.varWith "pageId" Type.string)
                                                                 (\itemIndex pageId ->
                                                                     Elm.ifThen (Elm.Op.equal itemIndex index)
                                                                         (Elm.list [])
@@ -623,7 +638,7 @@ toList regions =
     in
     Elm.declaration "toList"
         (Elm.fn
-            ( "viewRegions", Just types.regionRecord )
+            (Elm.Arg.varWith "viewRegions" types.regionRecord)
             (\viewRegions ->
                 allRegions
                     |> List.map
@@ -670,59 +685,68 @@ mapOperation : Elm.Declaration
 mapOperation =
     Elm.declaration "mapOperation"
         (Elm.fn2
-            ( "fn"
-            , Just
+            (Elm.Arg.varWith "fn"
                 (Type.function
                     [ Type.var "view"
                     ]
                     (Type.var "b")
                 )
             )
-            ( "operation", Just types.operation )
+            (Elm.Arg.varWith "operation" types.operation)
             (\fn operation ->
                 Elm.Case.custom operation
                     types.operation
-                    [ Elm.Case.branch2 "Push"
-                        ( "region", types.region )
-                        ( "pageId", Type.var "view" )
-                        (\region pageId ->
+                    [ Elm.Case.branch
+                        (Elm.Arg.customType "Push" Tuple.pair
+                            |> Elm.Arg.item (Elm.Arg.varWith "region" types.region)
+                            |> Elm.Arg.item (Elm.Arg.varWith "pageId" (Type.var "view"))
+                        )
+                        (\( region, pageId ) ->
                             Elm.apply
                                 (Elm.val "Push")
                                 [ region
                                 , Elm.apply fn [ pageId ]
                                 ]
                         )
-                    , Elm.Case.branch2 "PushTo"
-                        ( "regionId", types.id )
-                        ( "route", Type.var "view" )
-                        (\regionId pageId ->
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "PushTo" Tuple.pair
+                            |> Elm.Arg.item (Elm.Arg.varWith "regionId" types.id)
+                            |> Elm.Arg.item (Elm.Arg.varWith "route" (Type.var "view"))
+                        )
+                        (\( regionId, pageId ) ->
                             Elm.apply
                                 (Elm.val "PushTo")
                                 [ regionId
                                 , Elm.apply fn [ pageId ]
                                 ]
                         )
-                    , Elm.Case.branch2 "ReplaceAt"
-                        ( "regionId", types.id )
-                        ( "pageId", Press.Model.types.pageId )
-                        (\regionId pageId ->
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "ReplaceAt" Tuple.pair
+                            |> Elm.Arg.item (Elm.Arg.varWith "regionId" types.id)
+                            |> Elm.Arg.item (Elm.Arg.varWith "pageId" Press.Model.types.pageId)
+                        )
+                        (\( regionId, pageId ) ->
                             Elm.apply
                                 (Elm.val "ReplaceAt")
                                 [ regionId
                                 , Elm.apply fn [ pageId ]
                                 ]
                         )
-                    , Elm.Case.branch0 "Clear"
-                        (Elm.val "Clear")
-                    , Elm.Case.branch1 "ClearRegion"
-                        ( "region", types.region )
+                    , Elm.Case.branch (Elm.Arg.customType "Clear" ())
+                        (\_ -> Elm.val "Clear")
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "ClearRegion" identity
+                            |> Elm.Arg.item (Elm.Arg.varWith "region" types.region)
+                        )
                         (\region ->
                             Elm.apply
                                 (Elm.val "ClearRegion")
                                 [ region ]
                         )
-                    , Elm.Case.branch1 "ClearView"
-                        ( "regionId", types.id )
+                    , Elm.Case.branch
+                        (Elm.Arg.customType "ClearView" identity
+                            |> Elm.Arg.item (Elm.Arg.varWith "regionId" types.id)
+                        )
                         (\regionId ->
                             Elm.apply
                                 (Elm.val "ClearView")
@@ -744,8 +768,8 @@ mapRegion regions =
     in
     Elm.declaration "mapRegion"
         (Elm.fn2
-            ( "fn", Just (Type.function [ types.id, Type.var "view" ] (Type.var "b")) )
-            ( "regions", Just types.regionRecord )
+            (Elm.Arg.varWith "fn" (Type.function [ types.id, Type.var "view" ] (Type.var "b")))
+            (Elm.Arg.varWith "regions" types.regionRecord)
             (\fn viewRegions ->
                 allRegions
                     |> List.map
@@ -776,8 +800,8 @@ mapRegion regions =
                                     Elm.get fieldName viewRegions
                                         |> Gen.List.call_.indexedMap
                                             (Elm.fn2
-                                                ( "index", Just Type.int )
-                                                ( "pageId", Just (Type.var "view") )
+                                                (Elm.Arg.varWith "index" Type.int)
+                                                (Elm.Arg.varWith "pageId" (Type.var "view"))
                                                 (\index pageId ->
                                                     Elm.apply fn
                                                         [ Elm.apply regionId
