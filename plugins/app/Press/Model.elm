@@ -12,11 +12,11 @@ import Elm.Op
 import Gen.App.Page
 import Gen.App.Page.Error
 import Gen.App.State
-import Gen.App.Sub
 import Gen.Browser
 import Gen.Browser.Navigation
 import Gen.Json.Encode
 import Gen.List
+import Gen.Listen
 import Gen.Platform.Cmd
 import Gen.Platform.Sub
 import Gen.Set
@@ -246,7 +246,7 @@ toConfig configType =
                     [ resourcesType
                     , Type.var "model"
                     ]
-                    (Gen.App.Sub.annotation_.sub (Type.var "msg"))
+                    (Gen.Listen.annotation_.listen (Type.var "msg"))
               )
             , ( [ ViewConfig, TestConfig ]
               , "view"
@@ -279,7 +279,7 @@ toConfig configType =
                     [ resourcesType
                     , Type.namedWith [] "SubOptions" [ Type.var "msg" ]
                     , Type.var "model"
-                    , Gen.App.Sub.annotation_.sub appMsg
+                    , Gen.Listen.annotation_.listen appMsg
                     ]
                     (Gen.Platform.Sub.annotation_.sub appMsg)
               )
@@ -366,6 +366,7 @@ types =
     , routePath = routePath
     , routeType = routeType
     , pageId = pageIdType
+    , broadcast = Type.named [ "Broadcast" ] "Msg"
 
     -- Model
     , model = Type.namedWith [] "Model" [ Type.var "key", Type.var "model" ]
@@ -397,9 +398,6 @@ types =
     , cmdOptions =
         Type.record
             [ ( "navKey", Gen.Browser.Navigation.annotation_.key )
-            , ( "toApp"
-              , Type.function [ Type.var "msg" ] appMsg
-              )
             , ( "dropPageCache"
               , appMsg
               )
@@ -409,10 +407,9 @@ types =
             , ( "viewRequested"
               , Type.function [ regionOperation ] appMsg
               )
-
-            -- , ( "broadcast"
-            --   , Type.function [ Type.named [ "App", "Broadcast" ] "Msg" ] appMsg
-            --   )
+            , ( "broadcast"
+              , Type.function [ Type.named [ "Broadcast" ] "Msg" ] appMsg
+              )
             ]
     , frame =
         toConfig FullConfig
@@ -490,11 +487,9 @@ toCmd config resources navKey frameModel effect =
         [ resources
         , Elm.record
             [ ( "navKey", navKey )
-            , ( "toApp", Elm.val "Global" )
             , ( "dropPageCache", Elm.val "PageCacheCleared" )
             , ( "viewRequested", Elm.val "ViewUpdated" )
-
-            -- , ( "sendToResource", Elm.val "Resource" )
+            , ( "broadcast", Elm.val "Broadcast" )
             , ( "preload", Elm.val "Preload" )
             ]
         , frameModel

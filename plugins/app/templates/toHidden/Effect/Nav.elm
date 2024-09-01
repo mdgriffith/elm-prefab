@@ -1,7 +1,8 @@
 module Effect.Nav exposing
-    ( toRoute, pushUrl, replaceUrl
+    ( toRoute
     , load, reload, reloadAndSkipCache
     , forward, back
+    , toUrl, pushUrl, replaceUrl
     )
 
 {-|
@@ -13,16 +14,21 @@ This package mirrors everything in <https://package.elm-lang.org/packages/elm/br
 
 But also adds `toRoute` which is like `pushUrl` but with your Route type.
 
-@docs toRoute, pushUrl, replaceUrl
+@docs toRoute
 
 @docs load, reload, reloadAndSkipCache
 
 @docs forward, back
 
+@docs toUrl, pushUrl, replaceUrl
+
 -}
 
+import App.Page.Id
 import App.Route
+import App.View.Id
 import Effect exposing (Effect)
+import Url
 
 
 {-| The default way to navigate between routes within your app.
@@ -38,8 +44,6 @@ toRoute route =
 {-| Change the URL, but do not trigger a page load.
 
 This will add a new entry to the browser history.
-
-UrlRequested
 
 -}
 pushUrl : String -> Effect msg
@@ -85,3 +89,23 @@ reload =
 reloadAndSkipCache : Effect msg
 reloadAndSkipCache =
     Effect.ReloadAndSkipCache
+
+
+{-| -}
+toUrl : Url.Url -> Effect msg
+toUrl url =
+    case App.Route.parse url of
+        Nothing ->
+            Effect.none
+
+        Just { isRedirect, route } ->
+            if isRedirect then
+                Effect.ReplaceUrl (App.Route.toString route)
+
+            else
+                case App.Page.Id.fromRoute route of
+                    Nothing ->
+                        Effect.none
+
+                    Just pageId ->
+                        Effect.ViewUpdated (App.View.Id.Push App.View.Id.Primary pageId)

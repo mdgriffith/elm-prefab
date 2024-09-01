@@ -7,7 +7,6 @@ import App.Flags
 import App.Page.Id
 import App.Resources
 import App.Route
-import App.Sub
 import App.View
 import App.View.Id
 import Browser
@@ -15,6 +14,7 @@ import Effect
 import Html
 import Json.Decode
 import Json.Encode as Json
+import Listen
 import Ui
 import Ui.Anim
 import Url
@@ -34,7 +34,9 @@ main =
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlRequested
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions =
+            \resources model ->
+                Listen.none
         , toCmd = toCmd
         , toSub = toSub
         , view =
@@ -91,24 +93,19 @@ init flagsValue url =
 -}
 
 
-subscriptions : App.Resources.Resources -> Model -> App.Sub.Sub Msg
-subscriptions resources model =
-    App.Sub.none
-
-
-toSub : App.Resources.Resources -> App.SubOptions Msg -> Model -> App.Sub.Sub (App.Msg Msg) -> Sub.Sub (App.Msg Msg)
+toSub : App.Resources.Resources -> App.SubOptions Msg -> Model -> Listen.Listen (App.Msg Msg) -> Sub (App.Msg Msg)
 toSub resources options model sub =
-    App.Sub.toSubscription options sub
+    Listen.toSubscription options sub
 
 
-toCmd : App.Resources.Resources -> App.CmdOptions Msg -> Model -> App.Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
+toCmd : App.Resources.Resources -> App.CmdOptions Msg -> Model -> Effect.Effect (App.Msg Msg) -> Cmd (App.Msg Msg)
 toCmd resources options model effect =
     case model.flags of
         Err _ ->
             Cmd.none
 
         Ok flags ->
-            App.Effect.toCmd options effect
+            Effect.toCmd options effect
 
 
 view :

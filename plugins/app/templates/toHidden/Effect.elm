@@ -1,4 +1,4 @@
-port module Effect exposing
+module Effect exposing
     ( Effect(..), none, batch, map
     , now, nowAfter
     , sendMsg, sendMsgAfter
@@ -34,6 +34,7 @@ port module Effect exposing
 
 import App.Page.Id
 import App.View.Id
+import Broadcast
 import Browser.Dom
 import Browser.Navigation
 import Bytes.Decode
@@ -114,6 +115,7 @@ type Effect msg
     | Back Int
       -- Http
     | HttpRequest (RequestDetails msg)
+    | SendBroadcast Broadcast.Msg
       -- JS interop
     | SendToWorld
         { toPort : Json.Encode.Value -> Cmd msg
@@ -152,25 +154,29 @@ type Expect msg
     | ExpectWhatever (Result Http.Error () -> msg)
 
 
-port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
-
-
 toCmd :
-    { options
-        | navKey : Browser.Navigation.Key
-        , preload : App.Page.Id.Id -> msg
-        , dropPageCache : msg
-        , viewRequested : App.View.Id.Operation App.Page.Id.Id -> msg
+    { navKey : Browser.Navigation.Key
+    , preload : App.Page.Id.Id -> msg
+    , dropPageCache : msg
+    , viewRequested : App.View.Id.Operation App.Page.Id.Id -> msg
+    , broadcast : Broadcast.Msg -> msg
     }
+    ->
+        (HttpTarget
+         ->
+            { headers : List Http.Header
+            , urlBase : String
+            }
+        )
     -> Effect msg
     -> Cmd msg
-toCmd options effect =
+toCmd options toHttpTarget effect =
     case effect of
         None ->
             Cmd.none
 
         Batch effects ->
-            Cmd.batch (List.map (toCmd options) effects)
+            Cmd.batch (List.map (toCmd options toHttpTarget) effects)
 
         Generate generator ->
             Random.generate identity generator
@@ -226,6 +232,10 @@ toCmd options effect =
         SendToWorld { toPort, payload } ->
             toPort payload
 
+        SendBroadcast msg ->
+            Task.succeed msg
+                |> Task.perform options.broadcast
+
         SendMsg msg ->
             Task.succeed ()
                 |> Task.perform (\_ -> msg)
@@ -250,15 +260,45 @@ toCmd options effect =
                 |> Task.perform toMsg
 
         HttpRequest req ->
+            let
+                targetDetails =
+                    case req.target of
+                        Just target ->
+                            toHttpTarget target
+
+                        Nothing ->
+                            { headers = []
+                            , urlBase = ""
+                            }
+            in
             Http.request
                 { method = req.method
                 , body = req.body
-                , url = req.url
-                , headers = req.headers
+                , url = joinPath targetDetails.urlBase req.url
+                , headers = req.headers ++ targetDetails.headers
                 , expect = toHttpExpect req.expect
                 , timeout = req.timeout
                 , tracker = req.tracker
                 }
+
+
+joinPath : String -> String -> String
+joinPath base path =
+    let
+        baseSlash =
+            String.endsWith "/" base
+
+        pathSlash =
+            String.startsWith "/" path
+    in
+    if baseSlash && pathSlash then
+        base ++ String.dropLeft 1 path
+
+    else if baseSlash || pathSlash then
+        base ++ path
+
+    else
+        base ++ "/" ++ path
 
 
 map : (a -> b) -> Effect a -> Effect b
@@ -296,10 +336,13 @@ map f effect =
 
         SendToWorld { toPort, portName, payload } ->
             SendToWorld
-                { toPort = \val -> Cmd.map (toPort val)
-                , portname = portName
+                { toPort = \val -> Cmd.map f (toPort val)
+                , portName = portName
                 , payload = payload
                 }
+
+        SendBroadcast msg ->
+            SendBroadcast msg
 
         SendMsg msg ->
             SendMsg (f msg)
@@ -320,6 +363,7 @@ map f effect =
             HttpRequest
                 { method = req.method
                 , headers = req.headers
+                , target = req.target
                 , url = req.url
                 , body = req.body
                 , expect = mapExpect f req.expect

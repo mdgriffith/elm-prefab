@@ -22,12 +22,12 @@ These are used internally and you shouldn't need to worry about them!
 
 -}
 
-import App.Effect
 import App.Page.Error
 import App.Resources
-import App.Sub
 import App.View
 import App.View.Id
+import Effect
+import Listen
 
 
 type Page shared params msg model
@@ -35,8 +35,8 @@ type Page shared params msg model
         { toKey : Maybe (params -> String)
         , pageCacheLimit : Int
         , init : params -> shared -> Maybe model -> Init msg model
-        , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
-        , subscriptions : shared -> model -> App.Sub.Sub msg
+        , update : shared -> msg -> model -> ( model, Effect.Effect msg )
+        , subscriptions : shared -> model -> Listen.Listen msg
         , view : App.View.Id.Id -> shared -> model -> Result App.Page.Error.Error (App.View.View msg)
         }
 
@@ -44,8 +44,8 @@ type Page shared params msg model
 {-| -}
 page :
     { init : params -> App.Resources.Resources -> Maybe model -> Init msg model
-    , update : App.Resources.Resources -> msg -> model -> ( model, App.Effect.Effect msg )
-    , subscriptions : App.Resources.Resources -> model -> App.Sub.Sub msg
+    , update : App.Resources.Resources -> msg -> model -> ( model, Effect.Effect msg )
+    , subscriptions : App.Resources.Resources -> model -> Listen.Listen msg
     , view : App.View.Id.Id -> App.Resources.Resources -> model -> App.View.View msg
     }
     -> Page App.Resources.Resources params msg model
@@ -103,7 +103,7 @@ withGuard toResources (Page options) =
             \resources msg model ->
                 case toResources resources of
                     Err err ->
-                        ( model, App.Effect.none )
+                        ( model, Effect.none )
 
                     Ok newShared ->
                         options.update newShared msg model
@@ -111,7 +111,7 @@ withGuard toResources (Page options) =
             \resources model ->
                 case toResources resources of
                     Err err ->
-                        App.Sub.none
+                        Listen.none
 
                     Ok newShared ->
                         options.subscriptions newShared model
@@ -135,8 +135,8 @@ type alias Init msg model =
 type InitPlan msg model
     = NotFound
     | Error App.Page.Error.Error
-    | Loaded model (App.Effect.Effect msg)
-    | LoadFrom (App.Effect.Effect (InitPlan msg model))
+    | Loaded model (Effect.Effect msg)
+    | LoadFrom (Effect.Effect (InitPlan msg model))
 
 
 {-| -}
@@ -155,20 +155,20 @@ mapInitPlan ({ onModel, onMsg } as fns) initPlan =
             Error err
 
         Loaded model effect ->
-            Loaded (onModel model) (App.Effect.map onMsg effect)
+            Loaded (onModel model) (Effect.map onMsg effect)
 
         LoadFrom effect ->
-            LoadFrom (App.Effect.map (mapInitPlan fns) effect)
+            LoadFrom (Effect.map (mapInitPlan fns) effect)
 
 
 {-| -}
 init : model -> Init msg model
 init model =
-    Loaded model App.Effect.none
+    Loaded model Effect.none
 
 
 {-| -}
-initWith : model -> App.Effect.Effect msg -> Init msg model
+initWith : model -> Effect.Effect msg -> Init msg model
 initWith model effect =
     Loaded model effect
 
@@ -180,7 +180,7 @@ notFound =
 
 
 {-| -}
-loadFrom : App.Effect.Effect (Init msg model) -> Init msg model
+loadFrom : Effect.Effect (Init msg model) -> Init msg model
 loadFrom effect =
     LoadFrom effect
 
@@ -202,8 +202,8 @@ toInternalDetails :
         { toKey : Maybe (params -> String)
         , pageCacheLimit : Int
         , init : params -> shared -> Maybe model -> Init msg model
-        , update : shared -> msg -> model -> ( model, App.Effect.Effect msg )
-        , subscriptions : shared -> model -> App.Sub.Sub msg
+        , update : shared -> msg -> model -> ( model, Effect.Effect msg )
+        , subscriptions : shared -> model -> Listen.Listen msg
         , view : App.View.Id.Id -> shared -> model -> Result App.Page.Error.Error (App.View.View msg)
         }
 toInternalDetails (Page details) =

@@ -9,7 +9,8 @@ import App.Route
 import App.View.Id
 import Browser
 import Effect
-import Sub
+import Effect.Nav
+import Listen
 import Url
 
 
@@ -23,18 +24,36 @@ main =
     App.app
         { init =
             \resources flags url ->
-                gotoUrl url {} Effect.none
+                ( {}, Effect.Nav.toUrl url )
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlRequested
         , update = update
         , subscriptions =
-            \resources model -> Sub.none
+            \resources model -> Listen.none
         , toCmd =
             \resources options model effect ->
-                Effect.toCmd options effect
+                Effect.toCmd options
+                    (\httpTarget ->
+                        case httpTarget of
+                            Effect.TargetApi ->
+                                { headers = []
+                                , urlBase = ""
+                                }
+
+                            Effect.TargetStaticFile ->
+                                { headers = []
+                                , urlBase = ""
+                                }
+
+                            Effect.TargetExternal name ->
+                                { headers = []
+                                , urlBase = ""
+                                }
+                    )
+                    effect
         , toSub =
             \resources options model sub ->
-                Sub.toSubscription options sub
+                Listen.toSubscription options sub
         , view =
             \resources toAppMsg model regions ->
                 case regions.primary of
@@ -70,42 +89,14 @@ type Msg
     | UrlChanged Url.Url
 
 
-update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect.Effect Msg )
 update resources msg model =
     case msg of
         UrlRequested (Browser.Internal url) ->
-            ( model, App.Effect.pushUrl (Url.toString url) )
+            ( model, Effect.Nav.pushUrl (Url.toString url) )
 
         UrlRequested (Browser.External urlStr) ->
-            ( model, App.Effect.load urlStr )
+            ( model, Effect.Nav.load urlStr )
 
         UrlChanged url ->
-            gotoUrl url model App.Effect.none
-
-
-gotoUrl : Url.Url -> Model -> App.Effect.Effect Msg -> ( Model, App.Effect.Effect Msg )
-gotoUrl url model eff =
-    case App.Route.parse url of
-        Nothing ->
-            ( model
-            , eff
-            )
-
-        Just { isRedirect, route } ->
-            if isRedirect then
-                ( model
-                , App.Effect.replaceUrl (App.Route.toString route)
-                )
-
-            else
-                case App.Page.Id.fromRoute route of
-                    Nothing ->
-                        ( model, App.Effect.none )
-
-                    Just pageId ->
-                        ( model
-                        , App.Effect.batch
-                            [ App.Effect.loadAt App.View.Id.Primary pageId
-                            , eff
-                            ]
-                        )
+            ( model, Effect.Nav.toUrl url )

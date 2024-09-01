@@ -1,11 +1,12 @@
 module Page.{{name}} exposing
-    ( Model, Msg
-    , page
+    ( page
+    , Model, Msg
     )
 
 {-|
 
-@docs page, Model, Msg
+@docs page
+@docs Model, Msg
 
 -}
 
@@ -13,14 +14,13 @@ import Effect
 import App.Page
 import App.Page.Id
 import App.Resources
-import Sub
+import Listen
 import App.View
 import App.View.Id
 import Html
 
 
-{-|
-
+{-| URL parameters for this page.
 -}
 type alias Params =
     App.Page.Id.{{name}}_Params
@@ -41,7 +41,7 @@ page =
     App.Page.page
         { init = init
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = \resources model -> Listen.none
         , view = view
         }
 
@@ -54,11 +54,6 @@ init params resources maybeCached =
 update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect.Effect Msg )
 update resources msg model =
     ( model, Effect.none )
-
-
-subscriptions : App.Resources.Resources -> Model -> Sub.Sub Msg
-subscriptions resources model =
-    Sub.none
 
 
 view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg

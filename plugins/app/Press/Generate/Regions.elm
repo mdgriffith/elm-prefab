@@ -381,7 +381,7 @@ setRegion regions =
                     types.region
                     (List.map
                         (\( field, regionType ) ->
-                            Elm.Case.branch (Elm.Arg.customType field ())
+                            Elm.Case.branch (Elm.Arg.customType (capitalize field) ())
                                 (\_ ->
                                     Elm.updateRecord
                                         [ ( field
@@ -426,86 +426,79 @@ setRegionItem regions =
     Elm.declaration "setRegionItem"
         (Elm.fnBuilder
             (\regionId contentId viewRegions replaceExisting ->
-                { regionId = regionId
-                , contentId = contentId
-                , viewRegions = viewRegions
-                , replaceExisting = replaceExisting
-                }
+                Elm.Case.custom regionId
+                    types.id
+                    (List.map
+                        (\( field, regionType ) ->
+                            case regionType of
+                                Press.Model.One ->
+                                    Elm.Case.branch (Elm.Arg.customType (toRegionIdType field) ())
+                                        (\_ ->
+                                            Elm.updateRecord
+                                                [ ( field
+                                                  , Elm.just contentId
+                                                  )
+                                                ]
+                                                viewRegions
+                                        )
+
+                                Press.Model.Many ->
+                                    Elm.Case.branch
+                                        (Elm.Arg.customType (toRegionIdType field) identity
+                                            |> Elm.Arg.item (Elm.Arg.varWith "index" Type.int)
+                                        )
+                                        (\index ->
+                                            Elm.ifThen (Elm.Op.lte index (Elm.int 0))
+                                                -- Add to the beginning
+                                                (Elm.updateRecord
+                                                    [ ( field
+                                                      , Elm.Op.cons contentId (Elm.get field viewRegions)
+                                                      )
+                                                    ]
+                                                    viewRegions
+                                                )
+                                                (Elm.ifThen (Elm.Op.gt index (Gen.List.call_.length (Elm.get field viewRegions)))
+                                                    -- Add to the end
+                                                    (Elm.updateRecord
+                                                        [ ( field
+                                                          , Elm.Op.append
+                                                                (Elm.get field viewRegions)
+                                                                (Elm.list [ contentId ])
+                                                          )
+                                                        ]
+                                                        viewRegions
+                                                    )
+                                                    -- Add at the index, pushing whatever back
+                                                    (Elm.updateRecord
+                                                        [ ( field
+                                                          , Elm.get field viewRegions
+                                                                |> Gen.List.call_.indexedMap
+                                                                    (Elm.fn2
+                                                                        (Elm.Arg.varWith "itemIndex" Type.int)
+                                                                        (Elm.Arg.varWith "pageId" Type.string)
+                                                                        (\itemIndex pageId ->
+                                                                            Elm.ifThen (Elm.Op.equal itemIndex index)
+                                                                                (Elm.list [ contentId, pageId ])
+                                                                                (Elm.list [ pageId ])
+                                                                        )
+                                                                    )
+                                                                |> Gen.List.call_.concat
+                                                          )
+                                                        ]
+                                                        viewRegions
+                                                    )
+                                                )
+                                        )
+                        )
+                        allRegions
+                    )
+                    |> Elm.withType types.regionRecord
             )
             |> Elm.fnArg (Elm.Arg.varWith "regionId" types.id)
             |> Elm.fnArg (Elm.Arg.varWith "contentId" (Type.var "view"))
             |> Elm.fnArg (Elm.Arg.varWith "viewRegions" types.regionRecord)
             |> Elm.fnArg (Elm.Arg.varWith "replaceExisting" Type.bool)
-            |> Elm.body
-                (\{ regionId, contentId, viewRegions, replaceExisting } ->
-                    Elm.Case.custom regionId
-                        types.id
-                        (List.map
-                            (\( field, regionType ) ->
-                                case regionType of
-                                    Press.Model.One ->
-                                        Elm.Case.branch (Elm.Arg.customType (toRegionIdType field) ())
-                                            (\_ ->
-                                                Elm.updateRecord
-                                                    [ ( field
-                                                      , Elm.just contentId
-                                                      )
-                                                    ]
-                                                    viewRegions
-                                            )
-
-                                    Press.Model.Many ->
-                                        Elm.Case.branch
-                                            (Elm.Arg.customType (toRegionIdType field) identity
-                                                |> Elm.Arg.item (Elm.Arg.varWith "index" Type.int)
-                                            )
-                                            (\index ->
-                                                Elm.ifThen (Elm.Op.lte index (Elm.int 0))
-                                                    -- Add to the beginning
-                                                    (Elm.updateRecord
-                                                        [ ( field
-                                                          , Elm.Op.cons contentId (Elm.get field viewRegions)
-                                                          )
-                                                        ]
-                                                        viewRegions
-                                                    )
-                                                    (Elm.ifThen (Elm.Op.gt index (Gen.List.call_.length (Elm.get field viewRegions)))
-                                                        -- Add to the end
-                                                        (Elm.updateRecord
-                                                            [ ( field
-                                                              , Elm.Op.append
-                                                                    (Elm.get field viewRegions)
-                                                                    (Elm.list [ contentId ])
-                                                              )
-                                                            ]
-                                                            viewRegions
-                                                        )
-                                                        -- Add at the index, pushing whatever back
-                                                        (Elm.updateRecord
-                                                            [ ( field
-                                                              , Elm.get field viewRegions
-                                                                    |> Gen.List.call_.indexedMap
-                                                                        (Elm.fn2
-                                                                            (Elm.Arg.varWith "itemIndex" Type.int)
-                                                                            (Elm.Arg.varWith "pageId" Type.string)
-                                                                            (\itemIndex pageId ->
-                                                                                Elm.ifThen (Elm.Op.equal itemIndex index)
-                                                                                    (Elm.list [ contentId, pageId ])
-                                                                                    (Elm.list [ pageId ])
-                                                                            )
-                                                                        )
-                                                                    |> Gen.List.call_.concat
-                                                              )
-                                                            ]
-                                                            viewRegions
-                                                        )
-                                                    )
-                                            )
-                            )
-                            allRegions
-                        )
-                        |> Elm.withType types.regionRecord
-                )
+            |> Elm.fnDone
         )
 
 

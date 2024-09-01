@@ -12,13 +12,14 @@ import Elm.Op
 import Gen.App.Page
 import Gen.App.Page.Error
 import Gen.App.State
-import Gen.App.Sub
 import Gen.App.View
 import Gen.Browser
 import Gen.Browser.Navigation
+import Gen.Effect.LocalStorage
 import Gen.Json.Decode
 import Gen.Json.Encode
 import Gen.List
+import Gen.Listen
 import Gen.Platform.Sub
 import Gen.Result
 import Gen.Tuple
@@ -28,7 +29,6 @@ import Press.Generate.Regions
 import Press.Model exposing (..)
 
 
-pageRecordType : Type.Annotation
 pageRecordType =
     Type.record
         [ ( "init"
@@ -76,30 +76,36 @@ generate resources allPageDefinitions =
             Press.Model.getPageInit pageUsages
     in
     Elm.file [ "App" ]
-        [ Elm.alias "App"
-            (Type.namedWith []
-                "Program"
-                [ Gen.Json.Encode.annotation_.value
-                , Type.namedWith [] "Model" [ Gen.Browser.Navigation.annotation_.key, Type.var "model" ]
-                , Type.namedWith [] "Msg" [ Type.var "msg" ]
-                ]
-            )
-            |> Elm.exposeConstructor
+        [ Elm.group
+            [ Elm.alias "App"
+                (Type.namedWith []
+                    "Program"
+                    [ Gen.Json.Encode.annotation_.value
+                    , Type.namedWith [] "Model" [ Gen.Browser.Navigation.annotation_.key, Type.var "model" ]
+                    , Type.namedWith [] "Msg" [ Type.var "msg" ]
+                    ]
+                )
+                |> Elm.exposeConstructor
+            , app pageUsages getPageInit loadPage
+            ]
 
         -- You're going to be tempted to add aliases for `Page`, `Effect` and `Sub` here
         -- But they won't work because Page's can't import `App.elm`, be cause `App.elm` imports `Page.elm`
-        , Elm.alias "CmdOptions" types.cmdOptions
-            |> Elm.exposeConstructor
-        , Elm.alias "SubOptions" types.subOptions
-            |> Elm.exposeConstructor
+        , Elm.group
+            [ Elm.alias "CmdOptions" types.cmdOptions
+                |> Elm.exposeConstructor
+            , Elm.alias "SubOptions" types.subOptions
+                |> Elm.exposeConstructor
+            ]
         , toEmptyResources resources
         , toPageKey pageUsages
         , toPageGroupKey pageUsages
         , toPageLimit pageUsages
-        , app pageUsages getPageInit loadPage
-        , testAlias
-        , test getPageInit loadPage
-        , Elm.alias "Model" types.modelRecord
+        , Elm.group
+            [ Elm.alias "Model" types.modelRecord
+            , msgType resources pageUsages
+            , update resources pageUsages getPageInit loadPage
+            ]
         , Elm.customType "State"
             (let
                 routeVariants =
@@ -122,14 +128,16 @@ generate resources allPageDefinitions =
             )
         , viewType
         , viewPageModel pageUsages
-        , msgType resources pageUsages
-        , update resources pageUsages getPageInit loadPage
         , syncResourcesToLocalStorage resources
         , getPageInit.declaration
         , loadPage.declaration
         , view pageUsages
         , getSubscriptions pageUsages
         , subscriptions pageUsages
+        , Elm.group
+            [ testAlias
+            , test getPageInit loadPage
+            ]
         ]
 
 
@@ -151,19 +159,13 @@ syncResourcesToLocalStorage resources =
                                     , just =
                                         ( "codec"
                                         , \codec ->
-                                            Elm.apply
-                                                (Elm.value
-                                                    { importFrom = [ "Effect", "LocalStorage" ]
-                                                    , name = "save"
-                                                    , annotation = Just (types.effectWith types.msg)
-                                                    }
-                                                )
-                                                [ Elm.string resource.id
-                                                , Elm.apply
+                                            Gen.Effect.LocalStorage.save
+                                                resource.id
+                                                (Elm.apply
                                                     (Elm.get "encode" codec)
                                                     [ Elm.get resource.id resourcesState
                                                     ]
-                                                ]
+                                                )
                                         )
                                     }
                             )
@@ -340,7 +342,7 @@ toPageLimit pages =
                                             Elm.apply
                                                 Gen.App.Page.values_.toInternalDetails
                                                 [ pageConfig ]
-                                                |> Elm.Op.pipe (Elm.val ".pageCacheLimit")
+                                                |> Elm.get ".pageCacheLimit"
                                         )
 
                                 else
@@ -462,6 +464,7 @@ msgType resources pageUsages =
         ([ Elm.variant "PageCacheCleared"
          , Elm.variantWith "Preload" [ types.pageId ]
          , Elm.variantWith "ViewUpdated" [ types.regionOperation ]
+         , Elm.variantWith "Broadcast" [ Type.named [ "Broadcast" ] "Msg" ]
          , Elm.variantWith "SubscriptionEventIgnored" [ Type.string ]
          , Elm.variantWith "Global" [ Type.var "msg" ]
          , Elm.variantWith "Loaded"
@@ -661,7 +664,7 @@ initResources flags url =
                 Just
                     (Type.tuple
                         resourcesType
-                        (Type.namedWith [ "App", "Effect" ] "Effect" [ types.msg ])
+                        (Type.namedWith [ "Effect" ] "Effect" [ types.msg ])
                     )
             }
         )
@@ -787,6 +790,52 @@ update resources routes getPageInit loadPage =
                             loadPage.call config model pageId initialization
                         )
                      , Elm.Case.branch
+                        (Elm.Arg.customType "Broadcast" identity
+                            |> Elm.Arg.item
+                                (Elm.Arg.varWith "broadcastMsg" types.broadcast)
+                        )
+                        (\broadcastMsg ->
+                            Elm.Let.letIn
+                                (\pageMsgList ->
+                                    Gen.List.call_.foldl
+                                        (Elm.fn2
+                                            (Elm.Arg.var "pageMsg")
+                                            (Elm.Arg.tuple (Elm.Arg.var "innerModel") (Elm.Arg.var "innerEffect"))
+                                            (\pageMsg ( innerModel, innerEffect ) ->
+                                                Elm.Let.letIn
+                                                    (\( newModel, newEffect ) ->
+                                                        Elm.tuple
+                                                            newModel
+                                                            (effectBatch
+                                                                [ newEffect
+                                                                , innerEffect
+                                                                ]
+                                                            )
+                                                    )
+                                                    |> Elm.Let.unpack
+                                                        (Elm.Arg.tuple
+                                                            (Elm.Arg.var "newModel")
+                                                            (Elm.Arg.var "newEffect")
+                                                        )
+                                                        (Elm.apply (Elm.val "update") [ config, pageMsg, innerModel ])
+                                                    |> Elm.Let.toExpression
+                                            )
+                                        )
+                                        (Elm.tuple model effectNone)
+                                        pageMsgList
+                                )
+                                |> Elm.Let.value "pageMsgList"
+                                    (Gen.Listen.broadcastListeners broadcastMsg
+                                        (Elm.apply
+                                            (Elm.val "getSubscriptions")
+                                            [ config
+                                            , model
+                                            ]
+                                        )
+                                    )
+                                |> Elm.Let.toExpression
+                        )
+                     , Elm.Case.branch
                         (Elm.Arg.customType "ViewUpdated" identity
                             |> Elm.Arg.item (Elm.Arg.varWith "operation" types.regionOperation)
                         )
@@ -860,7 +909,7 @@ update resources routes getPageInit loadPage =
                         )
                      , Elm.Case.branch
                         (Elm.Arg.customType "SubscriptionEventIgnored" identity
-                            |> Elm.Arg.item (Elm.Arg.varWith "msg" types.pageId)
+                            |> Elm.Arg.item (Elm.Arg.varWith "message" types.pageId)
                         )
                         (\_ ->
                             Elm.tuple
@@ -1084,13 +1133,13 @@ getSubscriptions pages =
             (Elm.Arg.varWith "config" types.frameSub)
             (Elm.Arg.varWith "model" types.model)
             (\config model ->
-                Gen.App.Sub.batch
+                Gen.Listen.batch
                     [ Elm.apply
                         (Elm.get "subscriptions" config)
                         [ Elm.get "resources" model
                         , Elm.get "app" model
                         ]
-                        |> Gen.App.Sub.call_.map (Elm.val "Global")
+                        |> Gen.Listen.call_.map (Elm.val "Global")
                     , Elm.apply Press.Generate.Regions.values.toList
                         [ Elm.get "views" model ]
                         |> Gen.List.call_.filterMap
@@ -1111,7 +1160,7 @@ getSubscriptions pages =
                                         }
                                 )
                             )
-                        |> Gen.App.Sub.call_.batch
+                        |> Gen.Listen.call_.batch
                     ]
             )
             |> Elm.withType
@@ -1119,7 +1168,7 @@ getSubscriptions pages =
                     [ types.frameSub
                     , types.model
                     ]
-                    (Gen.App.Sub.annotation_.sub types.msg)
+                    (Gen.Listen.annotation_.listen types.msg)
                 )
         )
 
@@ -1162,12 +1211,12 @@ pageModelToSubscription config model pages current pageId =
             (Elm.Arg.customType "PageError_" identity
                 |> Elm.Arg.item (Elm.Arg.varWith "pageError" Gen.App.Page.Error.annotation_.error)
             )
-            (\err -> Gen.App.Sub.none)
+            (\err -> Gen.Listen.none)
             :: Elm.Case.branch
                 (Elm.Arg.customType "PageLoading_" identity
-                    |> Elm.Arg.item (Elm.Arg.varWith "pageId" types.pageId)
+                    |> Elm.Arg.item (Elm.Arg.varWith "pageId_" types.pageId)
                 )
-                (\_ -> Gen.App.Sub.none)
+                (\_ -> Gen.Listen.none)
             :: List.filterMap
                 (pageInfoToSubscriptioon config model pageId)
                 pages
@@ -1211,7 +1260,7 @@ pageInfoToSubscriptioon config model pageId pageInfo =
                                 [ Elm.get "resources" model
                                 , pageState
                                 ]
-                                |> Gen.App.Sub.call_.map
+                                |> Gen.Listen.call_.map
                                     (Elm.apply (Elm.val pageMsgTypeName)
                                         [ pageId ]
                                     )

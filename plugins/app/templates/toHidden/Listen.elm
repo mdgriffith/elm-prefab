@@ -1,18 +1,19 @@
-module Sub exposing
-    ( Sub(..)
+module Listen exposing
+    ( Listen(..)
     , none, batch
     , onKeyPress
     , onEvery
     , onResize
     , map, toSubscription
+    , broadcastListeners
     )
 
 {-|
 
 
-# Subscriptions
+# Listeners
 
-@docs Sub
+@docs Listen
 
 @docs none, batch
 
@@ -24,17 +25,20 @@ module Sub exposing
 
 @docs map, toSubscription
 
+@docs broadcastListeners
+
 -}
 
+import Broadcast
 import Browser.Events
 import Json.Decode
 import Platform.Sub
 import Time
 
 
-type Sub msg
+type Listen msg
     = None
-    | Batch (List (Sub msg))
+    | Batch (List (Listen msg))
       -- Common subscriptions
     | Every Float (Time.Posix -> msg)
     | OnWindowResize (Int -> Int -> msg)
@@ -44,45 +48,46 @@ type Sub msg
         , key : String
         }
         msg
+    | OnBroadcast (Broadcast.Msg -> Maybe msg)
       --
     | OnFromJs
         { portName : String
-        , subscription : Platform.Sub.Sub (Result msg Json.Decode.Error)
+        , subscription : Platform.Sub.Sub (Result Json.Decode.Error msg)
         }
 
 
 {-| -}
-none : Sub msg
+none : Listen msg
 none =
     None
 
 
 {-| -}
-batch : List (Sub msg) -> Sub msg
+batch : List (Listen msg) -> Listen msg
 batch =
     Batch
 
 
 {-| -}
-onKeyPress : { ctrl : Bool, shift : Bool, key : String } -> msg -> Sub msg
+onKeyPress : { ctrl : Bool, shift : Bool, key : String } -> msg -> Listen msg
 onKeyPress options msg =
     OnKeyPress options msg
 
 
 {-| -}
-onEvery : Float -> (Time.Posix -> msg) -> Sub msg
+onEvery : Float -> (Time.Posix -> msg) -> Listen msg
 onEvery ms toMsg =
     Every ms toMsg
 
 
 {-| -}
-onResize : (Int -> Int -> msg) -> Sub msg
+onResize : (Int -> Int -> msg) -> Listen msg
 onResize msg =
     OnWindowResize msg
 
 
 {-| -}
-map : (a -> b) -> Sub a -> Sub b
+map : (a -> b) -> Listen a -> Listen b
 map func sub =
     case sub of
         None ->
@@ -100,16 +105,19 @@ map func sub =
         OnWindowResize msg ->
             OnWindowResize (\w h -> func <| msg w h)
 
+        OnBroadcast toMsg ->
+            OnBroadcast (Maybe.map func << toMsg)
+
         OnFromJs fromJs ->
             OnFromJs
                 { portName = fromJs.portName
                 , subscription =
-                    Sub.map (Result.map toMsg) fromJs.subscription
+                    Sub.map (Result.map func) fromJs.subscription
                 }
 
 
 {-| -}
-toSubscription : { ignore : String -> msg } -> Sub msg -> Platform.Sub.Sub msg
+toSubscription : { ignore : String -> msg } -> Listen msg -> Platform.Sub.Sub msg
 toSubscription options sub =
     case sub of
         None ->
@@ -158,6 +166,11 @@ toSubscription options sub =
                         )
                 )
 
+        OnBroadcast toMsg ->
+            -- This isn't handled like a normal subscription
+            -- We use `broadcastListeners` to handle this
+            Sub.none
+
         OnFromJs fromJs ->
             fromJs.subscription
                 |> Sub.map
@@ -169,3 +182,35 @@ toSubscription options sub =
                             Err err ->
                                 options.ignore (Json.Decode.errorToString err)
                     )
+
+
+{-| You shouldn't need to use this directly, it's used by some code that elm-prefab generates.
+-}
+broadcastListeners : Broadcast.Msg -> Listen msg -> List msg
+broadcastListeners broadcastMsg sub =
+    case sub of
+        None ->
+            []
+
+        Batch subs ->
+            List.concatMap (broadcastListeners broadcastMsg) subs
+
+        Every _ _ ->
+            []
+
+        OnWindowResize _ ->
+            []
+
+        OnKeyPress _ _ ->
+            []
+
+        OnBroadcast toMsg ->
+            case toMsg broadcastMsg of
+                Just msg ->
+                    [ msg ]
+
+                Nothing ->
+                    []
+
+        OnFromJs _ ->
+            []
