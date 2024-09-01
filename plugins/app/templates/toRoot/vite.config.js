@@ -18,11 +18,11 @@ function elmPrefabPlugin() {
           const elmPrefab = spawn("elm-prefab", [], { shell: true });
 
           elmPrefab.stdout.on("data", (data) => {
-            console.log(`elm-prefab output: ${data}`);
+            console.log(data);
           });
 
           elmPrefab.stderr.on("data", (data) => {
-            console.error(`elm-prefab error: ${data}`);
+            console.error(data);
           });
 
           elmPrefab.on("close", (code) => {

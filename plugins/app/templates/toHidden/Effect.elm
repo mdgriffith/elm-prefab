@@ -1,17 +1,9 @@
-port module App.Effect exposing
-    ( Effect, none, batch, map
+port module Effect exposing
+    ( Effect(..), none, batch, map
     , now, nowAfter
-    , navigateTo, pushUrl, replaceUrl
-    , forward, back
-    , preload, load, loadAt, reload, clear
     , sendMsg, sendMsgAfter
-    , saveToLocalStorage, clearLocalStorageKey
-    , generate
-    , focus, blur, select
-    , file, files, fileToUrl
-    , copyToClipboard
-    , get, request, Expect, expectString, expectJson, expectBytes, expectWhatever
-    , toCmd, sendToJs
+    , Expect(..), HttpTarget(..)
+    , toCmd
     )
 
 {-|
@@ -24,70 +16,29 @@ port module App.Effect exposing
 @docs now, nowAfter
 
 
-# Navigation
-
-@docs navigateTo, pushUrl, replaceUrl
-
-@docs forward, back
-
-
-# Loading
-
-@docs preload, load, loadAt, reload, clear
-
-
 # Callbacks
 
 @docs sendMsg, sendMsgAfter
 
 
-# Local Storage
+# Internal Http Details
 
-@docs saveToLocalStorage, clearLocalStorageKey
-
-
-# Random generation
-
-@docs generate
-
-
-# Browser focus
-
-@docs focus, blur, select
-
-
-# File selection
-
-@docs file, files, fileToUrl
-
-
-# Clipboard
-
-@docs copyToClipboard
-
-
-# Http
-
-@docs get, request, Expect, expectString, expectJson, expectBytes, expectWhatever
+@docs Expect, HttpTarget
 
 
 # Effects
 
-@docs toCmd, sendToJs
+@docs toCmd
 
 -}
 
 import App.Page.Id
-import App.Route
 import App.View.Id
-import Browser
 import Browser.Dom
 import Browser.Navigation
-import Bytes
 import Bytes.Decode
 import File
 import File.Select
-import Html
 import Http
 import Json.Decode
 import Json.Encode
@@ -107,61 +58,6 @@ batch =
     Batch
 
 
-{-| -}
-navigateTo : App.Route.Route -> Effect msg
-navigateTo route =
-    PushUrl (App.Route.toString route)
-
-
-{-| -}
-pushUrl : String -> Effect msg
-pushUrl =
-    PushUrl
-
-
-{-| -}
-replaceUrl : String -> Effect msg
-replaceUrl =
-    ReplaceUrl
-
-
-{-| -}
-load : String -> Effect msg
-load =
-    Load
-
-
-{-| -}
-loadAt : App.View.Id.Region -> App.Page.Id.Id -> Effect msg
-loadAt region pageId =
-    ViewUpdated (App.View.Id.Push region pageId)
-
-
-clear : App.View.Id.Region -> Effect msg
-clear region =
-    ViewUpdated (App.View.Id.ClearRegion region)
-
-
-preload : App.Page.Id.Id -> Effect msg
-preload =
-    Preload
-
-
-reload : Effect msg
-reload =
-    Reload
-
-
-forward : Int -> Effect msg
-forward =
-    Forward
-
-
-back : Int -> Effect msg
-back =
-    Back
-
-
 sendMsg : msg -> Effect msg
 sendMsg =
     SendMsg
@@ -170,41 +66,6 @@ sendMsg =
 sendMsgAfter : Int -> msg -> Effect msg
 sendMsgAfter delay msg =
     SendMsgAfter delay msg
-
-
-{-| -}
-sendToJs : { tag : String, details : Maybe Json.Encode.Value } -> Effect msg
-sendToJs =
-    SendToWorld
-
-
-{-| -}
-saveToLocalStorage : String -> Json.Encode.Value -> Effect msg
-saveToLocalStorage key value =
-    SendToWorld
-        { tag = "local-storage"
-        , details =
-            Just
-                (Json.Encode.object
-                    [ ( "key", Json.Encode.string key )
-                    , ( "value", value )
-                    ]
-                )
-        }
-
-
-{-| -}
-clearLocalStorageKey : String -> Effect msg
-clearLocalStorageKey key =
-    SendToWorld
-        { tag = "local-storage-clear"
-        , details =
-            Just
-                (Json.Encode.object
-                    [ ( "key", Json.Encode.string key )
-                    ]
-                )
-        }
 
 
 {-| Get the current time
@@ -219,86 +80,6 @@ now =
 nowAfter : Float -> (Time.Posix -> msg) -> Effect msg
 nowAfter wait =
     Now (Just wait)
-
-
-{-| Attempt to change the browser focus to the element with a given id.
--}
-focus : String -> (Result Browser.Dom.Error () -> msg) -> Effect msg
-focus =
-    Focus
-
-
-{-| Make a specific element lose focus.
--}
-blur : String -> (Result Browser.Dom.Error () -> msg) -> Effect msg
-blur =
-    Blur
-
-
-{-| Run a random generator to produce a value.
--}
-generate : (item -> msg) -> Random.Generator item -> Effect msg
-generate fn generator =
-    Generate (Random.map fn generator)
-
-
-{-| -}
-file : List String -> (File.File -> msg) -> Effect msg
-file =
-    File
-
-
-files : List String -> (File.File -> List File.File -> msg) -> Effect msg
-files =
-    Files
-
-
-fileToUrl : File.File -> (String -> msg) -> Effect msg
-fileToUrl fileData toMsg =
-    FileToUrl fileData toMsg
-
-
-copyToClipboard : String -> Effect msg
-copyToClipboard text =
-    SendToWorld
-        { tag = "copy-to-clipboard"
-        , details = Just (Json.Encode.string text)
-        }
-
-
-select : String -> Effect msg
-select text =
-    SendToWorld
-        { tag = "focus-and-select"
-        , details = Just (Json.Encode.string text)
-        }
-
-
-get : String -> Expect msg -> Effect msg
-get url expect =
-    request
-        { method = "GET"
-        , headers = []
-        , url = url
-        , body = Http.emptyBody
-        , expect = expect
-        , timeout = Nothing
-        , tracker = Nothing
-        }
-
-
-request :
-    { method : String
-    , headers : List Http.Header
-    , url : String
-    , body : Http.Body
-    , expect : Expect msg
-    , timeout : Maybe Float
-    , tracker : Maybe String
-    }
-    -> Effect msg
-request options =
-    HttpRequest options
 
 
 type Effect msg
@@ -323,9 +104,11 @@ type Effect msg
     | FileToUrl File.File (String -> msg)
       -- Loading
     | ViewUpdated (App.View.Id.Operation App.Page.Id.Id)
+      -- Browser Navigation
     | Preload App.Page.Id.Id
     | Load String
     | Reload
+    | ReloadAndSkipCache
       -- History navigation
     | Forward Int
     | Back Int
@@ -333,8 +116,9 @@ type Effect msg
     | HttpRequest (RequestDetails msg)
       -- JS interop
     | SendToWorld
-        { tag : String
-        , details : Maybe Json.Encode.Value
+        { toPort : Json.Encode.Value -> Cmd msg
+        , portName : String
+        , payload : Json.Encode.Value
         }
 
 
@@ -344,9 +128,21 @@ type alias RequestDetails msg =
     , url : String
     , body : Http.Body
     , expect : Expect msg
+    , target : Maybe HttpTarget
     , timeout : Maybe Float
     , tracker : Maybe String
     }
+
+
+{-| This type is here if you want to do something like include special headers for your API
+
+Or switch out urls depending on how the app is configured.
+
+-}
+type HttpTarget
+    = TargetApi
+    | TargetStaticFile
+    | TargetExternal String
 
 
 type Expect msg
@@ -354,26 +150,6 @@ type Expect msg
     | ExpectJson (Json.Decode.Decoder msg) (Http.Error -> msg)
     | ExpectBytes (Bytes.Decode.Decoder msg) (Http.Error -> msg)
     | ExpectWhatever (Result Http.Error () -> msg)
-
-
-expectString : (Result Http.Error String -> msg) -> Expect msg
-expectString =
-    ExpectString
-
-
-expectJson : Json.Decode.Decoder msg -> (Http.Error -> msg) -> Expect msg
-expectJson =
-    ExpectJson
-
-
-expectBytes : Bytes.Decode.Decoder msg -> (Http.Error -> msg) -> Expect msg
-expectBytes =
-    ExpectBytes
-
-
-expectWhatever : (Result Http.Error () -> msg) -> Expect msg
-expectWhatever =
-    ExpectWhatever
 
 
 port outgoing : { tag : String, details : Maybe Json.Encode.Value } -> Cmd msg
@@ -438,14 +214,17 @@ toCmd options effect =
         Reload ->
             Browser.Navigation.reload
 
+        ReloadAndSkipCache ->
+            Browser.Navigation.reloadAndSkipCache
+
         Forward steps ->
             Browser.Navigation.forward options.navKey steps
 
         Back steps ->
             Browser.Navigation.back options.navKey steps
 
-        SendToWorld outgoingMsg ->
-            outgoing outgoingMsg
+        SendToWorld { toPort, payload } ->
+            toPort payload
 
         SendMsg msg ->
             Task.succeed ()
@@ -506,14 +285,21 @@ map f effect =
         Reload ->
             Reload
 
+        ReloadAndSkipCache ->
+            ReloadAndSkipCache
+
         Forward n ->
             Forward n
 
         Back n ->
             Back n
 
-        SendToWorld { tag, details } ->
-            SendToWorld { tag = tag, details = details }
+        SendToWorld { toPort, portName, payload } ->
+            SendToWorld
+                { toPort = \val -> Cmd.map (toPort val)
+                , portname = portName
+                , payload = payload
+                }
 
         SendMsg msg ->
             SendMsg (f msg)

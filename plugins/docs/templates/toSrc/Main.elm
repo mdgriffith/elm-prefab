@@ -3,7 +3,6 @@ module Main exposing (main)
 {-| -}
 
 import App
-import App.Effect
 import App.Flags
 import App.Page.Id
 import App.Resources
@@ -12,6 +11,7 @@ import App.Sub
 import App.View
 import App.View.Id
 import Browser
+import Effect
 import Html
 import Json.Decode
 import Json.Encode as Json

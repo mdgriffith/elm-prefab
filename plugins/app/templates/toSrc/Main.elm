@@ -3,13 +3,13 @@ module Main exposing (main)
 {-| -}
 
 import App
-import App.Effect
 import App.Page.Id
 import App.Resources
 import App.Route
-import App.Sub
 import App.View.Id
 import Browser
+import Effect
+import Sub
 import Url
 
 
@@ -23,18 +23,18 @@ main =
     App.app
         { init =
             \resources flags url ->
-                gotoUrl url {} App.Effect.none
+                gotoUrl url {} Effect.none
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlRequested
         , update = update
         , subscriptions =
-            \resources model -> App.Sub.none
+            \resources model -> Sub.none
         , toCmd =
             \resources options model effect ->
-                App.Effect.toCmd options effect
+                Effect.toCmd options effect
         , toSub =
             \resources options model sub ->
-                App.Sub.toSubscription options sub
+                Sub.toSubscription options sub
         , view =
             \resources toAppMsg model regions ->
                 case regions.primary of

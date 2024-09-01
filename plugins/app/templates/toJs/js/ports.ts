@@ -3,25 +3,28 @@ import * as LocalStorage from "./local-storage";
 import * as TextSelection from "./text-selection";
 // Handling data from elm to JS
 export function connect(app: any) {
-  app.ports?.outgoing?.subscribe?.((message: any) => {
-    switch (message.tag) {
-      case "local-storage":
+  // Text selection
+  app.ports?.textSelection?.subscribe?.((message: any) => {
+    TextSelection.focus_and_select(message.id);
+  });
+
+  // Clipboard
+  app.ports?.clipboard?.subscribe?.((message: any) => {
+    Clipboard.copy(message);
+  });
+
+  // Local Storage
+  app.ports?.localStorage?.subscribe?.((message: any) => {
+    switch (message.operation) {
+      case "save":
         LocalStorage.set(message.details.key, message.details.value);
         if (app.ports?.localStorageUpdated) {
           app.ports.localStorageUpdated.send(message.details);
         }
         break;
 
-      case "local-storage-clear":
+      case "clear":
         LocalStorage.clear(message.details.key);
-        break;
-
-      case "copy-to-clipboard":
-        Clipboard.copy(message.details);
-        break;
-
-      case "focus-and-select":
-        TextSelection.focus_and_select(message.details);
         break;
 
       default:

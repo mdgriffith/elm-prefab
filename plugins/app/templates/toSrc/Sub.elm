@@ -1,9 +1,9 @@
-port module App.Sub exposing
-    ( Sub
+module Sub exposing
+    ( Sub(..)
     , none, batch
     , onKeyPress
-    , every
-    , onResize, onLocalStorageUpdated
+    , onEvery
+    , onResize
     , map, toSubscription
     )
 
@@ -18,9 +18,9 @@ port module App.Sub exposing
 
 @docs onKeyPress
 
-@docs every
+@docs onEvery
 
-@docs onResize, onLocalStorageUpdated
+@docs onResize
 
 @docs map, toSubscription
 
@@ -28,7 +28,6 @@ port module App.Sub exposing
 
 import Browser.Events
 import Json.Decode
-import Json.Encode
 import Platform.Sub
 import Time
 
@@ -46,9 +45,9 @@ type Sub msg
         }
         msg
       --
-    | OnLocalStorageUpdated
-        { key : String
-        , decoder : Json.Decode.Decoder msg
+    | OnFromJs
+        { portName : String
+        , subscription : Platform.Sub.Sub (Result msg Json.Decode.Error)
         }
 
 
@@ -71,8 +70,8 @@ onKeyPress options msg =
 
 
 {-| -}
-every : Float -> (Time.Posix -> msg) -> Sub msg
-every ms toMsg =
+onEvery : Float -> (Time.Posix -> msg) -> Sub msg
+onEvery ms toMsg =
     Every ms toMsg
 
 
@@ -80,15 +79,6 @@ every ms toMsg =
 onResize : (Int -> Int -> msg) -> Sub msg
 onResize msg =
     OnWindowResize msg
-
-
-onLocalStorageUpdated :
-    { key : String
-    , decoder : Json.Decode.Decoder msg
-    }
-    -> Sub msg
-onLocalStorageUpdated options =
-    OnLocalStorageUpdated options
 
 
 {-| -}
@@ -110,10 +100,11 @@ map func sub =
         OnWindowResize msg ->
             OnWindowResize (\w h -> func <| msg w h)
 
-        OnLocalStorageUpdated { key, decoder } ->
-            OnLocalStorageUpdated
-                { key = key
-                , decoder = Json.Decode.map func decoder
+        OnFromJs fromJs ->
+            OnFromJs
+                { portName = fromJs.portName
+                , subscription =
+                    Sub.map (Result.map toMsg) fromJs.subscription
                 }
 
 
@@ -167,26 +158,14 @@ toSubscription options sub =
                         )
                 )
 
-        OnLocalStorageUpdated { key, decoder } ->
-            localStorageUpdated
-                (\payload ->
-                    if payload.key == key then
-                        case Json.Decode.decodeValue decoder payload.value of
-                            Ok value ->
-                                value
+        OnFromJs fromJs ->
+            fromJs.subscription
+                |> Sub.map
+                    (\result ->
+                        case result of
+                            Ok success ->
+                                success
 
-                            Err _ ->
-                                options.ignore key
-
-                    else
-                        options.ignore key
-                )
-
-
-port localStorageUpdated :
-    ({ key : String
-     , value : Json.Encode.Value
-     }
-     -> msg
-    )
-    -> Platform.Sub.Sub msg
+                            Err err ->
+                                options.ignore (Json.Decode.errorToString err)
+                    )

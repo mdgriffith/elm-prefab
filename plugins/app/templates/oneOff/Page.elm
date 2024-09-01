@@ -9,11 +9,11 @@ module Page.{{name}} exposing
 
 -}
 
-import App.Effect
+import Effect
 import App.Page
 import App.Page.Id
 import App.Resources
-import App.Sub
+import Sub
 import App.View
 import App.View.Id
 import Html
@@ -51,14 +51,14 @@ init params resources maybeCached =
     App.Page.init {}
 
 
-update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect.Effect Msg )
 update resources msg model =
-    ( model, App.Effect.none )
+    ( model, Effect.none )
 
 
-subscriptions : App.Resources.Resources -> Model -> App.Sub.Sub Msg
+subscriptions : App.Resources.Resources -> Model -> Sub.Sub Msg
 subscriptions resources model =
-    App.Sub.none
+    Sub.none
 
 
 view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
