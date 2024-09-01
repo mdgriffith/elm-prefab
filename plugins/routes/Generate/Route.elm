@@ -413,7 +413,7 @@ generate parsedRoutes =
                                     )
                                     routes
                                 )
-                                |> Elm.expose
+                                |> Elm.exposeConstructor
                           ]
                         , List.map
                             (\route ->
