@@ -1,13 +1,13 @@
 module App.View exposing
     ( View, map
-    , Regions
+    , Regions, isVisible
     )
 
 {-|
 
 @docs View, map
 
-@docs Regions
+@docs Regions, isVisible
 
 -}
 
@@ -36,3 +36,18 @@ type alias Regions view =
     { primary : Maybe view
     , detail : List view
     }
+
+
+{-| -}
+isVisible : view -> Regions view -> Bool
+isVisible view regions =
+    case regions.primary of
+        Just primaryView ->
+            if view == primaryView then
+                True
+
+            else
+                List.any ((==) view) regions.detail
+
+        Nothing ->
+            List.any ((==) view) regions.detail
