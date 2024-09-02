@@ -46,8 +46,8 @@ page =
         }
 
 
-init : Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
-init params resources maybeCached =
+init : App.Page.Id.Id -> Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
+init pageId params resources maybeCached =
     App.Page.init {}
 
 

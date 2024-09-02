@@ -19169,6 +19169,7 @@
                                     _Utils_Tuple2("onMsg", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val(pageMsgTypeName), _List_fromArray([pageId])))
                                 ]))
                             ])), $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$get_fn("init", pageDetails), _List_fromArray([
+                                pageId,
                                 params,
                                 resources,
                                 $author$project$Press$Model$getPage_fn(pageKey, pageInfo.eK, cache, { e5: $mdgriffith$elm_codegen$Elm$just, f8: $mdgriffith$elm_codegen$Elm$nothing })
@@ -20458,7 +20459,7 @@
         }
     };
     var $author$project$Press$Generate$Engine$toPageKey = function (pages) {
-        return $mdgriffith$elm_codegen$Elm$Declare$fn_fn("toPageKey", $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId_", $author$project$Press$Model$types.A), function (pageId) {
+        return $mdgriffith$elm_codegen$Elm$Declare$fn_fn("toPageKey", $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId", $author$project$Press$Model$types.A), function (pageId) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Case$custom_fn(pageId, $author$project$Press$Model$types.A, $elm$core$List$map_fn(function (pageInfo) {
                 var toBranch = function (fn) {
                     var _v2 = pageInfo.lR;

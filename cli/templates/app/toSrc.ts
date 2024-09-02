@@ -16,7 +16,7 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/View.elm")) && !skip)) {
     const filepath = path.join(baseDir, "/App/View.elm");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "module App.View exposing\n    ( View, map\n    , Regions\n    )\n\n{-|\n\n@docs View, map\n\n@docs Regions\n\n-}\n\nimport Html\n\n\ntype alias View msg =\n    { title : String\n    , body : Html.Html msg\n    }\n\n\nmap : (a -> b) -> View a -> View b\nmap fn myView =\n    { title = myView.title\n    , body = Html.map fn myView.body\n    }\n\n\n\n{- Regions -}\n\n\n{-| -}\ntype alias Regions view =\n    { primary : Maybe view\n    , detail : List view\n    }\n");
+    fs.writeFileSync(filepath, "module App.View exposing\n    ( View, map\n    , Regions, isVisible\n    )\n\n{-|\n\n@docs View, map\n\n@docs Regions, isVisible\n\n-}\n\nimport Html\n\n\ntype alias View msg =\n    { title : String\n    , body : Html.Html msg\n    }\n\n\nmap : (a -> b) -> View a -> View b\nmap fn myView =\n    { title = myView.title\n    , body = Html.map fn myView.body\n    }\n\n\n\n{- Regions -}\n\n\n{-| -}\ntype alias Regions view =\n    { primary : Maybe view\n    , detail : List view\n    }\n\n\n{-| -}\nisVisible : view -> Regions view -> Bool\nisVisible view regions =\n    case regions.primary of\n        Just primaryView ->\n            if view == primaryView then\n                True\n\n            else\n                List.any ((==) view) regions.detail\n\n        Nothing ->\n            List.any ((==) view) regions.detail\n");
     const generated = { outputDir: baseDir, path: filepath}
     Options.addGenerated(summary, generated);
   }

@@ -23,6 +23,7 @@ These are used internally and you shouldn't need to worry about them!
 -}
 
 import App.Page.Error
+import App.Page.Id
 import App.Resources
 import App.View
 import App.View.Id
@@ -34,7 +35,7 @@ type Page shared params msg model
     = Page
         { toKey : Maybe (params -> String)
         , pageCacheLimit : Int
-        , init : params -> shared -> Maybe model -> Init msg model
+        , init : App.Page.Id.Id -> params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, Effect.Effect msg )
         , subscriptions : shared -> model -> Listen.Listen msg
         , view : App.View.Id.Id -> shared -> model -> Result App.Page.Error.Error (App.View.View msg)
@@ -43,7 +44,7 @@ type Page shared params msg model
 
 {-| -}
 page :
-    { init : params -> App.Resources.Resources -> Maybe model -> Init msg model
+    { init : App.Page.Id.Id -> params -> App.Resources.Resources -> Maybe model -> Init msg model
     , update : App.Resources.Resources -> msg -> model -> ( model, Effect.Effect msg )
     , subscriptions : App.Resources.Resources -> model -> Listen.Listen msg
     , view : App.View.Id.Id -> App.Resources.Resources -> model -> App.View.View msg
@@ -52,7 +53,7 @@ page :
 page options =
     Page
         { toKey = Nothing
-        , pageCacheLimit = 1
+        , pageCacheLimit = 10
         , init = options.init
         , update = options.update
         , subscriptions = options.subscriptions
@@ -74,7 +75,7 @@ withKey toKey (Page options) =
 
 {-| This is the maximum number of page instances that will be cached, above what is already visible.
 
-This defaults to 1.
+This defaults to 10.
 
 -}
 withPageCacheLimit : Int -> Page shared params msg model -> Page shared params msg model
@@ -92,13 +93,13 @@ withGuard toResources (Page options) =
         { toKey = options.toKey
         , pageCacheLimit = options.pageCacheLimit
         , init =
-            \params resources maybeModel ->
+            \pageId params resources maybeModel ->
                 case toResources resources of
                     Err err ->
                         Error err
 
                     Ok newShared ->
-                        options.init params newShared maybeModel
+                        options.init pageId params newShared maybeModel
         , update =
             \resources msg model ->
                 case toResources resources of
@@ -201,7 +202,7 @@ toInternalDetails :
     ->
         { toKey : Maybe (params -> String)
         , pageCacheLimit : Int
-        , init : params -> shared -> Maybe model -> Init msg model
+        , init : App.Page.Id.Id -> params -> shared -> Maybe model -> Init msg model
         , update : shared -> msg -> model -> ( model, Effect.Effect msg )
         , subscriptions : shared -> model -> Listen.Listen msg
         , view : App.View.Id.Id -> shared -> model -> Result App.Page.Error.Error (App.View.View msg)

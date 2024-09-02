@@ -828,12 +828,6 @@ preloadPage routes =
 getPageInit :
     List Options.App.PageUsage
     ->
-        -- { declaration : Elm.Declaration
-        -- , call : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
-        -- , callFrom :
-        --     List String -> Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
-        -- , value : List String -> Elm.Expression
-        -- }
         Elm.Declare.Function
             (Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression)
 getPageInit pages =
@@ -881,7 +875,8 @@ getPageInit pages =
                                             (\pageDetails pageKey ->
                                                 Elm.apply
                                                     (Elm.get "init" pageDetails)
-                                                    [ params
+                                                    [ pageId
+                                                    , params
                                                     , resources
                                                     , getPage pageKey
                                                         pageInfo.id
