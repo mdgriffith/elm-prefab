@@ -381,52 +381,33 @@ generate parsedRoutes =
         Ok routes ->
             Ok <|
                 Elm.fileWith [ "App", "Route" ]
-                    { docs =
-                        -- \groups ->
-                        --     groups
-                        --         |> List.sortBy
-                        --             (\doc ->
-                        --                 case doc.group of
-                        --                     Nothing ->
-                        --                         0
-                        --                     Just "Route" ->
-                        --                         1
-                        --                     Just "Params" ->
-                        --                         2
-                        --                     Just "Encodings" ->
-                        --                         3
-                        --                     _ ->
-                        --                         4
-                        --             )
-                        --         |> List.map Elm.docs
-                        "# Routes"
+                    { docs = "# Routes"
                     , aliases = []
                     }
-                    (List.concat
-                        [ [ Elm.customType "Route"
-                                (List.map
-                                    (\route ->
-                                        Elm.variantWith
-                                            route.id
-                                            [ paramType route
-                                            ]
-                                    )
-                                    routes
-                                )
-                                |> Elm.exposeConstructor
-                          ]
-                        , List.map
+                    [ Elm.customType "Route"
+                        (List.map
+                            (\route ->
+                                Elm.variantWith
+                                    route.id
+                                    [ paramType route
+                                    ]
+                            )
+                            routes
+                        )
+                        |> Elm.exposeConstructor
+                    , Elm.group
+                        (List.map
                             (\route ->
                                 Elm.alias (route.id ++ "_Params")
                                     (paramType route)
                                     |> Elm.expose
                             )
                             routes
-                        , urlEncoder routes
-                        , urlParser routes
-                        , urlToId routes
-                        ]
-                    )
+                        )
+                    , Elm.group (urlEncoder routes)
+                    , Elm.group (urlParser routes)
+                    , Elm.group (urlToId routes)
+                    ]
 
 
 hasVars : List Options.Route.UrlPiece -> Bool
