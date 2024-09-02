@@ -25,6 +25,7 @@ import Gen.Result
 import Gen.Tuple
 import Gen.Url
 import Options.App
+import Options.Route
 import Press.Generate.Regions
 import Press.Model exposing (..)
 
@@ -191,76 +192,81 @@ toEmptyResources resources =
             (Elm.Arg.varWith "flags" Gen.Json.Encode.annotation_.value)
             (Elm.Arg.varWith "url" Gen.Url.annotation_.url)
             (\flags url ->
-                Elm.Let.letIn
-                    (\stateAndEffectRecord ->
-                        let
-                            stateRecord =
-                                resources
+                case resources of
+                    [] ->
+                        Elm.tuple (Elm.record []) effectNone
+
+                    _ ->
+                        Elm.Let.letIn
+                            (\stateAndEffectRecord ->
+                                let
+                                    stateRecord =
+                                        resources
+                                            |> List.map
+                                                (\resource ->
+                                                    ( resource.id
+                                                    , Gen.Tuple.first (Elm.get resource.id stateAndEffectRecord)
+                                                    )
+                                                )
+                                            |> Elm.record
+
+                                    finalEffects =
+                                        resources
+                                            |> List.map
+                                                (\resource ->
+                                                    Gen.Tuple.second (Elm.get resource.id stateAndEffectRecord)
+                                                        |> effectMap (Elm.val ("Resource" ++ resource.id))
+                                                )
+                                            |> effectBatch
+                                in
+                                Elm.tuple stateRecord finalEffects
+                                    |> Elm.withType
+                                        (Type.tuple
+                                            resourcesType
+                                            (effectWith types.msg)
+                                        )
+                            )
+                            |> Elm.Let.value "updatedResources"
+                                (resources
                                     |> List.map
                                         (\resource ->
+                                            let
+                                                cachedModel =
+                                                    Elm.Case.maybe (resourceValue resource.id "codec")
+                                                        { nothing = Elm.nothing
+                                                        , just =
+                                                            ( "codec"
+                                                            , \codec ->
+                                                                let
+                                                                    decoder =
+                                                                        Gen.Json.Decode.field "localStorage"
+                                                                            (Gen.Json.Decode.field resource.id (Elm.get "decoder" codec))
+                                                                in
+                                                                Gen.Result.toMaybe (Gen.Json.Decode.decodeValue decoder flags)
+                                                            )
+                                                        }
+
+                                                updatedResourcePair =
+                                                    Elm.apply
+                                                        (Elm.value
+                                                            { importFrom = [ "Resource", resource.id ]
+                                                            , name = "resource"
+                                                            , annotation = Nothing
+                                                            }
+                                                            |> Elm.get "init"
+                                                        )
+                                                        [ flags
+                                                        , url
+                                                        , cachedModel
+                                                        ]
+                                            in
                                             ( resource.id
-                                            , Gen.Tuple.first (Elm.get resource.id stateAndEffectRecord)
+                                            , updatedResourcePair
                                             )
                                         )
                                     |> Elm.record
-
-                            finalEffects =
-                                resources
-                                    |> List.map
-                                        (\resource ->
-                                            Gen.Tuple.second (Elm.get resource.id stateAndEffectRecord)
-                                                |> effectMap (Elm.val ("Resource" ++ resource.id))
-                                        )
-                                    |> effectBatch
-                        in
-                        Elm.tuple stateRecord finalEffects
-                            |> Elm.withType
-                                (Type.tuple
-                                    resourcesType
-                                    (effectWith types.msg)
                                 )
-                    )
-                    |> Elm.Let.value "updatedResources"
-                        (resources
-                            |> List.map
-                                (\resource ->
-                                    let
-                                        cachedModel =
-                                            Elm.Case.maybe (resourceValue resource.id "codec")
-                                                { nothing = Elm.nothing
-                                                , just =
-                                                    ( "codec"
-                                                    , \codec ->
-                                                        let
-                                                            decoder =
-                                                                Gen.Json.Decode.field "localStorage"
-                                                                    (Gen.Json.Decode.field resource.id (Elm.get "decoder" codec))
-                                                        in
-                                                        Gen.Result.toMaybe (Gen.Json.Decode.decodeValue decoder flags)
-                                                    )
-                                                }
-
-                                        updatedResourcePair =
-                                            Elm.apply
-                                                (Elm.value
-                                                    { importFrom = [ "Resource", resource.id ]
-                                                    , name = "resource"
-                                                    , annotation = Nothing
-                                                    }
-                                                    |> Elm.get "init"
-                                                )
-                                                [ flags
-                                                , url
-                                                , cachedModel
-                                                ]
-                                    in
-                                    ( resource.id
-                                    , updatedResourcePair
-                                    )
-                                )
-                            |> Elm.record
-                        )
-                    |> Elm.Let.toExpression
+                            |> Elm.Let.toExpression
             )
         )
 
@@ -388,9 +394,6 @@ toPageKey pages =
                                         pageModule =
                                             pageInfo.moduleName
 
-                                        pageMsgTypeName =
-                                            types.toPageMsg pageInfo.id
-
                                         pageConfig =
                                             Elm.value
                                                 { importFrom = pageModule
@@ -403,7 +406,35 @@ toPageKey pages =
                                             Elm.Let.letIn
                                                 (\pageDetails ->
                                                     Elm.Case.maybe (Elm.get "toKey" pageDetails)
-                                                        { nothing = Elm.string pageInfo.id
+                                                        { nothing =
+                                                            case pageInfo.route of
+                                                                Nothing ->
+                                                                    Elm.string pageInfo.id
+
+                                                                Just pageRoute ->
+                                                                    let
+                                                                        vars =
+                                                                            Options.Route.toUrlVariables pageRoute
+                                                                    in
+                                                                    case vars of
+                                                                        [] ->
+                                                                            Elm.string pageInfo.id
+
+                                                                        first :: remaining ->
+                                                                            Elm.Op.append
+                                                                                (Elm.string (pageInfo.id ++ "/"))
+                                                                                (List.foldl
+                                                                                    (\field acc ->
+                                                                                        Elm.Op.append
+                                                                                            acc
+                                                                                            (Elm.Op.append
+                                                                                                (Elm.string "/")
+                                                                                                (Elm.get field params)
+                                                                                            )
+                                                                                    )
+                                                                                    (Elm.get first params)
+                                                                                    remaining
+                                                                                )
                                                         , just =
                                                             ( "toKey"
                                                             , \toKey ->
