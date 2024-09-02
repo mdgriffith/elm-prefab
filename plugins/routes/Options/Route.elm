@@ -10,12 +10,12 @@ module Options.Route exposing
     , decode
     , decodePage
     , parseUrlPattern
+    , toUrlVariables
     )
 
 {-| -}
 
 import Json.Decode
-import Markdown.Parser
 import Parser exposing ((|.), (|=))
 import Set exposing (Set)
 
@@ -31,12 +31,6 @@ type alias Page =
     { id : String
     , url : UrlPattern
     , redirectFrom : List UrlPattern
-    }
-
-
-type alias Source =
-    { path : String
-    , source : String
     }
 
 
@@ -74,6 +68,25 @@ type alias QueryParams =
 type UrlPiece
     = Token String
     | Variable String
+
+
+toUrlVariables : ParsedPage -> List String
+toUrlVariables page =
+    case page.url of
+        UrlParsedPattern urlPattern ->
+            List.filterMap
+                (\piece ->
+                    case piece of
+                        Token _ ->
+                            Nothing
+
+                        Variable variable ->
+                            Just variable
+                )
+                urlPattern.path
+
+        UrlError _ ->
+            []
 
 
 
