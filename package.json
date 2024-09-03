@@ -16,6 +16,7 @@
     "gen:install": "(cd plugins/codegen ; elm-codegen install)",
     "test:init": "bash scripts/init-test.sh",
     "test:greeting": "bash scripts/test-greeting.sh",
+    "test:cli:help": "pnpm build ; node ./dist/elm-prefab.js --help",
     "test:playground": "pnpm build ; bash scripts/test-playground.sh"
   },
   "repository": {

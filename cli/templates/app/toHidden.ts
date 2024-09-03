@@ -5,6 +5,14 @@ import * as Options from "../../options";
 
 export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => { 
   
+  if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/Page/Error.elm")) && !skip)) {
+    const filepath = path.join(baseDir, "/App/Page/Error.elm");
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+    fs.writeFileSync(filepath, "module App.Page.Error exposing (Error(..))\n\n{-| You may want to protect a page with a certain error when it is first requested.\n\n  - `NotFound` is built in to `elm-prefab`, so you don't need to capture that here.\n\nCommon errors are\n\n    - Unauthenticated — When you require someone to be signed in in order to see a page.\n    - Permission denied — When you require taht someone is both signed in and has certain permissions.\n\n-}\n\n\ntype Error\n    = Unauthenticated\n");
+    const generated = { outputDir: baseDir, path: filepath}
+    Options.addGenerated(summary, generated);
+  }
+
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/Page.elm")) && !skip)) {
     const filepath = path.join(baseDir, "/App/Page.elm");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
@@ -25,6 +33,14 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
     const filepath = path.join(baseDir, "/App/State.elm");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
     fs.writeFileSync(filepath, "module App.State exposing\n    ( Cache, init, get\n    , insert\n    , remove, purge\n    , values\n    , Limit, initLimit\n    , addToLimit, removeFromLimit\n    )\n\n{-|\n\n@docs Cache, init, get\n\n@docs insert\n\n@docs remove, purge\n\n@docs values\n\n@docs Limit, initLimit\n@docs addToLimit, removeFromLimit\n\n-}\n\nimport Dict\nimport Set\n\n\ntype Cache state\n    = Cache (Dict.Dict String state)\n\n\n{-| -}\ninit : Cache state\ninit =\n    Cache Dict.empty\n\n\n{-| -}\nget : String -> Cache state -> Maybe state\nget key (Cache cache) =\n    Dict.get key cache\n\n\n{-| -}\ninsert : String -> state -> Cache state -> Cache state\ninsert key newState (Cache cache) =\n    Cache (Dict.insert key newState cache)\n\n\n{-| -}\nremove : String -> Cache state -> Cache state\nremove key (Cache cache) =\n    Cache (Dict.remove key cache)\n\n\n{-| -}\npurge : List String -> Cache state -> Cache state\npurge keys (Cache cache) =\n    Cache (List.foldl Dict.remove cache keys)\n\n\n{-| -}\nvalues : Cache state -> List state\nvalues (Cache cache) =\n    Dict.values cache\n\n\n{-| A data structure for keeping tracking of the number of instances per page-group we have.\n-}\ntype Limit\n    = Limit (Dict.Dict String (List String))\n\n\n{-| -}\ninitLimit : Limit\ninitLimit =\n    Limit Dict.empty\n\n\n{-| -}\nremoveFromLimit :\n    { groupId : String\n    , instanceId : String\n    }\n    -> Limit\n    -> Limit\nremoveFromLimit { groupId, instanceId } (Limit groups) =\n    let\n        group =\n            Dict.get groupId groups\n                |> Maybe.withDefault []\n\n        newGroup =\n            List.filter (\\id -> id /= instanceId) group\n    in\n    Limit (Dict.insert groupId newGroup groups)\n\n\n{-|\n\n    - group is the page-group name.\n    - instance is the id of the instance.\n    - max is the number of items allowed, ignoring everything in the `keep` set.\n    - keep is a set of ids that should not be removed.\n\n-}\naddToLimit :\n    { groupId : String\n    , instanceId : String\n    , max : Int\n    , keep : Set.Set String\n    }\n    -> Limit\n    ->\n        { limit : Limit\n        , removedIds : List String\n        }\naddToLimit { groupId, instanceId, max, keep } (Limit groups) =\n    let\n        group =\n            Dict.get groupId groups\n                |> Maybe.withDefault []\n\n        ( removableIds, necessaryInstanceIds ) =\n            List.partition (\\id -> id /= instanceId && not (Set.member id keep)) group\n\n        removedIds =\n            -- Remove everything beyond the limit.\n            List.drop max removableIds\n\n        cachedIds =\n            List.take max removableIds\n    in\n    { limit =\n        groups\n            |> Dict.insert groupId\n                (instanceId :: necessaryInstanceIds ++ cachedIds)\n            |> Limit\n    , removedIds = removedIds\n    }\n");
+    const generated = { outputDir: baseDir, path: filepath}
+    Options.addGenerated(summary, generated);
+  }
+
+  if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/View.elm")) && !skip)) {
+    const filepath = path.join(baseDir, "/App/View.elm");
+    fs.mkdirSync(path.dirname(filepath), { recursive: true });
+    fs.writeFileSync(filepath, "module App.View exposing\n    ( View, map\n    , Regions, isVisible\n    )\n\n{-|\n\n@docs View, map\n\n@docs Regions, isVisible\n\n-}\n\nimport Html\n\n\ntype alias View msg =\n    { title : String\n    , body : Html.Html msg\n    }\n\n\nmap : (a -> b) -> View a -> View b\nmap fn myView =\n    { title = myView.title\n    , body = Html.map fn myView.body\n    }\n\n\n\n{- Regions -}\n\n\n{-| -}\ntype alias Regions view =\n    { primary : Maybe view\n    , detail : List view\n    }\n\n\n{-| -}\nisVisible : view -> Regions view -> Bool\nisVisible view regions =\n    case regions.primary of\n        Just primaryView ->\n            if view == primaryView then\n                True\n\n            else\n                List.any ((==) view) regions.detail\n\n        Nothing ->\n            List.any ((==) view) regions.detail\n");
     const generated = { outputDir: baseDir, path: filepath}
     Options.addGenerated(summary, generated);
   }

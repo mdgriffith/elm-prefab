@@ -5,22 +5,6 @@ import * as Options from "../../options";
 
 export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => { 
   
-  if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/Page/Error.elm")) && !skip)) {
-    const filepath = path.join(baseDir, "/App/Page/Error.elm");
-    fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "module App.Page.Error exposing (Error(..))\n\n{-| You may want to protect a page with a certain error when it is first requested.\n\n  - `NotFound` is built in to `elm-prefab`, so you don't need to capture that here.\n\nCommon errors are\n\n    - Unauthenticated — When you require someone to be signed in in order to see a page.\n    - Permission denied — When you require taht someone is both signed in and has certain permissions.\n\n-}\n\n\ntype Error\n    = Unauthenticated\n");
-    const generated = { outputDir: baseDir, path: filepath}
-    Options.addGenerated(summary, generated);
-  }
-
-  if (overwrite || (!fs.existsSync(path.join(baseDir, "/App/View.elm")) && !skip)) {
-    const filepath = path.join(baseDir, "/App/View.elm");
-    fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, "module App.View exposing\n    ( View, map\n    , Regions, isVisible\n    )\n\n{-|\n\n@docs View, map\n\n@docs Regions, isVisible\n\n-}\n\nimport Html\n\n\ntype alias View msg =\n    { title : String\n    , body : Html.Html msg\n    }\n\n\nmap : (a -> b) -> View a -> View b\nmap fn myView =\n    { title = myView.title\n    , body = Html.map fn myView.body\n    }\n\n\n\n{- Regions -}\n\n\n{-| -}\ntype alias Regions view =\n    { primary : Maybe view\n    , detail : List view\n    }\n\n\n{-| -}\nisVisible : view -> Regions view -> Bool\nisVisible view regions =\n    case regions.primary of\n        Just primaryView ->\n            if view == primaryView then\n                True\n\n            else\n                List.any ((==) view) regions.detail\n\n        Nothing ->\n            List.any ((==) view) regions.detail\n");
-    const generated = { outputDir: baseDir, path: filepath}
-    Options.addGenerated(summary, generated);
-  }
-
   if (overwrite || (!fs.existsSync(path.join(baseDir, "/Main.elm")) && !skip)) {
     const filepath = path.join(baseDir, "/Main.elm");
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
