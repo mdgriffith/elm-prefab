@@ -376,7 +376,6 @@ types =
             [ ( "key", Type.var "key" )
             , ( "limits", Gen.App.State.annotation_.limit )
             , ( "states", stateCache )
-            , ( "views", regionsRecord )
             , ( "resources", resourcesType )
             , ( "app", Type.var "app" )
             ]
@@ -694,7 +693,7 @@ loadPage routes =
                             , annotation = Nothing
                             }
                         )
-                        [ Elm.get "views" model ]
+                        [ Elm.get "viewing" (Elm.get "resources" model) ]
                         |> Elm.Op.pipe
                             (Elm.apply Gen.List.values_.map [ Elm.val "toPageKey" ])
                         |> Elm.Op.pipe
@@ -874,30 +873,31 @@ getPageInit pages =
                                         Elm.Let.letIn
                                             (\pageDetails pageKey ->
                                                 Elm.apply
-                                                    (Elm.get "init" pageDetails)
-                                                    [ pageId
-                                                    , params
-                                                    , resources
-                                                    , getPage pageKey
-                                                        pageInfo.id
-                                                        cache
-                                                        { nothing = Elm.nothing
-                                                        , just = Elm.just
-                                                        }
-                                                    ]
-                                                    |> Elm.Op.pipe
-                                                        (Elm.apply
-                                                            Gen.App.Page.values_.mapInitPlan
-                                                            [ Elm.record
-                                                                [ ( "onModel", Elm.val pageInfo.id )
-                                                                , ( "onMsg"
-                                                                  , Elm.apply
-                                                                        (Elm.val pageMsgTypeName)
-                                                                        [ pageId ]
-                                                                  )
-                                                                ]
+                                                    (Elm.apply
+                                                        Gen.App.Page.values_.mapInitPlan
+                                                        [ Elm.record
+                                                            [ ( "onModel", Elm.val pageInfo.id )
+                                                            , ( "onMsg"
+                                                              , Elm.apply
+                                                                    (Elm.val pageMsgTypeName)
+                                                                    [ pageId ]
+                                                              )
                                                             ]
-                                                        )
+                                                        ]
+                                                    )
+                                                    [ Elm.apply
+                                                        (Elm.get "init" pageDetails)
+                                                        [ pageId
+                                                        , params
+                                                        , resources
+                                                        , getPage pageKey
+                                                            pageInfo.id
+                                                            cache
+                                                            { nothing = Elm.nothing
+                                                            , just = Elm.just
+                                                            }
+                                                        ]
+                                                    ]
                                             )
                                             |> Elm.Let.value "pageDetails"
                                                 (Elm.apply

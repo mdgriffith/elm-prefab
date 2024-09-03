@@ -70,17 +70,25 @@ populateParamType page =
 
 generateResources : List Options.App.Resource -> List Elm.File
 generateResources resources =
+    let
+        userDefinedResources =
+            List.map
+                (\resource ->
+                    ( resource.id
+                    , Type.named [ "Resource", resource.id ] "Model"
+                    )
+                )
+                resources
+
+        viewingResource =
+            ( "viewing"
+            , Press.Model.regionsRecord
+            )
+    in
     [ Elm.file [ "App", "Resources" ]
         [ Elm.alias "Resources"
             (Type.record
-                (List.map
-                    (\resource ->
-                        ( resource.id
-                        , Type.named [ "Resource", resource.id ] "Model"
-                        )
-                    )
-                    resources
-                )
+                (viewingResource :: userDefinedResources)
             )
         ]
     ]

@@ -188,19 +188,25 @@ resourceValue resourceId name =
 toEmptyResources : List Options.App.Resource -> Elm.Declaration
 toEmptyResources resources =
     Elm.declaration "initResources"
-        (Elm.fn2
+        (Elm.fn3
             (Elm.Arg.varWith "flags" Gen.Json.Encode.annotation_.value)
+            (Elm.Arg.varWith "viewing" Press.Model.regionsRecord)
             (Elm.Arg.varWith "url" Gen.Url.annotation_.url)
-            (\flags url ->
+            (\flags viewing url ->
                 case resources of
                     [] ->
-                        Elm.tuple (Elm.record []) effectNone
+                        Elm.tuple (Elm.record [ ( "viewing", viewing ) ]) effectNone
+                            |> Elm.withType
+                                (Type.tuple
+                                    resourcesType
+                                    (effectWith types.msg)
+                                )
 
                     _ ->
                         Elm.Let.letIn
                             (\stateAndEffectRecord ->
                                 let
-                                    stateRecord =
+                                    stateRecordFields =
                                         resources
                                             |> List.map
                                                 (\resource ->
@@ -208,7 +214,9 @@ toEmptyResources resources =
                                                     , Gen.Tuple.first (Elm.get resource.id stateAndEffectRecord)
                                                     )
                                                 )
-                                            |> Elm.record
+
+                                    stateRecord =
+                                        Elm.record (( "viewing", viewing ) :: stateRecordFields)
 
                                     finalEffects =
                                         resources
@@ -685,8 +693,8 @@ app routes getPageInit loadPage =
         |> Elm.exposeConstructor
 
 
-initResources : Elm.Expression -> Elm.Expression -> Elm.Expression
-initResources flags url =
+initResources : Elm.Expression -> Elm.Expression -> Elm.Expression -> Elm.Expression
+initResources flags viewing url =
     Elm.apply
         (Elm.value
             { importFrom = []
@@ -699,10 +707,14 @@ initResources flags url =
                     )
             }
         )
-        [ flags, url ]
+        [ flags, viewing, url ]
 
 
 init getPageInit loadPage config flags url key =
+    let
+        viewing =
+            Press.Generate.Regions.values.empty
+    in
     Elm.Let.letIn
         (\( resources, resourceEffects ) ->
             let
@@ -724,9 +736,6 @@ init getPageInit loadPage config flags url key =
                         model =
                             Elm.record
                                 [ ( "key", key )
-                                , ( "views"
-                                  , Press.Generate.Regions.values.empty
-                                  )
                                 , ( "app", frameModel )
                                 , ( "resources", resources )
                                 , ( "limits", Gen.App.State.initLimit )
@@ -759,7 +768,7 @@ init getPageInit loadPage config flags url key =
                 (Elm.Arg.var "resources")
                 (Elm.Arg.var "resourceEffects")
             )
-            (initResources flags url)
+            (initResources flags viewing url)
         |> Elm.Let.toExpression
 
 
@@ -872,7 +881,7 @@ update resources routes getPageInit loadPage =
                         )
                         (\regionOperation ->
                             Elm.Let.letIn
-                                (\( newRegions, regionDiff ) ->
+                                (\( newRegions, regionDiff ) liveResources ->
                                     Elm.get "added" regionDiff
                                         |> Gen.List.call_.foldl
                                             (Elm.fn2
@@ -920,7 +929,12 @@ update resources routes getPageInit loadPage =
                                             )
                                             (Elm.tuple
                                                 (Elm.updateRecord
-                                                    [ ( "views", newRegions )
+                                                    [ ( "resources"
+                                                      , liveResources
+                                                            |> Elm.updateRecord
+                                                                [ ( "viewing", newRegions )
+                                                                ]
+                                                      )
                                                     ]
                                                     model
                                                 )
@@ -934,8 +948,9 @@ update resources routes getPageInit loadPage =
                                     )
                                     (Press.Generate.Regions.values.update
                                         regionOperation
-                                        (Elm.get "views" model)
+                                        (Elm.get "viewing" (Elm.get "resources" model))
                                     )
+                                |> Elm.Let.value "resources" (Elm.get "resources" model)
                                 |> Elm.Let.toExpression
                         )
                      , Elm.Case.branch
@@ -1016,7 +1031,6 @@ view routes =
                 Elm.Let.letIn frameView
                     |> Elm.Let.value "viewRegions"
                         (Elm.apply
-                            -- (Elm.val "renderRegions")
                             (Elm.value
                                 { importFrom = [ "App", "View", "Id" ]
                                 , name = "mapRegion"
@@ -1028,7 +1042,7 @@ view routes =
                                 [ Elm.get "resources" model
                                 , Elm.get "states" model
                                 ]
-                            , Elm.get "views" model
+                            , Elm.get "viewing" (Elm.get "resources" model)
                             ]
                         )
                     |> Elm.Let.toExpression
@@ -1190,7 +1204,7 @@ getSubscriptions resources pages =
                                     )
                                 |> Gen.Listen.batch
                     , Elm.apply Press.Generate.Regions.values.toList
-                        [ Elm.get "views" model ]
+                        [ Elm.get "viewing" (Elm.get "resources" model) ]
                         |> Gen.List.call_.filterMap
                             (Elm.fn
                                 (Elm.Arg.varWith "pageId" Type.string)
