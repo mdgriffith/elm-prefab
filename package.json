@@ -17,6 +17,8 @@
     "test:init": "bash scripts/init-test.sh",
     "test:greeting": "bash scripts/test-greeting.sh",
     "test:cli:help": "pnpm build ; node ./dist/elm-prefab.js --help",
+    "test:cli:add": "pnpm build ; node ./dist/elm-prefab.js add",
+    "test:cli:customize": "pnpm build ; node ./dist/elm-prefab.js customize",
     "test:playground": "pnpm build ; bash scripts/test-playground.sh"
   },
   "repository": {
@@ -30,6 +32,7 @@
   },
   "homepage": "https://github.com/mdgriffith/elm-prefab#readme",
   "dependencies": {
+    "@inquirer/prompts": "^5.5.0",
     "culori": "^4.0.1",
     "elm-dev": "^0.1.3",
     "elm-gql": "^0.13.0",
