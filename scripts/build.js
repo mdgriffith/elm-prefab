@@ -6,24 +6,50 @@ const path = require("path");
 This copies a number of files into .ts files so we can write them as static files from the CLI.
 */
 
-const toTypescriptFile = (body) => `
+const toTypescriptFile = (additional, all) => `
 import * as path from "path";
 import * as fs from "fs";
 import * as Options from "../../options";
 
-export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => { 
-  ${body}
+${additional}
+
+const all = [
+  ${all.join(",\n  ")}
+]
+
+export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => {
+   for (const file of all) {
+      if (overwrite || (!fs.existsSync(path.join(baseDir, file.path)) && !skip)) {
+        const filepath = path.join(baseDir, file.path);
+        fs.mkdirSync(path.dirname(filepath), { recursive: true });
+        fs.writeFileSync(filepath, file.contents);
+        const generated = { outputDir: baseDir, path: filepath}
+        Options.addGenerated(summary, generated);
+      }
+   }
 }
 `;
 
-const toCopyFile = (path, contents) => `
-  if (overwrite || (!fs.existsSync(path.join(baseDir, "${path}")) && !skip)) {
-    const filepath = path.join(baseDir, "${path}");
+const toCopyFile = (path, contents_) => `
+  if (overwrite || (!fs.existsSync(path.join(baseDir, ${toFileVar(path)}.path)) && !skip)) {
+    const filepath = path.join(baseDir, ${toFileVar(path)}.path);
     fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, ${contents});
+    fs.writeFileSync(filepath, ${toFileVar(path)}.contents);
     const generated = { outputDir: baseDir, path: filepath}
     Options.addGenerated(summary, generated);
   }`;
+
+const toFileVar = (path) => {
+  // Replace all non-alphanumeric characters with underscores
+  // Remove any leading non-alphanumeric characters
+  return path.replace(/[^a-zA-Z0-9]/g, "_").replace(/^[^a-zA-Z0-9]*/, "");
+};
+
+const toFileLink = (path, contents) => `
+export const ${toFileVar(path)} = {
+   path: "${path}",
+   contents: ${contents}
+}`;
 
 const toSingleTypescriptFile = (body) => `
 
@@ -39,7 +65,7 @@ function makeReplacements(replacements: Map<string, string>, source: string): st
   return result;
 }
 
-export const toBody = (replacements: Map<string, string>) => { 
+export const toBody = (replacements: Map<string, string>) => {
   return makeReplacements(replacements, ${body})
 }
 `;
@@ -78,7 +104,7 @@ const toCopyAll = (templates) => {
       copyCommands += `  ${template}.copyTo(options.internalSrc, true, false, summary)\n`;
     } else {
       copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
-        template
+        template,
       )}, false, !options.generateDefaultFiles, summary)\n`;
     }
   }
@@ -102,19 +128,21 @@ const copyFile = (file, targetFilePath) => {
 const copyDir = (dir, targetFilePath) => {
   const files = getFilesRecursively(dir);
 
-  const copyInstructions = [];
+  const links = [];
+  const allValues = [];
   for (const i in files) {
     let body = JSON.stringify(fs.readFileSync(`./${files[i]}`).toString());
 
     const targetPath = files[i].slice(dir.length);
-    copyInstructions.push(toCopyFile(targetPath, body));
+    links.push(toFileLink(targetPath, body));
+    allValues.push(toFileVar(targetPath));
   }
 
   const targetDir = path.dirname(targetFilePath);
   fs.mkdirSync(targetDir, { recursive: true });
   fs.writeFileSync(
     targetFilePath,
-    toTypescriptFile(copyInstructions.join("\n"))
+    toTypescriptFile(links.join("\n"), allValues),
   );
 };
 
@@ -169,7 +197,7 @@ for (const dir of getDirectories("plugins")) {
     for (const file of getFilesRecursively(oneOffDir)) {
       copyFile(
         file,
-        `./cli/templates/${pluginName}/oneOff/${path.basename(file)}.ts`
+        `./cli/templates/${pluginName}/oneOff/${path.basename(file)}.ts`,
       );
     }
   }
