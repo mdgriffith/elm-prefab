@@ -1,7 +1,8 @@
 import * as Clipboard from "./clipboard";
 import * as LocalStorage from "./local-storage";
 import * as TextSelection from "./text-selection";
-// Handling data from elm to JS
+
+// Handling data from Elm to JS
 export function connect(app: any) {
   // Text selection
   app.ports?.textSelection?.subscribe?.((message: any) => {

@@ -43,6 +43,7 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     server: {
       strictPort: true,
+      open: true,
     },
 
     build: {
