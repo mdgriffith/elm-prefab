@@ -1,4 +1,7 @@
 import { z } from "zod";
+import * as Project from "./project";
+import * as fs from "fs";
+import Chalk from "chalk";
 
 const mapObject = (parser: any) => {
   return z.object({}).catchall(parser);
@@ -174,6 +177,8 @@ export enum GeneratorType {
 export type RunOptions = {
   initializing: boolean;
   generateDefaultFiles: boolean;
+  activePlugins: string[];
+  project: Project.Status;
   internalSrc: string;
   js: string;
   src: string;
@@ -215,4 +220,193 @@ export const mergeSummaries = (one: Summary, two: Summary): Summary => {
   }
 
   return { generated: one.generated.concat(two.generated) };
+};
+
+// Read/WRite Config
+//
+
+function getValueByPath(obj: any, path: (string | number)[]) {
+  // Start with the initial object
+  let current = obj;
+
+  // Iterate over the path array
+  for (const key of path) {
+    // Check if the key exists in the current object/array
+    if (current !== null && current !== undefined && key in current) {
+      // Move to the next part of the object/array
+      current = current[key];
+    } else {
+      // If the path is not valid, return null
+      return null;
+    }
+  }
+
+  // Return the found value, or null if any key was not found
+  return current;
+}
+const quote = (s: string | number): string => {
+  if (typeof s === "string") {
+    return `"${s}"`;
+  } else {
+    return s.toString();
+  }
+};
+
+const jsonPathToString = (path: (string | number)[]): string => {
+  return path.map((p) => Chalk.yellow(quote(p))).join(".");
+};
+
+const renderExample = (path: (string | number)[]): string => {
+  const example = getValueByPath(examples, path);
+  if (example === null) {
+    return "";
+  }
+
+  return ` Here's an example of what I'm expecting at ${jsonPathToString(
+    path,
+  )}:\n${JSON.stringify(example, null, 2)}`;
+};
+
+const formatError = (issue: z.ZodIssue, issueDescription: string): string => {
+  return `${issueDescription} at ${jsonPathToString(issue.path)}${errorFollowup(
+    issue,
+  )}`;
+};
+
+const reportIssue = (issue: z.ZodIssue): string => {
+  return formatError(issue, errorDescription(issue));
+};
+
+const errorFollowup = (issue: z.ZodIssue): string => {
+  switch (issue.code) {
+    case z.ZodIssueCode.unrecognized_keys:
+      return ". Maybe it's in the wrong place or needs to be removed?";
+
+    case z.ZodIssueCode.invalid_type:
+      let followup = "";
+      if (issue.message == "Required") {
+        followup = ", but a value is required.";
+      }
+      return followup + renderExample(issue.path);
+    default:
+      return ". " + renderExample(issue.path);
+  }
+};
+
+const errorDescription = (issue: z.ZodIssue): string => {
+  switch (issue.code) {
+    case z.ZodIssueCode.invalid_type:
+      return `I found ${issue.received}`;
+
+    case z.ZodIssueCode.custom:
+      return issue.message;
+
+    case z.ZodIssueCode.invalid_union:
+      return "I don't recognize this";
+
+    case z.ZodIssueCode.unrecognized_keys:
+      if (issue.keys.length === 1) {
+        return `I don't recognize the field "${Chalk.yellow(issue.keys[0])}"`;
+      } else {
+        return `I don't recognize the following fields: ${issue.keys
+          .map(Chalk.yellow)
+          .join(", ")}`;
+      }
+
+    case z.ZodIssueCode.invalid_enum_value:
+      return `I was expecting one of these values: ${issue.options.join(", ")}`;
+
+    case z.ZodIssueCode.invalid_string:
+      return `I found a string that's in the wrong format(expecting ${issue.validation})`;
+
+    case z.ZodIssueCode.invalid_date:
+      return "I found an invalid date";
+
+    case z.ZodIssueCode.too_small:
+      return "I found a value that's too small";
+
+    case z.ZodIssueCode.too_big:
+      return "I found a value that's too big";
+
+    case z.ZodIssueCode.invalid_return_type:
+      return issue.code;
+
+    case z.ZodIssueCode.not_multiple_of:
+      return `I found a value that's not a multiple of ${issue.multipleOf}`;
+
+    default:
+      return issue.code;
+  }
+};
+
+export const readConfig = async (filepath: string): Promise<Config | null> => {
+  if (!fs.existsSync(filepath)) {
+    return null;
+  }
+  let config = null;
+  try {
+    config = JSON.parse(fs.readFileSync(filepath, "utf-8"));
+  } catch (e) {
+    console.log(`Elm Prefab
+
+    I tried to read your ${Chalk.yellow(
+      "elm.generate.json",
+    )} file doesn't look like valid JSON.
+`);
+    process.exit(1);
+  }
+
+  config = Config.safeParse(config);
+
+  if (config.success) {
+    return config.data;
+  } else {
+    let issueCount = "an issue";
+    if (config.error.issues.length > 1) {
+      issueCount = "a few issues";
+    }
+
+    let message = `I tried to read your ${Chalk.yellow(
+      "elm.generate.json",
+    )} file but found ${issueCount}.
+
+`;
+    for (const issue of config.error.issues) {
+      message = message + reportIssue(issue) + "\n\n";
+    }
+    console.log(message);
+    process.exit(1);
+  }
+};
+
+// Write Config
+export const writeConfig = (config: Config) => {
+  // Slow, but we know for sure we have a deep clone and no lingering references
+  const clone: any = JSON.parse(JSON.stringify(config));
+
+  if (clone.app) {
+    Object.keys(clone.app.pages).forEach(function (pageName) {
+      const page = clone.app.pages[pageName];
+
+      let redirectFrom =
+        //@ts-ignore
+        page.redirectFrom.length == 0 ? undefined : page.redirectFrom;
+
+      if (!page.urlOnly && page.redirectFrom.length === 0) {
+        clone.app.pages[pageName] = page.url;
+      } else if (page.urlOnly) {
+        clone.app.pages[pageName] = {
+          urlOnly: page.url,
+          redirectFrom: redirectFrom,
+        };
+      } else {
+        clone.app.pages[pageName] = {
+          url: page.url,
+          redirectFrom: redirectFrom,
+        };
+      }
+    });
+  }
+
+  fs.writeFileSync("elm.generate.json", JSON.stringify(clone, null, 2));
 };

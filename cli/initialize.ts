@@ -1,9 +1,6 @@
-import * as readline from "readline";
 import Chalk from "chalk";
+import * as Inquire from "@inquirer/prompts";
 import * as Options from "./options";
-import * as fs from "fs";
-
-const minimalConfig: Options.Config = {};
 
 const testTheme: Options.ThemeOptions = {
   colors: {
@@ -192,135 +189,81 @@ export const defaultOptions: Options.Config = {
     },
   },
   assets: { Assets: { src: "./public", onServer: "assets" } },
-  graphql: {
-    schema: "$GRAPHQL_SCHEMA",
-    header: ["Authorization: bearer $GRAPHQL_API_TOKEN"],
-  },
-  theme: defaultTheme,
 };
 
-const defaultPlugins = ["app"];
-
-const composeDefaultConfig = (
-  pluginsRequested: string[],
-  config: Options.Config,
-): Options.Config => {
-  const plugins =
-    pluginsRequested.length > 0 ? pluginsRequested : defaultPlugins;
-
-  for (const plugin of plugins) {
-    if (plugin in defaultOptions) {
-      if (plugin in config) {
-        continue;
-      }
-      // @ts-ignore
-      config[plugin] = defaultOptions[plugin];
-    }
-  }
-  return config;
+export const defaultGraphQL = {
+  schema: "$GRAPHQL_SCHEMA",
+  header: ["Authorization: bearer $GRAPHQL_API_TOKEN"],
 };
 
-// Create readline interface
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
-const question = async (q: string): Promise<string> => {
-  return await new Promise((resolve) => {
-    rl.question(q, resolve);
-  });
-};
-
-export const writeConfig = (config: Options.Config) => {
-  // Slow, but we know for sure we have a deep clone and no lingering references
-  const clone: any = JSON.parse(JSON.stringify(config));
-
-  if (clone.app) {
-    Object.keys(clone.app.pages).forEach(function (pageName) {
-      const page = clone.app.pages[pageName];
-
-      let redirectFrom =
-        //@ts-ignore
-        page.redirectFrom.length == 0 ? undefined : page.redirectFrom;
-
-      if (!page.urlOnly && page.redirectFrom.length === 0) {
-        clone.app.pages[pageName] = page.url;
-      } else if (page.urlOnly) {
-        clone.app.pages[pageName] = {
-          urlOnly: page.url,
-          redirectFrom: redirectFrom,
-        };
-      } else {
-        clone.app.pages[pageName] = {
-          url: page.url,
-          redirectFrom: redirectFrom,
-        };
-      }
-    });
-  }
-
-  fs.writeFileSync("elm.generate.json", JSON.stringify(clone, null, 2));
-};
-
-export const config = async (
-  plugins: string[],
-  existing: Options.Config | null,
-): Promise<Options.Config | null> => {
-  const answer = await question(
-    `It looks like you're starting a new ${Chalk.yellow("Elm Prefab")} project!
-
-Want me to generate everything you need to get started? (Y/n)`,
+export const start = async (): Promise<Options.Config> => {
+  console.log(
+    `It looks like you're starting a new ${Chalk.yellow("Elm Prefab")} project!\n`,
   );
 
-  // If the user answers 'Y' or 'y', generate the file
-  if (answer.toLowerCase() === "y" || answer.trim() === "") {
-    const config = composeDefaultConfig(
-      plugins,
-      existing ? existing : minimalConfig,
-    );
+  const shouldGenerate = await Inquire.confirm({
+    message: "Want me to set up an Elm Prefab project for you?",
+  });
 
-    writeConfig(config);
-
-    if ("graphql" in plugins && existing != null && !("graphql" in existing)) {
-      console.log(
-        `I've added some default graphQL settings to ${Chalk.yellow(
-          "elm.generate.json",
-        )} which use the following environment variables:
-
-- ${Chalk.yellow(
-          "$GRAPHQL_SCHEMA",
-        )} - The HTTP endpoint for the GraphQL schema, or the path to a local schema file in JSON format.
-- ${Chalk.yellow(
-          "$GRAPHQL_API_TOKEN",
-        )} - The API token needed for querying for the schema.
-
-Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
-`,
-      );
-      process.exit(0);
-    } else if (existing == null) {
-      console.log(
-        `${Chalk.yellow("elm.generate.json")} file has been generated!`,
-      );
-    } else {
-      const pluginsAdded = plugins
-        .filter((plugin) => !(plugin in existing))
-        .map((plugin) => Chalk.green(plugin));
-
-      console.log(
-        `I've added the following plugins to your ${Chalk.yellow(
-          "elm.generate.json",
-        )} file!\n\n${pluginsAdded.join("\n    ")}`,
-      );
-    }
-
-    return config;
-  } else {
-    console.log("File generation skipped.");
+  if (!shouldGenerate) {
+    console.log("Okay, see ya around! 👋");
+    process.exit(0);
   }
 
-  // Close the readline interface
-  rl.close();
-  return null;
+  const config = defaultOptions;
+
+  const isUsingGraphQL = await Inquire.confirm({
+    message: `Are you using GraphQL? ${Chalk.grey("(you can change this later)")}`,
+    default: false,
+  });
+
+  if (isUsingGraphQL) {
+    config.graphql = defaultGraphQL;
+  }
+
+  // const packageManager = await Inquire.select({
+  //   message: "Select a package manager",
+  //   choices: [
+  //     {
+  //       name: "npm",
+  //       value: "npm",
+  //     },
+  //     {
+  //       name: "yarn",
+  //       value: "yarn",
+  //     },
+  //     {
+  //       name: "jspm",
+  //       value: "jspm",
+  //     },
+  //     {
+  //       name: "pnpm",
+  //       value: "pnpm",
+  //     },
+  //   ],
+  // });
+
+  Options.writeConfig(config);
+  return config;
+  //   if (isUsingGraphQL) {
+  //     console.log(
+  //       `I've added some default graphQL settings to ${Chalk.yellow(
+  //         "elm.generate.json",
+  //       )} which use the following environment variables:
+
+  // - ${Chalk.yellow(
+  //         "$GRAPHQL_SCHEMA",
+  //       )} - The HTTP endpoint for the GraphQL schema, or the path to a local schema file in JSON format.
+  // - ${Chalk.yellow(
+  //         "$GRAPHQL_API_TOKEN",
+  //       )} - The API token needed for querying for the schema.
+
+  // Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
+  // `,
+  //     );
+  //     process.exit(0);
+  //   } else {
+  //     console.log(`${Chalk.yellow("elm.generate.json")} file has been generated!`);
+  //     return config;
+  //   }
 };

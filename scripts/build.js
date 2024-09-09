@@ -13,7 +13,7 @@ import * as Options from "../../options";
 
 ${additional}
 
-const all = [
+export const all = [
   ${all.join(",\n  ")}
 ]
 
@@ -29,15 +29,6 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
    }
 }
 `;
-
-const toCopyFile = (path, contents_) => `
-  if (overwrite || (!fs.existsSync(path.join(baseDir, ${toFileVar(path)}.path)) && !skip)) {
-    const filepath = path.join(baseDir, ${toFileVar(path)}.path);
-    fs.mkdirSync(path.dirname(filepath), { recursive: true });
-    fs.writeFileSync(filepath, ${toFileVar(path)}.contents);
-    const generated = { outputDir: baseDir, path: filepath}
-    Options.addGenerated(summary, generated);
-  }`;
 
 const toFileVar = (path) => {
   // Replace all non-alphanumeric characters with underscores
@@ -179,8 +170,20 @@ const getFilesRecursively = (filepath) => {
   return files.concat(getFiles(filepath));
 };
 
+const customizables = [];
+const plugins = [];
+
 for (const dir of getDirectories("plugins")) {
   const pluginName = path.basename(dir);
+
+  // Capture all customizable files
+  copyDirIfExists(dir, pluginName, "customizable", []);
+  const customizableDir = path.join(dir, "templates", "customizable");
+  const customizableExists = fs.existsSync(customizableDir);
+  if (customizableExists) {
+    customizables.push({ importPath: customizableDir, pluginName: pluginName });
+  }
+
   const templates = [];
   copyDirIfExists(dir, pluginName, "toHidden", templates);
   copyDirIfExists(dir, pluginName, "toSrc", templates);
@@ -190,6 +193,10 @@ for (const dir of getDirectories("plugins")) {
   const maybeCopyAll = toCopyAll(templates);
   if (maybeCopyAll) {
     fs.writeFileSync(`./cli/templates/${pluginName}/copyAll.ts`, maybeCopyAll);
+  }
+  if (customizableExists || maybeCopyAll) {
+    // Some templates were generated, this is def a plugin
+    plugins.push(pluginName);
   }
 
   const oneOffDir = path.join(dir, "templates", "oneOff");
@@ -202,3 +209,36 @@ for (const dir of getDirectories("plugins")) {
     }
   }
 }
+
+// Utility for copying all customizables
+if (customizables.length > 0) {
+  let content = "";
+  for (const filePath of customizables) {
+    content += `import * as ${filePath.pluginName} from "./${filePath.pluginName}/customizable";\n`;
+  }
+  content += "\n\n";
+  content += "export const all = [\n";
+  for (const filePath of customizables) {
+    content =
+      content +
+      `  { plugin: "${filePath.pluginName}", all: ${filePath.pluginName}.all },\n`;
+  }
+  content += "];";
+
+  fs.writeFileSync(`./cli/templates/allCustomizables.ts`, content);
+}
+
+// Utility for copying all files for a plugin
+let content = "";
+for (const pluginName of plugins) {
+  content += `import * as ${pluginName} from "./${pluginName}/copyAll";\n`;
+}
+content += "\n\n";
+content += "export const all = [\n";
+for (const pluginName of plugins) {
+  content =
+    content + `  { plugin: "${pluginName}", copy: ${pluginName}.copy },\n`;
+}
+content += "];";
+
+fs.writeFileSync(`./cli/templates/allCopy.ts`, content);

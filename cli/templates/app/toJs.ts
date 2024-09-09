@@ -26,7 +26,7 @@ export const js_local_storage_ts = {
 
 export const js_ports_ts = {
    path: "/js/ports.ts",
-   contents: "import * as Clipboard from \"./clipboard\";\nimport * as LocalStorage from \"./local-storage\";\nimport * as TextSelection from \"./text-selection\";\n// Handling data from elm to JS\nexport function connect(app: any) {\n  // Text selection\n  app.ports?.textSelection?.subscribe?.((message: any) => {\n    TextSelection.focus_and_select(message.id);\n  });\n\n  // Clipboard\n  app.ports?.clipboard?.subscribe?.((message: any) => {\n    Clipboard.copy(message);\n  });\n\n  // Local Storage\n  app.ports?.localStorage?.subscribe?.((message: any) => {\n    switch (message.operation) {\n      case \"save\":\n        LocalStorage.set(message.details.key, message.details.value);\n        if (app.ports?.localStorageUpdated) {\n          app.ports.localStorageUpdated.send(message.details);\n        }\n        break;\n\n      case \"clear\":\n        LocalStorage.clear(message.details.key);\n        break;\n\n      default:\n        break;\n    }\n  });\n}\n"
+   contents: "import * as Clipboard from \"./clipboard\";\nimport * as LocalStorage from \"./local-storage\";\nimport * as TextSelection from \"./text-selection\";\n\n// Handling data from Elm to JS\nexport function connect(app: any) {\n  // Text selection\n  app.ports?.textSelection?.subscribe?.((message: any) => {\n    TextSelection.focus_and_select(message.id);\n  });\n\n  // Clipboard\n  app.ports?.clipboard?.subscribe?.((message: any) => {\n    Clipboard.copy(message);\n  });\n\n  // Local Storage\n  app.ports?.localStorage?.subscribe?.((message: any) => {\n    switch (message.operation) {\n      case \"save\":\n        LocalStorage.set(message.details.key, message.details.value);\n        if (app.ports?.localStorageUpdated) {\n          app.ports.localStorageUpdated.send(message.details);\n        }\n        break;\n\n      case \"clear\":\n        LocalStorage.clear(message.details.key);\n        break;\n\n      default:\n        break;\n    }\n  });\n}\n"
 }
 
 export const js_text_selection_ts = {
@@ -39,7 +39,7 @@ export const main_ts = {
    contents: "// @ts-ignore\nimport { Elm } from \"./app/Main.elm\";\nimport * as LocalStorage from \"./js/local-storage\";\nimport * as Ports from \"./js/ports\";\nimport Webcomponents from \"./js/webcomponents\";\n\n// Include any custom elements we need.\nWebcomponents();\n\n// Boot up the Elm App\nconst app = Elm.Main.init({\n  flags: { now: Date.now(), localStorage: LocalStorage.getAll() },\n});\n\n// Connect ports\nPorts.connect(app);\n"
 }
 
-const all = [
+export const all = [
   js_webcomponents_elm_portal_ts,
   js_webcomponents_index_ts,
   js_clipboard_ts,
@@ -47,7 +47,7 @@ const all = [
   js_ports_ts,
   js_text_selection_ts,
   main_ts
-  ]
+]
 
 export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => {
    for (const file of all) {

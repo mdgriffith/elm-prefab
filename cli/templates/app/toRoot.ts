@@ -19,6 +19,11 @@ export const index_html = {
    contents: "<html>\n    <head>\n        <meta charset=\"UTF-8\" />\n        <title>My Elm App</title>\n        <script type=\"module\" src=\"/src/main.ts\"></script>\n    </head>\n    <body></body>\n</html>\n"
 }
 
+export const package_json = {
+   path: "/package.json",
+   contents: "{\n  \"name\": \"placeholder\",\n  \"type\": \"module\",\n  \"version\": \"0.1.0\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"vite build\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"^5.2.6\",\n    \"vite-plugin-elm\": \"^3.0.0\",\n    \"typescript\": \"^5.4.3\",\n    \"elm-dev\": \"^0.1.3\",\n    \"elm-prefab\": \"^0.1.21\"\n  }\n}\n"
+}
+
 export const tsconfig_json = {
    path: "/tsconfig.json",
    contents: "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"useDefineForClassFields\": true,\n    \"module\": \"CommonJS\",\n    \"lib\": [\"ES2020\", \"DOM\", \"DOM.Iterable\"],\n    \"skipLibCheck\": true,\n\n    \"allowImportingTsExtensions\": true,\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"noEmit\": true,\n\n    /* Linting */\n    \"strict\": true,\n    \"noUnusedLocals\": true,\n    \"noFallthroughCasesInSwitch\": true\n  },\n\n  \"include\": [\"src\"]\n}\n"
@@ -26,16 +31,17 @@ export const tsconfig_json = {
 
 export const vite_config_js = {
    path: "/vite.config.js",
-   contents: "import { defineConfig } from \"vite\";\nimport elmPlugin from \"vite-plugin-elm\";\nimport { spawn } from \"child_process\";\nimport * as path from \"path\";\n\nfunction elmPrefabPlugin() {\n  return {\n    name: \"vite-plugin-elm-prefab\",\n    configureServer(server) {\n      server.watcher.on(\"change\", (file) => {\n        if (\n          path.basename(file) === \"elm.generate.json\" ||\n          path.extname(file) == \".gql\" ||\n          path.extname(file) == \".graphql\"\n        ) {\n          console.log(\"Elm Prefab refreshing...\");\n\n          const elmPrefab = spawn(\"elm-prefab\", [], { shell: true });\n\n          elmPrefab.stdout.on(\"data\", (data) => {\n            console.log(data);\n          });\n\n          elmPrefab.stderr.on(\"data\", (data) => {\n            console.error(data);\n          });\n\n          elmPrefab.on(\"close\", (code) => {\n            if (code === 0) {\n              // Trigger a reload after successful elm-prefab execution\n              server.ws.send({ type: \"full-reload\" });\n            }\n          });\n        }\n      });\n    },\n  };\n}\n\nexport default defineConfig(({ mode }) => {\n  const isDev = mode == \"development\";\n  return {\n    clearScreen: false,\n    server: {\n      strictPort: true,\n    },\n\n    build: {\n      minify: \"esbuild\",\n      outDir: \"dist\",\n    },\n\n    plugins: [\n      elmPrefabPlugin(),\n      elmPlugin({\n        debug: isDev,\n        optimize: !isDev,\n      }),\n    ],\n  };\n});\n"
+   contents: "import { defineConfig } from \"vite\";\nimport elmPlugin from \"vite-plugin-elm\";\nimport { spawn } from \"child_process\";\nimport * as path from \"path\";\n\nfunction elmPrefabPlugin() {\n  return {\n    name: \"vite-plugin-elm-prefab\",\n    configureServer(server) {\n      server.watcher.on(\"change\", (file) => {\n        if (\n          path.basename(file) === \"elm.generate.json\" ||\n          path.extname(file) == \".gql\" ||\n          path.extname(file) == \".graphql\"\n        ) {\n          console.log(\"Elm Prefab refreshing...\");\n\n          const elmPrefab = spawn(\"elm-prefab\", [], { shell: true });\n\n          elmPrefab.stdout.on(\"data\", (data) => {\n            console.log(data);\n          });\n\n          elmPrefab.stderr.on(\"data\", (data) => {\n            console.error(data);\n          });\n\n          elmPrefab.on(\"close\", (code) => {\n            if (code === 0) {\n              // Trigger a reload after successful elm-prefab execution\n              server.ws.send({ type: \"full-reload\" });\n            }\n          });\n        }\n      });\n    },\n  };\n}\n\nexport default defineConfig(({ mode }) => {\n  const isDev = mode == \"development\";\n  return {\n    clearScreen: false,\n    server: {\n      strictPort: true,\n      open: true,\n    },\n\n    build: {\n      minify: \"esbuild\",\n      outDir: \"dist\",\n    },\n\n    plugins: [\n      elmPrefabPlugin(),\n      elmPlugin({\n        debug: isDev,\n        optimize: !isDev,\n      }),\n    ],\n  };\n});\n"
 }
 
-const all = [
+export const all = [
   gitignore,
   elm_json,
   index_html,
+  package_json,
   tsconfig_json,
   vite_config_js
-  ]
+]
 
 export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => {
    for (const file of all) {

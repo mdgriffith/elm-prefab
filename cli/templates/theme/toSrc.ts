@@ -54,7 +54,7 @@ export const Ui_Tooltip_elm = {
    contents: "module Ui.Tooltip exposing (..)\n\n{-| -}\n\nimport Ui\nimport Ui.Theme\nimport Ui.Theme.Palette\nimport WebComponents.Portal as Portal\n\n\n{-| -}\ntooltip : String -> Ui.Attribute msg\ntooltip label =\n    Ui.above\n        (Ui.el [ Ui.Theme.Palette.neutralInverted ]\n            (Ui.text label)\n        )\n"
 }
 
-const all = [
+export const all = [
   Ui_Input_Switch_elm,
   Ui_Input_Text_elm,
   Ui_Table_Column_elm,
@@ -65,7 +65,7 @@ const all = [
   Ui_Markdown_elm,
   Ui_Modal_elm,
   Ui_Tooltip_elm
-  ]
+]
 
 export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summary: Options.Summary) => {
    for (const file of all) {
