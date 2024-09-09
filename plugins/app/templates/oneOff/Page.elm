@@ -20,12 +20,6 @@ import App.View.Id
 import Html
 
 
-{-| URL parameters for this page.
--}
-type alias Params =
-    App.Page.Id.{{name}}_Params
-
-
 {-| -}
 type alias Model =
     {}
@@ -36,7 +30,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page App.Resources.Resources Params Msg Model
+page : App.Page.Page App.Resources.Resources App.Page.Id.{{name}}_Params Msg Model
 page =
     App.Page.page
         { init = init
@@ -46,8 +40,8 @@ page =
         }
 
 
-init : App.Page.Id.Id -> Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
-init pageId params resources maybeCached =
+init : App.Page.Id.Id -> App.Page.Id.{{name}}_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
+init pageId urlParams resources maybeCached =
     App.Page.init {}
 
 
