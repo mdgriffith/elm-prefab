@@ -45,7 +45,7 @@ const addableOptions: Option<Addable>[] = [
   { value: Addable.Resource, name: 'Resource', description: 'Add a new resource' },
   { value: Addable.Effect, name: 'Effect', description: 'Add a new effect' },
   { value: Addable.Listener, name: 'Listener', description: 'Add a new listener' },
-  { value: Addable.GraphQL, name: 'GraphQL', description: 'Add GraphQL integration' },
+  { value: Addable.GraphQL, name: 'GraphQL', description: 'Add GraphQL' },
 ];
 
 // prettier-ignore

@@ -148,7 +148,6 @@ const gatherFiles = (
   assetConfig: { src: string; onServer: string },
   files: File[],
 ): AssetFile[] => {
-  console.log(assetConfig);
   const gatheredFiles: AssetFile[] = [];
   for (let file of files) {
     const basePath = stripSrc(assetConfig.src, file.path);

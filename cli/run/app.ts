@@ -1,13 +1,50 @@
 import * as Generator from "./run_generator";
-import * as AppEngine from "../templates/app/copyAll";
 import * as Options from "../options";
 import * as fs from "fs";
 import * as path from "path";
 import * as ElmDev from "../elm_dev";
 import chalk from "chalk";
 import { ensureDirSync } from "../ext/filesystem";
+import * as Page from "../templates/app/oneOff/Page.elm";
 
-const Page = require("../templates/app/oneOff/Page.elm.ts");
+const defaultPackageJson = {
+  name: "placeholder",
+  type: "module",
+  version: "0.1.0",
+  scripts: {
+    dev: "vite",
+    build: "vite build",
+  },
+  devDependencies: {
+    vite: "^5.2.6",
+    "vite-plugin-elm": "^3.0.0",
+    typescript: "^5.4.3",
+    "elm-dev": "^0.1.3",
+    "elm-prefab": "^0.1.21",
+  },
+};
+
+// {
+//   "name": "placeholder",
+//   "type": "module",
+//   "description": "",
+//   "version": "0.1.0",
+//   "scripts": {
+//     "dev": "vite",
+//     "build": "vite build"
+//   },
+//   "devDependencies": {
+//     "vite": "^5.2.6",
+//     "vite-plugin-elm": "^3.0.0",
+//     "typescript": "^5.4.3",
+//     "elm-dev": "^0.1.3",
+//     "elm-prefab": "^0.1.21",
+//     "@tiptap/core": "^2.2.4",
+//     "@tiptap/extension-link": "^2.2.4",
+//     "@tiptap/pm": "^2.2.4",
+//     "@tiptap/starter-kit": "^2.2.4"
+//   }
+// }
 
 export const generator = (options: Options.AppOptions): Options.Generator => {
   return {
@@ -16,9 +53,6 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
 
     run: async (runOptions: Options.RunOptions) => {
       const summary: Options.Summary = { generated: [] };
-
-      // Copy static files
-      AppEngine.copy(runOptions, summary);
 
       const viewRegions = await ElmDev.execute(
         "explain App.View.Regions",
@@ -127,33 +161,6 @@ const verifyElmFilesExist = (
   }
 };
 
-const pageIdsToPageUsages = (pageIds: any): PageUsage[] => {
-  if (pageIds.error) {
-    console.log(pageIds.error);
-    process.exit(1);
-  }
-
-  const pages: PageUsage[] = [];
-  if (!pageIds.definition.type.definition.variants) {
-    console.log(
-      "I wasn't able to find any variants for `App.Page.Id.Id`, is it a normal custom type?",
-    );
-    process.exit(1);
-  }
-  for (const variant of pageIds.definition.type.definition.variants) {
-    pages.push({
-      id: variant.name,
-      moduleName: ["Page", variant.name],
-      value: "page",
-      paramType: variant.args.length === 0 ? null : variant.args[0],
-      urlOnly: false,
-      elmModuleIsPresent: false,
-      route: null,
-    });
-  }
-  return pages;
-};
-
 const pageConfigToPageUsages = (pageConfigs: {
   [key: string]: Options.PageOptions;
 }): PageUsage[] => {
@@ -172,48 +179,6 @@ const pageConfigToPageUsages = (pageConfigs: {
   }
 
   return pages;
-};
-
-const placeholderViewRegions = {
-  moduleName: "App.View",
-  definition: {
-    name: "Regions",
-    type: {
-      signature: "{ primary : view, nav : Maybe view, detail : List view }",
-      components: [
-        {
-          source: {
-            pkg: "author/project",
-            module: "App.View",
-          },
-          definition: {
-            type: "alias",
-            comment: " ",
-            module: "App.View",
-            name: "Regions",
-            args: [],
-            signature:
-              "{ primary : view, nav : Maybe view, detail : List view }",
-            fields: {
-              detail: "List view",
-              nav: "Maybe view",
-              primary: "view",
-            },
-          },
-        },
-      ],
-    },
-    region: {
-      start: {
-        line: 35,
-        column: 1,
-      },
-      end: {
-        line: 39,
-        column: 6,
-      },
-    },
-  },
 };
 
 export type File = { path: string; contents: string };

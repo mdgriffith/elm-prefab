@@ -1,13 +1,18 @@
 import * as Options from "./options";
-import * as Args from "./args";
 import * as Initialize from "./initialize";
-
+import * as Project from "./project";
 import * as App from "./run/app";
 import * as Theme from "./run/theme";
 import * as Docs from "./run/docs";
 import * as Assets from "./run/assets";
 import * as GraphQL from "./run/graphql";
 import * as Output from "./output/summary";
+import * as path from "path";
+import * as Command from "./commands";
+import * as Copy from "./copy";
+import * as OneOffPage from "./templates/app/oneOff/Page.elm";
+import * as fs from "fs";
+import Chalk from "chalk";
 
 type GenerateOptions = {
   src: string;
@@ -19,17 +24,24 @@ export const generate = async (
   options: GenerateOptions,
   initializing: boolean,
   pluginsInitializing: string[],
+  status: Project.Status,
 ): Promise<Options.SummaryMap> => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
   const runOptions: Options.RunOptions = {
     initializing,
     generateDefaultFiles: true,
+    activePlugins: options.plugins.map((p) => p.name),
+    project: status,
     internalSrc: "./.elm-prefab",
     js: options.js,
     src: options.src,
     root: ".",
   };
+
+  // Copy static files
+  const summary = Copy.copy(runOptions);
+
   for (const generator of options.plugins) {
     runOptions.generateDefaultFiles =
       initializing || pluginsInitializing.includes(generator.name);
@@ -38,14 +50,17 @@ export const generate = async (
   return results;
 };
 
-const runGeneration = async (
-  pluginsInitializing: string[],
-  config: Options.Config,
-  initializing: boolean,
-) => {
+const runGeneration = async (options: {
+  pluginsInitializing: string[];
+  config: Options.Config;
+  initializing: boolean;
+}) => {
+  let config = options.config;
   const plugins: Options.Generator[] = [];
   const src = config.src ? config.src : "src/app";
   const js = config.js ? config.js : "src";
+
+  const status: Project.Status = Project.detect(path.join(".", src));
 
   if (config.theme != null) {
     plugins.push(Theme.generator(config.theme));
@@ -66,10 +81,11 @@ const runGeneration = async (
 
   const summary = await generate(
     { src, js, plugins: plugins },
-    initializing,
-    pluginsInitializing,
+    options.initializing,
+    options.pluginsInitializing,
+    status,
   );
-  if (initializing) {
+  if (options.initializing) {
     Output.initialization(summary);
   } else {
     Output.summary(summary);
@@ -78,38 +94,101 @@ const runGeneration = async (
   process.exit(0);
 };
 
-const runWithConfig = async (plugins: string[]) => {
-  const config = await Args.readConfig("./elm.generate.json", plugins);
+const needConfigMessage = (cwd: string) => {
+  return `I wasn't able to find an ${Chalk.cyan("Elm Prefab")} project in this directory.
 
-  if (config == null) {
-    const newConfig = await Initialize.config(plugins, config);
-    if (newConfig == null) {
-      process.exit(0);
-    }
-    await runGeneration(plugins, newConfig, true);
-  } else {
-    await runGeneration(plugins, config, false);
-  }
+I'm looking in:
+${Chalk.yellow(cwd)}
+
+Run ${Chalk.cyan("elm-prefab")} to start a new project!
+`;
 };
 
-const run = async (argString: string[]) => {
-  const args = Args.read(argString);
+const pageAdded = (pagename: string) => {
+  return `Added ${Chalk.yellow(pagename)}!`;
+};
 
-  switch (args.kind) {
-    case "run":
-      await runWithConfig(args.plugins);
-      break;
-    case "help":
-      console.log(args.message);
-      break;
-    case "error":
-      console.log(args.message);
+const graphqlAdded = `
+I've added GraphQL to ${Chalk.yellow("elm.generate.json")},
+but it needs to following environment variables:
+
+${Chalk.yellow("$GRAPHQL_SCHEMA")} - The HTTP endpoint for the GraphQL schema,
+                  or the path to a local schema file in JSON format.
+${Chalk.yellow(
+  "$GRAPHQL_API_TOKEN",
+)} - The API token needed for querying for the schema.
+
+Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
+`;
+
+const run = async (args: string[]) => {
+  const command = await Command.read(args);
+
+  const config = await Options.readConfig("./elm.generate.json");
+  const plugins = ["app", "assets"];
+  if (config == null) {
+    if (command.kind === "init") {
+      const newConfig = await Initialize.start();
+      await runGeneration({
+        pluginsInitializing: plugins,
+        config: newConfig,
+        initializing: true,
+      });
+    } else {
+      console.log(needConfigMessage(path.resolve(".")));
       process.exit(1);
-    case "version":
-      console.log("0.1.20");
-      break;
+    }
+  } else {
+    switch (command.kind) {
+      case "init":
+        console.log("There's already an Elm Prefab project here.");
+        process.exit(1);
+      case "generate":
+        await runGeneration({
+          pluginsInitializing: plugins,
+          config,
+          initializing: true,
+        });
+      case "add":
+        console.log(command);
+        break;
+      case "add-page":
+        // Create Placeholder Page
+        const pageContent = OneOffPage.toBody(
+          new Map([["{{name}}", command.name]]),
+        );
+        fs.writeFileSync(
+          path.join(config.src ? config.src : "src/app", `${command.name}.elm`),
+          pageContent,
+          "utf8",
+        );
+
+        if (!config.app) {
+          let pages: any = {};
+          pages[command.name] = { url: command.url };
+          config.app = { pages };
+        } else {
+          // @ts-ignore
+          config.app.pages[command.name] = Options.toUrl(command.url);
+        }
+        Options.writeConfig(config);
+        await runGeneration({
+          pluginsInitializing: plugins,
+          config,
+          initializing: false,
+        });
+        console.log(pageAdded(command.name));
+        process.exit(0);
+      case "add-graphql":
+        config.graphql = Initialize.defaultGraphQL;
+        Options.writeConfig(config);
+        console.log(graphqlAdded);
+        process.exit(0);
+      case "customize":
+        console.log(command);
+        process.exit(0);
+    }
   }
-  process.exit(0);
 };
 
 run(process.argv);

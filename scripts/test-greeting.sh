@@ -25,7 +25,6 @@ cat > elm.generate.json << 'EOF'
 EOF
 
 # Commands to see what they output
-# node ../../dist/elm-prefab.js --help
 node ../../dist/elm-prefab.js
 
 # elm make src/Main.elm --output=/dev/null

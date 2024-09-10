@@ -7,6 +7,7 @@ import * as path from "path";
 import * as App from "./app";
 import * as Theme from "./theme";
 import { ensureDirSync } from "../ext/filesystem";
+import * as Project from "../project";
 
 const defaultDocsElmJson = {
   type: "application",
@@ -238,12 +239,15 @@ const runAppGenerator = async (
 ): Promise<Options.Summary> => {
   const summary: Options.Summary = { generated: [] };
   const internalSrc = path.join(docsPath, ".elm-prefab");
+  const src = path.join(docsPath, "src/app");
+  const status: Project.Status = Project.detect(path.join(".", src));
   const internalOptions = {
     initializing: true,
     generateDefaultFiles: true,
-    internalSrc: internalSrc,
+    status,
+    internalSrc,
     js: path.join(docsPath, "src"),
-    src: path.join(docsPath, "src/app"),
+    src,
     root: docsPath,
   };
 
@@ -262,10 +266,11 @@ const runAppGenerator = async (
     {
       initializing: true,
       generateDefaultFiles: true,
-      internalSrc: internalSrc,
-      js: path.join(docsPath, "src", "app"),
-      src: path.join(docsPath, "src"),
+      internalSrc,
+      js: path.join(docsPath, "src"),
+      src,
       root: docsPath,
+      status,
     },
     summary,
   );
