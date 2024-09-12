@@ -245,25 +245,4 @@ export const start = async (): Promise<Options.Config> => {
 
   Options.writeConfig(config);
   return config;
-  //   if (isUsingGraphQL) {
-  //     console.log(
-  //       `I've added some default graphQL settings to ${Chalk.yellow(
-  //         "elm.generate.json",
-  //       )} which use the following environment variables:
-
-  // - ${Chalk.yellow(
-  //         "$GRAPHQL_SCHEMA",
-  //       )} - The HTTP endpoint for the GraphQL schema, or the path to a local schema file in JSON format.
-  // - ${Chalk.yellow(
-  //         "$GRAPHQL_API_TOKEN",
-  //       )} - The API token needed for querying for the schema.
-
-  // Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
-  // `,
-  //     );
-  //     process.exit(0);
-  //   } else {
-  //     console.log(`${Chalk.yellow("elm.generate.json")} file has been generated!`);
-  //     return config;
-  //   }
 };
