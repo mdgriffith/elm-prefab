@@ -1,4 +1,4 @@
-import * as Customizable from "./templates/app/customizable";
+import * as Customizable from "./templates/allCustomizables";
 import * as fs from "fs";
 import * as path from "path";
 

@@ -3,12 +3,6 @@ import * as path from "path";
 import * as fs from "fs";
 import * as Options from "../../options";
 
-export type File = {
-  moduleName: string,
-  path: string,
-  contents: string
-}
-
 
 export const Ui_Input_Switch = {
    moduleName: "Ui.Input.Switch",

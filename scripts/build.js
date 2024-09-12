@@ -11,12 +11,6 @@ import * as path from "path";
 import * as fs from "fs";
 import * as Options from "../../options";
 
-export type File = {
-  moduleName: string,
-  path: string,
-  contents: string
-}
-
 ${additional}
 
 export const all = [
@@ -239,7 +233,15 @@ if (customizables.length > 0) {
   for (const filePath of customizables) {
     content += `import * as ${filePath.pluginName} from "./${filePath.pluginName}/customizable";\n`;
   }
-  content += "\n\n";
+  content += `
+export type File = {
+  moduleName: string,
+  path: string,
+  contents: string
+}
+
+`;
+
   content += "export const all = [\n";
   for (const filePath of customizables) {
     content =

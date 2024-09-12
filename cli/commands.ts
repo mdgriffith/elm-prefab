@@ -1,6 +1,6 @@
 import Chalk from "chalk";
 import * as Inquire from "@inquirer/prompts";
-import * as Customizable from "./templates/app/customizable";
+import * as Customizable from "./templates/allCustomizables";
 
 export type Command =
   | { kind: "init" }
@@ -34,22 +34,20 @@ const addableOptions: Option<Addable>[] = [
 ];
 
 // // prettier-ignore
-const customizableOptions: Option<Customizable.File>[] = Customizable.all.map(
-  (customizable) => ({
-    value: customizable,
-    name: customizable.moduleName,
-    description: "",
-  }),
-);
+const customizableOptions: Option<Customizable.File>[] =
+  Customizable.all.reduce((acc, plugin) => {
+    const options = plugin.all.map((customizable) => ({
+      value: customizable,
+      name: customizable.moduleName,
+      description: "",
+    }));
+    return acc.concat(options);
+  }, [] as Option<Customizable.File>[]);
 
 async function promptForOption<T>(
   options: Option<T>[],
   message: string,
 ): Promise<T> {
-  const largestNameLength = Math.max(
-    ...options.map((option) => option.name.length),
-  );
-
   return Inquire.select({
     message: message + ` (${Chalk.grey("Use arrow keys for selection")}):\n`,
     loop: false,
