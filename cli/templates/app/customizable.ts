@@ -61,7 +61,7 @@ export const Effect_Random_elm = {
 
 export const Listen_LocalStorage_elm = {
    path: "/Listen/LocalStorage.elm",
-   contents: "module Sub.LocalStorage exposing (..)\n\nimport Json.Decode\nimport Json.Encode\nimport Platform.Sub\nimport Sub\n\n\nport localStorageUpdated : (Json.Encode.Value -> msg) -> Platform.Sub.Sub msg\n\n\nonUpdated :\n    { key : String\n    , decoder : Json.Decode.Decoder msg\n    }\n    -> Sub.Sub msg\nonUpdated options =\n    Sub.OnFromJs\n        { portName = \"localStorageUpdated\"\n        , subscription =\n            localStorageUpdated\n                (Json.Decode.decodeValue options.decoder)\n        }\n"
+   contents: "module Listen.LocalStorage exposing (..)\n\nimport Json.Decode\nimport Json.Encode\nimport Platform.Sub\nimport Sub\n\n\nport localStorageUpdated : (Json.Encode.Value -> msg) -> Platform.Sub.Sub msg\n\n\nonUpdated :\n    { key : String\n    , decoder : Json.Decode.Decoder msg\n    }\n    -> Sub.Sub msg\nonUpdated options =\n    Sub.OnFromJs\n        { portName = \"localStorageUpdated\"\n        , subscription =\n            localStorageUpdated\n                (Json.Decode.decodeValue options.decoder)\n        }\n"
 }
 
 export const WebComponent_Portal_elm = {
