@@ -127,10 +127,9 @@ type Effect msg
 type alias RequestDetails msg =
     { method : String
     , headers : List Http.Header
-    , url : String
+    , url : HttpTarget
     , body : Http.Body
     , expect : Expect msg
-    , target : Maybe HttpTarget
     , timeout : Maybe Float
     , tracker : Maybe String
     }
@@ -144,11 +143,12 @@ Or switch out urls depending on how the app is configured.
 type HttpTarget
     = TargetApi
     | TargetStaticFile
-    | TargetExternal String
+    | TargetUrl String
 
 
 type Expect msg
     = ExpectString (Result Http.Error String -> msg)
+    | ExpectStringResponse (Http.Response String -> msg)
     | ExpectJson (Json.Decode.Decoder msg) (Http.Error -> msg)
     | ExpectBytes (Bytes.Decode.Decoder msg) (Http.Error -> msg)
     | ExpectWhatever (Result Http.Error () -> msg)
@@ -262,14 +262,7 @@ toCmd options toHttpTarget effect =
         HttpRequest req ->
             let
                 targetDetails =
-                    case req.target of
-                        Just target ->
-                            toHttpTarget target
-
-                        Nothing ->
-                            { headers = []
-                            , urlBase = ""
-                            }
+                    toHttpTarget req.url
             in
             Http.request
                 { method = req.method
@@ -393,6 +386,17 @@ toHttpExpect expect =
         ExpectString toMsg ->
             Http.expectString toMsg
 
+        ExpectStringResponse toMsg ->
+            Http.expectStringResponse (toMsg >> Ok)
+                (\result ->
+                    case result of
+                        Err err ->
+                            err
+
+                        Ok value ->
+                            value
+                )
+
         ExpectJson decoder onError ->
             Http.expectJson
                 (\result ->
@@ -426,6 +430,9 @@ mapExpect fn expect =
     case expect of
         ExpectString toMsg ->
             ExpectString (toMsg >> fn)
+
+        ExpectStringResponse toMsg ->
+            ExpectStringResponse (toMsg >> fn)
 
         ExpectJson decoder onError ->
             ExpectJson (Json.Decode.map fn decoder) (onError >> fn)

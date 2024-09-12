@@ -1,6 +1,6 @@
 module Effect.Http exposing
     ( get, request
-    , expectString, expectJson, expectBytes, expectWhatever
+    , expectString, expectStringResponse, expectJson, expectBytes, expectWhatever
     )
 
 {-|
@@ -10,7 +10,7 @@ module Effect.Http exposing
 
 @docs get, request
 
-@docs Expect, expectString, expectJson, expectBytes, expectWhatever
+@docs Expect, expectString, expectStringResponse, expectJson, expectBytes, expectWhatever
 
 -}
 
@@ -29,8 +29,7 @@ get url expect =
     request
         { method = "GET"
         , headers = []
-        , url = url
-        , target = Nothing
+        , url = Effect.TargetUrl url
         , body = Http.emptyBody
         , expect = expect
         , timeout = Nothing
@@ -41,9 +40,8 @@ get url expect =
 request :
     { method : String
     , headers : List Http.Header
-    , url : String
+    , url : Effect.HttpTarget
     , body : Http.Body
-    , target : Maybe Effect.HttpTarget
     , expect : Expect msg
     , timeout : Maybe Float
     , tracker : Maybe String
@@ -56,6 +54,13 @@ request options =
 expectString : (Result Http.Error String -> msg) -> Expect msg
 expectString =
     ExpectString
+
+
+{-| When you need more control over the error handling
+-}
+expectStringResponse : (Http.Response String -> msg) -> Expect msg
+expectStringResponse =
+    ExpectStringResponse
 
 
 expectJson : Json.Decode.Decoder msg -> (Http.Error -> msg) -> Expect msg
