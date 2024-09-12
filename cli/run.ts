@@ -9,6 +9,7 @@ import * as GraphQL from "./run/graphql";
 import * as Output from "./output/summary";
 import * as path from "path";
 import * as Command from "./commands";
+import * as Customize from "./customize";
 import * as Copy from "./copy";
 import * as OneOffPage from "./templates/app/oneOff/Page.elm";
 import * as OneOffEffect from "./templates/app/oneOff/Effect.elm";
@@ -238,7 +239,16 @@ const run = async (args: string[]) => {
         console.log(graphqlAdded);
         process.exit(0);
       case "customize":
-        console.log(command);
+        // Copy the file to the root
+        // delete the file from the 'hidden' dir if present.
+        Customize.customize(
+          {
+            src: config.src ? config.src : "app/src",
+            internalSrc: "./.elm-prefab",
+          },
+          command.customizable,
+        );
+
         process.exit(0);
     }
   }

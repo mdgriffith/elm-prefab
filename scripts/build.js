@@ -11,6 +11,12 @@ import * as path from "path";
 import * as fs from "fs";
 import * as Options from "../../options";
 
+export type File = {
+  moduleName: string,
+  path: string,
+  contents: string
+}
+
 ${additional}
 
 export const all = [
@@ -33,11 +39,28 @@ export const copyTo = (baseDir: string, overwrite: boolean, skip: boolean, summa
 const toFileVar = (path) => {
   // Replace all non-alphanumeric characters with underscores
   // Remove any leading non-alphanumeric characters
-  return path.replace(/[^a-zA-Z0-9]/g, "_").replace(/^[^a-zA-Z0-9]*/, "");
+  return path
+    .replace(".elm", "")
+    .replace(/[^a-zA-Z0-9]/g, "_")
+    .replace(/^[^a-zA-Z0-9]*/, "");
+};
+
+// path: App/View.elm
+// moduleName: App.View
+const toModuleName = (path) => {
+  // convert path to module name
+  // Remove extension
+  // replace all non-alphanumeric characters with dots
+  return path
+    .replace(".elm", "")
+    .replace(/^\/+/, "")
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^a-zA-Z0-9]/g, ".");
 };
 
 const toFileLink = (path, contents) => `
 export const ${toFileVar(path)} = {
+   moduleName: "${toModuleName(path)}",
    path: "${path}",
    contents: ${contents}
 }`;
