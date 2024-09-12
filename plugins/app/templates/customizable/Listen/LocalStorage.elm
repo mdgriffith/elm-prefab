@@ -1,4 +1,4 @@
-module Sub.LocalStorage exposing (..)
+module Listen.LocalStorage exposing (..)
 
 import Json.Decode
 import Json.Encode
