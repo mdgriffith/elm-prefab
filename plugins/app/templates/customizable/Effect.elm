@@ -37,6 +37,7 @@ import App.View.Id
 import Broadcast
 import Browser.Dom
 import Browser.Navigation
+import Bytes
 import Bytes.Decode
 import File
 import File.Select
@@ -152,6 +153,7 @@ type Expect msg
     | ExpectStringResponse (Http.Response String -> msg)
     | ExpectJson (Json.Decode.Decoder msg) (Http.Error -> msg)
     | ExpectBytes (Bytes.Decode.Decoder msg) (Http.Error -> msg)
+    | ExpectBytesResponse (Http.Response Bytes.Bytes -> msg)
     | ExpectWhatever (Result Http.Error () -> msg)
 
 
@@ -437,6 +439,20 @@ toHttpExpect expect =
                 )
                 decoder
 
+        ExpectBytesResponse toMsg ->
+            Http.expectBytesResponse
+                (\result ->
+                    case result of
+                        Err err ->
+                            err
+
+                        Ok value ->
+                            value
+                )
+                (\response ->
+                    Ok (toMsg response)
+                )
+
         ExpectWhatever toMsg ->
             Http.expectWhatever toMsg
 
@@ -455,6 +471,9 @@ mapExpect fn expect =
 
         ExpectBytes decoder onError ->
             ExpectBytes (Bytes.Decode.map fn decoder) (onError >> fn)
+
+        ExpectBytesResponse toMsg ->
+            ExpectBytesResponse (toMsg >> fn)
 
         ExpectWhatever toMsg ->
             ExpectWhatever (toMsg >> fn)
