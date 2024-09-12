@@ -1,5 +1,6 @@
 import Chalk from "chalk";
 import * as Inquire from "@inquirer/prompts";
+import * as Customizable from "./templates/app/customizable";
 
 export type Command =
   | { kind: "init" }
@@ -7,7 +8,7 @@ export type Command =
   | { kind: "add"; added: Addable; name: string }
   | { kind: "add-page"; name: string; url: string }
   | { kind: "add-graphql" }
-  | { kind: "customize"; customizable: Customizable };
+  | { kind: "customize"; customizable: Customizable.File };
 
 export enum Addable {
   Page = "page",
@@ -17,23 +18,7 @@ export enum Addable {
   Listener = "listener",
 }
 
-export enum Customizable {
-  Broadcast = "Broadcast",
-  Effect = "Effect",
-  EffectHttp = "Effect.Http",
-  EffectFile = "Effect.File",
-  EffectClipboard = "Effect.Clipboard",
-  EffectRandom = "Effect.Random",
-  EffectNav = "Effect.Nav",
-  EffectPage = "Effect.Page",
-  EffectDebounce = "Effect.Debounce",
-  AppPageError = "App.Page.Error",
-  AppView = "App.View",
-  Listen = "Listen",
-  ListenLocalStorage = "Listen.LocalStorage",
-}
-
-interface Option<T extends string> {
+interface Option<T> {
   value: T;
   name: string;
   description: string;
@@ -48,25 +33,16 @@ const addableOptions: Option<Addable>[] = [
   { value: Addable.GraphQL, name: 'GraphQL', description: 'Add GraphQL' },
 ];
 
-// prettier-ignore
-const customizableOptions: Option<Customizable>[] = [
-  { value: Customizable.AppView, name: 'App.View', description: 'The view type that every page returns.' },
-  { value: Customizable.AppPageError, name: 'App.Page.Error', description: 'Global error states that any page can be in(e.g. Permission denied)' },
-  { value: Customizable.Broadcast, name: 'Broadcast', description: 'The global message type that can be sent/subscribed to from anywhere.' },
-  { value: Customizable.Effect, name: 'Effect', description: 'The root Effect module.' },
-  { value: Customizable.EffectHttp, name: 'Effect.Http', description: '' },
-  { value: Customizable.EffectFile, name: 'Effect.File', description: '' },
-  { value: Customizable.EffectClipboard, name: 'Effect.Clipboard', description: '' },
-  { value: Customizable.EffectRandom, name: 'Effect.Random', description: '' },
-  { value: Customizable.EffectNav, name: 'Effect.Nav', description: '' },
-  { value: Customizable.EffectPage, name: 'Effect.Page', description: '' },
-  { value: Customizable.EffectDebounce, name: 'Effect.Debounce', description: '' },
+// // prettier-ignore
+const customizableOptions: Option<Customizable.File>[] = Customizable.all.map(
+  (customizable) => ({
+    value: customizable,
+    name: customizable.moduleName,
+    description: "",
+  }),
+);
 
-  { value: Customizable.Listen, name: 'Listen', description: 'Customize general listener' },
-  { value: Customizable.ListenLocalStorage, name: 'Listen.LocalStorage', description: 'Customize local storage listener' },
-];
-
-async function promptForOption<T extends string>(
+async function promptForOption<T>(
   options: Option<T>[],
   message: string,
 ): Promise<T> {
@@ -80,12 +56,7 @@ async function promptForOption<T extends string>(
     pageSize: 16,
     theme: { helpMode: "never", style: { answer: Chalk.cyan } },
     choices: options.map((option) => {
-      const spacer =
-        " " +
-        Chalk.grey(".".repeat(largestNameLength - option.name.length + 5)) +
-        " ";
       return {
-        // name: `    ${Chalk.yellow(option.name)}${spacer}${option.description}`,
         name: `    ${Chalk.yellow(option.name)}`,
         value: option.value,
         description: option.description,
@@ -149,7 +120,7 @@ async function handleAdd(addable?: string, name?: string): Promise<Command> {
 const decapitalize = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 async function handleCustomize(customizable?: string): Promise<Command> {
-  let selectedCustomizable: Customizable;
+  let selectedCustomizable: Customizable.File;
   if (!customizable) {
     selectedCustomizable = await promptForOption(
       customizableOptions,
@@ -157,7 +128,7 @@ async function handleCustomize(customizable?: string): Promise<Command> {
     );
   } else {
     const foundOption = customizableOptions.find(
-      (option) => option.value === customizable,
+      (option) => option.name === customizable,
     );
     if (!foundOption) {
       console.error(Chalk.red(`Invalid customizable option: ${customizable}`));
