@@ -11,6 +11,9 @@ import * as path from "path";
 import * as Command from "./commands";
 import * as Copy from "./copy";
 import * as OneOffPage from "./templates/app/oneOff/Page.elm";
+import * as OneOffEffect from "./templates/app/oneOff/Effect.elm";
+import * as OneOffResource from "./templates/app/oneOff/Resource.elm";
+import * as OneOffListener from "./templates/app/oneOff/Listener.elm";
 import * as fs from "fs";
 import Chalk from "chalk";
 
@@ -109,14 +112,15 @@ const pageAdded = (pagename: string) => {
 };
 
 const graphqlAdded = `
-I've added GraphQL to ${Chalk.yellow("elm.generate.json")},
-but it needs to following environment variables:
+I've added GraphQL to ${Chalk.yellow("elm.generate.json")}, but it needs
+the following environment variables:
 
-${Chalk.yellow("$GRAPHQL_SCHEMA")} - The HTTP endpoint for the GraphQL schema,
-                  or the path to a local schema file in JSON format.
-${Chalk.yellow(
-  "$GRAPHQL_API_TOKEN",
-)} - The API token needed for querying for the schema.
+  ${Chalk.yellow("$GRAPHQL_SCHEMA")}    ${Chalk.grey("-")} The HTTP endpoint for the GraphQL schema,
+                       or the path to a local schema file in JSON format.
+
+  ${Chalk.yellow(
+    "$GRAPHQL_API_TOKEN",
+  )} ${Chalk.grey("-")} The API token needed for querying for the schema.
 
 Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
 `;
@@ -150,7 +154,56 @@ const run = async (args: string[]) => {
           initializing: true,
         });
       case "add":
-        console.log(command);
+        // @ts-ignore
+        const name = command.name;
+
+        // @ts-ignore
+        switch (command.added) {
+          case "resource":
+            const resourceContent = OneOffResource.toBody(
+              new Map([["{{name}}", name]]),
+            );
+            fs.writeFileSync(
+              path.join(config.src ? config.src : "src/app", `${name}.elm`),
+              resourceContent,
+              "utf8",
+            );
+            process.exit(0);
+          case "effect":
+            const pageContent = OneOffEffect.toBody(
+              new Map([["{{name}}", name]]),
+            );
+            fs.writeFileSync(
+              path.join(config.src ? config.src : "src/app", `${name}.elm`),
+              pageContent,
+              "utf8",
+            );
+
+            process.exit(0);
+          case "listener":
+            const listenerContent = OneOffListener.toBody(
+              new Map([
+                ["{{name}}", name],
+                [
+                  "{{name_decapitalized}}",
+                  name[0].toLowerCase() + name.slice(1),
+                ],
+              ]),
+            );
+            fs.writeFileSync(
+              path.join(config.src ? config.src : "src/app", `${name}.elm`),
+              listenerContent,
+              "utf8",
+            );
+            process.exit(0);
+          case "graphql":
+            // handled by add-graphql
+            process.exit(0);
+          case "page":
+            // handled by add-page
+            process.exit(0);
+        }
+
         break;
       case "add-page":
         // Create Placeholder Page
