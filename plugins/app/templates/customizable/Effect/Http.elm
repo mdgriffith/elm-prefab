@@ -29,7 +29,8 @@ get url expect =
     request
         { method = "GET"
         , headers = []
-        , url = Effect.TargetUrl url
+        , url = url
+        , urlBase = Nothing
         , body = Http.emptyBody
         , expect = expect
         , timeout = Nothing
@@ -37,10 +38,22 @@ get url expect =
         }
 
 
+{-| This is how to make an HTTP request, but it's kinda low level!
+
+Instead of using it directly, which would be a bit of a pain, make a new module that models the API you're working with.
+
+So, let's say you're working with the GitHub API.
+
+Run `elm-prefab add effect http Github`.
+
+You should now have a new module called `Effect.Github` that you can use to make requests to the GitHub API. Bake in as many details as you can to make the API nice!
+
+-}
 request :
     { method : String
     , headers : List Http.Header
-    , url : Effect.HttpTarget
+    , url : String
+    , urlBase : Maybe Effect.UrlBase
     , body : Http.Body
     , expect : Expect msg
     , timeout : Maybe Float

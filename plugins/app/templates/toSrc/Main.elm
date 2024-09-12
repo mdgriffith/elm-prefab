@@ -33,21 +33,21 @@ main =
         , toCmd =
             \resources options model effect ->
                 Effect.toCmd options
-                    (\httpTarget ->
-                        case httpTarget of
-                            Effect.TargetApi ->
+                    (\urlBase ->
+                        case urlBase of
+                            Effect.UrlApi ->
                                 { headers = []
                                 , urlBase = ""
                                 }
 
-                            Effect.TargetStaticFile ->
+                            Effect.UrlStaticFile ->
                                 { headers = []
                                 , urlBase = ""
                                 }
 
-                            Effect.TargetExternal name ->
+                            Effect.UrlCustom base ->
                                 { headers = []
-                                , urlBase = ""
+                                , urlBase = base
                                 }
                     )
                     effect

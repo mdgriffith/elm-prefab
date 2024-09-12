@@ -2,7 +2,7 @@ module Effect exposing
     ( Effect(..), none, batch, map
     , now, nowAfter
     , sendMsg, sendMsgAfter
-    , Expect(..), HttpTarget(..)
+    , Expect(..), UrlBase(..)
     , toCmd
     )
 
@@ -23,7 +23,7 @@ module Effect exposing
 
 # Internal Http Details
 
-@docs Expect, HttpTarget
+@docs Expect, UrlBase
 
 
 # Effects
@@ -127,7 +127,8 @@ type Effect msg
 type alias RequestDetails msg =
     { method : String
     , headers : List Http.Header
-    , url : HttpTarget
+    , url : String
+    , urlBase : Maybe UrlBase
     , body : Http.Body
     , expect : Expect msg
     , timeout : Maybe Float
@@ -140,10 +141,10 @@ type alias RequestDetails msg =
 Or switch out urls depending on how the app is configured.
 
 -}
-type HttpTarget
-    = TargetApi
-    | TargetStaticFile
-    | TargetUrl String
+type UrlBase
+    = UrlApi
+    | UrlStaticFile
+    | UrlCustom String
 
 
 type Expect msg
@@ -162,7 +163,7 @@ toCmd :
     , broadcast : Broadcast.Msg -> msg
     }
     ->
-        (HttpTarget
+        (UrlBase
          ->
             { headers : List Http.Header
             , urlBase : String
@@ -261,14 +262,26 @@ toCmd options toHttpTarget effect =
 
         HttpRequest req ->
             let
-                targetDetails =
-                    toHttpTarget req.url
+                maybeUrlBase =
+                    Maybe.map toHttpTarget req.urlBase
             in
             Http.request
                 { method = req.method
                 , body = req.body
-                , url = joinPath targetDetails.urlBase req.url
-                , headers = req.headers ++ targetDetails.headers
+                , url =
+                    case maybeUrlBase of
+                        Nothing ->
+                            req.url
+
+                        Just base ->
+                            joinPath base.urlBase req.url
+                , headers =
+                    case maybeUrlBase of
+                        Nothing ->
+                            req.headers
+
+                        Just base ->
+                            req.headers ++ base.headers
                 , expect = toHttpExpect req.expect
                 , timeout = req.timeout
                 , tracker = req.tracker
@@ -356,8 +369,8 @@ map f effect =
             HttpRequest
                 { method = req.method
                 , headers = req.headers
-                , target = req.target
                 , url = req.url
+                , urlBase = req.urlBase
                 , body = req.body
                 , expect = mapExpect f req.expect
                 , timeout = req.timeout
@@ -387,7 +400,7 @@ toHttpExpect expect =
             Http.expectString toMsg
 
         ExpectStringResponse toMsg ->
-            Http.expectStringResponse (toMsg >> Ok)
+            Http.expectStringResponse
                 (\result ->
                     case result of
                         Err err ->
@@ -395,6 +408,9 @@ toHttpExpect expect =
 
                         Ok value ->
                             value
+                )
+                (\response ->
+                    Ok (toMsg response)
                 )
 
         ExpectJson decoder onError ->
