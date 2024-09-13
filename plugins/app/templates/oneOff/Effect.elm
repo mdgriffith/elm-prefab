@@ -1,4 +1,4 @@
-module Effect.{{name}} exposing (send)
+port module Effect.{{name}} exposing (send)
 
 {-| -}
 
