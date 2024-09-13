@@ -1,4 +1,4 @@
-module Effect.Focus exposing (blur, focus, select)
+port module Effect.Focus exposing (blur, focus, select)
 
 {-| Focus a text input and select the text.
 -}

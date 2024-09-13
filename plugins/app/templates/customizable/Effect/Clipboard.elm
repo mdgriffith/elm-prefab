@@ -1,4 +1,4 @@
-module Effect.Clipboard exposing (copy)
+port module Effect.Clipboard exposing (copy)
 
 {-| Copy a value to the clipboard
 -}

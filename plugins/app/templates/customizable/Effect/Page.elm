@@ -11,6 +11,7 @@ module Effect.Page exposing
 
 -}
 
+import App.Page.Id
 import App.View.Id
 import Effect exposing (Effect)
 
@@ -18,16 +19,16 @@ import Effect exposing (Effect)
 {-| -}
 preload : App.Page.Id.Id -> Effect msg
 preload =
-    Preload
+    Effect.Preload
 
 
 {-| -}
 loadAt : App.View.Id.Region -> App.Page.Id.Id -> Effect msg
 loadAt region pageId =
-    ViewUpdated (App.View.Id.Push region pageId)
+    Effect.ViewUpdated (App.View.Id.Push region pageId)
 
 
 {-| -}
 clear : App.View.Id.Region -> Effect msg
 clear region =
-    ViewUpdated (App.View.Id.ClearRegion region)
+    Effect.ViewUpdated (App.View.Id.ClearRegion region)

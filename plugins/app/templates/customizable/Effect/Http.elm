@@ -15,13 +15,13 @@ module Effect.Http exposing
 -}
 
 import Bytes.Decode
-import Effect
+import Effect exposing (Effect)
 import Http
 import Json.Decode
 
 
 type alias Expect msg =
-    Effect.Expect
+    Effect.Expect msg
 
 
 get : String -> Expect msg -> Effect msg
@@ -61,31 +61,31 @@ request :
     }
     -> Effect msg
 request options =
-    HttpRequest options
+    Effect.HttpRequest options
 
 
 expectString : (Result Http.Error String -> msg) -> Expect msg
 expectString =
-    ExpectString
+    Effect.ExpectString
 
 
 {-| When you need more control over the error handling
 -}
 expectStringResponse : (Http.Response String -> msg) -> Expect msg
 expectStringResponse =
-    ExpectStringResponse
+    Effect.ExpectStringResponse
 
 
 expectJson : Json.Decode.Decoder msg -> (Http.Error -> msg) -> Expect msg
 expectJson =
-    ExpectJson
+    Effect.ExpectJson
 
 
 expectBytes : Bytes.Decode.Decoder msg -> (Http.Error -> msg) -> Expect msg
 expectBytes =
-    ExpectBytes
+    Effect.ExpectBytes
 
 
 expectWhatever : (Result Http.Error () -> msg) -> Expect msg
 expectWhatever =
-    ExpectWhatever
+    Effect.ExpectWhatever

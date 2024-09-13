@@ -1,4 +1,4 @@
-module Effect.LocalStorage exposing (clear, save)
+port module Effect.LocalStorage exposing (clear, save)
 
 {-| -}
 
@@ -6,7 +6,7 @@ import Effect
 import Json.Encode as Json
 
 
-port localStorage : Json.Encode.Value -> Cmd msg
+port localStorage : Json.Value -> Cmd msg
 
 
 {-| -}

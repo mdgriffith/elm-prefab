@@ -86,7 +86,7 @@ update toMsg msg (Model model) =
                     in
                     if toFloat millisSinceStart >= model.delay then
                         ( Model { model | state = NothingToSend }
-                        , Effect.callback sendableMsg
+                        , Effect.sendMsg sendableMsg
                         )
 
                     else
