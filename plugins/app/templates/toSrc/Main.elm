@@ -3,10 +3,7 @@ module Main exposing (main)
 {-| -}
 
 import App
-import App.Page.Id
 import App.Resources
-import App.Route
-import App.View.Id
 import Browser
 import Effect
 import Effect.Nav
