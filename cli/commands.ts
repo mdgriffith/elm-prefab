@@ -75,7 +75,10 @@ async function handleAdd(addable?: string, name?: string): Promise<Command> {
       (option) => option.value === addable,
     );
     if (!foundOption) {
-      console.error(Chalk.red(`Invalid addable option: ${addable}`));
+      console.error(
+        `I don't recognize ${Chalk.red(addable)} as something I can add
+Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
+      );
       process.exit(1);
     }
     selectedAddable = foundOption.value;
@@ -129,7 +132,10 @@ async function handleCustomize(customizable?: string): Promise<Command> {
       (option) => option.name === customizable,
     );
     if (!foundOption) {
-      console.error(Chalk.red(`Invalid customizable option: ${customizable}`));
+      console.error(
+        `I don't recognize ${Chalk.red(customizable)} as something I can customize
+Run ${Chalk.green("elm-prefab customize")} to see the list of customizable files.`,
+      );
       process.exit(1);
     }
     selectedCustomizable = foundOption.value;
