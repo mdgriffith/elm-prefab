@@ -7,7 +7,7 @@ import * as Options from "../../options";
 export const gitignore = {
    moduleName: "",
    path: "/.gitignore",
-   contents: "node_modules\nelm_stuff\n.elm-prefab\ndist\n"
+   contents: "node_modules\nelm_stuff\n.elm-prefab\n.elm-gql-cache\ndist\n"
 }
 
 export const elm_json = {
