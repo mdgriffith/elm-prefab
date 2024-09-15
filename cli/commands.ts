@@ -7,7 +7,7 @@ export type Command =
   | { kind: "generate" }
   | { kind: "add"; added: Addable; name: string }
   | { kind: "add-page"; name: string; url: string }
-  | { kind: "add-graphql" }
+  | { kind: "add-graphql"; nameSpace: string }
   | { kind: "customize"; customizable: Customizable.File };
 
 export enum Addable {
@@ -85,7 +85,28 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
   }
 
   if (selectedAddable === Addable.GraphQL) {
-    return { kind: "add-graphql" };
+    if (!name) {
+      console.log("What's the name of this GraphQL API?");
+      console.log(
+        Chalk.grey("(e.g. Github if you're adding the GitHub GraphQL API)"),
+      );
+      name = await Inquire.input({
+        message: "Name:",
+        default: "Api",
+        validate: (value) => {
+          const trimmed = value.trim();
+          if (trimmed === "") {
+            return "GraphQL name cannot be empty";
+          } else if (trimmed.charAt(0) !== value.charAt(0).toUpperCase()) {
+            return "GraphQL name must be capitalized (e.g. GitHub or Api)";
+          } else if (!/^[a-zA-Z]/.test(trimmed)) {
+            return "GraphQL name must start with an alphabetic character";
+          }
+          return true;
+        },
+      });
+    }
+    return { kind: "add-graphql", nameSpace: name };
   }
 
   if (!name) {
@@ -106,6 +127,7 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
       },
     });
   }
+
   if (selectedAddable === Addable.Page) {
     let url = await Inquire.input({
       message: `URL${Chalk.grey("(default:")}${Chalk.grey(decapitalize(name))}${Chalk.grey(")")}:`,

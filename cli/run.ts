@@ -112,20 +112,6 @@ const pageAdded = (pagename: string) => {
   return `Added ${Chalk.yellow(pagename)}!`;
 };
 
-const graphqlAdded = `
-I've added GraphQL to ${Chalk.yellow("elm.generate.json")}, but it needs
-the following environment variables:
-
-  ${Chalk.yellow("$GRAPHQL_SCHEMA")}    ${Chalk.grey("-")} The HTTP endpoint for the GraphQL schema,
-                       or the path to a local schema file in JSON format.
-
-  ${Chalk.yellow(
-    "$GRAPHQL_API_TOKEN",
-  )} ${Chalk.grey("-")} The API token needed for querying for the schema.
-
-Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
-`;
-
 const run = async (args: string[]) => {
   const command = await Command.read(args);
 
@@ -234,9 +220,7 @@ const run = async (args: string[]) => {
         console.log(pageAdded(command.name));
         process.exit(0);
       case "add-graphql":
-        config.graphql = Initialize.defaultGraphQL;
-        Options.writeConfig(config);
-        console.log(graphqlAdded);
+        await Initialize.graphql(command.nameSpace, config);
         process.exit(0);
       case "customize":
         // Copy the file to the root

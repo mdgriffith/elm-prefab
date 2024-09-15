@@ -1,6 +1,9 @@
 import Chalk from "chalk";
 import * as Inquire from "@inquirer/prompts";
 import * as Options from "./options";
+import * as fs from "fs";
+import * as path from "path";
+import * as OneOffGraphQLEffect from "./templates/graphql/oneOff/Effect.elm";
 
 const testTheme: Options.ThemeOptions = {
   colors: {
@@ -245,4 +248,35 @@ export const start = async (): Promise<Options.Config> => {
 
   Options.writeConfig(config);
   return config;
+};
+
+const graphqlAdded = `
+I've added GraphQL to ${Chalk.yellow("elm.generate.json")}, but it needs
+the following environment variables:
+
+  ${Chalk.yellow("$GRAPHQL_SCHEMA")}    ${Chalk.grey("-")} The HTTP endpoint for the GraphQL schema,
+                       or the path to a local schema file in JSON format.
+
+  ${Chalk.yellow(
+    "$GRAPHQL_API_TOKEN",
+  )} ${Chalk.grey("-")} The API token needed for querying for the schema.
+
+Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
+`;
+
+export const graphql = async (namespace: string, config: Options.Config) => {
+  config.graphql = defaultGraphQL;
+  config.graphql.namespace = namespace;
+  Options.writeConfig(config);
+  const gqlEffectPath = path.join(
+    config.src ? config.src : "src/app",
+    "Effect",
+    `${namespace}.elm`,
+  );
+  fs.mkdirSync(path.dirname(gqlEffectPath), { recursive: true });
+  const gqlEffectFile = OneOffGraphQLEffect.toBody(
+    new Map([["{{name}}", namespace]]),
+  );
+  fs.writeFileSync(gqlEffectPath, gqlEffectFile, "utf8");
+  console.log(graphqlAdded);
 };

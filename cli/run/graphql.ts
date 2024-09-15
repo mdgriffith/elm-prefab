@@ -1,5 +1,8 @@
 import * as GQL from "elm-gql";
 import * as Options from "../options";
+import * as fs from "fs";
+import * as path from "path";
+import Chalk from "chalk";
 
 // Some slight differences from elm-gql the cli
 // elm-gql has ourputDir and outputAll, but for elm-prefab we just want outputAll
@@ -16,7 +19,7 @@ import * as Options from "../options";
 // };
 
 export const generator = (
-  options: Options.GraphQLOptions
+  options: Options.GraphQLOptions,
 ): Options.Generator => {
   return {
     name: "graphql",
@@ -41,18 +44,41 @@ export const generator = (
         header.push(replaceHeader);
       }
 
-      const result = await GQL.run(schema, {
-        outputAll: runOptions.internalSrc,
-        namespace: options.namespace,
-        header: header,
-        force: true,
-        generateMocks: options.generateMocks,
-        queries: options.queries,
-        globalFragments: options.globalFragments
-          ? options.globalFragments
-          : null,
-        existingEnumDefinitions: options.existingEnumDefinitions,
-      });
+      const hasBeenInitialized = fs.existsSync(
+        path.join(runOptions.src, `${options.namespace}.elm`),
+      );
+      let result = null;
+      console.log(
+        `Building GraphQL from schema via ${Chalk.yellow("elm-gql")}...`,
+      );
+      if (hasBeenInitialized) {
+        result = await GQL.run(schema, {
+          outputAll: runOptions.internalSrc,
+          namespace: options.namespace,
+          header: header,
+          force: true,
+          generateMocks: options.generateMocks,
+          queries: runOptions.src,
+          globalFragments: options.globalFragments
+            ? options.globalFragments
+            : null,
+          existingEnumDefinitions: options.existingEnumDefinitions,
+        });
+      } else {
+        result = await GQL.init(schema, runOptions.src, {
+          outputAll: runOptions.internalSrc,
+          namespace: options.namespace,
+          header: header,
+          force: true,
+          generateMocks: options.generateMocks,
+          queries: runOptions.src,
+          globalFragments: options.globalFragments
+            ? options.globalFragments
+            : null,
+          existingEnumDefinitions: options.existingEnumDefinitions,
+        });
+      }
+
       if ("errors" in result) {
         return {
           generated: [],
