@@ -15,8 +15,8 @@ dependencies:
     specifier: ^0.1.3
     version: 0.1.3
   elm-gql:
-    specifier: ^0.13.0
-    version: 0.13.0
+    specifier: ^0.15.0
+    version: 0.15.0
   isbinaryfile:
     specifier: ^5.0.2
     version: 5.0.2
@@ -782,8 +782,8 @@ packages:
       '@elm_dev_binaries/win32_x64': 0.1.3
     dev: false
 
-  /elm-gql@0.13.0:
-    resolution: {integrity: sha512-d1hBKe8M2mOHDWOy94EyfdNBCpVOGnEXcGhkcnLVXmUNX60php+DFxeliPRcd0OL20c/xqKFYmc+TKL46bzVvw==}
+  /elm-gql@0.15.0:
+    resolution: {integrity: sha512-VdBIcL97JNjRPcgJ7ls787mQq1nyn20nSUO/VmKfI/ic/Gr6tsj+3Jap3Fjwrw7VI2b4fV1YBCQ/pPip6ojy0Q==}
     hasBin: true
     dependencies:
       '@types/node': 15.0.3
