@@ -9,6 +9,7 @@ plugins/**/Gen
 generated
 
 editor/codegen/Gen
+.env
 
 dist
 .elm-press
