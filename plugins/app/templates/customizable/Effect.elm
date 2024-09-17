@@ -1,5 +1,6 @@
 module Effect exposing
     ( Effect(..), none, batch, map
+    , broadcast
     , now, nowAfter
     , sendMsg, sendMsgAfter
     , Expect(..), UrlBase(..)
@@ -9,6 +10,11 @@ module Effect exposing
 {-|
 
 @docs Effect, none, batch, map
+
+
+# Broadcast
+
+@docs broadcast
 
 
 # Time
@@ -82,6 +88,12 @@ now =
 nowAfter : Float -> (Time.Posix -> msg) -> Effect msg
 nowAfter wait =
     Now (Just wait)
+
+
+{-| -}
+broadcast : Broadcast.Msg -> Effect msg
+broadcast =
+    SendBroadcast
 
 
 type Effect msg

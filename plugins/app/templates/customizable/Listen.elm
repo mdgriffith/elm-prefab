@@ -1,6 +1,7 @@
 module Listen exposing
     ( Listen(..)
     , none, batch
+    , onBroadcast
     , onKeyPress
     , onEvery
     , onResize
@@ -16,6 +17,8 @@ module Listen exposing
 @docs Listen
 
 @docs none, batch
+
+@docs onBroadcast
 
 @docs onKeyPress
 
@@ -84,6 +87,12 @@ onEvery ms toMsg =
 onResize : (Int -> Int -> msg) -> Listen msg
 onResize msg =
     OnWindowResize msg
+
+
+{-| -}
+onBroadcast : (Broadcast.Msg -> Maybe msg) -> Listen msg
+onBroadcast toMsg =
+    OnBroadcast toMsg
 
 
 {-| -}

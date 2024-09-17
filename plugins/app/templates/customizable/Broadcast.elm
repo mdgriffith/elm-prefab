@@ -10,7 +10,7 @@ To broadcast a message, you'd do this in your `update` function:
 
 And to listen for this message, in your subscriptions, you'd have
 
-    Listen.broadcast
+    Listen.onBroadcast
         (\broadcastMsg ->
             case broadcastMsg of
                 Broadcast.LogOut ->
