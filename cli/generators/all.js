@@ -16852,7 +16852,7 @@
                 $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")
             ]), $mdgriffith$elm_codegen$Elm$Annotation$string), $mdgriffith$elm_codegen$Elm$fn_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("route", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")), function (route) {
                 return $mdgriffith$elm_codegen$Elm$Case$custom_fn(route, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route"), $elm$core$List$map_fn(function (individualRoute) {
-                    return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $author$project$Generate$Route$paramType(individualRoute)), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(individualRoute.eK, $elm$core$Basics$identity)), function (params) {
+                    return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $author$project$Generate$Route$paramType(individualRoute)), $mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", individualRoute.eK), $elm$core$Basics$identity)), function (params) {
                         var _v0 = individualRoute.mV;
                         var path = _v0.lS;
                         var includePathTail = _v0.bb;
@@ -17647,9 +17647,9 @@
             return $mdgriffith$elm_codegen$Elm$bool(true);
         })))) : $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$declaration_fn("sameRouteBase", $mdgriffith$elm_codegen$Elm$fn2_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("one", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")), $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("two", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")), F2(function (one, two) {
             return $mdgriffith$elm_codegen$Elm$Case$custom_fn(one, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route"), $elm$core$List$map_fn(function (route) {
-                return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$var("params")), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(route.eK, $elm$core$Basics$identity)), function (_v0) {
+                return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$var("params")), $mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", route.eK), $elm$core$Basics$identity)), function (_v0) {
                     return $mdgriffith$elm_codegen$Elm$Case$custom_fn(two, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route"), _List_fromArray([
-                        $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params2", $mdgriffith$elm_codegen$Elm$Annotation$var("params2")), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(route.eK, $elm$core$Basics$identity)), function (_v1) {
+                        $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params2", $mdgriffith$elm_codegen$Elm$Annotation$var("params2")), $mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", route.eK), $elm$core$Basics$identity)), function (_v1) {
                             return $mdgriffith$elm_codegen$Elm$bool(true);
                         }),
                         $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Elm$Arg$ignore, function (_v2) {
@@ -18044,7 +18044,7 @@
                 $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")
             ]), $mdgriffith$elm_codegen$Elm$Annotation$string), $mdgriffith$elm_codegen$Elm$fn_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("route", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route")), function (route) {
                 return $mdgriffith$elm_codegen$Elm$Case$custom_fn(route, $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "Route"), $elm$core$List$map_fn(function (individualRoute) {
-                    return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $author$project$Generate$Route$paramType(individualRoute)), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(individualRoute.eK, $elm$core$Basics$identity)), function (params) {
+                    return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $author$project$Generate$Route$paramType(individualRoute)), $mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", individualRoute.eK), $elm$core$Basics$identity)), function (params) {
                         var variables = $elm$core$List$map_fn(function (name) {
                             return $mdgriffith$elm_codegen$Elm$get_fn(name, params);
                         }, $author$project$Generate$Route$getParamVariableList(individualRoute));
@@ -18069,12 +18069,12 @@
             var routes = _v0.a;
             return $elm$core$Result$Ok($mdgriffith$elm_codegen$Elm$fileWith_fn(_List_fromArray(["App", "Route"]), { jc: _List_Nil, km: "# Routes" }, _List_fromArray([
                 $mdgriffith$elm_codegen$Elm$exposeConstructor($mdgriffith$elm_codegen$Elm$customType_fn("Route", $elm$core$List$map_fn(function (route) {
-                    return $mdgriffith$elm_codegen$Elm$Variant_fn(route.eK, _List_fromArray([
+                    return $mdgriffith$elm_codegen$Elm$Variant_fn($elm$core$String$replace_fn(".", "", route.eK), _List_fromArray([
                         $author$project$Generate$Route$paramType(route)
                     ]));
                 }, routes))),
                 $mdgriffith$elm_codegen$Elm$group($elm$core$List$map_fn(function (route) {
-                    return $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$alias_fn(route.eK + "_Params", $author$project$Generate$Route$paramType(route)));
+                    return $mdgriffith$elm_codegen$Elm$expose($mdgriffith$elm_codegen$Elm$alias_fn($elm$core$String$join_fn("_", $elm$core$String$split_fn(".", route.eK)) + "_Params", $author$project$Generate$Route$paramType(route)));
                 }, routes)),
                 $mdgriffith$elm_codegen$Elm$group($author$project$Generate$Route$urlEncoder(routes)),
                 $mdgriffith$elm_codegen$Elm$group($author$project$Generate$Route$urlParser(routes)),
@@ -18856,6 +18856,18 @@
         i: _List_fromArray(["App", "Page"]),
         j: "notFound"
     });
+    var $author$project$Press$Model$toPageBranch_fn = function (pageInfo, toBranchBody) {
+        var _v0 = pageInfo.lR;
+        if (_v0.$ === 1) {
+            return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", pageInfo.eK), 0), function (_v1) {
+                return toBranchBody($mdgriffith$elm_codegen$Elm$record(_List_Nil));
+            });
+        }
+        else {
+            var paramType = _v0.a;
+            return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$unit), $mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", pageInfo.eK), $elm$core$Basics$identity)), toBranchBody);
+        }
+    }, $author$project$Press$Model$toPageBranch = F2($author$project$Press$Model$toPageBranch_fn);
     var $stil4m$elm_syntax$Elm$Syntax$Expression$LetFunction = function (a) {
         return { $: 0, a: a };
     };
@@ -19145,22 +19157,10 @@
         return $mdgriffith$elm_codegen$Elm$Declare$fn3_fn("getPageInit", $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId", $author$project$Press$Model$types.A), $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("resources", $author$project$Press$Model$resourcesType), $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("cache", $author$project$Gen$App$State$annotation_.jM($mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, "State"))), F3(function (pageId, resources, cache) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($author$project$Press$Model$types.gE, $mdgriffith$elm_codegen$Elm$Case$custom_fn(pageId, $author$project$Press$Model$types.A, $elm$core$List$map_fn(function (pageInfo) {
                 if (pageInfo.ko) {
-                    var toBranch = function (fn) {
-                        var _v0 = pageInfo.lR;
-                        if (_v0.$ === 1) {
-                            return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, 0), function (_v1) {
-                                return fn($mdgriffith$elm_codegen$Elm$record(_List_Nil));
-                            });
-                        }
-                        else {
-                            var paramType = _v0.a;
-                            return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$unit), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, $elm$core$Basics$identity)), fn);
-                        }
-                    };
                     var pageMsgTypeName = $author$project$Press$Model$types.ch(pageInfo.eK);
                     var pageModule = pageInfo.lp;
                     var pageConfig = $mdgriffith$elm_codegen$Elm$value({ h: $elm$core$Maybe$Nothing, i: pageModule, j: "page" });
-                    return toBranch(function (params) {
+                    return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (params) {
                         return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageKey", $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val("toPageKey"), _List_fromArray([pageId])), $mdgriffith$elm_codegen$Elm$Let$value_fn("pageDetails", $mdgriffith$elm_codegen$Elm$apply_fn($author$project$Gen$App$Page$values_.iu, _List_fromArray([pageConfig])), $mdgriffith$elm_codegen$Elm$Let$letIn(F2(function (pageDetails, pageKey) {
                             return $mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$apply_fn($author$project$Gen$App$Page$values_.fJ, _List_fromArray([
                                 $mdgriffith$elm_codegen$Elm$record(_List_fromArray([
@@ -19179,18 +19179,9 @@
                     });
                 }
                 else {
-                    var _v2 = pageInfo.lR;
-                    if (_v2.$ === 1) {
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, $elm$core$Basics$identity), function (_v3) {
-                            return $author$project$Gen$App$Page$notFound;
-                        });
-                    }
-                    else {
-                        var paramType = _v2.a;
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$unit), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, $elm$core$Basics$identity)), function (params) {
-                            return $author$project$Gen$App$Page$notFound;
-                        });
-                    }
+                    return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (_v0) {
+                        return $author$project$Gen$App$Page$notFound;
+                    });
                 }
             }, pages)));
         }));
@@ -20424,21 +20415,7 @@
     var $author$project$Press$Generate$Engine$toPageGroupKey = function (pages) {
         return $mdgriffith$elm_codegen$Elm$Declare$fn_fn("toPageGroupKey", $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId", $author$project$Press$Model$types.A), function (pageId) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Case$custom_fn(pageId, $author$project$Press$Model$types.A, $elm$core$List$map_fn(function (pageInfo) {
-                var toBranch = function (fn) {
-                    var _v0 = pageInfo.lR;
-                    if (_v0.$ === 1) {
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, 0), function (_v1) {
-                            return fn($mdgriffith$elm_codegen$Elm$record(_List_Nil));
-                        });
-                    }
-                    else {
-                        var paramType = _v0.a;
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$unit), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, $elm$core$Basics$identity)), function (params) {
-                            return fn(params);
-                        });
-                    }
-                };
-                return toBranch(function (params) {
+                return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (params) {
                     return $mdgriffith$elm_codegen$Elm$string(pageInfo.eK);
                 });
             }, pages)));
@@ -20465,24 +20442,10 @@
     var $author$project$Press$Generate$Engine$toPageKey = function (pages) {
         return $mdgriffith$elm_codegen$Elm$Declare$fn_fn("toPageKey", $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId", $author$project$Press$Model$types.A), function (pageId) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Case$custom_fn(pageId, $author$project$Press$Model$types.A, $elm$core$List$map_fn(function (pageInfo) {
-                var toBranch = function (fn) {
-                    var _v2 = pageInfo.lR;
-                    if (_v2.$ === 1) {
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, 0), function (_v3) {
-                            return fn($mdgriffith$elm_codegen$Elm$record(_List_Nil));
-                        });
-                    }
-                    else {
-                        var paramType = _v2.a;
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$unit), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, $elm$core$Basics$identity)), function (params) {
-                            return fn(params);
-                        });
-                    }
-                };
                 if (pageInfo.ko) {
                     var pageModule = pageInfo.lp;
                     var pageConfig = $mdgriffith$elm_codegen$Elm$value({ h: $elm$core$Maybe$Nothing, i: pageModule, j: "page" });
-                    return toBranch(function (params) {
+                    return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (params) {
                         return $mdgriffith$elm_codegen$Elm$Let$toExpression($mdgriffith$elm_codegen$Elm$Let$value_fn("pageDetails", $mdgriffith$elm_codegen$Elm$apply_fn($author$project$Gen$App$Page$values_.iu, _List_fromArray([pageConfig])), $mdgriffith$elm_codegen$Elm$Let$letIn(function (pageDetails) {
                             return $mdgriffith$elm_codegen$Elm$Case$maybe_fn($mdgriffith$elm_codegen$Elm$get_fn("toKey", pageDetails), {
                                 e5: _Utils_Tuple2("toKey", function (toKey) {
@@ -20513,7 +20476,7 @@
                     });
                 }
                 else {
-                    return toBranch(function (params) {
+                    return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (params) {
                         return $mdgriffith$elm_codegen$Elm$string(pageInfo.eK);
                     });
                 }
@@ -20523,28 +20486,14 @@
     var $author$project$Press$Generate$Engine$toPageLimit = function (pages) {
         return $mdgriffith$elm_codegen$Elm$Declare$fn_fn("toPageLimit", $mdgriffith$elm_codegen$Internal$Arg$varWith_fn("pageId", $author$project$Press$Model$types.A), function (pageId) {
             return $mdgriffith$elm_codegen$Elm$withType_fn($mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Case$custom_fn(pageId, $author$project$Press$Model$types.A, $elm$core$List$map_fn(function (pageInfo) {
-                var toBranch = function (fn) {
-                    var _v1 = pageInfo.lR;
-                    if (_v1.$ === 1) {
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, 0), function (_v2) {
-                            return fn($mdgriffith$elm_codegen$Elm$record(_List_Nil));
-                        });
-                    }
-                    else {
-                        var paramType = _v1.a;
-                        return $mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$unit), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageInfo.eK, $elm$core$Basics$identity)), function (params) {
-                            return fn(params);
-                        });
-                    }
-                };
                 if (pageInfo.ko) {
                     var pageConfig = $mdgriffith$elm_codegen$Elm$value({ h: $elm$core$Maybe$Nothing, i: pageInfo.lp, j: "page" });
-                    return toBranch(function (_v0) {
+                    return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (_v0) {
                         return $mdgriffith$elm_codegen$Elm$get_fn(".pageCacheLimit", $mdgriffith$elm_codegen$Elm$apply_fn($author$project$Gen$App$Page$values_.iu, _List_fromArray([pageConfig])));
                     });
                 }
                 else {
-                    return toBranch(function (params) {
+                    return $author$project$Press$Model$toPageBranch_fn(pageInfo, function (params) {
                         return $mdgriffith$elm_codegen$Elm$int(1);
                     });
                 }
@@ -20893,35 +20842,38 @@
             ]))
         ]));
     }, $author$project$Press$Generate$Engine$generate = F2($author$project$Press$Generate$Engine$generate_fn);
+    var $author$project$Press$Generate$toParamTypeString = function (page) {
+        return $elm$core$String$join_fn("_", $elm$core$String$split_fn(".", page.eK)) + "_Params";
+    };
     var $author$project$Press$Generate$generatePageId = function (pageUsages) {
         var paramAliases = $elm$core$List$filterMap_fn(function (page) {
             return page.mW ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(function () {
                 var _v3 = page.me;
                 if (_v3.$ === 1) {
-                    return $mdgriffith$elm_codegen$Elm$alias_fn(page.eK + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
+                    return $mdgriffith$elm_codegen$Elm$alias_fn($author$project$Press$Generate$toParamTypeString(page), $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
                 }
                 else {
                     var parsedRoute = _v3.a;
                     var _v4 = $author$project$Generate$Route$checkForErrors(_List_fromArray([parsedRoute]));
                     if (_v4.$ === 1) {
-                        return $mdgriffith$elm_codegen$Elm$alias_fn(page.eK + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
+                        return $mdgriffith$elm_codegen$Elm$alias_fn($author$project$Press$Generate$toParamTypeString(page), $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
                     }
                     else {
                         if (_v4.a.b && (!_v4.a.b.b)) {
                             var _v5 = _v4.a;
                             var route = _v5.a;
-                            return $mdgriffith$elm_codegen$Elm$alias_fn(page.eK + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), page.eK + "_Params"));
+                            return $mdgriffith$elm_codegen$Elm$alias_fn($author$project$Press$Generate$toParamTypeString(page), $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), $author$project$Press$Generate$toParamTypeString(page)));
                         }
                         else {
-                            return $mdgriffith$elm_codegen$Elm$alias_fn(page.eK + "_Params", $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
+                            return $mdgriffith$elm_codegen$Elm$alias_fn($author$project$Press$Generate$toParamTypeString(page), $mdgriffith$elm_codegen$Elm$Annotation$record(_List_Nil));
                         }
                     }
                 }
             }());
         }, pageUsages);
         var pageIdType = $mdgriffith$elm_codegen$Elm$customType_fn("Id", $elm$core$List$filterMap_fn(function (page) {
-            return page.mW ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Variant_fn(page.eK, _List_fromArray([
-                $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, page.eK + "_Params")
+            return page.mW ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Variant_fn($elm$core$String$replace_fn(".", "", page.eK), _List_fromArray([
+                $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_Nil, $author$project$Press$Generate$toParamTypeString(page))
             ])));
         }, pageUsages));
         var fromRoute = $mdgriffith$elm_codegen$Elm$declaration_fn("fromRoute", $mdgriffith$elm_codegen$Elm$fn_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("route", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), "Route")), function (route) {
@@ -20940,8 +20892,8 @@
                         if (_v1.a.b && (!_v1.a.b.b)) {
                             var _v2 = _v1.a;
                             var pageRoute = _v2.a;
-                            return $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), pageRoute.eK + "_Params")), $mdgriffith$elm_codegen$Internal$Arg$customType_fn(pageRoute.eK, $elm$core$Basics$identity)), function (params) {
-                                return page.mW ? $mdgriffith$elm_codegen$Elm$nothing : $mdgriffith$elm_codegen$Elm$just($mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val(pageRoute.eK), _List_fromArray([params])));
+                            return $elm$core$Maybe$Just($mdgriffith$elm_codegen$Elm$Case$branch_fn($mdgriffith$elm_codegen$Internal$Arg$item_fn($mdgriffith$elm_codegen$Internal$Arg$varWith_fn("params", $mdgriffith$elm_codegen$Elm$Annotation$named_fn(_List_fromArray(["App", "Route"]), $author$project$Press$Generate$toParamTypeString(pageRoute))), $mdgriffith$elm_codegen$Internal$Arg$customType_fn($elm$core$String$replace_fn(".", "", pageRoute.eK), $elm$core$Basics$identity)), function (params) {
+                                return page.mW ? $mdgriffith$elm_codegen$Elm$nothing : $mdgriffith$elm_codegen$Elm$just($mdgriffith$elm_codegen$Elm$apply_fn($mdgriffith$elm_codegen$Elm$val($elm$core$String$replace_fn(".", "", pageRoute.eK)), _List_fromArray([params])));
                             }));
                         }
                         else {
@@ -20966,7 +20918,7 @@
     };
     var $author$project$Press$Generate$populateParamType = function (page) {
         return _Utils_update(page, {
-            lR: $elm$core$Maybe$Just(page.eK + "_Params")
+            lR: $elm$core$Maybe$Just($author$project$Press$Generate$toParamTypeString(page))
         });
     };
     var $author$project$Press$Generate$generate = function (options) {

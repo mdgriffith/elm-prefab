@@ -30,40 +30,6 @@ import Press.Generate.Regions
 import Press.Model exposing (..)
 
 
-pageRecordType =
-    Type.record
-        [ ( "init"
-          , Type.function
-                [ Type.var "params"
-                , Type.var "resources"
-                ]
-                (Type.tuple (Type.var "model") (Type.var "effect"))
-          )
-        , ( "update"
-          , Type.function
-                [ Type.var "resources"
-                , Type.var "msg"
-                , Type.var "model"
-                ]
-                (Type.tuple (Type.var "model") (Type.var "effect"))
-          )
-        , ( "subscriptions"
-          , Type.function
-                [ Type.var "resources"
-                , Type.var "model"
-                ]
-                (Type.var "subscription")
-          )
-        , ( "view"
-          , Type.function
-                [ Type.var "resources"
-                , Type.var "model"
-                ]
-                (Type.var "view")
-          )
-        ]
-
-
 generate : List Options.App.Resource -> List Options.App.PageUsage -> Elm.File
 generate resources allPageDefinitions =
     let
@@ -290,22 +256,7 @@ toPageGroupKey pages =
                     (pages
                         |> List.map
                             (\pageInfo ->
-                                let
-                                    toBranch fn =
-                                        case pageInfo.paramType of
-                                            Nothing ->
-                                                Elm.Case.branch (Elm.Arg.customType pageInfo.id ()) (\_ -> fn (Elm.record []))
-
-                                            Just paramType ->
-                                                Elm.Case.branch
-                                                    (Elm.Arg.customType pageInfo.id identity
-                                                        |> Elm.Arg.item (Elm.Arg.varWith "params" Type.unit)
-                                                    )
-                                                    (\params ->
-                                                        fn params
-                                                    )
-                                in
-                                toBranch
+                                toPageBranch pageInfo
                                     (\params ->
                                         Elm.string pageInfo.id
                                     )
@@ -326,22 +277,6 @@ toPageLimit pages =
                     (pages
                         |> List.map
                             (\pageInfo ->
-                                let
-                                    toBranch fn =
-                                        case pageInfo.paramType of
-                                            Nothing ->
-                                                Elm.Case.branch (Elm.Arg.customType pageInfo.id ())
-                                                    (\_ -> fn (Elm.record []))
-
-                                            Just paramType ->
-                                                Elm.Case.branch
-                                                    (Elm.Arg.customType pageInfo.id identity
-                                                        |> Elm.Arg.item (Elm.Arg.varWith "params" Type.unit)
-                                                    )
-                                                    (\params ->
-                                                        fn params
-                                                    )
-                                in
                                 if pageInfo.elmModuleIsPresent then
                                     let
                                         pageConfig =
@@ -351,7 +286,7 @@ toPageLimit pages =
                                                 , annotation = Nothing
                                                 }
                                     in
-                                    toBranch
+                                    toPageBranch pageInfo
                                         (\_ ->
                                             Elm.apply
                                                 Gen.App.Page.values_.toInternalDetails
@@ -360,7 +295,7 @@ toPageLimit pages =
                                         )
 
                                 else
-                                    toBranch
+                                    toPageBranch pageInfo
                                         (\params ->
                                             Elm.int 1
                                         )
@@ -381,22 +316,6 @@ toPageKey pages =
                     (pages
                         |> List.map
                             (\pageInfo ->
-                                let
-                                    toBranch fn =
-                                        case pageInfo.paramType of
-                                            Nothing ->
-                                                Elm.Case.branch (Elm.Arg.customType pageInfo.id ())
-                                                    (\_ -> fn (Elm.record []))
-
-                                            Just paramType ->
-                                                Elm.Case.branch
-                                                    (Elm.Arg.customType pageInfo.id identity
-                                                        |> Elm.Arg.item (Elm.Arg.varWith "params" Type.unit)
-                                                    )
-                                                    (\params ->
-                                                        fn params
-                                                    )
-                                in
                                 if pageInfo.elmModuleIsPresent then
                                     let
                                         pageModule =
@@ -409,7 +328,7 @@ toPageKey pages =
                                                 , annotation = Nothing
                                                 }
                                     in
-                                    toBranch
+                                    toPageBranch pageInfo
                                         (\params ->
                                             Elm.Let.letIn
                                                 (\pageDetails ->
@@ -461,7 +380,7 @@ toPageKey pages =
                                         )
 
                                 else
-                                    toBranch
+                                    toPageBranch pageInfo
                                         (\params ->
                                             Elm.string pageInfo.id
                                         )

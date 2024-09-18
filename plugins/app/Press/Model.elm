@@ -824,6 +824,20 @@ preloadPage routes =
         )
 
 
+toPageBranch pageInfo toBranchBody =
+    case pageInfo.paramType of
+        Nothing ->
+            Elm.Case.branch (Elm.Arg.customType (String.replace "." "" pageInfo.id) ())
+                (\_ -> toBranchBody (Elm.record []))
+
+        Just paramType ->
+            Elm.Case.branch
+                (Elm.Arg.customType (String.replace "." "" pageInfo.id) identity
+                    |> Elm.Arg.item (Elm.Arg.varWith "params" Type.unit)
+                )
+                toBranchBody
+
+
 getPageInit :
     List Options.App.PageUsage
     ->
@@ -854,21 +868,8 @@ getPageInit pages =
                                             , name = "page"
                                             , annotation = Nothing
                                             }
-
-                                    toBranch fn =
-                                        case pageInfo.paramType of
-                                            Nothing ->
-                                                Elm.Case.branch (Elm.Arg.customType pageInfo.id ())
-                                                    (\_ -> fn (Elm.record []))
-
-                                            Just paramType ->
-                                                Elm.Case.branch
-                                                    (Elm.Arg.customType pageInfo.id identity
-                                                        |> Elm.Arg.item (Elm.Arg.varWith "params" Type.unit)
-                                                    )
-                                                    fn
                                 in
-                                toBranch
+                                toPageBranch pageInfo
                                     (\params ->
                                         Elm.Let.letIn
                                             (\pageDetails pageKey ->
@@ -912,19 +913,8 @@ getPageInit pages =
                                     )
 
                             else
-                                case pageInfo.paramType of
-                                    Nothing ->
-                                        Elm.Case.branch (Elm.Arg.customType pageInfo.id identity)
-                                            (\_ -> Gen.App.Page.notFound)
-
-                                    Just paramType ->
-                                        Elm.Case.branch
-                                            (Elm.Arg.customType pageInfo.id identity
-                                                |> Elm.Arg.item (Elm.Arg.varWith "params" Type.unit)
-                                            )
-                                            (\params ->
-                                                Gen.App.Page.notFound
-                                            )
+                                toPageBranch pageInfo
+                                    (\_ -> Gen.App.Page.notFound)
                         )
                 )
                 |> Elm.withType

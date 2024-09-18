@@ -388,7 +388,7 @@ generate parsedRoutes =
                         (List.map
                             (\route ->
                                 Elm.variantWith
-                                    route.id
+                                    (String.replace "." "" route.id)
                                     [ paramType route
                                     ]
                             )
@@ -398,7 +398,7 @@ generate parsedRoutes =
                     , Elm.group
                         (List.map
                             (\route ->
-                                Elm.alias (route.id ++ "_Params")
+                                Elm.alias (String.join "_" (String.split "." route.id) ++ "_Params")
                                     (paramType route)
                                     |> Elm.expose
                             )
@@ -491,7 +491,7 @@ urlToId routes =
                         |> List.map
                             (\individualRoute ->
                                 Elm.Case.branch
-                                    (Elm.Arg.customType individualRoute.id identity
+                                    (Elm.Arg.customType (String.replace "." "" individualRoute.id) identity
                                         |> Elm.Arg.item (Elm.Arg.varWith "params" (paramType individualRoute))
                                     )
                                     (\params ->
@@ -552,7 +552,7 @@ urlEncoder routes =
                         |> List.map
                             (\individualRoute ->
                                 Elm.Case.branch
-                                    (Elm.Arg.customType individualRoute.id identity
+                                    (Elm.Arg.customType (String.replace "." "" individualRoute.id) identity
                                         |> Elm.Arg.item (Elm.Arg.varWith "params" (paramType individualRoute))
                                     )
                                     (\params ->
@@ -700,14 +700,14 @@ sameRoute routes =
                             |> List.map
                                 (\route ->
                                     Elm.Case.branch
-                                        (Elm.Arg.customType route.id identity
+                                        (Elm.Arg.customType (String.replace "." "" route.id) identity
                                             |> Elm.Arg.item (Elm.Arg.varWith "params" (Type.var "params"))
                                         )
                                         (\_ ->
                                             Elm.Case.custom two
                                                 (Type.named [] "Route")
                                                 [ Elm.Case.branch
-                                                    (Elm.Arg.customType route.id identity
+                                                    (Elm.Arg.customType (String.replace "." "" route.id) identity
                                                         |> Elm.Arg.item (Elm.Arg.varWith "params2" (Type.var "params2"))
                                                     )
                                                     (\_ ->

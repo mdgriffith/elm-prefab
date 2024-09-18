@@ -63,9 +63,14 @@ generate options =
                 )
 
 
+toParamTypeString : { page | id : String } -> String
+toParamTypeString page =
+    String.join "_" (String.split "." page.id) ++ "_Params"
+
+
 populateParamType : Options.App.PageUsage -> Options.App.PageUsage
 populateParamType page =
-    { page | paramType = Just (page.id ++ "_Params") }
+    { page | paramType = Just (toParamTypeString page) }
 
 
 generateResources : List Options.App.Resource -> List Elm.File
@@ -106,7 +111,7 @@ generatePageId pageUsages =
 
                         else
                             Just
-                                (Elm.variantWith page.id [ Type.named [] (page.id ++ "_Params") ])
+                                (Elm.variantWith (String.replace "." "" page.id) [ Type.named [] (toParamTypeString page) ])
                     )
                     pageUsages
                 )
@@ -122,24 +127,24 @@ generatePageId pageUsages =
                             case page.route of
                                 Nothing ->
                                     Elm.alias
-                                        (page.id ++ "_Params")
+                                        (toParamTypeString page)
                                         (Type.record [])
 
                                 Just parsedRoute ->
                                     case Generate.Route.checkForErrors [ parsedRoute ] of
                                         Err _ ->
                                             Elm.alias
-                                                (page.id ++ "_Params")
+                                                (toParamTypeString page)
                                                 (Type.record [])
 
                                         Ok [ route ] ->
                                             Elm.alias
-                                                (page.id ++ "_Params")
-                                                (Type.named [ "App", "Route" ] (page.id ++ "_Params"))
+                                                (toParamTypeString page)
+                                                (Type.named [ "App", "Route" ] (toParamTypeString page))
 
                                         _ ->
                                             Elm.alias
-                                                (page.id ++ "_Params")
+                                                (toParamTypeString page)
                                                 (Type.record [])
                 )
                 pageUsages
@@ -165,8 +170,13 @@ generatePageId pageUsages =
                                                 Ok [ pageRoute ] ->
                                                     Just
                                                         (Elm.Case.branch
-                                                            (Elm.Arg.customType pageRoute.id identity
-                                                                |> Elm.Arg.item (Elm.Arg.varWith "params" (Type.named [ "App", "Route" ] (pageRoute.id ++ "_Params")))
+                                                            (Elm.Arg.customType (String.replace "." "" pageRoute.id) identity
+                                                                |> Elm.Arg.item
+                                                                    (Elm.Arg.varWith "params"
+                                                                        (Type.named [ "App", "Route" ]
+                                                                            (toParamTypeString pageRoute)
+                                                                        )
+                                                                    )
                                                             )
                                                             (\params ->
                                                                 if page.urlOnly then
@@ -174,7 +184,7 @@ generatePageId pageUsages =
 
                                                                 else
                                                                     Elm.apply
-                                                                        (Elm.val pageRoute.id)
+                                                                        (Elm.val (String.replace "." "" pageRoute.id))
                                                                         [ params ]
                                                                         |> Elm.just
                                                             )

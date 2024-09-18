@@ -120,33 +120,43 @@ const verifyElmFilesExist = (
   pages: PageUsage[],
 ): PageUsage[] => {
   try {
-    const elmFiles = fs
-      .readdirSync(dir)
-      .filter((file) => path.extname(file) === ".elm");
-    const elmFileNames = elmFiles.map((file) => path.basename(file, ".elm"));
+    const elmFiles = gatherElmFilePaths(dir);
+    const elmModuleNames = extractElmModuleNames(dir, elmFiles);
 
     // Check for PageUsage entries without a corresponding file
     pages.forEach((page) => {
-      if (!elmFileNames.includes(page.id) && !page.urlOnly) {
+      if (!isValidElmModuleName(page.id)) {
+        `Hmm, ${chalk.yellow(page.id)} in ${chalk.cyan("elm.generate.json")} doesn't look like a valid Elm module name.
+Some valid examples are:
+  ${chalk.yellow("Home")}
+  ${chalk.yellow("Post")}
+  ${chalk.yellow("Post.Details")}
+`;
+        process.exit(1);
+      }
+      if (!elmModuleNames.includes(page.id) && !page.urlOnly) {
         if (!silent) {
           logError(
             `Missing Elm Page`,
-            `I found Page.Id.${page.id}, but wasn't able to find a corresponding .elm file for it in src/Page!
-  For now I'll make that page ID render as the Not Found page until you get a moment to add the file.`,
+            `I found ${page.id} in ${chalk.cyan("elm.generate.json")}, but wasn't able to find a corresponding .elm file for it in ${dir}!
+I've added a placeholder page for the moment.`,
           );
         }
 
-        const pageContent = Page.toBody(new Map([["{{name}}", page.id]]));
-
-        fs.writeFileSync(path.join(dir, `${page.id}.elm`), pageContent, "utf8");
-        page.elmModuleIsPresent = true;
-      } else {
-        page.elmModuleIsPresent = true;
+        const pageContent = Page.toBody(
+          new Map([
+            ["{{name}}", page.id],
+            ["{{name_underscored}}", page.id.replace(".", "_")],
+          ]),
+        );
+        const pagePath = elmModuleNameToFilePath(dir, page.id);
+        fs.writeFileSync(pagePath, pageContent, "utf8");
       }
+      page.elmModuleIsPresent = true;
     });
 
     // Check for .elm files not referenced in PageUsage
-    elmFileNames.forEach((fileName) => {
+    elmModuleNames.forEach((fileName) => {
       if (!pages.some((page) => page.id === fileName) && !silent) {
         logError(
           `Unused Elm Page`,
@@ -169,7 +179,7 @@ const pageConfigToPageUsages = (pageConfigs: {
   for (const [pageId, value] of Object.entries(pageConfigs)) {
     pages.push({
       id: pageId,
-      moduleName: ["Page", pageId],
+      moduleName: ["Page", ...pageId.split(".")],
       value: "page",
       paramType: null, //pageConfig.paramType,
       elmModuleIsPresent: false,
@@ -182,3 +192,64 @@ const pageConfigToPageUsages = (pageConfigs: {
 };
 
 export type File = { path: string; contents: string };
+
+function gatherElmFilePaths(directory: string): string[] {
+  const elmFiles: string[] = [];
+  const directoriesToSkip = ["node_modules", "elm-stuff"];
+
+  function traverseDirectory(currentPath: string) {
+    const files = fs.readdirSync(currentPath);
+
+    for (const file of files) {
+      const filePath = path.join(currentPath, file);
+      const stat = fs.statSync(filePath);
+
+      if (stat.isDirectory()) {
+        if (!directoriesToSkip.includes(file)) {
+          traverseDirectory(filePath);
+        }
+      } else if (path.extname(file) === ".elm") {
+        elmFiles.push(filePath);
+      }
+    }
+  }
+
+  traverseDirectory(directory);
+  return elmFiles;
+}
+
+function extractElmModuleNames(baseDir: string, filePaths: string[]): string[] {
+  return filePaths.map((filePath) => {
+    // 1. Remove the base directory
+    const relativePath = path.relative(baseDir, filePath);
+
+    // 2. Remove the .elm extension
+    const withoutExtension = relativePath.replace(/\.elm$/, "");
+
+    // 3. Translate path separators to dots
+    const moduleName = withoutExtension.split(path.sep).join(".");
+
+    return moduleName;
+  });
+}
+
+function isValidElmModuleName(moduleName: string): boolean {
+  // Elm module names must:
+  // 1. Start with an uppercase letter
+  // 2. Contain only letters, numbers, and dots
+  // 3. Each segment (parts between dots) must start with an uppercase letter
+  const regex = /^[A-Z]([A-Za-z0-9]+)?(\.[A-Z]([A-Za-z0-9]+)?)*$/;
+  return regex.test(moduleName);
+}
+
+function elmModuleNameToFilePath(baseDir: string, moduleName: string): string {
+  if (!isValidElmModuleName(moduleName)) {
+    throw new Error(`Invalid Elm module name: ${moduleName}`);
+  }
+
+  // Convert dots to path separators and add .elm extension
+  const relativePath = moduleName.replace(/\./g, path.sep) + ".elm";
+
+  // Join with the base directory to get the full path
+  return path.join(baseDir, relativePath);
+}
