@@ -49,18 +49,28 @@ async function promptForOption<T>(
   message: string,
 ): Promise<T> {
   return Inquire.select({
-    message: message + ` (${Chalk.grey("Use arrow keys for selection")}):\n`,
+    message: message,
     loop: false,
     pageSize: 16,
-    theme: { helpMode: "never", style: { answer: Chalk.cyan } },
+    theme: { helpMode: "auto", style: { answer: Chalk.cyan } },
     choices: options.map((option) => {
       return {
-        name: `    ${Chalk.yellow(option.name)}`,
+        name: Chalk.yellow(option.name),
         value: option.value,
         description: option.description,
       };
     }),
   });
+}
+
+function urlPathToElmModuleName(url: string): string {
+  return url
+    .split("?")[0] // Remove query parameters
+    .split("*")[0] // Remove wildcard and everything after
+    .split("/")
+    .filter((piece) => piece !== "" && !piece.startsWith(":"))
+    .map((piece) => piece.charAt(0).toUpperCase() + piece.slice(1))
+    .join(".");
 }
 
 async function handleAdd(addable?: string, name?: string): Promise<Command> {
@@ -109,6 +119,21 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
     return { kind: "add-graphql", nameSpace: name };
   }
 
+  if (selectedAddable === Addable.Page) {
+    let url = await Inquire.input({
+      message: `URL`,
+      default: "/posts/:id",
+    });
+
+    const defaultUrl = urlPathToElmModuleName(url);
+    let name = await Inquire.input({
+      message: `Elm Module Name`,
+      default: defaultUrl,
+    });
+
+    return { kind: "add-page", name, url };
+  }
+
   if (!name) {
     name = await Inquire.input({
       message: "Name:",
@@ -128,19 +153,8 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
     });
   }
 
-  if (selectedAddable === Addable.Page) {
-    let url = await Inquire.input({
-      message: `URL${Chalk.grey("(default:")}${Chalk.grey(decapitalize(name))}${Chalk.grey(")")}:`,
-    });
-    if (url.trim() == "") {
-      url = decapitalize(name);
-    }
-    return { kind: "add-page", name, url };
-  }
   return { kind: "add", added: selectedAddable, name };
 }
-
-const decapitalize = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 async function handleCustomize(customizable?: string): Promise<Command> {
   let selectedCustomizable: Customizable.File;
