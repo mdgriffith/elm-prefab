@@ -195,7 +195,10 @@ const run = async (args: string[]) => {
       case "add-page":
         // Create Placeholder Page
         const pageContent = OneOffPage.toBody(
-          new Map([["{{name}}", command.name]]),
+          new Map([
+            ["{{name}}", command.name],
+            ["{{name_underscored}}", command.name.replace(".", "_")],
+          ]),
         );
         fs.writeFileSync(
           path.join(config.src ? config.src : "src/app", `${command.name}.elm`),

@@ -30,7 +30,7 @@ type Msg
     = ReplaceMe
 
 
-page : App.Page.Page App.Resources.Resources App.Page.Id.{{name}}_Params Msg Model
+page : App.Page.Page App.Resources.Resources App.Page.Id.{{name_underscored}}_Params Msg Model
 page =
     App.Page.page
         { init = init
@@ -40,7 +40,7 @@ page =
         }
 
 
-init : App.Page.Id.Id -> App.Page.Id.{{name}}_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
+init : App.Page.Id.Id -> App.Page.Id.{{name_underscored}}_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
 init pageId urlParams resources maybeCached =
     App.Page.init {}
 
