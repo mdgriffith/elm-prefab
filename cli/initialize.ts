@@ -404,7 +404,7 @@ function readPackageJsonOrInitialize(directory: string = process.cwd()): {
         },
       },
       undefined,
-      4,
+      2,
     );
     fs.writeFileSync("package.json", contents, "utf-8");
     return {
