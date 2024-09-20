@@ -90,9 +90,9 @@ const runGeneration = async (options: {
     status,
   );
   if (options.initializing) {
-    Output.initialization(summary);
+    Output.initialization(options.config, summary);
   } else {
-    Output.summary(summary);
+    Output.allSet(options.config);
   }
 
   process.exit(0);
@@ -138,7 +138,7 @@ const run = async (args: string[]) => {
         await runGeneration({
           pluginsInitializing: plugins,
           config,
-          initializing: true,
+          initializing: false,
         });
       case "add":
         // @ts-ignore

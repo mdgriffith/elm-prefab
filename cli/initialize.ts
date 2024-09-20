@@ -248,7 +248,6 @@ export const start = async (): Promise<Options.Config> => {
     ],
     {
       dev: true,
-      silent: initialized.fileCreated,
     },
   );
 
@@ -256,17 +255,15 @@ export const start = async (): Promise<Options.Config> => {
 };
 
 const graphqlAdded = `
-I've added GraphQL to ${Chalk.yellow("elm.generate.json")}, but it needs
-the following environment variables:
+I've added GraphQL to ${Chalk.yellow("elm.generate.json")}
+Add the following to your environment and run ${Chalk.yellow("elm-prefab")} again!
 
-  ${Chalk.yellow("$GRAPHQL_SCHEMA")}    ${Chalk.grey("-")} The HTTP endpoint for the GraphQL schema,
-                       or the path to a local schema file in JSON format.
+${Chalk.cyan("$GRAPHQL_SCHEMA")}
+  The HTTP endpoint for the GraphQL schema,
+  or the path to a local schema file in JSON format.
+${Chalk.cyan("$GRAPHQL_API_TOKEN")}
+  The API token needed for querying for the schema.
 
-  ${Chalk.yellow(
-    "$GRAPHQL_API_TOKEN",
-  )} ${Chalk.grey("-")} The API token needed for querying for the schema.
-
-Add those to your environment and run ${Chalk.yellow("elm-prefab")} again!
 `;
 
 export const graphql = async (namespace: string, config: Options.Config) => {
@@ -287,7 +284,6 @@ export const graphql = async (namespace: string, config: Options.Config) => {
     [{ name: "elm-gql" }],
     {
       dev: true,
-      silent: initialized.fileCreated,
     },
   );
 
@@ -297,7 +293,6 @@ export const graphql = async (namespace: string, config: Options.Config) => {
 interface DependencyOptions {
   version?: string;
   dev?: boolean;
-  silent?: boolean;
 }
 
 function addDependencies(
@@ -306,7 +301,7 @@ function addDependencies(
   packages: { name: string; version?: string }[],
   options: DependencyOptions = {},
 ) {
-  const { dev = false, silent = false } = options;
+  const { dev = false } = options;
 
   if (!isPackageManagerInstalled(packageManager)) {
     console.log(
@@ -324,21 +319,13 @@ function addDependencies(
     return;
   }
 
-  if (!silent) {
-    if (packageManager === Options.PackageManager.Manual) {
-      console.log(
-        `Add ${Chalk.yellow(
-          packagesToInstall.map((pkg) => pkg.name).join(", "),
-        )} to your ${dev ? "dev " : " "}dependencies.`,
-      );
-      return;
-    } else {
-      console.log(
-        `Adding ${Chalk.yellow(
-          packagesToInstall.map((pkg) => pkg.name).join(", "),
-        )} to your ${dev ? "dev " : ""}dependencies.`,
-      );
-    }
+  if (packageManager === Options.PackageManager.Manual) {
+    console.log(
+      `Add ${Chalk.yellow(
+        packagesToInstall.map((pkg) => pkg.name).join(", "),
+      )} to your ${dev ? "dev " : " "}dependencies.`,
+    );
+    return;
   }
 
   // Build package names with their versions

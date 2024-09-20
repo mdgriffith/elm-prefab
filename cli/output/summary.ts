@@ -39,13 +39,19 @@ function sortByDirectory(records: Options.Generated[]) {
 }
 
 // Initialization Message
-
-export const initialization = (summaryMap: Options.SummaryMap) => {
+export const initialization = (
+  config: Options.Config,
+  summaryMap: Options.SummaryMap,
+) => {
   console.log("");
   console.log(`You should be all set 🎉!
-
-Run ${chalk.yellow("`npm install ; npm run dev`")} to start the dev server.
+Run ${chalk.yellow(`${config.packageManager} install ; ${config.packageManager} run dev`)} to start the dev server.
 `);
+};
+
+export const allSet = (config: Options.Config) => {
+  console.log("");
+  console.log(`${chalk.yellow("Elm Prefab")} code generation complete!`);
 };
 
 //  Summary
