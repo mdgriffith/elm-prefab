@@ -1,6 +1,7 @@
 import Chalk from "chalk";
 import * as Inquire from "@inquirer/prompts";
 import * as Options from "./options";
+import * as ChildProcess from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as OneOffGraphQLEffect from "./templates/graphql/oneOff/Effect.elm";
@@ -182,18 +183,6 @@ const defaultTheme: Options.ThemeOptions = {
   ],
 };
 
-// This isn't quite an `Options.Config` because some fields like urls aren't expanded
-export const defaultOptions: Options.Config = {
-  src: "src/app",
-  js: "src",
-  app: {
-    pages: {
-      Home: Options.toUrl("/"),
-    },
-  },
-  assets: { Assets: { src: "./public", onServer: "assets" } },
-};
-
 export const defaultGraphQL = {
   schema: "$GRAPHQL_SCHEMA",
   header: ["Authorization: bearer $GRAPHQL_API_TOKEN"],
@@ -213,40 +202,56 @@ export const start = async (): Promise<Options.Config> => {
     process.exit(0);
   }
 
-  const config = defaultOptions;
+  const allPackageManagerOptions = Object.entries(Options.PackageManager).map(
+    ([key, value]) => ({
+      name: value,
+      value: value,
+    }),
+  );
+
+  const packageManager = await Inquire.select({
+    message: "Select a package manager",
+    choices: allPackageManagerOptions,
+  });
 
   const isUsingGraphQL = await Inquire.confirm({
     message: `Are you using GraphQL? ${Chalk.grey("(you can change this later)")}`,
     default: false,
   });
 
-  if (isUsingGraphQL) {
-    config.graphql = defaultGraphQL;
-  }
-
-  // const packageManager = await Inquire.select({
-  //   message: "Select a package manager",
-  //   choices: [
-  //     {
-  //       name: "npm",
-  //       value: "npm",
-  //     },
-  //     {
-  //       name: "yarn",
-  //       value: "yarn",
-  //     },
-  //     {
-  //       name: "jspm",
-  //       value: "jspm",
-  //     },
-  //     {
-  //       name: "pnpm",
-  //       value: "pnpm",
-  //     },
-  //   ],
-  // });
+  const config: Options.Config = {
+    packageManager,
+    src: "src/app",
+    js: "src",
+    app: {
+      pages: {
+        Home: Options.toUrl("/"),
+      },
+    },
+    assets: { Assets: { src: "./public", onServer: "assets" } },
+    graphql: isUsingGraphQL ? defaultGraphQL : undefined,
+  };
 
   Options.writeConfig(config);
+
+  let initialized = readPackageJsonOrInitialize();
+  addDependencies(
+    config.packageManager,
+    initialized.pkg,
+    [
+      { name: "vite" },
+      { name: "vite-plugin-elm" },
+      { name: "typescript" },
+      { name: "elm" },
+      { name: "elm-dev" },
+      { name: "elm-prefab" },
+    ],
+    {
+      dev: true,
+      silent: initialized.fileCreated,
+    },
+  );
+
   return config;
 };
 
@@ -268,15 +273,205 @@ export const graphql = async (namespace: string, config: Options.Config) => {
   config.graphql = defaultGraphQL;
   config.graphql.namespace = namespace;
   Options.writeConfig(config);
-  const gqlEffectPath = path.join(
-    config.src ? config.src : "src/app",
-    "Effect",
-    `${namespace}.elm`,
-  );
+  const gqlEffectPath = path.join(config.src, "Effect", `${namespace}.elm`);
   fs.mkdirSync(path.dirname(gqlEffectPath), { recursive: true });
   const gqlEffectFile = OneOffGraphQLEffect.toBody(
     new Map([["{{name}}", namespace]]),
   );
   fs.writeFileSync(gqlEffectPath, gqlEffectFile, "utf8");
+
+  let initialized = readPackageJsonOrInitialize();
+  addDependencies(
+    config.packageManager,
+    initialized.pkg,
+    [{ name: "elm-gql" }],
+    {
+      dev: true,
+      silent: initialized.fileCreated,
+    },
+  );
+
   console.log(graphqlAdded);
 };
+
+interface DependencyOptions {
+  version?: string;
+  dev?: boolean;
+  silent?: boolean;
+}
+
+function addDependencies(
+  packageManager: Options.PackageManager,
+  packageJson: PackageJson,
+  packages: { name: string; version?: string }[],
+  options: DependencyOptions = {},
+) {
+  const { dev = false, silent = false } = options;
+
+  if (!isPackageManagerInstalled(packageManager)) {
+    console.log(
+      `I tried to call ${Chalk.yellow(packageManager)} but it doesn't seem to be installed.`,
+    );
+    process.exit(1);
+  }
+
+  // Filter out packages that are already installed
+  const packagesToInstall = packages.filter((pkg) => {
+    return !isPackageInstalled(packageJson, dev, pkg.name);
+  });
+
+  if (packagesToInstall.length === 0) {
+    return;
+  }
+
+  if (!silent) {
+    if (packageManager === Options.PackageManager.Manual) {
+      console.log(
+        `Add ${Chalk.yellow(
+          packagesToInstall.map((pkg) => pkg.name).join(", "),
+        )} to your ${dev ? "dev " : " "}dependencies.`,
+      );
+      return;
+    } else {
+      console.log(
+        `Adding ${Chalk.yellow(
+          packagesToInstall.map((pkg) => pkg.name).join(", "),
+        )} to your ${dev ? "dev " : ""}dependencies.`,
+      );
+    }
+  }
+
+  // Build package names with their versions
+  const packagesWithVersion = packagesToInstall.map((pkg) =>
+    pkg.version ? `${pkg.name}@${pkg.version}` : pkg.name,
+  );
+
+  let command: string;
+
+  switch (packageManager) {
+    case Options.PackageManager.NPM:
+      command = `npm install ${dev ? "--save-dev" : ""} ${packagesWithVersion.join(
+        " ",
+      )}`;
+      break;
+    case Options.PackageManager.PNPM:
+      command = `pnpm add ${dev ? "--save-dev" : ""} ${packagesWithVersion.join(
+        " ",
+      )}`;
+      break;
+    case Options.PackageManager.BUN:
+      command = `bun add ${dev ? "--dev" : ""} ${packagesWithVersion.join(" ")}`;
+      break;
+    case Options.PackageManager.YARN:
+      command = `yarn add ${dev ? "--dev" : ""} ${packagesWithVersion.join(" ")}`;
+      break;
+    case Options.PackageManager.Manual:
+      return;
+    default:
+      throw new Error("Unsupported package manager");
+  }
+
+  try {
+    const { stdout, stderr } = ChildProcess.spawnSync(command, { shell: true });
+    if (stderr && stderr.length > 0) {
+      console.error("stderr:", stderr.toString());
+    }
+  } catch (error) {
+    console.error(`Error adding ${packagesWithVersion.join(", ")}:`, error);
+    throw error;
+  }
+}
+
+interface PackageJson {
+  dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
+}
+
+function readPackageJsonOrInitialize(directory: string = process.cwd()): {
+  pkg: PackageJson;
+  fileCreated: boolean;
+} {
+  const packageJson = readPackageJson(directory);
+  if (packageJson == null) {
+    const contents = JSON.stringify(
+      {
+        name: "placeholder",
+        type: "module",
+        version: "0.1.0",
+        scripts: {
+          dev: "vite",
+          build: "vite build",
+        },
+      },
+      undefined,
+      4,
+    );
+    fs.writeFileSync("package.json", contents, "utf-8");
+    return {
+      pkg: { dependencies: {}, devDependencies: {} },
+      fileCreated: true,
+    };
+  }
+  return { pkg: packageJson, fileCreated: false };
+}
+
+function readPackageJson(
+  directory: string = process.cwd(),
+): PackageJson | null {
+  const packageJsonPath = path.join(directory, "package.json");
+  try {
+    const packageJsonContent = fs.readFileSync(packageJsonPath, "utf-8");
+    return JSON.parse(packageJsonContent);
+  } catch (error) {
+    return null;
+  }
+}
+
+function isPackageInstalled(
+  packageJson: PackageJson,
+  isDev: boolean,
+  packageName: string,
+): boolean {
+  if (isDev) {
+    return packageJson.devDependencies?.hasOwnProperty(packageName) ?? false;
+  } else {
+    return packageJson.dependencies?.hasOwnProperty(packageName) ?? false;
+  }
+}
+
+function isPackageManagerInstalled(
+  packageManager: Options.PackageManager,
+): boolean {
+  let command: string;
+  let args: string[];
+
+  switch (packageManager) {
+    case Options.PackageManager.NPM:
+      command = "npm";
+      args = ["--version"];
+      break;
+    case Options.PackageManager.PNPM:
+      command = "pnpm";
+      args = ["--version"];
+      break;
+    case Options.PackageManager.BUN:
+      command = "bun";
+      args = ["--version"];
+      break;
+    case Options.PackageManager.YARN:
+      command = "yarn";
+      args = ["--version"];
+      break;
+    case Options.PackageManager.Manual:
+      return true;
+    default:
+      return false;
+  }
+
+  try {
+    const result = ChildProcess.spawnSync(command, args, { stdio: "ignore" });
+    return result.status === 0;
+  } catch (error) {
+    return false;
+  }
+}
