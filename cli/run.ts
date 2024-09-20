@@ -61,8 +61,8 @@ const runGeneration = async (options: {
 }) => {
   let config = options.config;
   const plugins: Options.Generator[] = [];
-  const src = config.src ? config.src : "src/app";
-  const js = config.js ? config.js : "src";
+  const src = config.src;
+  const js = config.js;
 
   const status: Project.Status = Project.detect(path.join(".", src));
 
@@ -151,7 +151,7 @@ const run = async (args: string[]) => {
               new Map([["{{name}}", name]]),
             );
             fs.writeFileSync(
-              path.join(config.src ? config.src : "src/app", `${name}.elm`),
+              path.join(config.src, `${name}.elm`),
               resourceContent,
               "utf8",
             );
@@ -161,7 +161,7 @@ const run = async (args: string[]) => {
               new Map([["{{name}}", name]]),
             );
             fs.writeFileSync(
-              path.join(config.src ? config.src : "src/app", `${name}.elm`),
+              path.join(config.src, `${name}.elm`),
               pageContent,
               "utf8",
             );
@@ -178,7 +178,7 @@ const run = async (args: string[]) => {
               ]),
             );
             fs.writeFileSync(
-              path.join(config.src ? config.src : "src/app", `${name}.elm`),
+              path.join(config.src, `${name}.elm`),
               listenerContent,
               "utf8",
             );
@@ -201,7 +201,7 @@ const run = async (args: string[]) => {
           ]),
         );
         fs.writeFileSync(
-          path.join(config.src ? config.src : "src/app", `${command.name}.elm`),
+          path.join(config.src, `${command.name}.elm`),
           pageContent,
           "utf8",
         );
@@ -230,7 +230,7 @@ const run = async (args: string[]) => {
         // delete the file from the 'hidden' dir if present.
         Customize.customize(
           {
-            src: config.src ? config.src : "app/src",
+            src: config.src,
             internalSrc: "./.elm-prefab",
           },
           command.customizable,

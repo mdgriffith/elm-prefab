@@ -127,10 +127,21 @@ export const ThemeConfig = z
   })
   .strict();
 
+export enum PackageManager {
+  NPM = "npm",
+  PNPM = "pnpm",
+  BUN = "bun",
+  YARN = "yarn",
+  Manual = "manual",
+}
+
+const PackageManagerSchema = z.nativeEnum(PackageManager);
+
 export const Config = z
   .object({
-    src: z.optional(z.string()),
-    js: z.optional(z.string()),
+    packageManager: PackageManagerSchema.optional().default(PackageManager.NPM),
+    src: z.optional(z.string()).default("src/app"),
+    js: z.optional(z.string()).default("src"),
     app: z.optional(AppConfig),
     assets: z.optional(AssetConfig),
     theme: z.optional(ThemeConfig),
