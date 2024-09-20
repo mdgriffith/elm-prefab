@@ -22,12 +22,6 @@ export const index_html = {
    contents: "<html>\n    <head>\n        <meta charset=\"UTF-8\" />\n        <title>My Elm App</title>\n        <script type=\"module\" src=\"/src/main.ts\"></script>\n    </head>\n    <body></body>\n</html>\n"
 }
 
-export const package_json = {
-   moduleName: "package",
-   path: "/package.json",
-   contents: "{\n  \"name\": \"placeholder\",\n  \"type\": \"module\",\n  \"version\": \"0.1.0\",\n  \"scripts\": {\n    \"dev\": \"vite\",\n    \"build\": \"vite build\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"^5.2.6\",\n    \"vite-plugin-elm\": \"^3.0.0\",\n    \"typescript\": \"^5.4.3\",\n    \"elm-dev\": \"^0.1.3\",\n    \"elm-prefab\": \"^0.1.21\"\n  }\n}\n"
-}
-
 export const tsconfig_json = {
    moduleName: "tsconfig",
    path: "/tsconfig.json",
@@ -44,7 +38,6 @@ export const all = [
   gitignore,
   elm_json,
   index_html,
-  package_json,
   tsconfig_json,
   vite_config_js
 ]
