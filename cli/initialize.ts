@@ -5,6 +5,7 @@ import * as ChildProcess from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as OneOffGraphQLEffect from "./templates/graphql/oneOff/Effect.elm";
+import * as OneOffPage from "./templates/app/oneOff/Page.elm";
 
 const testTheme: Options.ThemeOptions = {
   colors: {
@@ -226,7 +227,7 @@ export const start = async (): Promise<Options.Config> => {
     assets: { Assets: { src: "./public", onServer: "assets" } },
   };
 
-  Options.writeConfig(config);
+  Options.writeConfig(".", config);
 
   let initialized = readPackageJsonOrInitialize();
   console.log("Installing dependencies...");
@@ -249,6 +250,161 @@ export const start = async (): Promise<Options.Config> => {
   return config;
 };
 
+/* New Page */
+
+const pageAdded = (pagename: string) => {
+  return `Added ${Chalk.yellow(pagename)}!`;
+};
+
+export const page = async (
+  name: string,
+  url: string,
+  config: Options.Config,
+) => {
+  const pageContent = OneOffPage.toBody(
+    new Map([
+      ["{{name}}", name],
+      ["{{name_underscored}}", name.replace(".", "_")],
+    ]),
+  );
+  fs.writeFileSync(path.join(config.src, `${name}.elm`), pageContent, "utf8");
+
+  if (!config.app) {
+    let pages: any = {};
+    pages[name] = { url };
+    config.app = { pages };
+  } else {
+    // @ts-ignore
+    config.app.pages[command.name] = Options.toUrl(command.url);
+  }
+  Options.writeConfig(".", config);
+  console.log(pageAdded(name));
+  process.exit(0);
+};
+
+/*
+
+New Docs Site */
+export const docs = async (
+  dir: string,
+  config: Options.Config,
+): Promise<Options.Config> => {
+  if (fs.existsSync(dir)) {
+    console.log(`${Chalk.yellow(dir)} already exists!
+Choose a name that doesn't already exist in the repo to create a new docs site.`);
+    process.exit(1);
+  }
+
+  // Create the docs dir
+  fs.mkdirSync(dir, { recursive: true });
+
+  const docsConfig: Options.Config = {
+    packageManager: config.packageManager,
+    src: "src/app",
+    js: "src",
+    app: {
+      pages: {
+        Home: Options.toUrl("/"),
+        Guide: Options.toUrl("/guide/*"),
+        Module: Options.toUrl("/module/*"),
+        Package: Options.toUrl("/package/*"),
+      },
+    },
+    docs: {
+      src: "..",
+      modules: [],
+    },
+  };
+  Options.writeConfig(dir, docsConfig);
+
+  // Add elm.json
+  fs.writeFileSync(
+    path.join(dir, "elm.json"),
+    JSON.stringify(
+      {
+        type: "application",
+        "source-directories": [
+          "src",
+          ".elm-prefab",
+          "/Users/mattgriffith/projects/mdgriffith/elm-ui/src",
+        ],
+        "elm-version": "0.19.1",
+        dependencies: {
+          direct: {
+            "dillonkearns/elm-markdown": "7.0.1",
+            "avh4/elm-color": "1.0.0",
+            "mdgriffith/elm-bezier": "1.0.0",
+            "elm/browser": "1.0.2",
+            "elm/bytes": "1.0.8",
+            "elm/core": "1.0.5",
+            "elm/file": "1.0.5",
+            "elm/html": "1.0.0",
+            "elm/virtual-dom": "1.0.3",
+            "elm/http": "2.0.0",
+            "elm/json": "1.1.3",
+            "elm/project-metadata-utils": "1.0.2",
+            "elm/random": "1.0.0",
+            "elm/time": "1.0.0",
+            "elm/url": "1.0.0",
+            "lydell/elm-app-url": "1.0.3",
+          },
+          indirect: {
+            "elm/parser": "1.1.0",
+            "elm/regex": "1.0.0",
+            "rtfeldman/elm-hex": "1.0.0",
+          },
+        },
+        "test-dependencies": {
+          direct: {},
+          indirect: {},
+        },
+      },
+      null,
+      2,
+    ),
+  );
+
+  // Add docs package.json
+  let initialized = readPackageJsonOrInitialize(dir);
+  console.log("Installing dependencies...");
+  addDependencies(
+    config.packageManager,
+    initialized.pkg,
+    [
+      { name: "vite" },
+      { name: "vite-plugin-elm" },
+      { name: "typescript" },
+      { name: "elm" },
+      { name: "elm-dev" },
+      { name: "elm-prefab" },
+    ],
+    {
+      dev: true,
+      cwd: dir,
+    },
+  );
+
+  // Add the 'passthrough' docs command to the package.json
+  //  "docs": "sh -c 'cd docs && bun run \"$@\"' --"
+  if (fs.existsSync("package.json")) {
+    const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+    if (!pkg.scripts) {
+      pkg.scripts = {};
+    }
+    if (
+      !pkg.scripts.docs &&
+      config.packageManager !== Options.PackageManager.Manual
+    ) {
+      pkg.scripts.docs = `sh -c 'cd docs && ${config.packageManager} run "$@"' --`;
+      fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2), "utf8");
+    }
+  }
+
+  return docsConfig;
+};
+
+/* GRAPHQL */
+
 const graphqlAdded = `
 I've added GraphQL to ${Chalk.yellow("elm.generate.json")}
 Add the following to your environment and run ${Chalk.yellow("elm-prefab")} again!
@@ -258,13 +414,12 @@ ${Chalk.cyan("$GRAPHQL_SCHEMA")}
   or the path to a local schema file in JSON format.
 ${Chalk.cyan("$GRAPHQL_API_TOKEN")}
   The API token needed for querying for the schema.
-
 `;
 
 export const graphql = async (namespace: string, config: Options.Config) => {
   config.graphql = defaultGraphQL;
   config.graphql.namespace = namespace;
-  Options.writeConfig(config);
+  Options.writeConfig(".", config);
   const gqlEffectPath = path.join(config.src, "Effect", `${namespace}.elm`);
   fs.mkdirSync(path.dirname(gqlEffectPath), { recursive: true });
   const gqlEffectFile = OneOffGraphQLEffect.toBody(
@@ -286,8 +441,8 @@ export const graphql = async (namespace: string, config: Options.Config) => {
 };
 
 interface DependencyOptions {
-  version?: string;
   dev?: boolean;
+  cwd?: string;
 }
 
 function addDependencies(
@@ -354,7 +509,10 @@ function addDependencies(
   }
 
   try {
-    const { stdout, stderr } = ChildProcess.spawnSync(command, { shell: true });
+    const { stdout, stderr } = ChildProcess.spawnSync(command, {
+      shell: true,
+      cwd: options.cwd ?? undefined,
+    });
     if (stderr && stderr.length > 0) {
       console.error(stderr.toString());
     }

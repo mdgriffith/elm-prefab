@@ -35,16 +35,7 @@ export const copy = (runOptions: Options.RunOptions): Options.Summary => {
   if (runOptions.generateDefaultFiles) {
     for (const plugin of CopyAll.all) {
       if (runOptions.activePlugins.includes(plugin.plugin)) {
-        // Initializing files
         plugin.copy(runOptions, summary);
-        // if (!fs.existsSync(path.join(runOptions.root, "package.json"))) {
-        //   fs.writeFileSync(
-        //     path.join(runOptions.root, "package.json"),
-        //     JSON.stringify(defaultPackageJson, null, 2),
-        //   );
-        // } else {
-        //   // TODO: add deps to package.json
-        // }
       }
     }
   }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import * as Project from "./project";
 import * as fs from "fs";
+import * as path from "path";
 import Chalk from "chalk";
 
 const mapObject = (parser: any) => {
@@ -391,7 +392,7 @@ export const readConfig = async (filepath: string): Promise<Config | null> => {
 };
 
 // Write Config
-export const writeConfig = (config: Config) => {
+export const writeConfig = (dir: string, config: Config) => {
   // Slow, but we know for sure we have a deep clone and no lingering references
   const clone: any = JSON.parse(JSON.stringify(config));
 
@@ -419,5 +420,8 @@ export const writeConfig = (config: Config) => {
     });
   }
 
-  fs.writeFileSync("elm.generate.json", JSON.stringify(clone, null, 2));
+  fs.writeFileSync(
+    path.join(dir, "elm.generate.json"),
+    JSON.stringify(clone, null, 2),
+  );
 };

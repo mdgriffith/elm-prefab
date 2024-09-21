@@ -8,12 +8,14 @@ export type Command =
   | { kind: "generate" }
   | { kind: "add"; added: Addable; name: string }
   | { kind: "add-page"; name: string; url: string }
+  | { kind: "add-docs"; dir: string }
   | { kind: "add-graphql"; nameSpace: string }
   | { kind: "customize"; customizable: Customizable.File };
 
 export enum Addable {
   Page = "page",
   GraphQL = "graphql",
+  Docs = "docs",
   Resource = "resource",
   Effect = "effect",
   Listener = "listener",
@@ -32,6 +34,7 @@ const addableOptions: Option<Addable>[] = [
   { value: Addable.Effect, name: 'Effect', description: 'Add a new effect' },
   { value: Addable.Listener, name: 'Listener', description: 'Add a new listener' },
   { value: Addable.GraphQL, name: 'GraphQL', description: 'Add GraphQL' },
+  { value: Addable.Docs, name: 'Docs', description: 'Add a Docs site' },
 ];
 
 // // prettier-ignore
@@ -135,6 +138,14 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
     return { kind: "add-page", name, url };
   }
 
+  if (selectedAddable === Addable.Docs) {
+    let dir = await Inquire.input({
+      message: `Directory`,
+      default: "docs",
+    });
+    return { kind: "add-docs", dir };
+  }
+
   if (!name) {
     name = await Inquire.input({
       message: "Name:",
@@ -190,6 +201,7 @@ const exampleCommands: string = `
   elm-prefab ${Chalk.green("add page <url>")} ............ add a new page
   elm-prefab ${Chalk.green("add resource <name>")} ... add a new resource
   elm-prefab ${Chalk.green("add effect <name>")} ....... add a new effect
+  elm-prefab ${Chalk.green("add docs")} ................. add a docs site
   elm-prefab ${Chalk.green("add graphql")} .................. add GraphQL
 
  Move an elm-prefab-controlled file into your project.
