@@ -43,9 +43,8 @@ export const initialization = (
   config: Options.Config,
   summaryMap: Options.SummaryMap,
 ) => {
-  console.log("");
   console.log(`You should be all set 🎉!
-Run ${chalk.yellow(`${config.packageManager} install ; ${config.packageManager} run dev`)} to start the dev server.
+Run ${chalk.yellow(`${config.packageManager} run dev`)} to start the dev server.
 `);
 };
 
