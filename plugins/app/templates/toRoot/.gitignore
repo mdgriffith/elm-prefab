@@ -1,5 +1,5 @@
 node_modules
-elm_stuff
+elm-stuff
 .elm-prefab
 .elm-gql-cache
 dist
