@@ -6,10 +6,6 @@ import Dict
 import Elm.Docs
 import Elm.Project
 import Json.Decode
-import Options.App
-import Options.Assets
-import Theme
-import Theme.Decoder
 
 
 type alias Docs =
@@ -18,11 +14,6 @@ type alias Docs =
     , project : Elm.Project.Project
     , modules : List Elm.Docs.Module
     , deps : Dict.Dict String (List Elm.Docs.Module)
-
-    --
-    , theme : Maybe Theme.Theme
-    , app : Maybe Options.App.Options
-    , assets : Maybe (List Options.Assets.AssetGroup)
     }
 
 
@@ -38,16 +29,12 @@ type alias Guide =
 
 decoder : Json.Decode.Decoder Docs
 decoder =
-    Json.Decode.map8 Docs
+    Json.Decode.map5 Docs
         (Json.Decode.field "readme" (Json.Decode.maybe Json.Decode.string))
         (Json.Decode.field "guides" (Json.Decode.list decodeGuide))
         (Json.Decode.field "project" Elm.Project.decoder)
         (Json.Decode.field "modules" (Json.Decode.list Elm.Docs.decoder))
         (Json.Decode.field "deps" (Json.Decode.dict (Json.Decode.list Elm.Docs.decoder)))
-        --
-        (Json.Decode.maybe (Json.Decode.field "theme" Theme.Decoder.decode))
-        (Json.Decode.maybe (Json.Decode.field "app" Options.App.decode))
-        (Json.Decode.maybe (Json.Decode.field "assets" (Json.Decode.list Options.Assets.decodeAssetGroup)))
 
 
 decodeGuide : Json.Decode.Decoder Guide

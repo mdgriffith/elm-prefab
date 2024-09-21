@@ -5,14 +5,11 @@ module Generate.Docs exposing (generate)
 import Dict exposing (Dict)
 import Elm
 import Elm.Annotation as Type
-import Elm.Docs
 import Elm.Package
 import Elm.Project
 import Elm.Version
 import Generate.Docs.Module
-import Json.Encode
 import Options.Docs
-import Press.Generate
 
 
 generate : Options.Docs.Docs -> List Elm.File
