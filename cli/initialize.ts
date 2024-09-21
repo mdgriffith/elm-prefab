@@ -214,11 +214,6 @@ export const start = async (): Promise<Options.Config> => {
     choices: allPackageManagerOptions,
   });
 
-  const isUsingGraphQL = await Inquire.confirm({
-    message: `Are you using GraphQL? ${Chalk.grey("(you can change this later)")}`,
-    default: false,
-  });
-
   const config: Options.Config = {
     packageManager,
     src: "src/app",
@@ -229,12 +224,12 @@ export const start = async (): Promise<Options.Config> => {
       },
     },
     assets: { Assets: { src: "./public", onServer: "assets" } },
-    graphql: isUsingGraphQL ? defaultGraphQL : undefined,
   };
 
   Options.writeConfig(config);
 
   let initialized = readPackageJsonOrInitialize();
+  console.log("Installing dependencies...");
   addDependencies(
     config.packageManager,
     initialized.pkg,
@@ -361,7 +356,7 @@ function addDependencies(
   try {
     const { stdout, stderr } = ChildProcess.spawnSync(command, { shell: true });
     if (stderr && stderr.length > 0) {
-      console.error("stderr:", stderr.toString());
+      console.error(stderr.toString());
     }
   } catch (error) {
     console.error(`Error adding ${packagesWithVersion.join(", ")}:`, error);
