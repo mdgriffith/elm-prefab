@@ -11,7 +11,6 @@ import * as path from "path";
 import * as Command from "./commands";
 import * as Customize from "./customize";
 import * as Copy from "./copy";
-import * as OneOffPage from "./templates/app/oneOff/Page.elm";
 import * as OneOffEffect from "./templates/app/oneOff/Effect.elm";
 import * as OneOffResource from "./templates/app/oneOff/Resource.elm";
 import * as OneOffListener from "./templates/app/oneOff/Listener.elm";
@@ -19,6 +18,7 @@ import * as fs from "fs";
 import Chalk from "chalk";
 
 type GenerateOptions = {
+  root: string;
   src: string;
   js: string;
   plugins: Options.Generator[];
@@ -37,10 +37,10 @@ export const generate = async (
     generateDefaultFiles: true,
     activePlugins: options.plugins.map((p) => p.name),
     project: status,
-    internalSrc: "./.elm-prefab",
+    internalSrc: ".elm-prefab",
     js: options.js,
     src: options.src,
-    root: ".",
+    root: options.root,
   };
 
   // Copy static files
@@ -55,6 +55,7 @@ export const generate = async (
 };
 
 const runGeneration = async (options: {
+  root: string;
   pluginsInitializing: string[];
   config: Options.Config;
   initializing: boolean;
@@ -63,6 +64,7 @@ const runGeneration = async (options: {
   const plugins: Options.Generator[] = [];
   const src = config.src;
   const js = config.js;
+  const root = options.root;
 
   const status: Project.Status = Project.detect(path.join(".", src));
 
@@ -84,7 +86,7 @@ const runGeneration = async (options: {
   }
 
   const summary = await generate(
-    { src, js, plugins: plugins },
+    { root, src, js, plugins },
     options.initializing,
     options.pluginsInitializing,
     status,
@@ -108,10 +110,6 @@ Run ${Chalk.cyan("elm-prefab")} to start a new project!
 `;
 };
 
-const pageAdded = (pagename: string) => {
-  return `Added ${Chalk.yellow(pagename)}!`;
-};
-
 const run = async (args: string[]) => {
   const command = await Command.read(args);
 
@@ -121,6 +119,7 @@ const run = async (args: string[]) => {
     if (command.kind === "init") {
       const newConfig = await Initialize.start();
       await runGeneration({
+        root: ".",
         pluginsInitializing: plugins,
         config: newConfig,
         initializing: true,
@@ -136,6 +135,7 @@ const run = async (args: string[]) => {
         process.exit(1);
       case "generate":
         await runGeneration({
+          root: ".",
           pluginsInitializing: plugins,
           config,
           initializing: false,
@@ -189,42 +189,33 @@ const run = async (args: string[]) => {
           case "page":
             // handled by add-page
             process.exit(0);
-        }
 
+          case "docs":
+            // handled by add-docs
+            process.exit(0);
+        }
         break;
+
       case "add-page":
         // Create Placeholder Page
-        const pageContent = OneOffPage.toBody(
-          new Map([
-            ["{{name}}", command.name],
-            ["{{name_underscored}}", command.name.replace(".", "_")],
-          ]),
-        );
-        fs.writeFileSync(
-          path.join(config.src, `${command.name}.elm`),
-          pageContent,
-          "utf8",
-        );
-
-        if (!config.app) {
-          let pages: any = {};
-          pages[command.name] = { url: command.url };
-          config.app = { pages };
-        } else {
-          // @ts-ignore
-          config.app.pages[command.name] = Options.toUrl(command.url);
-        }
-        Options.writeConfig(config);
-        await runGeneration({
-          pluginsInitializing: plugins,
-          config,
-          initializing: false,
-        });
-        console.log(pageAdded(command.name));
+        await Initialize.page(command.name, command.url, config);
         process.exit(0);
+
+      case "add-docs":
+        // Create a docs site
+        const docsConfig = await Initialize.docs(command.dir, config);
+        await runGeneration({
+          root: command.dir,
+          pluginsInitializing: plugins,
+          config: docsConfig,
+          initializing: true,
+        });
+        process.exit(0);
+
       case "add-graphql":
         await Initialize.graphql(command.nameSpace, config);
         process.exit(0);
+
       case "customize":
         // Copy the file to the root
         // delete the file from the 'hidden' dir if present.

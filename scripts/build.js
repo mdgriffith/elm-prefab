@@ -108,17 +108,22 @@ const toCopyAll = (templates) => {
 
   let copyCommands = "";
   for (const template of templates) {
-    if (template == "toHidden") {
-      copyCommands += `  ${template}.copyTo(options.internalSrc, true, false, summary)\n`;
-    } else {
+    if (template == "toRoot") {
       copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
         template,
       )}, false, !options.generateDefaultFiles, summary)\n`;
+    } else if (template == "toHidden") {
+      copyCommands += `  ${template}.copyTo(path.join(options.root, options.internalSrc), true, false, summary)\n`;
+    } else {
+      copyCommands += `  ${template}.copyTo(path.join(options.root, options.${templateNameToDir(
+        template,
+      )}), false, !options.generateDefaultFiles, summary)\n`;
     }
   }
 
   return `
 import * as Options from "../../options";
+import * as path from "path";
 ${imports}
 
 export const copy = (options: Options.RunOptions, summary: Options.Summary) => {
