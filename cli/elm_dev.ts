@@ -1,4 +1,9 @@
 import * as ChildProcess from "child_process";
+import * as path from "path";
+
+const env = Object.assign({}, process.env);
+env.PATH =
+  path.join(process.cwd(), "node_modules", ".bin") + path.delimiter + env.PATH;
 
 // Call Elm Dev
 
@@ -8,7 +13,7 @@ export function execute(operation: string, cwd?: string): Promise<any> {
   return new Promise((resolve, reject) => {
     ChildProcess.exec(
       `${elmDevCommand} ${operation}`,
-      { cwd: cwd },
+      { cwd, env },
       (error, stdout, stderr) => {
         if (error) {
           reject(`Error: ${error.message}`);
@@ -26,7 +31,7 @@ export function execute(operation: string, cwd?: string): Promise<any> {
           // @ts-ignore
           reject(`Error parsing JSON: ${parseError.message}`);
         }
-      }
+      },
     );
   });
 }
