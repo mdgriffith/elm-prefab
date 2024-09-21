@@ -1,6 +1,7 @@
 import Chalk from "chalk";
 import * as Inquire from "@inquirer/prompts";
 import * as Customizable from "./templates/allCustomizables";
+import packageJson from "../package.json";
 
 export type Command =
   | { kind: "init" }
@@ -186,7 +187,7 @@ const exampleCommands: string = `
  Add to your Elm app:
 
   elm-prefab ${Chalk.green("add")} ${Chalk.grey("(interactive)")}
-  elm-prefab ${Chalk.green("add page <name> <url>")} ..... add a new page
+  elm-prefab ${Chalk.green("add page <url>")} ............ add a new page
   elm-prefab ${Chalk.green("add resource <name>")} ... add a new resource
   elm-prefab ${Chalk.green("add effect <name>")} ....... add a new effect
   elm-prefab ${Chalk.green("add graphql")} .................. add GraphQL
@@ -203,7 +204,7 @@ ${exampleCommands}
 Read more at ${Chalk.yellow("https://github.com/mdgriffith/elm-prefab")}`;
 
 function printVersion(): void {
-  console.log("1.0.0");
+  console.log(packageJson.version);
 }
 
 export async function read(argv: string[]): Promise<Command> {
