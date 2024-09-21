@@ -1,9 +1,0 @@
-{
-  "src": "src/app",
-  "js": "src",
-  "app": {
-    "pages": {
-      "Home": "/"
-    }
-  }
-}
