@@ -7,23 +7,6 @@ import chalk from "chalk";
 import { ensureDirSync } from "../ext/filesystem";
 import * as Page from "../templates/app/oneOff/Page.elm";
 
-const defaultPackageJson = {
-  name: "placeholder",
-  type: "module",
-  version: "0.1.0",
-  scripts: {
-    dev: "vite",
-    build: "vite build",
-  },
-  devDependencies: {
-    vite: "^5.2.6",
-    "vite-plugin-elm": "^3.0.0",
-    typescript: "^5.4.3",
-    "elm-dev": "^0.1.3",
-    "elm-prefab": "^0.1.21",
-  },
-};
-
 // {
 //   "name": "placeholder",
 //   "type": "module",
@@ -53,7 +36,6 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
 
     run: async (runOptions: Options.RunOptions) => {
       const summary: Options.Summary = { generated: [] };
-
       const viewRegions = await ElmDev.execute(
         "explain App.View.Regions",
         runOptions.root,
@@ -79,6 +61,7 @@ export const generator = (options: Options.AppOptions): Options.Generator => {
       const newSummary = await Generator.run(runOptions.internalSrc, {
         app: { pages: verifiedPages, resources: resources },
       });
+
       return Options.mergeSummaries(summary, newSummary);
     },
   };
