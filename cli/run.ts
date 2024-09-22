@@ -28,28 +28,39 @@ export const generate = async (
   options: GenerateOptions,
   initializing: boolean,
   pluginsInitializing: string[],
-  status: Project.Status,
 ): Promise<Options.SummaryMap> => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
+
+  let status: Project.Status = Project.detect(
+    path.join(options.root, options.src),
+  );
   const runOptions: Options.RunOptions = {
     initializing,
     generateDefaultFiles: true,
     activePlugins: options.plugins.map((p) => p.name),
     project: status,
-    internalSrc: ".elm-prefab",
-    js: options.js,
-    src: options.src,
+    internalSrc: path.join(options.root, ".elm-prefab"),
+    js: path.join(options.root, options.js),
+    src: path.join(options.root, options.src),
     root: options.root,
   };
 
-  // Copy static files
-  const summary = Copy.copy(runOptions);
-
   for (const generator of options.plugins) {
+    // Copy static files
+    Copy.copyPlugin(generator.name, runOptions);
+
+    // Run generator
     runOptions.generateDefaultFiles =
       initializing || pluginsInitializing.includes(generator.name);
     results[generator.name] = await generator.run(runOptions);
+
+    // Recalculate status after generation
+    if (generator.generatorType == Options.GeneratorType.DataRetrieval) {
+      // Recalculate status after data retrieval
+      status = Project.detect(path.join(options.root, options.src));
+      runOptions.project = status;
+    }
   }
   return results;
 };
@@ -65,8 +76,6 @@ const runGeneration = async (options: {
   const src = config.src;
   const js = config.js;
   const root = options.root;
-
-  const status: Project.Status = Project.detect(path.join(".", src));
 
   if (config.theme != null) {
     plugins.push(Theme.generator(config.theme));
@@ -89,7 +98,6 @@ const runGeneration = async (options: {
     { root, src, js, plugins },
     options.initializing,
     options.pluginsInitializing,
-    status,
   );
   if (options.initializing) {
     Output.initialization(options.config, summary);
