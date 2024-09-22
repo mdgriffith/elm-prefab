@@ -8,9 +8,9 @@ import Chalk from "chalk";
 export const generator = (options: Options.Config): Options.Generator => {
   return {
     name: "docs",
-    generatorType: Options.GeneratorType.Standard,
+    generatorType: Options.GeneratorType.DataRetrieval,
     run: async (runOptions: Options.RunOptions) => {
-      // The generator is only responsible for gathering dynamic infor about the project
+      // The generator is only responsible for gathering dynamic info about the project
       // e.g. collect docs.jsons stuff, and gather guides and everything.
 
       if (!options.docs) {
