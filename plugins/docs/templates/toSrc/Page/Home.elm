@@ -6,18 +6,17 @@ module Page.Home exposing (page, Model, Msg)
 
 -}
 
-import App.Effect
 import App.Page
 import App.Page.Id
 import App.Resources
 import App.Route
-import App.Sub
 import App.View
 import App.View.Id
 import Docs.Packages
-import Theme.Layout as Layout
-import Theme.Text as Text
-import Ui
+import Effect exposing (Effect)
+import Html
+import Html.Attributes as Attr
+import Listen exposing (Listen)
 
 
 {-| -}
@@ -40,19 +39,19 @@ page =
         }
 
 
-init : App.Page.Id.Home_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
-init params shared maybeCached =
+init : App.Page.Id.Id -> App.Page.Id.Home_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
+init pageId params shared maybeCached =
     App.Page.init {}
 
 
-update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
-    ( model, App.Effect.none )
+    ( model, Effect.none )
 
 
-subscriptions : App.Resources.Resources -> Model -> App.Sub.Sub Msg
+subscriptions : App.Resources.Resources -> Model -> Listen Msg
 subscriptions shared model =
-    App.Sub.none
+    Listen.none
 
 
 view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
@@ -63,18 +62,18 @@ view viewId shared model =
 
 
 viewPackages =
-    Layout.column.lg2 []
-        [ Text.h1 "Packages"
-        , Layout.column.md []
+    Html.div []
+        [ Html.h1 [] [ Html.text "Packages" ]
+        , Html.div []
             (List.map viewPackage Docs.Packages.directory)
         ]
 
 
 viewPackage package =
-    Ui.el
-        [ Ui.link
+    Html.a
+        [ Attr.href
             (App.Route.toString
                 (App.Route.Package { path_ = String.split "/" package.name })
             )
         ]
-        (Ui.text package.name)
+        [ Html.text package.name ]

@@ -108,16 +108,12 @@ const toCopyAll = (templates) => {
 
   let copyCommands = "";
   for (const template of templates) {
-    if (template == "toRoot") {
+    if (template == "toHidden") {
+      copyCommands += `  ${template}.copyTo(options.internalSrc, true, false, summary)\n`;
+    } else {
       copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
         template,
       )}, false, !options.generateDefaultFiles, summary)\n`;
-    } else if (template == "toHidden") {
-      copyCommands += `  ${template}.copyTo(path.join(options.root, options.internalSrc), true, false, summary)\n`;
-    } else {
-      copyCommands += `  ${template}.copyTo(path.join(options.root, options.${templateNameToDir(
-        template,
-      )}), false, !options.generateDefaultFiles, summary)\n`;
     }
   }
 

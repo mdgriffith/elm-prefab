@@ -6,6 +6,6 @@ import * as toJs from "./toJs";
 
 
 export const copy = (options: Options.RunOptions, summary: Options.Summary) => {
-  toSrc.copyTo(path.join(options.root, options.src), false, !options.generateDefaultFiles, summary)
-  toJs.copyTo(path.join(options.root, options.js), false, !options.generateDefaultFiles, summary)
+  toSrc.copyTo(options.src, false, !options.generateDefaultFiles, summary)
+  toJs.copyTo(options.js, false, !options.generateDefaultFiles, summary)
 }

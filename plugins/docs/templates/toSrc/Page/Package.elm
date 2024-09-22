@@ -6,20 +6,18 @@ module Page.Package exposing (page, Model, Msg)
 
 -}
 
-import App.Effect
 import App.Page
 import App.Page.Id
 import App.Resources
-import App.Sub
 import App.View
 import App.View.Id
 import Docs.Packages
+import Effect exposing (Effect)
 import Elm.Docs
-import Theme.Layout as Layout
-import Theme.Text as Text
-import Ui
-import Ui.Events as Events
-import Ui.Markdown
+import Html exposing (Html)
+import Html.Attributes as Attr
+import Html.Events as Events
+import Listen exposing (Listen)
 
 
 {-| -}
@@ -45,8 +43,8 @@ page =
         }
 
 
-init : App.Page.Id.Package_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
-init params shared maybeCached =
+init : App.Page.Id.Id -> App.Page.Id.Package_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
+init pageId params shared maybeCached =
     let
         key =
             String.join "/" params.path_
@@ -82,16 +80,18 @@ init params shared maybeCached =
                 }
 
 
-update : App.Resources.Resources -> Msg -> Model -> ( Model, App.Effect.Effect Msg )
+update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
         ModuleClicked name ->
-            ( { model | focusedModule = Just name }, App.Effect.none )
+            ( { model | focusedModule = Just name }
+            , Effect.none
+            )
 
 
-subscriptions : App.Resources.Resources -> Model -> App.Sub.Sub Msg
+subscriptions : App.Resources.Resources -> Model -> Listen Msg
 subscriptions shared model =
-    App.Sub.none
+    Listen.none
 
 
 getModule : List Elm.Docs.Module -> String -> Maybe Elm.Docs.Module
@@ -117,20 +117,23 @@ view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
 view viewId shared model =
     { title = model.name
     , body =
-        Layout.column.md []
-            [ Text.h1 model.name
-            , Layout.column.md []
+        Html.div []
+            [ Html.h1 [] [ Html.text model.name ]
+            , Html.div []
                 (List.map
                     (\mod ->
-                        Ui.el
-                            [ Events.onClick (ModuleClicked mod.name) ]
-                            (Ui.text mod.name)
+                        Html.div
+                            [ Events.onClick (ModuleClicked mod.name)
+                            , Attr.style "cursor" "pointer"
+                            , Attr.style "text-decoration" "underline"
+                            ]
+                            [ Html.text mod.name ]
                     )
                     model.modules
                 )
             , case Maybe.andThen (getModule model.modules) model.focusedModule of
                 Nothing ->
-                    Ui.none
+                    Html.text ""
 
                 Just focusedModule ->
                     viewModule focusedModule
@@ -138,12 +141,12 @@ view viewId shared model =
     }
 
 
-viewModule : Elm.Docs.Module -> Ui.Element Msg
+viewModule : Elm.Docs.Module -> Html Msg
 viewModule mod =
-    Layout.column.md []
-        [ Text.h2 mod.name
-        , Ui.text mod.comment
-        , Layout.column.md []
+    Html.div []
+        [ Html.h2 [] [ Html.text mod.name ]
+        , Html.text mod.comment
+        , Html.div []
             (mod
                 |> Elm.Docs.toBlocks
                 |> List.map
@@ -152,31 +155,38 @@ viewModule mod =
         ]
 
 
-viewBlock : Elm.Docs.Block -> Ui.Element Msg
+viewBlock : Elm.Docs.Block -> Html Msg
 viewBlock block =
     case block of
         Elm.Docs.MarkdownBlock markdown ->
-            Ui.Markdown.view markdown
+            viewMarkdown markdown
 
         Elm.Docs.UnionBlock details ->
-            Layout.column.md []
-                [ Ui.Markdown.view details.comment
+            Html.div []
+                [ viewMarkdown details.comment
                 ]
 
         Elm.Docs.AliasBlock details ->
-            Layout.column.md []
-                [ Ui.Markdown.view details.comment
+            Html.div []
+                [ viewMarkdown details.comment
                 ]
 
         Elm.Docs.ValueBlock details ->
-            Layout.column.md []
-                [ Ui.Markdown.view details.comment
+            Html.div []
+                [ viewMarkdown details.comment
                 ]
 
         Elm.Docs.BinopBlock details ->
-            Layout.column.md []
-                [ Ui.Markdown.view details.comment
+            Html.div []
+                [ viewMarkdown details.comment
                 ]
 
         Elm.Docs.UnknownBlock text ->
-            Ui.text text
+            Html.text text
+
+
+viewMarkdown : String -> Html Msg
+viewMarkdown markdown =
+    Html.code []
+        [ Html.text markdown
+        ]
