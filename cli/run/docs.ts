@@ -103,9 +103,6 @@ const getDepDocs = async (deps: any) => {
     console.log(`Getting docs for ${packageName} ${version}`);
     const docs = await ElmDev.execute(`docs ${packageName} ${version}`);
     depDocs[packageName] = docs;
-
-    // TODO: remove
-    break;
   }
   return depDocs;
 };
