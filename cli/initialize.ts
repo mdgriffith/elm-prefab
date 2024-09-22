@@ -324,7 +324,7 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
       {
         type: "application",
         "source-directories": [
-          "src",
+          "src/app",
           ".elm-prefab",
           "/Users/mattgriffith/projects/mdgriffith/elm-ui/src",
         ],
