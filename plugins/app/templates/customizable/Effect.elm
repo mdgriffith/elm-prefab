@@ -109,6 +109,24 @@ type Effect msg
       -- Focus/Blur
     | Focus String (Result Browser.Dom.Error () -> msg)
     | Blur String (Result Browser.Dom.Error () -> msg)
+      -- Get bounding boxes
+    | GetBoundingBox { id : String } (Result Browser.Dom.Error Browser.Dom.Element -> msg)
+    | GetBoundingBoxList
+        { ids : List String }
+        (Result
+            Browser.Dom.Error
+            (List Browser.Dom.Element)
+         -> msg
+        )
+      -- Scroll
+    | ScrollToBottomOf { id : String, onScrollFinish : msg }
+    | ScrollToTopOf { id : String, onScrollFinish : msg }
+    | ScrollTo
+        { scrollTo : String
+        , viewport : String
+        , offsetY : Float
+        , onScrollFinish : Result Browser.Dom.Error () -> msg
+        }
       -- Urls
     | PushUrl String
     | ReplaceUrl String
@@ -221,6 +239,49 @@ toCmd options toHttpTarget effect =
 
         ReplaceUrl url ->
             Browser.Navigation.replaceUrl options.navKey url
+
+        GetBoundingBox { id } toMsg ->
+            Browser.Dom.getElement id
+                |> Task.attempt toMsg
+
+        GetBoundingBoxList { ids } toMsg ->
+            ids
+                |> List.map Browser.Dom.getElement
+                |> Task.sequence
+                |> Task.attempt toMsg
+
+        ScrollToBottomOf { id, onScrollFinish } ->
+            --Wait a moment because the DOM needs to update
+            Process.sleep 1
+                |> Task.andThen (\() -> Browser.Dom.getViewportOf id)
+                |> Task.andThen (\info -> Browser.Dom.setViewportOf id 0 info.scene.height)
+                |> Task.attempt (\_ -> onScrollFinish)
+
+        ScrollToTopOf { id, onScrollFinish } ->
+            Browser.Dom.setViewportOf id 0 0
+                |> Task.attempt (\_ -> onScrollFinish)
+
+        ScrollTo scrollOptions ->
+            Browser.Dom.getElement scrollOptions.scrollTo
+                |> Task.andThen
+                    (\scrollToElem ->
+                        Task.map2
+                            (\viewport containerElem ->
+                                { scrollToElem = scrollToElem
+                                , containerElem = containerElem
+                                , viewport = viewport
+                                }
+                            )
+                            (Browser.Dom.getViewportOf scrollOptions.viewport)
+                            (Browser.Dom.getElement scrollOptions.viewport)
+                    )
+                |> Task.andThen
+                    (\elems ->
+                        Browser.Dom.setViewportOf scrollOptions.viewport
+                            0
+                            ((elems.scrollToElem.element.y + (elems.viewport.viewport.y - elems.containerElem.element.y)) - scrollOptions.offsetY)
+                    )
+                |> Task.attempt scrollOptions.onScrollFinish
 
         ViewUpdated op ->
             Task.succeed ()
@@ -375,6 +436,26 @@ map f effect =
 
         Blur id msg ->
             Blur id (msg >> f)
+
+        GetBoundingBox id msg ->
+            GetBoundingBox id (msg >> f)
+
+        GetBoundingBoxList ids msg ->
+            GetBoundingBoxList ids (msg >> f)
+
+        ScrollToBottomOf { id, onScrollFinish } ->
+            ScrollToBottomOf { id = id, onScrollFinish = f onScrollFinish }
+
+        ScrollToTopOf { id, onScrollFinish } ->
+            ScrollToTopOf { id = id, onScrollFinish = f onScrollFinish }
+
+        ScrollTo scrollToDetials ->
+            ScrollTo
+                { scrollTo = scrollToDetials.scrollTo
+                , viewport = scrollToDetials.viewport
+                , offsetY = scrollToDetials.offsetY
+                , onScrollFinish = scrollToDetials.onScrollFinish >> f
+                }
 
         Preload route ->
             Preload route
