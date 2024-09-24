@@ -1,16 +1,17 @@
-module Effect.Scroll exposing
+port module Effect.Scroll exposing
     ( toTop, toBottom, to
-    , resetWindowScroll
+    , resetWindow
     )
 
 {-|
 
 @docs toTop, toBottom, to
 
-@docs reset
+@docs resetWindow
 
 -}
 
+import Browser.Dom
 import Effect exposing (Effect)
 import Json.Encode as Json
 
@@ -39,15 +40,15 @@ to =
     Effect.ScrollTo
 
 
-port resetWindowScrollInJs : Json.Value -> Cmd msg
+port resetWindowScroll : Json.Value -> Cmd msg
 
 
 {-| -}
-resetWindowScroll : Effect msg
-resetWindowScroll =
+resetWindow : Effect msg
+resetWindow =
     Effect.SendToWorld
-        { toPort = resetWindowScrollInJs
-        , portName = "resetWindowScrollInJs"
+        { toPort = resetWindowScroll
+        , portName = "resetWindowScroll"
         , payload =
             Json.bool True
         }
