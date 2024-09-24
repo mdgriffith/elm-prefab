@@ -7,6 +7,7 @@ import App.Resources
 import Browser
 import Effect
 import Effect.Nav
+import Effect.Scroll
 import Listen
 import Url
 
@@ -96,4 +97,9 @@ update resources msg model =
             ( model, Effect.Nav.load urlStr )
 
         UrlChanged url ->
-            ( model, Effect.Nav.toUrl url )
+            ( model
+            , Effect.batch
+                [ Effect.Nav.toUrl url
+                , Effect.Scroll.resetWindow
+                ]
+            )

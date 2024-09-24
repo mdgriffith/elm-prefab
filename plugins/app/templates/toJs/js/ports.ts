@@ -14,6 +14,11 @@ export function connect(app: any) {
     Clipboard.copy(message);
   });
 
+  // Scroll
+  app.ports?.resetWindowScroll?.subscribe?.(() => {
+    window.scrollTo(0, 0);
+  });
+
   // Local Storage
   app.ports?.localStorage?.subscribe?.((message: any) => {
     switch (message.operation) {
