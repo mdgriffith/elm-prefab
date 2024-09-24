@@ -4,6 +4,7 @@ import * as ElmDev from "../elm_dev";
 import * as fs from "fs";
 import * as path from "path";
 import Chalk from "chalk";
+import * as Util from "../util";
 
 export const generator = (options: Options.Config): Options.Generator => {
   return {
@@ -54,24 +55,14 @@ export const generator = (options: Options.Config): Options.Generator => {
         );
       } catch (e) {}
 
-      // const docsSrc: string = options.docs.src;
       const guidesPath = path.join(runOptions.root, "guides");
       console.log("Reading guides");
-      const guides = [];
 
+      const guides: Util.File[] = [];
       if (fs.existsSync(guidesPath)) {
-        const guideFiles = fs.readdirSync(guidesPath);
-        for (const guideFile of guideFiles) {
-          const guide = fs.readFileSync(
-            path.join(guidesPath, guideFile),
-            "utf-8",
-          );
-          guides.push({
-            name: guideFile,
-            content: guide,
-          });
-        }
+        await Util.readFilesRecursively(guidesPath, guides);
       }
+      console.log("Guides", guides.length);
 
       console.log("Running docs generator");
       const summary = await Generator.run(
@@ -84,7 +75,7 @@ export const generator = (options: Options.Config): Options.Generator => {
             readme: readme,
             project: elmJson,
             modules: docs,
-            guides: guides,
+            guides,
             deps: depDocs,
           },
         },

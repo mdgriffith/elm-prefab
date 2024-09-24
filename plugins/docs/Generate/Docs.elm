@@ -145,18 +145,33 @@ genVersion version =
 generateGuides : Options.Docs.Docs -> Elm.File
 generateGuides docs =
     Elm.file [ "Docs", "Guides" ]
-        (case docs.guides of
-            [] ->
-                [ Elm.declaration "guides" (Elm.list []) ]
-
-            _ ->
-                List.map
+        [ Elm.declaration "all_"
+            (Elm.list
+                (List.filterMap
                     (\guide ->
-                        Elm.declaration guide.name
-                            (Elm.string guide.content)
+                        case guide.content of
+                            Nothing ->
+                                Nothing
+
+                            Just content ->
+                                Just <|
+                                    Elm.record
+                                        [ ( "path", Elm.string guide.name )
+                                        , ( "content", Elm.string (String.replace "\\" "\\\\" content) )
+                                        ]
                     )
                     docs.guides
-        )
+                )
+                |> Elm.withType
+                    (Type.list
+                        (Type.record
+                            [ ( "path", Type.string )
+                            , ( "content", Type.string )
+                            ]
+                        )
+                    )
+            )
+        ]
 
 
 generateModules : Options.Docs.Docs -> Elm.File

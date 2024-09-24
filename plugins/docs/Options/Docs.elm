@@ -19,7 +19,7 @@ type alias Docs =
 
 type alias Guide =
     { name : String
-    , content : String
+    , content : Maybe String
     }
 
 
@@ -40,5 +40,5 @@ decoder =
 decodeGuide : Json.Decode.Decoder Guide
 decodeGuide =
     Json.Decode.map2 Guide
-        (Json.Decode.field "name" Json.Decode.string)
-        (Json.Decode.field "content" Json.Decode.string)
+        (Json.Decode.field "path" Json.Decode.string)
+        (Json.Decode.field "contents" (Json.Decode.maybe Json.Decode.string))

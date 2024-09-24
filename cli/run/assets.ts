@@ -3,7 +3,7 @@ import * as Options from "../options";
 import * as path from "path";
 import * as fs from "fs";
 import { ensureDirSync } from "../ext/filesystem";
-import { isBinaryFileSync } from "isbinaryfile";
+import * as Util from "../util";
 
 type AssetGroup = {
   name: string;
@@ -105,19 +105,19 @@ const prepareDefaultAssetGroups = async (
   ensureDirSync(path.join(runOptions.js, "public"));
 
   const defaultAssetOptions = { src: publicDir, onServer: serverDir };
-  const topFiles: File[] = [];
+  const topFiles: Util.File[] = [];
 
   for (const element of fs.readdirSync(publicDir)) {
     const fullPath = path.join(publicDir, element);
     const stats = fs.statSync(fullPath);
 
     if (stats.isFile()) {
-      const fileContent = await captureFile(fullPath);
+      const fileContent = await Util.captureFile(fullPath);
       topFiles.push(fileContent);
     } else if (stats.isDirectory()) {
       let files: File[] = [];
 
-      await readFilesRecursively(fullPath, files);
+      await Util.readFilesRecursively(fullPath, files);
 
       const gatheredFiles = gatherFiles(
         { src: fullPath, onServer: path.join(serverDir, element) },
@@ -146,7 +146,7 @@ const prepareDefaultAssetGroups = async (
 
 const gatherFiles = (
   assetConfig: { src: string; onServer: string },
-  files: File[],
+  files: Util.File[],
 ): AssetFile[] => {
   const gatheredFiles: AssetFile[] = [];
   for (let file of files) {
@@ -178,7 +178,7 @@ const prepareAssetGroups = async (
       const src = assetConfig;
 
       let files: File[] = [];
-      await readFilesRecursively(src, files);
+      await Util.readFilesRecursively(src, files);
 
       const gatheredFiles = [];
       for (let file of files) {
@@ -199,7 +199,7 @@ const prepareAssetGroups = async (
       });
     } else {
       let files: File[] = [];
-      await readFilesRecursively(assetConfig.src, files);
+      await Util.readFilesRecursively(assetConfig.src, files);
 
       const gatheredFiles = gatherFiles(assetConfig, files);
 
@@ -221,45 +221,7 @@ const prepareAssetGroups = async (
   return assetGroups;
 };
 
-export type File = { path: string; contents: string | null };
-
-export const readFilesRecursively = async (dir: string, found: File[]) => {
-  if (
-    dir.endsWith("node_modules") ||
-    dir.endsWith("elm-stuff") ||
-    dir.endsWith(".git")
-  ) {
-    // don't go chasing waterfalls
-    return;
-  } else if (fs.existsSync(dir)) {
-    const files = fs.readdirSync(dir);
-    for (const file of files) {
-      const filePath = path.join(dir, file);
-      const stat = fs.statSync(filePath);
-
-      if (file.startsWith(".") || file.startsWith("_")) {
-        //  Skip hidden files
-        continue;
-      }
-      if (stat.isFile()) {
-        found.push(await captureFile(filePath));
-      } else if (stat.isDirectory()) {
-        await readFilesRecursively(filePath, found);
-      }
-    }
-  }
-};
-
 const capitalize = (str: string): string => {
   if (str.length === 0) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-const captureFile = async (filePath: string): Promise<File> => {
-  if (isBinaryFileSync(filePath)) {
-    return { path: filePath, contents: null };
-  } else {
-    const content = fs.readFileSync(filePath, "utf-8");
-    return { path: filePath, contents: content };
-  }
 };
