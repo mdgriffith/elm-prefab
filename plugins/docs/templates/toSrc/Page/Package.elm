@@ -18,7 +18,11 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Listen exposing (Listen)
-
+import Ui
+import Ui.Docs.Block
+import Ui.Markdown
+import Elm.Type
+import Ui.Type
 
 {-| -}
 type alias Model =
@@ -117,36 +121,40 @@ view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
 view viewId shared model =
     { title = model.name
     , body =
-        Html.div []
-            [ Html.h1 [] [ Html.text model.name ]
-            , Html.div []
-                (List.map
-                    (\mod ->
-                        Html.div
-                            [ Events.onClick (ModuleClicked mod.name)
-                            , Attr.style "cursor" "pointer"
-                            , Attr.style "text-decoration" "underline"
-                            ]
-                            [ Html.text mod.name ]
-                    )
-                    model.modules
-                )
-            , case Maybe.andThen (getModule model.modules) model.focusedModule of
-                Nothing ->
-                    Html.text ""
+       Ui.column
+          [ Ui.pad 48
+          , Ui.width 800
+          ]
+          [ Html.h1 [] [ Html.text model.name ]
+          , Html.div []
+              (List.map
+                  (\mod ->
+                      Html.div
+                          [ Events.onClick (ModuleClicked mod.name)
+                          , Attr.style "cursor" "pointer"
+                          , Attr.style "text-decoration" "underline"
+                          ]
+                          [ Html.text mod.name ]
+                  )
+                  model.modules
+              )
+          , case Maybe.andThen (getModule model.modules) model.focusedModule of
+              Nothing ->
+                  Html.text ""
 
-                Just focusedModule ->
-                    viewModule focusedModule
-            ]
+              Just focusedModule ->
+                  viewModule focusedModule
+          ]
     }
 
 
 viewModule : Elm.Docs.Module -> Html Msg
 viewModule mod =
-    Html.div []
+   Ui.column [ Ui.gap 24 ]
         [ Html.h2 [] [ Html.text mod.name ]
-        , Html.text mod.comment
-        , Html.div []
+        , Ui.column
+            [ Ui.gap 24
+            ]
             (mod
                 |> Elm.Docs.toBlocks
                 |> List.map
@@ -163,30 +171,46 @@ viewBlock block =
 
         Elm.Docs.UnionBlock details ->
             Html.div []
-                [ viewMarkdown details.comment
+                [ viewName details.name
+                , viewMarkdown details.comment
                 ]
 
         Elm.Docs.AliasBlock details ->
             Html.div []
-                [ viewMarkdown details.comment
+                [ viewName details.name
+                , viewMarkdown details.comment
                 ]
 
         Elm.Docs.ValueBlock details ->
             Html.div []
-                [ viewMarkdown details.comment
+                [ viewTypeDefinition details
+                , viewMarkdown details.comment
                 ]
 
         Elm.Docs.BinopBlock details ->
             Html.div []
-                [ viewMarkdown details.comment
+                [ viewName details.name
+                , viewMarkdown details.comment
                 ]
 
         Elm.Docs.UnknownBlock text ->
             Html.text text
 
 
+viewName : String -> Html Msg
+viewName name =
+    Html.h2 []
+        [ Html.text name
+        ]
+
+viewTypeDefinition : {docs | name : String, tipe : Elm.Type.Type } -> Html Msg
+viewTypeDefinition details =
+    Ui.row []
+        [ Html.span [] [ Html.text (details.name  ++ " : ")]
+        , Ui.Type.view details.tipe
+        ]
+
+
 viewMarkdown : String -> Html Msg
 viewMarkdown markdown =
-    Html.code []
-        [ Html.text markdown
-        ]
+    Ui.Markdown.view markdown

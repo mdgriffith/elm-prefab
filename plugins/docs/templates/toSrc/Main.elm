@@ -8,8 +8,12 @@ import App.View
 import Browser
 import Effect exposing (Effect)
 import Effect.Nav
+import Effect.Scroll
 import Html
+import Html.Attributes as Attr
 import Listen
+import Ui
+import Ui.Nav
 import Url
 
 
@@ -90,6 +94,10 @@ toCmd resources options model effect =
         effect
 
 
+heightWindow =
+    Attr.style "height" "100vh"
+
+
 view :
     App.Resources.Resources
     -> (Msg -> App.Msg Msg)
@@ -99,9 +107,386 @@ view :
 view resources toAppMsg model innerView =
     { title = innerView.title
     , body =
-        [ innerView.body
+        [ stylesheet
+        , Ui.row [ heightWindow ]
+            [ Ui.Nav.view {}
+            , Html.div
+                [ heightWindow
+                ]
+                [ innerView.body ]
+            ]
         ]
     }
+
+
+stylesheet =
+    Html.node "style"
+        []
+        [ Html.text """
+html, head, body {
+  margin: 0;
+}
+
+body {
+  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  color: #000E16;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+  font-weight: normal;
+  margin:0;
+}
+
+p, li {
+  line-height: 1.5em;
+}
+
+a { color: #1293D8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+a .light { color: #5FABDC; }
+
+pre {
+  margin: 0;
+  padding: 10px;
+  background-color: rgb(254,254,254);
+  border-style: solid;
+  border-width: 1px;
+  border-color: rgb(245,245,245);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+
+
+/* HOME */
+
+.home-summaries ul {
+  list-style-type: none;
+  padding-left: 1em;
+}
+
+
+
+/* CENTER */
+
+.center {
+  width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+
+/* HEADER */
+
+.header {
+  background-color: #5FABDC;
+  width: calc(100% - 40px);
+  padding-left: 20px;
+  padding-right: 20px;
+  overflow-x: hidden;
+}
+
+.nav {
+  max-width: 920px;
+  height: 64px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.nav { color: white; }
+.nav a { color: white; }
+.nav h1 { font-size: 24px; }
+.spacey-char { margin: 0 10px; }
+
+.header-underbar {
+  background-color: #f2e19e;
+  margin: 0;
+}
+
+.version-warning {
+  margin: 0 0 0 calc((100% - 920px) / 2);
+  padding: 7px 0;
+  color: #750707;
+}
+
+.version-warning a {
+  color: #750707;
+  text-decoration: underline;
+}
+
+
+
+/* FOOTER */
+
+
+.footer {
+  text-align: center;
+  margin-top: 4em;
+  border-top: 1px solid #eeeeee;
+  padding: 2em 0;
+  color: #bbbbbb;
+}
+
+
+.grey-link {
+  color: #bbbbbb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.grey-link:hover {
+  color: #bbbbbb;
+}
+
+
+/* DOCUMENTATION */
+
+
+.block-list {
+  width: 600px;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.block-list-title {
+  font-size: 3em;
+  margin-bottom: 16px;
+}
+
+.markdown-block h1 {
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+}
+
+.docs-block {
+  border-top: 1px solid #eeeeee;
+  margin-top: 1em;
+  margin-bottom: 2em;
+}
+
+
+.docs-header {
+  white-space: pre;
+  font-family: 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+
+.docs-comment {
+  overflow: hidden;
+  padding-left: 36px;
+}
+
+.docs-comment img {
+  max-width: 500px;
+}
+
+
+
+/* ABOUT */
+
+
+.pkg-about table {
+  font-family: 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  width: 100%;
+}
+
+.pkg-about td {
+  padding: 4px 0;
+}
+
+
+
+/* PACKAGE NAVIGATION */
+
+
+.pkg-nav {
+  width: 200px;
+  display: inline-block;
+  vertical-align: top;
+  padding: 20px;
+  margin: 20px 20px 20px 40px;
+  border-left: 1px solid #eeeeee;
+}
+
+.pkg-nav h2 {
+  margin-bottom: 0;
+}
+
+.pkg-nav input {
+  width: 200px;
+  font-size: 1em;
+  padding: 4px;
+  margin: 10px 0;
+  border: 1px solid #eeeeee;
+  border-radius: 6px;
+}
+
+.pkg-nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pkg-nav ul ul {
+  list-style-type: none;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.pkg-nav-module {
+  font-family: 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  text-overflow: ellipsis;
+}
+
+.pkg-nav-value {
+  font-family: 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  text-overflow: ellipsis;
+}
+
+.pkg-nav-search-chunk {
+  padding-bottom: 10px;
+}
+
+
+
+/* CATALOG */
+
+
+.catalog {
+  width: 600px;
+  display: inline-block;
+  vertical-align: top;
+}
+
+
+.catalog input {
+  width: 578px;
+  font-size: 1.5em;
+  padding: 10px;
+  outline: none;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  margin-top: 40px;
+  margin-bottom: 10px;
+}
+
+
+.pkg-hint {
+  padding: 20px;
+  background-color: #fcfcfc;
+  border-radius: 8px;
+}
+
+.pkg-summary {
+  padding: 20px 0;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.pkg-summary h1 {
+  margin: 0;
+  font-size: 1.5em;
+  display: inline-block;
+}
+
+.pkg-summary-desc {
+  margin: 0.5em 0;
+}
+
+.pkg-summary-hints {
+  float: right;
+  font-size: 1em;
+  padding-top: 0.5em;
+  color: #bbbbbb;
+}
+
+.pkg-summary-hints a {
+  color: #bbbbbb;
+}
+
+
+
+/* CATALOG SIDEBAR */
+
+
+.catalog-sidebar {
+  width: 200px;
+  display: inline-block;
+  vertical-align: top;
+  padding: 20px;
+  margin: 20px 20px 20px 40px;
+  border-left: 1px solid #eeeeee;
+}
+
+.catalog-sidebar h2 {
+  font-size: 1.5em;
+  padding: 10px;
+  margin: 0;
+}
+
+.catalog-sidebar ul {
+  list-style-type: none;
+  margin: 0;
+  padding-left: 20px;
+  padding-bottom: 10px;
+}
+
+
+
+/* CODE */
+
+
+code {
+  font-family: 'Source Code Pro', Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+/* I heard using :not() is slow for reflows.
+Not really any of those on the website though AFAIK.
+*/
+:not(pre) > code {
+  padding: 0;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(0,0,0,0.04);
+  border-radius: 3px;
+}
+
+:not(pre) > code::before, :not(pre) > code::after {
+  letter-spacing: -0.2em;
+  content: "\\00a0";
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+}
+
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+"""
+        ]
 
 
 type Msg
@@ -119,4 +504,9 @@ update resources msg model =
             ( model, Effect.Nav.load urlStr )
 
         UrlChanged url ->
-            ( model, Effect.Nav.toUrl url )
+            ( model
+            , Effect.batch
+                [ Effect.Nav.toUrl url
+                , Effect.Scroll.resetWindow
+                ]
+            )

@@ -64,16 +64,5 @@ view viewId shared model =
 viewPackages =
     Html.div []
         [ Html.h1 [] [ Html.text "Packages" ]
-        , Html.div []
-            (List.map viewPackage Docs.Packages.directory)
-        ]
 
-
-viewPackage package =
-    Html.a
-        [ Attr.href
-            (App.Route.toString
-                (App.Route.Package { path_ = String.split "/" package.name })
-            )
         ]
-        [ Html.text package.name ]
