@@ -14,11 +14,12 @@ import App.View.Id
 import Effect exposing (Effect)
 import Html exposing (Html)
 import Listen exposing (Listen)
+import Ui
 
 
 {-| -}
 type alias Model =
-    {}
+    { guide : Maybe { path : String, content : String } }
 
 
 {-| -}
@@ -38,7 +39,12 @@ page =
 
 init : App.Page.Id.Id -> App.Page.Id.Guide_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
 init pageId params shared maybeCached =
-    App.Page.init {}
+    App.Page.init { guide = lookupGuide (String.join "/" params.path_) }
+
+
+lookupGuide : String -> Maybe { path : String, content : String }
+lookupGuide path =
+    List.head (List.filter (\guide -> guide.path == path) guides)
 
 
 update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect Msg )
@@ -53,6 +59,16 @@ subscriptions shared model =
 
 view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
 view viewId shared model =
-    { title = "Home"
-    , body = Html.text "Home"
+    { title = "Guides"
+    , body =
+        case model.guide of
+            Just guide ->
+                Ui.Markdown.view guide.content
+                    |> Ui.el
+                        [ Ui.pad 48
+                        , Ui.width 800
+                        ]
+
+            Nothing ->
+                Ui.text "Guide not found"
     }
