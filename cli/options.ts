@@ -118,8 +118,16 @@ export const ColorAliasTheme = z.object({
   border: ColorTree.optional(),
 });
 
+export enum ThemeTarget {
+  HTML = "html",
+  ElmUI = "elm-ui",
+}
+
+const ThemeTargetSchema = z.nativeEnum(ThemeTarget);
+
 export const ThemeConfig = z
   .object({
+    target: ThemeTargetSchema.optional().default(ThemeTarget.HTML),
     colors: mapObject(z.string().or(Swatch)).optional(),
     themes: mapObject(ColorAliasTheme).optional(),
     spacing: mapObject(z.number()).optional(),
