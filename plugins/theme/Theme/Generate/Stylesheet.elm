@@ -2,6 +2,8 @@ module Theme.Generate.Stylesheet exposing
     ( File, file
     , none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
     , class, id
+    , media
+    , Media, darkmode
     , ruleList
     , Selector(..), custom
     , hover, focus, active
@@ -15,6 +17,10 @@ module Theme.Generate.Stylesheet exposing
 @docs none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
 
 @docs class, id
+
+@docs media
+
+@docs Media, darkmode
 
 @docs ruleList
 
@@ -100,6 +106,27 @@ ruleList =
     RuleList
 
 
+media : Media -> List Rule -> Rule
+media query rules =
+    Rule (Media (mediaToString query)) rules
+
+
+type Media
+    = Darkmode
+
+
+darkmode : Media
+darkmode =
+    Darkmode
+
+
+mediaToString : Media -> String
+mediaToString query =
+    case query of
+        Darkmode ->
+            "(prefers-color-scheme: dark)"
+
+
 class : String -> List Rule -> Rule
 class name rules =
     Rule (Class name) rules
@@ -144,6 +171,7 @@ type Selector
     | AllChildren Selector Selector
     | After Selector
     | Before Selector
+    | Media String
 
 
 type PseudoClass
@@ -215,7 +243,7 @@ flattenRule parentSelector rule cursor =
                 newRule =
                     Compiled newSelector gathered.props
             in
-            { rules = gathered.rules ++ [ newRule ] ++ cursor.rules
+            { rules = gathered.rules ++ newRule :: cursor.rules
             , props = cursor.props
             }
 
@@ -284,6 +312,9 @@ selectorToString maybeNamespace selector =
 
         Before inner ->
             selectorToString maybeNamespace inner ++ "::before"
+
+        Media query ->
+            "@media " ++ query
 
 
 withNamespace : Maybe String -> String -> String
