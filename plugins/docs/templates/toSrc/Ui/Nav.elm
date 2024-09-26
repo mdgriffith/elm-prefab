@@ -5,7 +5,6 @@ import Docs.Packages
 import Elm.Docs
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events as Events
 import Ui
 
 
@@ -39,7 +38,9 @@ view options =
             , Ui.scrollbars
             , Attr.class "navbar"
             ]
-            [ viewSection "Packages"
+            [ viewSection "Guides"
+                ()
+            , viewSection "Packages"
                 (List.map viewPackage Docs.Packages.directory)
             ]
         ]
