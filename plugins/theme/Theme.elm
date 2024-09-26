@@ -132,9 +132,15 @@ type alias ColorTheme =
     }
 
 
+type Target
+    = HTML
+    | ElmUI
+
+
 type alias Theme =
     { namespace : String
     , colors : List ColorInstance
+    , target : Target
     , themes : Maybe ColorThemeDefinitions
     , spacing : List (Named Int)
     , typography : List (Named Typeface)

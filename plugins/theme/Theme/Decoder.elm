@@ -2,17 +2,23 @@ module Theme.Decoder exposing (decode)
 
 {-| -}
 
-import Color
-import Dict
 import Json.Decode
 import Parser exposing ((|.), (|=))
 import Theme exposing (..)
 import Theme.Color
 
 
-nameToString : Name -> String
-nameToString (Name str) =
-    str
+literal : String -> a -> Json.Decode.Decoder a
+literal str value =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\str2 ->
+                if str == str2 then
+                    Json.Decode.succeed value
+
+                else
+                    Json.Decode.fail ("Expected " ++ str ++ " but got " ++ str2)
+            )
 
 
 decode : Json.Decode.Decoder Theme
@@ -20,7 +26,14 @@ decode =
     Json.Decode.field "colors" decodeColorSwatch
         |> Json.Decode.andThen
             (\colorSwatches ->
-                Json.Decode.map5 (Theme "ui" colorSwatches)
+                Json.Decode.map6 (Theme "ui" colorSwatches)
+                    (Json.Decode.field "target"
+                        (Json.Decode.oneOf
+                            [ literal "html" HTML
+                            , literal "elm-ui" ElmUI
+                            ]
+                        )
+                    )
                     (Json.Decode.map Just
                         (Json.Decode.field "themes"
                             (decodeThemes colorSwatches)

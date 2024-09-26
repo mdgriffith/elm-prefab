@@ -2,6 +2,7 @@ module Theme.Generate.Stylesheet exposing
     ( File, file
     , none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
     , class, id
+    , ruleList
     , Selector(..), custom
     , hover, focus, active
     , Rule
@@ -14,6 +15,8 @@ module Theme.Generate.Stylesheet exposing
 @docs none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
 
 @docs class, id
+
+@docs ruleList
 
 @docs Selector, custom
 
@@ -90,6 +93,11 @@ fontSizeInPxAsRem value =
 string : String -> String -> Rule
 string key value =
     Prop (Str key value)
+
+
+ruleList : List Rule -> Rule
+ruleList =
+    RuleList
 
 
 class : String -> List Rule -> Rule
