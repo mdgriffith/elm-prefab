@@ -278,15 +278,19 @@ decodeColorSwatch =
                                             , colors =
                                                 List.filterMap
                                                     (\( name, maybeColor ) ->
-                                                        case maybeColor of
-                                                            Nothing ->
-                                                                Nothing
+                                                        if name == "alias" then
+                                                            Nothing
 
-                                                            Just color ->
-                                                                Just
-                                                                    { name = name
-                                                                    , color = color
-                                                                    }
+                                                        else
+                                                            case maybeColor of
+                                                                Nothing ->
+                                                                    Nothing
+
+                                                                Just color ->
+                                                                    Just
+                                                                        { name = name
+                                                                        , color = color
+                                                                        }
                                                     )
                                                     colorPairs
                                             }
