@@ -1,7 +1,7 @@
 module Theme.Generate.Stylesheet exposing
     ( File, file
     , none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
-    , class, id
+    , class, id, root
     , media
     , Media, darkmode
     , ruleList
@@ -16,7 +16,7 @@ module Theme.Generate.Stylesheet exposing
 
 @docs none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
 
-@docs class, id
+@docs class, id, root
 
 @docs media
 
@@ -127,6 +127,11 @@ mediaToString query =
             "(prefers-color-scheme: dark)"
 
 
+root : List Rule -> Rule
+root rules =
+    Rule Root rules
+
+
 class : String -> List Rule -> Rule
 class name rules =
     Rule (Class name) rules
@@ -214,31 +219,26 @@ empty =
     }
 
 
-flatten : Selector -> List Rule -> Cursor -> Cursor
-flatten selector rules cursor =
-    List.foldr (flattenRule selector) cursor rules
+flatten : Maybe Selector -> List Rule -> Cursor -> Cursor
+flatten maybeParentSelector rules cursor =
+    List.foldr (flattenRule maybeParentSelector) cursor rules
 
 
-combineSelectors : Selector -> Selector -> Selector
-combineSelectors parent selector =
-    case parent of
-        Root ->
-            selector
-
-        _ ->
-            Child parent selector
-
-
-flattenRule : Selector -> Rule -> Cursor -> Cursor
-flattenRule parentSelector rule cursor =
+flattenRule : Maybe Selector -> Rule -> Cursor -> Cursor
+flattenRule maybeParentSelector rule cursor =
     case rule of
         Rule selector rules ->
             let
                 newSelector =
-                    combineSelectors parentSelector selector
+                    case maybeParentSelector of
+                        Nothing ->
+                            selector
+
+                        Just parentSelector ->
+                            Child parentSelector selector
 
                 gathered =
-                    flatten newSelector rules empty
+                    flatten (Just newSelector) rules empty
 
                 newRule =
                     Compiled newSelector gathered.props
@@ -248,7 +248,7 @@ flattenRule parentSelector rule cursor =
             }
 
         RuleList rules ->
-            flatten parentSelector rules cursor
+            flatten maybeParentSelector rules cursor
 
         Prop prop ->
             { cursor
@@ -258,39 +258,80 @@ flattenRule parentSelector rule cursor =
 
 toString : Maybe String -> List Rule -> String
 toString namespace rules =
-    flatten Root rules empty
+    flatten Nothing rules empty
         |> .rules
-        |> List.map (ruleToString namespace)
-        |> String.join "\n\n"
+        |> List.foldl (ruleToString namespace) ( SingleLine, "" )
+        |> Tuple.second
 
 
-ruleToString : Maybe String -> CompiledRule -> String
-ruleToString namespace (Compiled selector props) =
+type RuleSize
+    = SingleLine
+    | Multiline
+
+
+ruleToString : Maybe String -> CompiledRule -> ( RuleSize, String ) -> ( RuleSize, String )
+ruleToString namespace (Compiled selector props) ( previousSize, rendered ) =
     let
-        renderedProps =
-            renderProps props ""
+        addToRendered size rule =
+            if String.isEmpty rendered then
+                ( size, rule )
+
+            else
+                case previousSize of
+                    SingleLine ->
+                        case size of
+                            SingleLine ->
+                                ( size, rendered ++ "\n" ++ rule )
+
+                            Multiline ->
+                                ( size, rendered ++ "\n\n" ++ rule )
+
+                    Multiline ->
+                        ( size, rendered ++ "\n\n" ++ rule )
     in
-    ".s" ++ selectorToString namespace selector ++ " {\n" ++ renderedProps ++ "}"
+    if List.length props > 1 then
+        let
+            renderedProps =
+                renderProps "\n" props ""
+
+            renderedRule =
+                selectorToString namespace selector ++ " {\n  " ++ renderedProps ++ "}"
+        in
+        addToRendered Multiline renderedRule
+
+    else
+        let
+            renderedProps =
+                renderProps "" props ""
+
+            renderedRule =
+                selectorToString namespace selector ++ " { " ++ renderedProps ++ " }"
+        in
+        addToRendered SingleLine renderedRule
 
 
-renderProps : List Property -> String -> String
-renderProps props rendered =
+renderProps : String -> List Property -> String -> String
+renderProps separator props rendered =
     case props of
         [] ->
             rendered
 
         NoProp :: rest ->
-            renderProps rest rendered
+            renderProps separator rest rendered
 
         prop :: rest ->
-            renderProps rest (rendered ++ "  " ++ propToString prop ++ "\n")
+            if String.isEmpty rendered then
+                renderProps separator rest (propToString prop ++ separator)
+
+            else
+                renderProps separator rest (rendered ++ "  " ++ propToString prop ++ separator)
 
 
 selectorToString : Maybe String -> Selector -> String
 selectorToString maybeNamespace selector =
     case selector of
         Root ->
-            ""
+            ":root"
 
         Class name ->
             "." ++ withNamespace maybeNamespace name

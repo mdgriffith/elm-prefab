@@ -9,6 +9,16 @@ type Color
     | Grad String
 
 
+toCssString : Color -> String
+toCssString colorVal =
+    case colorVal of
+        Color clr ->
+            Color.toCssString clr
+
+        Grad gradient ->
+            gradient
+
+
 type Gradient
     = Linear Angle (List Step)
     | Radial Circle Anchor (List Step)
