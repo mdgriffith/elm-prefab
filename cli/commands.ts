@@ -19,6 +19,7 @@ export enum Addable {
   Resource = "resource",
   Effect = "effect",
   Listener = "listener",
+  Theme = "theme",
 }
 
 interface Option<T> {
@@ -35,6 +36,7 @@ const addableOptions: Option<Addable>[] = [
   { value: Addable.Listener, name: 'Listener', description: 'Add a new listener' },
   { value: Addable.GraphQL, name: 'GraphQL', description: 'Add GraphQL' },
   { value: Addable.Docs, name: 'Docs', description: 'Add a Docs site' },
+  { value: Addable.Theme, name: 'Theme', description: 'Add a default theme to your Elm app' },
 ];
 
 // // prettier-ignore
@@ -50,7 +52,7 @@ const customizableOptions: Option<Customizable.File>[] =
 
 async function promptForOption<T>(
   options: Option<T>[],
-  message: string,
+  message: string
 ): Promise<T> {
   return Inquire.select({
     message: message,
@@ -82,16 +84,16 @@ async function handleAdd(addable?: string, name?: string): Promise<Command> {
   if (!addable) {
     selectedAddable = await promptForOption(
       addableOptions,
-      `Add to your Elm app`,
+      `Add to your Elm app`
     );
   } else {
     const foundOption = addableOptions.find(
-      (option) => option.value === addable,
+      (option) => option.value === addable
     );
     if (!foundOption) {
       console.error(
         `I don't recognize ${Chalk.red(addable)} as something I can add
-Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
+Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`
       );
       process.exit(1);
     }
@@ -102,7 +104,7 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
     if (!name) {
       console.log("What's the name of this GraphQL API?");
       console.log(
-        Chalk.grey("(e.g. Github if you're adding the GitHub GraphQL API)"),
+        Chalk.grey("(e.g. Github if you're adding the GitHub GraphQL API)")
       );
       name = await Inquire.input({
         message: "Name:",
@@ -146,6 +148,10 @@ Run ${Chalk.green("elm-prefab add")} to see the list things you can add.`,
     return { kind: "add-docs", dir };
   }
 
+  if (selectedAddable === Addable.Theme) {
+    return { kind: "add", added: selectedAddable, name: "DefaultTheme" };
+  }
+
   if (!name) {
     name = await Inquire.input({
       message: "Name:",
@@ -173,16 +179,20 @@ async function handleCustomize(customizable?: string): Promise<Command> {
   if (!customizable) {
     selectedCustomizable = await promptForOption(
       customizableOptions,
-      "Move an elm-prefab-controlled file into your project",
+      "Move an elm-prefab-controlled file into your project"
     );
   } else {
     const foundOption = customizableOptions.find(
-      (option) => option.name === customizable,
+      (option) => option.name === customizable
     );
     if (!foundOption) {
       console.error(
-        `I don't recognize ${Chalk.red(customizable)} as something I can customize
-Run ${Chalk.green("elm-prefab customize")} to see the list of customizable files.`,
+        `I don't recognize ${Chalk.red(
+          customizable
+        )} as something I can customize
+Run ${Chalk.green(
+          "elm-prefab customize"
+        )} to see the list of customizable files.`
       );
       process.exit(1);
     }
@@ -203,6 +213,7 @@ const exampleCommands: string = `
   elm-prefab ${Chalk.green("add effect <name>")} ....... add a new effect
   elm-prefab ${Chalk.green("add docs")} ................. add a docs site
   elm-prefab ${Chalk.green("add graphql")} .................. add GraphQL
+  elm-prefab ${Chalk.green("add theme")} .................... add a theme
 
  Move an elm-prefab-controlled file into your project.
 
@@ -247,7 +258,7 @@ export async function read(argv: string[]): Promise<Command> {
       return await handleCustomize(argument);
     default:
       console.error(
-        Chalk.red(`I don't recognize this command': ${Chalk.yellow(command)}`),
+        Chalk.red(`I don't recognize this command': ${Chalk.yellow(command)}`)
       );
       console.log("Here is a list of commands you can use:");
       console.log(exampleCommands);

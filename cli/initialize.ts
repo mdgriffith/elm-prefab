@@ -113,6 +113,7 @@ const testTheme: Options.ThemeOptions = {
 };
 
 const defaultTheme: Options.ThemeOptions = {
+  target: Options.ThemeTarget.HTML,
   colors: {
     black: "#000000",
     white: "#ffffff",
@@ -191,7 +192,9 @@ export const defaultGraphQL = {
 
 export const start = async (): Promise<Options.Config> => {
   console.log(
-    `It looks like you're starting a new ${Chalk.yellow("Elm Prefab")} project!\n`,
+    `It looks like you're starting a new ${Chalk.yellow(
+      "Elm Prefab"
+    )} project!\n`
   );
 
   const shouldGenerate = await Inquire.confirm({
@@ -207,7 +210,7 @@ export const start = async (): Promise<Options.Config> => {
     ([key, value]) => ({
       name: value,
       value: value,
-    }),
+    })
   );
 
   const packageManager = await Inquire.select({
@@ -244,7 +247,7 @@ export const start = async (): Promise<Options.Config> => {
     ],
     {
       dev: true,
-    },
+    }
   );
 
   return config;
@@ -259,13 +262,13 @@ const pageAdded = (pagename: string) => {
 export const page = async (
   name: string,
   url: string,
-  config: Options.Config,
+  config: Options.Config
 ) => {
   const pageContent = OneOffPage.toBody(
     new Map([
       ["{{name}}", name],
       ["{{name_underscored}}", name.replace(".", "_")],
-    ]),
+    ])
   );
   fs.writeFileSync(path.join(config.src, `${name}.elm`), pageContent, "utf8");
 
@@ -287,7 +290,7 @@ export const page = async (
 New Docs Site */
 export const docs = async (
   dir: string,
-  config: Options.Config,
+  config: Options.Config
 ): Promise<Options.Config> => {
   if (fs.existsSync(dir)) {
     console.log(`${Chalk.yellow(dir)} already exists!
@@ -360,8 +363,8 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
         },
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 
   // Add docs package.json
@@ -381,7 +384,7 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
     {
       dev: true,
       cwd: dir,
-    },
+    }
   );
 
   // Add the 'passthrough' docs command to the package.json
@@ -403,11 +406,28 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
   return docsConfig;
 };
 
+/* THEME */
+
+export const theme = async (
+  config: Options.Config
+): Promise<Options.Config> => {
+  if (config.theme) {
+    console.log(`${Chalk.yellow(name)} theme already exists!`);
+    process.exit(1);
+  }
+
+  config.theme = defaultTheme;
+  Options.writeConfig(".", config);
+  return config;
+};
+
 /* GRAPHQL */
 
 const graphqlAdded = `
 I've added GraphQL to ${Chalk.yellow("elm.generate.json")}
-Add the following to your environment and run ${Chalk.yellow("elm-prefab")} again!
+Add the following to your environment and run ${Chalk.yellow(
+  "elm-prefab"
+)} again!
 
 ${Chalk.cyan("$GRAPHQL_SCHEMA")}
   The HTTP endpoint for the GraphQL schema,
@@ -423,7 +443,7 @@ export const graphql = async (namespace: string, config: Options.Config) => {
   const gqlEffectPath = path.join(config.src, "Effect", `${namespace}.elm`);
   fs.mkdirSync(path.dirname(gqlEffectPath), { recursive: true });
   const gqlEffectFile = OneOffGraphQLEffect.toBody(
-    new Map([["{{name}}", namespace]]),
+    new Map([["{{name}}", namespace]])
   );
   fs.writeFileSync(gqlEffectPath, gqlEffectFile, "utf8");
 
@@ -434,7 +454,7 @@ export const graphql = async (namespace: string, config: Options.Config) => {
     [{ name: "elm-gql" }],
     {
       dev: true,
-    },
+    }
   );
 
   console.log(graphqlAdded);
@@ -449,13 +469,15 @@ function addDependencies(
   packageManager: Options.PackageManager,
   packageJson: PackageJson,
   packages: { name: string; version?: string }[],
-  options: DependencyOptions = {},
+  options: DependencyOptions = {}
 ) {
   const { dev = false } = options;
 
   if (!isPackageManagerInstalled(packageManager)) {
     console.log(
-      `I tried to call ${Chalk.yellow(packageManager)} but it doesn't seem to be installed.`,
+      `I tried to call ${Chalk.yellow(
+        packageManager
+      )} but it doesn't seem to be installed.`
     );
     process.exit(1);
   }
@@ -472,35 +494,39 @@ function addDependencies(
   if (packageManager === Options.PackageManager.Manual) {
     console.log(
       `Add ${Chalk.yellow(
-        packagesToInstall.map((pkg) => pkg.name).join(", "),
-      )} to your ${dev ? "dev " : " "}dependencies.`,
+        packagesToInstall.map((pkg) => pkg.name).join(", ")
+      )} to your ${dev ? "dev " : " "}dependencies.`
     );
     return;
   }
 
   // Build package names with their versions
   const packagesWithVersion = packagesToInstall.map((pkg) =>
-    pkg.version ? `${pkg.name}@${pkg.version}` : pkg.name,
+    pkg.version ? `${pkg.name}@${pkg.version}` : pkg.name
   );
 
   let command: string;
 
   switch (packageManager) {
     case Options.PackageManager.NPM:
-      command = `npm install ${dev ? "--save-dev" : ""} ${packagesWithVersion.join(
-        " ",
-      )}`;
+      command = `npm install ${
+        dev ? "--save-dev" : ""
+      } ${packagesWithVersion.join(" ")}`;
       break;
     case Options.PackageManager.PNPM:
       command = `pnpm add ${dev ? "--save-dev" : ""} ${packagesWithVersion.join(
-        " ",
+        " "
       )}`;
       break;
     case Options.PackageManager.BUN:
-      command = `bun add ${dev ? "--dev" : ""} ${packagesWithVersion.join(" ")}`;
+      command = `bun add ${dev ? "--dev" : ""} ${packagesWithVersion.join(
+        " "
+      )}`;
       break;
     case Options.PackageManager.YARN:
-      command = `yarn add ${dev ? "--dev" : ""} ${packagesWithVersion.join(" ")}`;
+      command = `yarn add ${dev ? "--dev" : ""} ${packagesWithVersion.join(
+        " "
+      )}`;
       break;
     case Options.PackageManager.Manual:
       return;
@@ -544,7 +570,7 @@ function readPackageJsonOrInitialize(directory: string = process.cwd()): {
         },
       },
       undefined,
-      2,
+      2
     );
     fs.writeFileSync("package.json", contents, "utf-8");
     return {
@@ -556,7 +582,7 @@ function readPackageJsonOrInitialize(directory: string = process.cwd()): {
 }
 
 function readPackageJson(
-  directory: string = process.cwd(),
+  directory: string = process.cwd()
 ): PackageJson | null {
   const packageJsonPath = path.join(directory, "package.json");
   try {
@@ -570,7 +596,7 @@ function readPackageJson(
 function isPackageInstalled(
   packageJson: PackageJson,
   isDev: boolean,
-  packageName: string,
+  packageName: string
 ): boolean {
   if (isDev) {
     return packageJson.devDependencies?.hasOwnProperty(packageName) ?? false;
@@ -580,7 +606,7 @@ function isPackageInstalled(
 }
 
 function isPackageManagerInstalled(
-  packageManager: Options.PackageManager,
+  packageManager: Options.PackageManager
 ): boolean {
   let command: string;
   let args: string[];

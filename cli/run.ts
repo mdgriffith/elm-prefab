@@ -27,13 +27,13 @@ type GenerateOptions = {
 export const generate = async (
   options: GenerateOptions,
   initializing: boolean,
-  pluginsInitializing: string[],
+  pluginsInitializing: string[]
 ): Promise<Options.SummaryMap> => {
   options.plugins.sort((a, b) => a.generatorType - b.generatorType);
   const results: Options.SummaryMap = {};
 
   let status: Project.Status = Project.detect(
-    path.join(options.root, options.src),
+    path.join(options.root, options.src)
   );
   const runOptions: Options.RunOptions = {
     initializing,
@@ -97,7 +97,7 @@ const runGeneration = async (options: {
   const summary = await generate(
     { root, src, js, plugins },
     options.initializing,
-    options.pluginsInitializing,
+    options.pluginsInitializing
   );
   if (options.initializing) {
     Output.initialization(options.config, summary);
@@ -109,7 +109,9 @@ const runGeneration = async (options: {
 };
 
 const needConfigMessage = (cwd: string) => {
-  return `I wasn't able to find an ${Chalk.cyan("Elm Prefab")} project in this directory.
+  return `I wasn't able to find an ${Chalk.cyan(
+    "Elm Prefab"
+  )} project in this directory.
 
 I'm looking in:
 ${Chalk.yellow(cwd)}
@@ -156,22 +158,22 @@ const run = async (args: string[]) => {
         switch (command.added) {
           case "resource":
             const resourceContent = OneOffResource.toBody(
-              new Map([["{{name}}", name]]),
+              new Map([["{{name}}", name]])
             );
             fs.writeFileSync(
               path.join(config.src, `${name}.elm`),
               resourceContent,
-              "utf8",
+              "utf8"
             );
             process.exit(0);
           case "effect":
             const pageContent = OneOffEffect.toBody(
-              new Map([["{{name}}", name]]),
+              new Map([["{{name}}", name]])
             );
             fs.writeFileSync(
               path.join(config.src, `${name}.elm`),
               pageContent,
-              "utf8",
+              "utf8"
             );
 
             process.exit(0);
@@ -183,12 +185,12 @@ const run = async (args: string[]) => {
                   "{{name_decapitalized}}",
                   name[0].toLowerCase() + name.slice(1),
                 ],
-              ]),
+              ])
             );
             fs.writeFileSync(
               path.join(config.src, `${name}.elm`),
               listenerContent,
-              "utf8",
+              "utf8"
             );
             process.exit(0);
           case "graphql":
@@ -201,6 +203,19 @@ const run = async (args: string[]) => {
           case "docs":
             // handled by add-docs
             process.exit(0);
+
+          case "theme":
+            const newConfig = await Initialize.theme(config);
+            console.log("New Config", newConfig);
+            await runGeneration({
+              root: ".",
+              pluginsInitializing: [...plugins, "theme"],
+              config: newConfig,
+              initializing: false,
+            });
+            process.exit(0);
+
+          // ... other cases ...
         }
         break;
 
@@ -232,7 +247,7 @@ const run = async (args: string[]) => {
             src: config.src,
             internalSrc: "./.elm-prefab",
           },
-          command.customizable,
+          command.customizable
         );
 
         process.exit(0);
