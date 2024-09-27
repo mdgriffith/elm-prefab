@@ -68,6 +68,77 @@ toFullColorDescription fullColorName =
     fullColorName.base ++ variant
 
 
+fullColorNameToCssVar : FullColorName -> String
+fullColorNameToCssVar fullColorName =
+    let
+        variant =
+            case fullColorName.variant of
+                Just v ->
+                    v
+
+                Nothing ->
+                    ""
+
+        state =
+            case fullColorName.state of
+                Just s ->
+                    stateToString s
+
+                Nothing ->
+                    ""
+
+        nuance =
+            case fullColorName.nuance of
+                Just n ->
+                    n
+
+                Nothing ->
+                    ""
+    in
+    "var(--" ++ decapitalize fullColorName.base ++ variant ++ ")"
+
+
+fullColorToCssClass : String -> FullColorName -> String
+fullColorToCssClass functionName fullColorName =
+    let
+        base =
+            case fullColorName.alias of
+                Just alias ->
+                    alias
+
+                Nothing ->
+                    fullColorName.base
+
+        state =
+            case fullColorName.state of
+                Just s ->
+                    stateToString s
+
+                Nothing ->
+                    ""
+
+        nuance =
+            case fullColorName.nuance of
+                Just n ->
+                    capitalize n
+
+                Nothing ->
+                    ""
+
+        tail =
+            let
+                final =
+                    state ++ nuance
+            in
+            if String.isEmpty final then
+                ""
+
+            else
+                "-" ++ final
+    in
+    functionName ++ "-" ++ decapitalize base ++ tail
+
+
 toFullColorName : String -> FullColorName -> String
 toFullColorName functionName fullColorName =
     let
@@ -192,6 +263,18 @@ capitalize str =
             String.dropLeft 1 str
     in
     String.toUpper top ++ remain
+
+
+decapitalize : String -> String
+decapitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toLower top ++ remain
 
 
 type alias Typeface =
