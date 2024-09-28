@@ -13,7 +13,10 @@ module Resource.{{name}} exposing
 
 import App.Resource
 import Effect
+import Json.Decode
+import Json.Encode
 import Listen
+
 
 type alias Model =
     {}
@@ -28,9 +31,16 @@ resource =
     App.Resource.resource
         { init =
             \flags url maybeCachedModel ->
-                ( { cached
-                    | apiUrl = apiUrl
-                  }
+                let
+                    model =
+                        -- `maybeCachedModel` is the model from localstorage
+                        -- If `App.Resource.withLocalStorage` is defined
+                        -- and it's available
+                        maybeCachedModel
+                            |> Maybe.withDefault
+                                {}
+                in
+                ( model
                 , Effect.none
                 )
         , update =
@@ -38,3 +48,17 @@ resource =
                 ( model, Effect.none )
         , subscriptions = \_ -> Listen.none
         }
+        |> App.Resource.withLocalStorage
+            { decoder = decoder
+            , encode = encode
+            }
+
+
+encode : Model -> Json.Encode.Value
+encode model =
+    Json.Encode.object []
+
+
+decoder : Json.Decode.Decoder Model
+decoder =
+    Json.Decode.succeed {}
