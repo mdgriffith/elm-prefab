@@ -79,7 +79,7 @@ export const Effect_Scroll = {
 export const Listen_LocalStorage = {
    moduleName: "Listen.LocalStorage",
    path: "/Listen/LocalStorage.elm",
-   contents: "module Listen.LocalStorage exposing (..)\n\nimport Json.Decode\nimport Json.Encode\nimport Platform.Sub\nimport Sub\n\n\nport localStorageUpdated : (Json.Encode.Value -> msg) -> Platform.Sub.Sub msg\n\n\nonUpdated :\n    { key : String\n    , decoder : Json.Decode.Decoder msg\n    }\n    -> Sub.Sub msg\nonUpdated options =\n    Sub.OnFromJs\n        { portName = \"localStorageUpdated\"\n        , subscription =\n            localStorageUpdated\n                (Json.Decode.decodeValue options.decoder)\n        }\n"
+   contents: "port module Listen.LocalStorage exposing (..)\n\nimport Json.Decode\nimport Json.Encode\nimport Listen\nimport Platform.Sub\n\n\nport localStorageUpdated : (Json.Encode.Value -> msg) -> Platform.Sub.Sub msg\n\n\nonUpdated :\n    { key : String\n    , decoder : Json.Decode.Decoder msg\n    }\n    -> Listen.Listen msg\nonUpdated options =\n    Listen.OnFromJs\n        { portName = \"localStorageUpdated\"\n        , subscription =\n            localStorageUpdated\n                (Json.Decode.decodeValue options.decoder)\n        }\n"
 }
 
 export const WebComponent_Portal = {
