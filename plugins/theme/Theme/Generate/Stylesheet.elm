@@ -1,7 +1,7 @@
 module Theme.Generate.Stylesheet exposing
     ( File, file
     , none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
-    , class, id, root
+    , class, classAll, id, root
     , media
     , Media, darkmode
     , ruleList
@@ -16,7 +16,7 @@ module Theme.Generate.Stylesheet exposing
 
 @docs none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
 
-@docs class, id, root
+@docs class, classAll, id, root
 
 @docs media
 
@@ -137,6 +137,11 @@ class name rules =
     Rule (Class name) rules
 
 
+classAll : String -> List Rule -> Rule
+classAll name rules =
+    Rule (ClassAll name) rules
+
+
 id : String -> List Rule -> Rule
 id name rules =
     Rule (Id name) rules
@@ -170,6 +175,7 @@ transition ms =
 type Selector
     = Root
     | Class String
+    | ClassAll String
     | Id String
     | Pseudo PseudoClass Selector
     | Child Selector Selector
@@ -198,6 +204,7 @@ type Rule
 
 type CompiledRule
     = Compiled Selector (List Property)
+    | CompiledMedia String (List CompiledRule)
 
 
 type Property
@@ -227,12 +234,27 @@ flatten maybeParentSelector rules cursor =
 flattenRule : Maybe Selector -> Rule -> Cursor -> Cursor
 flattenRule maybeParentSelector rule cursor =
     case rule of
+        Rule (Media q) rules ->
+            let
+                gathered =
+                    flatten maybeParentSelector rules empty
+
+                newRule =
+                    CompiledMedia q gathered.rules
+            in
+            { rules = newRule :: cursor.rules
+            , props = cursor.props
+            }
+
         Rule selector rules ->
             let
                 newSelector =
                     case maybeParentSelector of
                         Nothing ->
                             selector
+
+                        Just (ClassAll cls) ->
+                            AllChildren (Class cls) selector
 
                         Just parentSelector ->
                             Child parentSelector selector
@@ -260,7 +282,7 @@ toString : Maybe String -> List Rule -> String
 toString namespace rules =
     flatten Nothing rules empty
         |> .rules
-        |> List.foldl (ruleToString namespace) ( SingleLine, "" )
+        |> List.foldl (ruleToString namespace 0) ( SingleLine, "" )
         |> Tuple.second
 
 
@@ -269,45 +291,67 @@ type RuleSize
     | Multiline
 
 
-ruleToString : Maybe String -> CompiledRule -> ( RuleSize, String ) -> ( RuleSize, String )
-ruleToString namespace (Compiled selector props) ( previousSize, rendered ) =
-    let
-        addToRendered size rule =
-            if String.isEmpty rendered then
-                ( size, rule )
+ruleToString : Maybe String -> Int -> CompiledRule -> ( RuleSize, String ) -> ( RuleSize, String )
+ruleToString namespace indentSize compiled ( previousSize, rendered ) =
+    case compiled of
+        CompiledMedia q innerRules ->
+            let
+                ( innerRuleSize, innerRulesRendered ) =
+                    List.foldl (ruleToString namespace 2) ( SingleLine, "" ) innerRules
+            in
+            ( Multiline
+            , rendered ++ "\n\n@media " ++ q ++ " {\n" ++ innerRulesRendered ++ "\n}"
+            )
 
-            else
-                case previousSize of
-                    SingleLine ->
-                        case size of
+        Compiled selector props ->
+            let
+                indent =
+                    String.repeat indentSize " "
+
+                addToRendered size rule =
+                    if String.isEmpty rendered then
+                        ( size, rule )
+
+                    else
+                        case previousSize of
                             SingleLine ->
-                                ( size, rendered ++ "\n" ++ rule )
+                                case size of
+                                    SingleLine ->
+                                        ( size, rendered ++ "\n" ++ rule )
+
+                                    Multiline ->
+                                        ( size, rendered ++ "\n\n" ++ rule )
 
                             Multiline ->
                                 ( size, rendered ++ "\n\n" ++ rule )
+            in
+            if List.length props > 1 then
+                let
+                    renderedProps =
+                        renderProps "\n" props ""
 
-                    Multiline ->
-                        ( size, rendered ++ "\n\n" ++ rule )
-    in
-    if List.length props > 1 then
-        let
-            renderedProps =
-                renderProps "\n" props ""
+                    renderedRule =
+                        indent ++ selectorToString namespace selector ++ " {\n  " ++ renderedProps ++ "}"
+                in
+                if String.isEmpty renderedProps then
+                    ( previousSize, rendered )
 
-            renderedRule =
-                selectorToString namespace selector ++ " {\n  " ++ renderedProps ++ "}"
-        in
-        addToRendered Multiline renderedRule
+                else
+                    addToRendered Multiline renderedRule
 
-    else
-        let
-            renderedProps =
-                renderProps "" props ""
+            else
+                let
+                    renderedProps =
+                        renderProps "" props ""
 
-            renderedRule =
-                selectorToString namespace selector ++ " { " ++ renderedProps ++ " }"
-        in
-        addToRendered SingleLine renderedRule
+                    renderedRule =
+                        indent ++ selectorToString namespace selector ++ " { " ++ renderedProps ++ " }"
+                in
+                if String.isEmpty renderedProps then
+                    ( previousSize, rendered )
+
+                else
+                    addToRendered SingleLine renderedRule
 
 
 renderProps : String -> List Property -> String -> String
@@ -334,6 +378,9 @@ selectorToString maybeNamespace selector =
             ":root"
 
         Class name ->
+            "." ++ withNamespace maybeNamespace name
+
+        ClassAll name ->
             "." ++ withNamespace maybeNamespace name
 
         Id name ->
