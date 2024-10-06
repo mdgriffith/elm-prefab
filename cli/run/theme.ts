@@ -1,7 +1,8 @@
 import * as Options from "../options";
 import * as Generator from "./run_generator";
-import * as ThemeWebComponents from "../templates/theme/copyAll";
-import * as culori from "culori";
+import * as ThemeStatic from "../templates/theme/copyAll";
+import * as Copy from "../copy";
+import * as ThemeCustomizables from "../templates/theme/customizable";
 
 const defaultSpacings: { [key: string]: number } = {
   zero: 0,
@@ -80,33 +81,6 @@ const defaultColors = {
   },
 };
 
-// Function to convert hex or rgb string to LCH
-function getLightness(color: string): number {
-  const parsedColor = culori.parse(color);
-  const lchColor = culori.lch(parsedColor);
-  return lchColor.l / 100; // Lightness value between 0 and 1
-}
-
-// Function to generate 9 variants of a color based on lightness
-function generateVariants(color: string): { lch: culori.Lch; rgb: string }[] {
-  const parsedColor = culori.parse(color);
-  const lchColor = culori.lch(parsedColor);
-  const variants: { lch: culori.Lch; rgb: string }[] = [];
-
-  for (let i = 1; i <= 9; i++) {
-    const newLightness = i * 10;
-    const variantLCH: culori.Lch = {
-      ...lchColor,
-      l: newLightness,
-    };
-    const variantRGB = culori.rgb(variantLCH);
-    const variantRGBString = culori.formatRgb(variantRGB);
-    variants.push({ lch: variantLCH, rgb: variantRGBString });
-  }
-
-  return variants;
-}
-
 const guaranteeDefaults = (options: Options.ThemeOptions) => {
   if (!options.spacing) {
     options.spacing = defaultSpacings;
@@ -154,12 +128,21 @@ export const generator = (options: Options.ThemeOptions): Options.Generator => {
   return {
     name: "theme",
     generatorType: Options.GeneratorType.Standard,
+    copy: (runOptions: Options.RunOptions) => {
+      let summary: Options.Summary = { generated: [] };
+      if (options.target == Options.ThemeTarget.ElmUI) {
+        summary = Copy.copyCustomizables(ThemeCustomizables.all, runOptions);
+      }
+
+      if (runOptions.generateDefaultFiles) {
+        ThemeStatic.copy(runOptions, summary);
+      }
+    },
     run: async (runOptions: Options.RunOptions) => {
       const summary: Options.Summary = { generated: [] };
 
       guaranteeDefaults(options);
 
-      // ThemeWebComponents.copy(runOptions, summary);
       const newSummary = await Generator.run(runOptions.internalSrc, {
         theme: options,
       });

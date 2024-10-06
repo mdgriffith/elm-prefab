@@ -48,7 +48,11 @@ export const generate = async (
 
   for (const generator of options.plugins) {
     // Copy static files
-    Copy.copyPlugin(generator.name, runOptions);
+    if (generator.copy) {
+      generator.copy(runOptions);
+    } else {
+      Copy.copyPlugin(generator.name, runOptions);
+    }
 
     // Run generator
     runOptions.generateDefaultFiles =

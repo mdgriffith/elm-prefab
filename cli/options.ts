@@ -216,6 +216,7 @@ export type RunOptions = {
 export type Generator = {
   name: string;
   generatorType: GeneratorType;
+  copy?: (options: RunOptions) => void;
   run: (options: RunOptions) => Promise<Summary>;
 };
 
