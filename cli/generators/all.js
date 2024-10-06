@@ -4135,23 +4135,60 @@ var $elm$core$List$append = F2(
 var $elm$core$List$concat = function (lists) {
 	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
+var $author$project$Theme$Color$Grad = function (a) {
+	return {$: 'Grad', a: a};
+};
 var $author$project$Theme$Decoder$PaletteColor = function (a) {
 	return {$: 'PaletteColor', a: a};
 };
 var $author$project$Theme$Decoder$SingleColor = function (a) {
 	return {$: 'SingleColor', a: a};
 };
+var $author$project$Theme$Color$AtLightness = function (a) {
+	return {$: 'AtLightness', a: a};
+};
+var $author$project$Theme$Color$Color = F2(
+	function (a, b) {
+		return {$: 'Color', a: a, b: b};
+	});
+var $author$project$Theme$Color$atLightness = F2(
+	function (amount, clr) {
+		return A2(
+			$author$project$Theme$Color$Color,
+			$elm$core$Maybe$Just(
+				$author$project$Theme$Color$AtLightness(amount)),
+			clr);
+	});
+var $author$project$Theme$Decoder$autoswatch = F2(
+	function (baseName, baseColor) {
+		var toLuminance = F2(
+			function (n, color) {
+				return {
+					color: A2($author$project$Theme$Color$atLightness, n, color),
+					name: baseName,
+					variant: $elm$core$Maybe$Just(n)
+				};
+			});
+		return _List_fromArray(
+			[
+				A2(toLuminance, 5, baseColor),
+				A2(toLuminance, 10, baseColor),
+				A2(toLuminance, 20, baseColor),
+				A2(toLuminance, 30, baseColor),
+				A2(toLuminance, 40, baseColor),
+				A2(toLuminance, 50, baseColor),
+				A2(toLuminance, 60, baseColor),
+				A2(toLuminance, 70, baseColor),
+				A2(toLuminance, 80, baseColor),
+				A2(toLuminance, 90, baseColor),
+				A2(toLuminance, 95, baseColor)
+			]);
+	});
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
 		return $elm$core$List$concat(
 			A2($elm$core$List$map, f, list));
 	});
-var $author$project$Theme$Color$Color = function (a) {
-	return {$: 'Color', a: a};
-};
-var $author$project$Theme$Color$Grad = function (a) {
-	return {$: 'Grad', a: a};
-};
 var $author$project$Theme$Color$parseGradient = A2(
 	$elm$parser$Parser$map,
 	$author$project$Theme$Color$Grad,
@@ -4505,8 +4542,14 @@ var $author$project$Theme$Color$parseRgb = A2(
 var $author$project$Theme$Color$cssParser = $elm$parser$Parser$oneOf(
 	_List_fromArray(
 		[
-			A2($elm$parser$Parser$map, $author$project$Theme$Color$Color, $author$project$Theme$Color$parseRgb),
-			A2($elm$parser$Parser$map, $author$project$Theme$Color$Color, $author$project$Theme$Color$parseHex),
+			A2(
+			$elm$parser$Parser$map,
+			$author$project$Theme$Color$Color($elm$core$Maybe$Nothing),
+			$author$project$Theme$Color$parseRgb),
+			A2(
+			$elm$parser$Parser$map,
+			$author$project$Theme$Color$Color($elm$core$Maybe$Nothing),
+			$author$project$Theme$Color$parseHex),
 			$author$project$Theme$Color$parseGradient
 		]));
 var $elm$json$Json$Decode$fail = _Json_fail;
@@ -4542,6 +4585,21 @@ var $elm$core$List$filterMap = F2(
 			xs);
 	});
 var $elm$json$Json$Decode$keyValuePairs = _Json_decodeKeyValuePairs;
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $elm$core$String$toInt = _String_toInt;
 var $author$project$Theme$Decoder$decodeColorSwatch = A2(
 	$elm$json$Json$Decode$map,
 	$elm$core$List$concatMap(
@@ -4549,21 +4607,38 @@ var $author$project$Theme$Decoder$decodeColorSwatch = A2(
 			var key = _v2.a;
 			var inner = _v2.b;
 			if (inner.$ === 'SingleColor') {
-				var color = inner.a;
-				return _List_fromArray(
-					[
-						{alias: $elm$core$Maybe$Nothing, color: color, name: key, variant: $elm$core$Maybe$Nothing}
-					]);
+				if (inner.a.$ === 'Grad') {
+					var grad = inner.a.a;
+					return _List_fromArray(
+						[
+							{
+							color: $author$project$Theme$Color$Grad(grad),
+							name: key,
+							variant: $elm$core$Maybe$Nothing
+						}
+						]);
+				} else {
+					var _v4 = inner.a;
+					var color = _v4.b;
+					return A2($author$project$Theme$Decoder$autoswatch, key, color);
+				}
 			} else {
 				var pal = inner.a;
 				return A2(
 					$elm$core$List$map,
 					function (item) {
 						return {
-							alias: pal.alias_,
 							color: item.color,
 							name: key,
-							variant: $elm$core$Maybe$Just(item.name)
+							variant: A2(
+								$elm$core$Maybe$map,
+								function (n) {
+									return A2(
+										$elm$core$Basics$min,
+										100,
+										A2($elm$core$Basics$max, 0, n));
+								},
+								$elm$core$String$toInt(item.name))
 						};
 					},
 					pal.colors);
@@ -4576,39 +4651,28 @@ var $author$project$Theme$Decoder$decodeColorSwatch = A2(
 					A2($elm$json$Json$Decode$map, $author$project$Theme$Decoder$SingleColor, $author$project$Theme$Decoder$decodeColor),
 					A2(
 					$elm$json$Json$Decode$andThen,
-					function (maybeAlias) {
-						return A2(
-							$elm$json$Json$Decode$andThen,
-							function (colorPairs) {
-								return $elm$json$Json$Decode$succeed(
-									$author$project$Theme$Decoder$PaletteColor(
-										{
-											alias_: maybeAlias,
-											colors: A2(
-												$elm$core$List$filterMap,
-												function (_v0) {
-													var name = _v0.a;
-													var maybeColor = _v0.b;
-													if (name === 'alias') {
-														return $elm$core$Maybe$Nothing;
-													} else {
-														if (maybeColor.$ === 'Nothing') {
-															return $elm$core$Maybe$Nothing;
-														} else {
-															var color = maybeColor.a;
-															return $elm$core$Maybe$Just(
-																{color: color, name: name});
-														}
-													}
-												},
-												colorPairs)
-										}));
-							},
-							$elm$json$Json$Decode$keyValuePairs(
-								$elm$json$Json$Decode$maybe($author$project$Theme$Decoder$decodeColor)));
+					function (colorPairs) {
+						return $elm$json$Json$Decode$succeed(
+							$author$project$Theme$Decoder$PaletteColor(
+								{
+									colors: A2(
+										$elm$core$List$filterMap,
+										function (_v0) {
+											var name = _v0.a;
+											var maybeColor = _v0.b;
+											if (maybeColor.$ === 'Nothing') {
+												return $elm$core$Maybe$Nothing;
+											} else {
+												var color = maybeColor.a;
+												return $elm$core$Maybe$Just(
+													{color: color, name: name});
+											}
+										},
+										colorPairs)
+								}));
 					},
-					$elm$json$Json$Decode$maybe(
-						A2($elm$json$Json$Decode$field, 'alias', $elm$json$Json$Decode$string)))
+					$elm$json$Json$Decode$keyValuePairs(
+						$elm$json$Json$Decode$maybe($author$project$Theme$Decoder$decodeColor)))
 				]))));
 var $author$project$Theme$Name = function (a) {
 	return {$: 'Name', a: a};
@@ -4698,54 +4762,13 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $elm$core$String$dropLeft = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3(
-			$elm$core$String$slice,
-			n,
-			$elm$core$String$length(string),
-			string);
-	});
-var $elm$core$String$left = F2(
-	function (n, string) {
-		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
-	});
-var $elm$core$String$toUpper = _String_toUpper;
-var $author$project$Theme$capitalize = function (str) {
-	var top = A2($elm$core$String$left, 1, str);
-	var remain = A2($elm$core$String$dropLeft, 1, str);
-	return _Utils_ap(
-		$elm$core$String$toUpper(top),
-		remain);
-};
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
-var $author$project$Theme$toColorAlias = function (colorInstance) {
-	var alias = A2($elm$core$Maybe$withDefault, colorInstance.name, colorInstance.alias);
-	var _v0 = colorInstance.variant;
-	if (_v0.$ === 'Just') {
-		var variant = _v0.a;
-		return _Utils_ap(
-			alias,
-			$author$project$Theme$capitalize(variant));
-	} else {
-		return alias;
-	}
-};
 var $author$project$Theme$toColorName = function (colorInstance) {
 	var _v0 = colorInstance.variant;
 	if (_v0.$ === 'Just') {
 		var variant = _v0.a;
 		return _Utils_ap(
 			colorInstance.name,
-			$author$project$Theme$capitalize(variant));
+			$elm$core$String$fromInt(variant));
 	} else {
 		return colorInstance.name;
 	}
@@ -4753,31 +4776,53 @@ var $author$project$Theme$toColorName = function (colorInstance) {
 var $author$project$Theme$Decoder$lookupColorPath = F2(
 	function (colorVar, colors) {
 		var matchVariant = function (instance) {
-			var _v1 = instance.variant;
-			if (_v1.$ === 'Just') {
-				var variant = _v1.a;
-				return _Utils_eq(colorVar, variant);
-			} else {
-				return false;
-			}
-		};
-		var matchAlias = function (instance) {
-			var _v0 = instance.alias;
+			var _v0 = instance.variant;
 			if (_v0.$ === 'Just') {
-				var alias = _v0.a;
-				return _Utils_eq(colorVar, alias);
+				var variant = _v0.a;
+				return _Utils_eq(
+					colorVar,
+					$elm$core$String$fromInt(variant));
 			} else {
 				return false;
 			}
 		};
 		var match = function (instance) {
-			return _Utils_eq(colorVar, instance.name) || (matchVariant(instance) || (matchAlias(instance) || (_Utils_eq(
+			return _Utils_eq(colorVar, instance.name) || (matchVariant(instance) || _Utils_eq(
 				colorVar,
-				$author$project$Theme$toColorName(instance)) || _Utils_eq(
-				colorVar,
-				$author$project$Theme$toColorAlias(instance)))));
+				$author$project$Theme$toColorName(instance)));
 		};
 		return A2($elm$core$List$filter, match, colors);
+	});
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Theme$Decoder$getNuance = F2(
@@ -4860,59 +4905,125 @@ var $author$project$Theme$Decoder$getState = function (path) {
 		}
 	}
 };
-var $author$project$Theme$Decoder$pathToFullColorName = F2(
-	function (path, instance) {
+var $author$project$Theme$Decoder$pathToFullColorName = F3(
+	function (semantic, path, instance) {
 		return {
-			alias: instance.alias,
+			alias: A2($elm$core$Dict$get, instance.name, semantic),
 			base: instance.name,
 			nuance: A2($author$project$Theme$Decoder$getNuance, instance.name, path),
 			state: $author$project$Theme$Decoder$getState(path),
 			variant: instance.variant
 		};
 	});
-var $author$project$Theme$Decoder$decodeColorTree = function (colors) {
+var $author$project$Theme$Decoder$decodeColorTree = F2(
+	function (colors, semanticMap) {
+		return A2(
+			$elm$json$Json$Decode$map,
+			function (keyVals) {
+				return A2(
+					$elm$core$List$concatMap,
+					function (_v0) {
+						var path = _v0.a;
+						var colorVar = _v0.b;
+						var namedColors = A2($author$project$Theme$Decoder$lookupColorPath, colorVar, colors);
+						return A2(
+							$elm$core$List$map,
+							function (found) {
+								return _Utils_Tuple2(
+									A3($author$project$Theme$Decoder$pathToFullColorName, semanticMap, path, found),
+									found.color);
+							},
+							namedColors);
+					},
+					keyVals);
+			},
+			$author$project$Theme$Decoder$decodeColorTreeHelper);
+	});
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $elm$json$Json$Decode$dict = function (decoder) {
 	return A2(
 		$elm$json$Json$Decode$map,
-		function (keyVals) {
-			return A2(
-				$elm$core$List$concatMap,
-				function (_v0) {
-					var path = _v0.a;
-					var colorVar = _v0.b;
-					var namedColors = A2($author$project$Theme$Decoder$lookupColorPath, colorVar, colors);
-					return A2(
-						$elm$core$List$map,
-						function (found) {
-							return _Utils_Tuple2(
-								A2($author$project$Theme$Decoder$pathToFullColorName, path, found),
-								found.color);
-						},
-						namedColors);
-				},
-				keyVals);
+		$elm$core$Dict$fromList,
+		$elm$json$Json$Decode$keyValuePairs(decoder));
+};
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $author$project$Theme$Decoder$decodeSemanticMap = function (allowedKeys) {
+	return A2(
+		$elm$json$Json$Decode$map,
+		function (dict) {
+			return A3(
+				$elm$core$Dict$foldl,
+				F3(
+					function (key, value, acc) {
+						return A2($elm$core$List$member, key, allowedKeys) ? A3($elm$core$Dict$insert, value, key, acc) : acc;
+					}),
+				$elm$core$Dict$empty,
+				dict);
 		},
-		$author$project$Theme$Decoder$decodeColorTreeHelper);
+		$elm$json$Json$Decode$dict($elm$json$Json$Decode$string));
 };
 var $elm$json$Json$Decode$map3 = _Json_map3;
 var $author$project$Theme$Decoder$decodeColorAliasTheme = function (colors) {
-	return A4(
-		$elm$json$Json$Decode$map3,
-		F3(
-			function (text, bgs, borders) {
-				return {background: bgs, border: borders, text: text};
-			}),
-		A2(
-			$elm$json$Json$Decode$field,
-			'text',
-			$author$project$Theme$Decoder$decodeColorTree(colors)),
-		A2(
-			$elm$json$Json$Decode$field,
-			'background',
-			$author$project$Theme$Decoder$decodeColorTree(colors)),
-		A2(
-			$elm$json$Json$Decode$field,
-			'border',
-			$author$project$Theme$Decoder$decodeColorTree(colors)));
+	return A2(
+		$elm$json$Json$Decode$andThen,
+		function (semanticMap) {
+			return A4(
+				$elm$json$Json$Decode$map3,
+				F3(
+					function (text, bgs, borders) {
+						return {background: bgs, border: borders, text: text};
+					}),
+				A2(
+					$elm$json$Json$Decode$field,
+					'text',
+					A2($author$project$Theme$Decoder$decodeColorTree, colors, semanticMap)),
+				A2(
+					$elm$json$Json$Decode$field,
+					'background',
+					A2($author$project$Theme$Decoder$decodeColorTree, colors, semanticMap)),
+				A2(
+					$elm$json$Json$Decode$field,
+					'border',
+					A2($author$project$Theme$Decoder$decodeColorTree, colors, semanticMap)));
+		},
+		$author$project$Theme$Decoder$decodeSemanticMap(
+			_List_fromArray(
+				['primary', 'neutral', 'success', 'error'])));
 };
 var $author$project$Theme$nameToString = function (_v0) {
 	var name = _v0.a;
@@ -4946,6 +5057,15 @@ var $author$project$Theme$Named = F2(
 		return {item: item, name: name};
 	});
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
 var $author$project$Theme$Decoder$decodeCapitalSizing = A4(
 	$elm$json$Json$Decode$map3,
 	F3(
@@ -5232,24 +5352,6 @@ var $author$project$Options$Assets$decodeFile = A5(
 		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
 	A2($elm$json$Json$Decode$field, 'pathOnServer', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'content', $author$project$Options$Assets$decodeContent));
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
-var $elm$json$Json$Decode$dict = function (decoder) {
-	return A2(
-		$elm$json$Json$Decode$map,
-		$elm$core$Dict$fromList,
-		$elm$json$Json$Decode$keyValuePairs(decoder));
-};
 var $author$project$Options$Assets$decodeAssetGroup = A4(
 	$elm$json$Json$Decode$map3,
 	$author$project$Options$Assets$AssetGroup,
@@ -5439,37 +5541,6 @@ var $elm$project_metadata_utils$Elm$Type$isInnerVarChar = function (_char) {
 		_Utils_chr('_'));
 };
 var $elm$parser$Parser$ExpectingVariable = {$: 'ExpectingVariable'};
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
 var $elm$core$Dict$member = F2(
 	function (key, dict) {
 		var _v0 = A2($elm$core$Dict$get, key, dict);
@@ -6193,7 +6264,6 @@ var $elm$project_metadata_utils$Elm$Version$checkNumbers = F3(
 		return ((major >= 0) && ((minor >= 0) && (patch >= 0))) ? $elm$core$Maybe$Just(
 			A3($elm$project_metadata_utils$Elm$Version$Version, major, minor, patch)) : $elm$core$Maybe$Nothing;
 	});
-var $elm$core$String$toInt = _String_toInt;
 var $elm$project_metadata_utils$Elm$Version$fromString = function (string) {
 	var _v0 = A2(
 		$elm$core$List$map,
@@ -6950,31 +7020,6 @@ var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$GenericRecord = F2(
 var $stil4m$elm_syntax$Elm$Syntax$Node$Node = F2(
 	function (a, b) {
 		return {$: 'Node', a: a, b: b};
-	});
-var $elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3($elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
 	});
 var $elm$core$Dict$merge = F6(
 	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
@@ -9260,6 +9305,19 @@ var $mdgriffith$elm_codegen$Internal$Compiler$Declaration = function (a) {
 	return {$: 'Declaration', a: a};
 };
 var $mdgriffith$elm_codegen$Internal$Compiler$NotExposed = {$: 'NotExposed'};
+var $elm$core$String$dropLeft = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(
+			$elm$core$String$slice,
+			n,
+			$elm$core$String$length(string),
+			string);
+	});
+var $elm$core$String$left = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
+	});
+var $elm$core$String$toUpper = _String_toUpper;
 var $mdgriffith$elm_codegen$Internal$Format$formatType = function (str) {
 	return _Utils_ap(
 		$elm$core$String$toUpper(
@@ -10193,7 +10251,9 @@ var $mdgriffith$elm_codegen$Internal$Render$dedupImports = function (mods) {
 			mods).b);
 };
 var $mdgriffith$elm_codegen$Internal$Comments$emptyComment = $mdgriffith$elm_codegen$Internal$Comments$Comment(_List_Nil);
-var $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine = {$: 'RenderingDocsLine'};
+var $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine = function (a) {
+	return {$: 'RenderingDocsLine', a: a};
+};
 var $mdgriffith$elm_codegen$Internal$Render$exposedGroupToMarkdown = F4(
 	function (docMode, groups, mode, rendered) {
 		exposedGroupToMarkdown:
@@ -10241,7 +10301,7 @@ var $mdgriffith$elm_codegen$Internal$Render$exposedGroupToMarkdown = F4(
 								if ($elm$core$String$isEmpty(rendered)) {
 									var $temp$docMode = docMode,
 										$temp$groups = rest,
-										$temp$mode = $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine,
+										$temp$mode = $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine(1),
 										$temp$rendered = '@docs ' + exposedName;
 									docMode = $temp$docMode;
 									groups = $temp$groups;
@@ -10251,7 +10311,7 @@ var $mdgriffith$elm_codegen$Internal$Render$exposedGroupToMarkdown = F4(
 								} else {
 									var $temp$docMode = docMode,
 										$temp$groups = rest,
-										$temp$mode = $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine,
+										$temp$mode = $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine(1),
 										$temp$rendered = rendered + ('\n\n@docs ' + exposedName);
 									docMode = $temp$docMode;
 									groups = $temp$groups;
@@ -10260,15 +10320,28 @@ var $mdgriffith$elm_codegen$Internal$Render$exposedGroupToMarkdown = F4(
 									continue exposedGroupToMarkdown;
 								}
 							} else {
-								var $temp$docMode = docMode,
-									$temp$groups = rest,
-									$temp$mode = mode,
-									$temp$rendered = rendered + (', ' + exposedName);
-								docMode = $temp$docMode;
-								groups = $temp$groups;
-								mode = $temp$mode;
-								rendered = $temp$rendered;
-								continue exposedGroupToMarkdown;
+								var docsItemCount = mode.a;
+								if (docsItemCount > 5) {
+									var $temp$docMode = docMode,
+										$temp$groups = rest,
+										$temp$mode = $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine(1),
+										$temp$rendered = rendered + ('\n@docs ' + exposedName);
+									docMode = $temp$docMode;
+									groups = $temp$groups;
+									mode = $temp$mode;
+									rendered = $temp$rendered;
+									continue exposedGroupToMarkdown;
+								} else {
+									var $temp$docMode = docMode,
+										$temp$groups = rest,
+										$temp$mode = $mdgriffith$elm_codegen$Internal$Render$RenderingDocsLine(docsItemCount + 1),
+										$temp$rendered = rendered + (', ' + exposedName);
+									docMode = $temp$docMode;
+									groups = $temp$groups;
+									mode = $temp$mode;
+									rendered = $temp$rendered;
+									continue exposedGroupToMarkdown;
+								}
 							}
 						} else {
 							var $temp$docMode = docMode,
@@ -10345,6 +10418,23 @@ var $mdgriffith$elm_codegen$Internal$Render$getExposedGroups = F2(
 			default:
 				return groups;
 		}
+	});
+var $mdgriffith$elm_codegen$Internal$Compiler$nodeAtLine = F2(
+	function (line, exp) {
+		return A2(
+			$stil4m$elm_syntax$Elm$Syntax$Node$Node,
+			{
+				end: {column: 0, row: line},
+				start: {column: 0, row: line}
+			},
+			exp);
+	});
+var $mdgriffith$elm_codegen$Internal$Render$groupExposedItems = F2(
+	function (line, group) {
+		return A2(
+			$elm$core$List$map,
+			$mdgriffith$elm_codegen$Internal$Compiler$nodeAtLine(line),
+			group.exposed);
 	});
 var $stil4m$elm_syntax$Elm$Syntax$Exposing$InfixExpose = function (a) {
 	return {$: 'InfixExpose', a: a};
@@ -10584,12 +10674,41 @@ var $stil4m$elm_syntax$Elm$Syntax$Exposing$TypeExpose = function (a) {
 var $stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose = function (a) {
 	return {$: 'TypeOrAliasExpose', a: a};
 };
-var $mdgriffith$elm_codegen$Internal$Render$addExposed = F3(
-	function (exposed, declaration, otherExposes) {
+var $mdgriffith$elm_codegen$Internal$Render$addExposed = F4(
+	function (exposePath, exposed, declaration, otherExposes) {
 		if (exposed.$ === 'NotExposed') {
 			return otherExposes;
 		} else {
 			var details = exposed.a;
+			var addToExposedCollection = function (_new) {
+				if (!otherExposes.b) {
+					return _List_fromArray(
+						[
+							{
+							exposed: _List_fromArray(
+								[_new]),
+							id: exposePath
+						}
+						]);
+				} else {
+					var top = otherExposes.a;
+					var rest = otherExposes.b;
+					return _Utils_eq(top.id, exposePath) ? A2(
+						$elm$core$List$cons,
+						{
+							exposed: A2($elm$core$List$cons, _new, top.exposed),
+							id: top.id
+						},
+						rest) : A2(
+						$elm$core$List$cons,
+						{
+							exposed: _List_fromArray(
+								[_new]),
+							id: exposePath
+						},
+						otherExposes);
+				}
+			};
 			switch (declaration.$) {
 				case 'FunctionDeclaration':
 					var fn = declaration.a;
@@ -10598,38 +10717,28 @@ var $mdgriffith$elm_codegen$Internal$Render$addExposed = F3(
 							return $.name;
 						}(
 							$mdgriffith$elm_codegen$Internal$Compiler$denode(fn.declaration)));
-					return A2(
-						$elm$core$List$cons,
-						$stil4m$elm_syntax$Elm$Syntax$Exposing$FunctionExpose(fnName),
-						otherExposes);
+					return addToExposedCollection(
+						$stil4m$elm_syntax$Elm$Syntax$Exposing$FunctionExpose(fnName));
 				case 'AliasDeclaration':
 					var synonym = declaration.a;
 					var aliasName = $mdgriffith$elm_codegen$Internal$Compiler$denode(synonym.name);
-					return A2(
-						$elm$core$List$cons,
-						$stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose(aliasName),
-						otherExposes);
+					return addToExposedCollection(
+						$stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose(aliasName));
 				case 'CustomTypeDeclaration':
 					var myType = declaration.a;
 					var typeName = $mdgriffith$elm_codegen$Internal$Compiler$denode(myType.name);
-					return details.exposeConstructor ? A2(
-						$elm$core$List$cons,
+					return details.exposeConstructor ? addToExposedCollection(
 						$stil4m$elm_syntax$Elm$Syntax$Exposing$TypeExpose(
 							{
 								name: typeName,
 								open: $elm$core$Maybe$Just($stil4m$elm_syntax$Elm$Syntax$Range$emptyRange)
-							}),
-						otherExposes) : A2(
-						$elm$core$List$cons,
-						$stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose(typeName),
-						otherExposes);
+							})) : addToExposedCollection(
+						$stil4m$elm_syntax$Elm$Syntax$Exposing$TypeOrAliasExpose(typeName));
 				case 'PortDeclaration':
 					var myPort = declaration.a;
 					var typeName = $mdgriffith$elm_codegen$Internal$Compiler$denode(myPort.name);
-					return A2(
-						$elm$core$List$cons,
-						$stil4m$elm_syntax$Elm$Syntax$Exposing$FunctionExpose(typeName),
-						otherExposes);
+					return addToExposedCollection(
+						$stil4m$elm_syntax$Elm$Syntax$Exposing$FunctionExpose(typeName));
 				case 'InfixDeclaration':
 					return otherExposes;
 				default:
@@ -10671,7 +10780,8 @@ var $mdgriffith$elm_codegen$Internal$Render$renderDecls = F3(
 						$mdgriffith$elm_codegen$Internal$Compiler$RenderedDecl(
 							A2($mdgriffith$elm_codegen$Internal$Render$addDocs, decDetails.docs, result.declaration)),
 						gathered.declarations),
-					exposed: A3($mdgriffith$elm_codegen$Internal$Render$addExposed, decDetails.exposed, result.declaration, gathered.exposed),
+					exposePath: gathered.exposePath,
+					exposed: A4($mdgriffith$elm_codegen$Internal$Render$addExposed, gathered.exposePath, decDetails.exposed, result.declaration, gathered.exposed),
 					hasPorts: function () {
 						if (gathered.hasPorts) {
 							return gathered.hasPorts;
@@ -10699,11 +10809,32 @@ var $mdgriffith$elm_codegen$Internal$Render$renderDecls = F3(
 				};
 			default:
 				var groupDecls = decl.a;
-				return A3(
-					$elm$core$List$foldl,
-					$mdgriffith$elm_codegen$Internal$Render$renderDecls(fileDetails),
-					gathered,
-					groupDecls);
+				var incrementExposePath = function (g) {
+					return _Utils_update(
+						g,
+						{
+							exposePath: function () {
+								var _v3 = g.exposePath;
+								if (!_v3.b) {
+									return _List_Nil;
+								} else {
+									var top = _v3.a;
+									var remain = _v3.b;
+									return A2($elm$core$List$cons, top + 1, remain);
+								}
+							}()
+						});
+				};
+				return incrementExposePath(
+					A3(
+						$elm$core$List$foldl,
+						$mdgriffith$elm_codegen$Internal$Render$renderDecls(fileDetails),
+						_Utils_update(
+							gathered,
+							{
+								exposePath: A2($elm$core$List$cons, 0, gathered.exposePath)
+							}),
+						groupDecls));
 		}
 	});
 var $the_sett$elm_pretty_printer$Internals$Concatenate = F2(
@@ -10770,16 +10901,6 @@ var $the_sett$elm_pretty_printer$Pretty$join = F2(
 		}
 	});
 var $the_sett$elm_pretty_printer$Pretty$lines = $the_sett$elm_pretty_printer$Pretty$join($the_sett$elm_pretty_printer$Pretty$line);
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe = $elm$core$Maybe$map($mdgriffith$elm_codegen$Internal$Compiler$denode);
 var $mdgriffith$elm_codegen$Internal$Compiler$denodeAll = $elm$core$List$map($mdgriffith$elm_codegen$Internal$Compiler$denode);
 var $the_sett$elm_pretty_printer$Internals$Text = F2(
@@ -13641,6 +13762,81 @@ var $mdgriffith$elm_codegen$Internal$Comments$prettyFileComment = F2(
 						A2($elm$core$List$map, $mdgriffith$elm_codegen$Internal$Comments$prettyCommentPart, parts)))),
 			splits);
 	});
+var $mdgriffith$elm_codegen$Internal$Write$checkIfIsIndented = F2(
+	function (tll, count) {
+		checkIfIsIndented:
+		while (true) {
+			if (count >= 5) {
+				return true;
+			} else {
+				if (!tll.b) {
+					return false;
+				} else {
+					var _v1 = tll.a;
+					var range = _v1.a;
+					var xs = tll.b;
+					if (range.start.row > 0) {
+						return true;
+					} else {
+						var $temp$tll = xs,
+							$temp$count = count + 1;
+						tll = $temp$tll;
+						count = $temp$count;
+						continue checkIfIsIndented;
+					}
+				}
+			}
+		}
+	});
+var $mdgriffith$elm_codegen$Internal$Write$prettyGroupedExposing = F2(
+	function (_v0, rendered) {
+		var range = _v0.a;
+		var exposedElement = _v0.b;
+		var renderedTopElement = $mdgriffith$elm_codegen$Internal$Write$prettyTopLevelExpose(exposedElement);
+		var currentRow = range.start.row;
+		var newRow = (!_Utils_eq(currentRow, rendered.previousRow)) || (rendered.rowCount > 5);
+		var newRendered = rendered.firstIteration ? renderedTopElement : (newRow ? A2(
+			$the_sett$elm_pretty_printer$Pretty$append,
+			$the_sett$elm_pretty_printer$Pretty$string('\n    , '),
+			renderedTopElement) : A2(
+			$the_sett$elm_pretty_printer$Pretty$append,
+			$the_sett$elm_pretty_printer$Pretty$string(', '),
+			renderedTopElement));
+		return {
+			firstIteration: false,
+			previousRow: currentRow,
+			rendered: A2($the_sett$elm_pretty_printer$Pretty$append, rendered.rendered, newRendered),
+			rowCount: newRow ? 0 : (rendered.rowCount + 1)
+		};
+	});
+var $mdgriffith$elm_codegen$Internal$Write$prettyModuleExposing = function (exposing_) {
+	var exposings = function () {
+		if (exposing_.$ === 'All') {
+			return A3(
+				$the_sett$elm_pretty_printer$Pretty$surround,
+				$the_sett$elm_pretty_printer$Pretty$string(' ('),
+				$the_sett$elm_pretty_printer$Pretty$string(')'),
+				$the_sett$elm_pretty_printer$Pretty$string('..'));
+		} else {
+			var tll = exposing_.a;
+			var isIndented = A2($mdgriffith$elm_codegen$Internal$Write$checkIfIsIndented, tll, 0);
+			var start = isIndented ? $the_sett$elm_pretty_printer$Pretty$string('\n    ( ') : $the_sett$elm_pretty_printer$Pretty$string(' ( ');
+			var end = isIndented ? $the_sett$elm_pretty_printer$Pretty$string('\n    )') : $the_sett$elm_pretty_printer$Pretty$string(' )');
+			return A2(
+				$the_sett$elm_pretty_printer$Pretty$append,
+				A3(
+					$elm$core$List$foldr,
+					$mdgriffith$elm_codegen$Internal$Write$prettyGroupedExposing,
+					{firstIteration: true, previousRow: 0, rendered: start, rowCount: 0},
+					tll).rendered,
+				end);
+		}
+	}();
+	return A2(
+		$the_sett$elm_pretty_printer$Pretty$a,
+		exposings,
+		$the_sett$elm_pretty_printer$Pretty$string('exposing'));
+};
 var $mdgriffith$elm_codegen$Internal$Write$prettyDefaultModuleData = function (moduleData) {
 	return $the_sett$elm_pretty_printer$Pretty$words(
 		_List_fromArray(
@@ -13648,7 +13844,7 @@ var $mdgriffith$elm_codegen$Internal$Write$prettyDefaultModuleData = function (m
 				$the_sett$elm_pretty_printer$Pretty$string('module'),
 				$mdgriffith$elm_codegen$Internal$Write$prettyModuleName(
 				$mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.moduleName)),
-				$mdgriffith$elm_codegen$Internal$Write$prettyExposing(
+				$mdgriffith$elm_codegen$Internal$Write$prettyModuleExposing(
 				$mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.exposingList))
 			]));
 };
@@ -13715,7 +13911,7 @@ var $mdgriffith$elm_codegen$Internal$Write$prettyEffectModuleData = function (mo
 					prettyCmdAndSub,
 					$mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe(moduleData.command),
 					$mdgriffith$elm_codegen$Internal$Compiler$denodeMaybe(moduleData.subscription))),
-				$mdgriffith$elm_codegen$Internal$Write$prettyExposing(
+				$mdgriffith$elm_codegen$Internal$Write$prettyModuleExposing(
 				$mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.exposingList))
 			]));
 };
@@ -13726,7 +13922,7 @@ var $mdgriffith$elm_codegen$Internal$Write$prettyPortModuleData = function (modu
 				$the_sett$elm_pretty_printer$Pretty$string('port module'),
 				$mdgriffith$elm_codegen$Internal$Write$prettyModuleName(
 				$mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.moduleName)),
-				$mdgriffith$elm_codegen$Internal$Write$prettyExposing(
+				$mdgriffith$elm_codegen$Internal$Write$prettyModuleExposing(
 				$mdgriffith$elm_codegen$Internal$Compiler$denode(moduleData.exposingList))
 			]));
 };
@@ -13791,7 +13987,15 @@ var $mdgriffith$elm_codegen$Internal$Render$render = F2(
 		var rendered = A3(
 			$elm$core$List$foldl,
 			$mdgriffith$elm_codegen$Internal$Render$renderDecls(fileDetails),
-			{declarations: _List_Nil, exposed: _List_Nil, hasPorts: false, imports: _List_Nil, warnings: _List_Nil},
+			{
+				declarations: _List_Nil,
+				exposePath: _List_fromArray(
+					[0]),
+				exposed: _List_Nil,
+				hasPorts: false,
+				imports: _List_Nil,
+				warnings: _List_Nil
+			},
 			fileDetails.declarations);
 		var body = $mdgriffith$elm_codegen$Internal$Write$write(
 			{
@@ -13832,7 +14036,8 @@ var $mdgriffith$elm_codegen$Internal$Render$render = F2(
 							} else {
 								return $mdgriffith$elm_codegen$Internal$Compiler$nodify(
 									$stil4m$elm_syntax$Elm$Syntax$Exposing$Explicit(
-										$mdgriffith$elm_codegen$Internal$Compiler$nodifyAll(rendered.exposed)));
+										$elm$core$List$concat(
+											A2($elm$core$List$indexedMap, $mdgriffith$elm_codegen$Internal$Render$groupExposedItems, rendered.exposed))));
 							}
 						}(),
 						moduleName: $mdgriffith$elm_codegen$Internal$Compiler$nodify(fileDetails.moduleName)
@@ -37393,11 +37598,13204 @@ var $author$project$Press$Generate$Regions$generateRegionIndex = function (viewR
 var $author$project$Press$Generate$Regions$generate = function (viewRegions) {
 	return $author$project$Press$Generate$Regions$generateRegionIndex(viewRegions);
 };
-var $author$project$Theme$Generate$Stylesheet$Root = {$: 'Root'};
+var $author$project$Gen$Ui$rgb = F3(
+	function (rgbArg_, rgbArg_0, rgbArg_1) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Color',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'rgb'
+				}),
+			_List_fromArray(
+				[
+					$mdgriffith$elm_codegen$Elm$int(rgbArg_),
+					$mdgriffith$elm_codegen$Elm$int(rgbArg_0),
+					$mdgriffith$elm_codegen$Elm$int(rgbArg_1)
+				]));
+	});
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$Theme$Generate$Ui$to255 = function (value) {
+	return $elm$core$Basics$round(value * 255);
+};
+var $avh4$elm_color$Color$toRgba = function (_v0) {
+	var r = _v0.a;
+	var g = _v0.b;
+	var b = _v0.c;
+	var a = _v0.d;
+	return {alpha: a, blue: b, green: g, red: r};
+};
+var $author$project$Theme$Generate$Ui$toColor = F2(
+	function (target, clr) {
+		var rgb = $avh4$elm_color$Color$toRgba(clr);
+		if (target.$ === 'HTML') {
+			return $mdgriffith$elm_codegen$Elm$record(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'red',
+						$mdgriffith$elm_codegen$Elm$int(
+							$author$project$Theme$Generate$Ui$to255(rgb.red))),
+						_Utils_Tuple2(
+						'green',
+						$mdgriffith$elm_codegen$Elm$int(
+							$author$project$Theme$Generate$Ui$to255(rgb.green))),
+						_Utils_Tuple2(
+						'blue',
+						$mdgriffith$elm_codegen$Elm$int(
+							$author$project$Theme$Generate$Ui$to255(rgb.blue)))
+					]));
+		} else {
+			return A3(
+				$author$project$Gen$Ui$rgb,
+				$author$project$Theme$Generate$Ui$to255(rgb.red),
+				$author$project$Theme$Generate$Ui$to255(rgb.green),
+				$author$project$Theme$Generate$Ui$to255(rgb.blue));
+		}
+	});
+var $author$project$Theme$Generate$Ui$generateElmColorPalette = function (theme) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$file,
+		_List_fromArray(
+			['Theme', 'Color', 'Palette']),
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (colorInstance, list) {
+					var _v0 = theme.target;
+					if (_v0.$ === 'HTML') {
+						var _v1 = colorInstance.color;
+						if (_v1.$ === 'Color') {
+							var adjust = _v1.a;
+							var clr = _v1.b;
+							return A2(
+								$elm$core$List$cons,
+								$mdgriffith$elm_codegen$Elm$expose(
+									A2(
+										$mdgriffith$elm_codegen$Elm$declaration,
+										$author$project$Theme$toColorName(colorInstance),
+										A2($author$project$Theme$Generate$Ui$toColor, theme.target, clr))),
+								list);
+						} else {
+							return list;
+						}
+					} else {
+						var _v2 = colorInstance.color;
+						if (_v2.$ === 'Color') {
+							var adjust = _v2.a;
+							var clr = _v2.b;
+							return A2(
+								$elm$core$List$cons,
+								$mdgriffith$elm_codegen$Elm$expose(
+									A2(
+										$mdgriffith$elm_codegen$Elm$declaration,
+										$author$project$Theme$toColorName(colorInstance),
+										A2($author$project$Theme$Generate$Ui$toColor, theme.target, clr))),
+								list);
+						} else {
+							return list;
+						}
+					}
+				}),
+			_List_Nil,
+			theme.colors));
+};
+var $mdgriffith$elm_codegen$Internal$Compiler$Comment = function (a) {
+	return {$: 'Comment', a: a};
+};
+var $mdgriffith$elm_codegen$Elm$comment = function (content) {
+	return $mdgriffith$elm_codegen$Internal$Compiler$Comment('{- ' + (content + ' -}'));
+};
+var $author$project$Gen$Html$Attributes$class = function (classArg_) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$apply,
+		$mdgriffith$elm_codegen$Elm$value(
+			{
+				annotation: $elm$core$Maybe$Just(
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$function,
+						_List_fromArray(
+							[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Html']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								])))),
+				importFrom: _List_fromArray(
+					['Html', 'Attributes']),
+				name: 'class'
+			}),
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$string(classArg_)
+			]));
+};
+var $author$project$Theme$capitalize = function (str) {
+	var top = A2($elm$core$String$left, 1, str);
+	var remain = A2($elm$core$String$dropLeft, 1, str);
+	return _Utils_ap(
+		$elm$core$String$toUpper(top),
+		remain);
+};
+var $author$project$Theme$decapitalize = function (str) {
+	var top = A2($elm$core$String$left, 1, str);
+	var remain = A2($elm$core$String$dropLeft, 1, str);
+	return _Utils_ap(
+		$elm$core$String$toLower(top),
+		remain);
+};
+var $author$project$Theme$stateToCssClassName = function (state) {
+	switch (state.$) {
+		case 'Hover':
+			return 'hover';
+		case 'Active':
+			return 'active';
+		default:
+			return 'focus';
+	}
+};
+var $author$project$Theme$fullColorToCssClass = F2(
+	function (functionName, fullColorName) {
+		var state = function () {
+			var _v2 = fullColorName.state;
+			if (_v2.$ === 'Just') {
+				var s = _v2.a;
+				return $author$project$Theme$stateToCssClassName(s);
+			} else {
+				return '';
+			}
+		}();
+		var nuance = function () {
+			var _v1 = fullColorName.nuance;
+			if (_v1.$ === 'Just') {
+				var n = _v1.a;
+				return $author$project$Theme$capitalize(n);
+			} else {
+				return '';
+			}
+		}();
+		var tail = function () {
+			var _final = _Utils_ap(state, nuance);
+			return $elm$core$String$isEmpty(_final) ? '' : ('-' + _final);
+		}();
+		var base = function () {
+			var _v0 = fullColorName.alias;
+			if (_v0.$ === 'Just') {
+				var alias = _v0.a;
+				return alias;
+			} else {
+				return fullColorName.base;
+			}
+		}();
+		return functionName + ('-' + ($author$project$Theme$decapitalize(base) + tail));
+	});
+var $author$project$Gen$Ui$htmlAttribute = function (htmlAttributeArg_) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$apply,
+		$mdgriffith$elm_codegen$Elm$value(
+			{
+				annotation: $elm$core$Maybe$Just(
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$function,
+						_List_fromArray(
+							[
+								A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))
+							]),
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								])))),
+				importFrom: _List_fromArray(
+					['Ui']),
+				name: 'htmlAttribute'
+			}),
+		_List_fromArray(
+			[htmlAttributeArg_]));
+};
+var $author$project$Theme$Generate$Ui$toColorClassAttribute = F3(
+	function (theme, colorType, fullColorName) {
+		var className = theme.namespace + ('-' + A2($author$project$Theme$fullColorToCssClass, colorType, fullColorName));
+		var _v0 = theme.target;
+		if (_v0.$ === 'HTML') {
+			return $author$project$Gen$Html$Attributes$class(className);
+		} else {
+			return $author$project$Gen$Ui$htmlAttribute(
+				$author$project$Gen$Html$Attributes$class(className));
+		}
+	});
+var $author$project$Theme$stateToString = function (state) {
+	switch (state.$) {
+		case 'Hover':
+			return 'Hover';
+		case 'Active':
+			return 'Active';
+		default:
+			return 'Focus';
+	}
+};
+var $author$project$Theme$toFullColorName = F2(
+	function (functionName, fullColorName) {
+		var variant = function () {
+			var _v3 = fullColorName.variant;
+			if (_v3.$ === 'Just') {
+				var v = _v3.a;
+				return $elm$core$String$fromInt(v);
+			} else {
+				return '';
+			}
+		}();
+		var state = function () {
+			var _v2 = fullColorName.state;
+			if (_v2.$ === 'Just') {
+				var s = _v2.a;
+				return $author$project$Theme$stateToString(s);
+			} else {
+				return '';
+			}
+		}();
+		var nuance = function () {
+			var _v1 = fullColorName.nuance;
+			if (_v1.$ === 'Just') {
+				var n = _v1.a;
+				return $author$project$Theme$capitalize(n);
+			} else {
+				return '';
+			}
+		}();
+		var base = function () {
+			var _v0 = fullColorName.alias;
+			if (_v0.$ === 'Just') {
+				var alias = _v0.a;
+				return alias;
+			} else {
+				return fullColorName.base;
+			}
+		}();
+		return _Utils_ap(
+			functionName,
+			_Utils_ap(
+				$author$project$Theme$capitalize(base),
+				_Utils_ap(state, nuance)));
+	});
+var $author$project$Theme$Generate$Ui$toColorAttr = F3(
+	function (theme, colorType, fullColorName) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$declaration,
+			A2($author$project$Theme$toFullColorName, colorType, fullColorName),
+			A3($author$project$Theme$Generate$Ui$toColorClassAttribute, theme, colorType, fullColorName));
+	});
+var $author$project$Theme$toFullColorDescription = function (fullColorName) {
+	var variant = function () {
+		var _v2 = fullColorName.variant;
+		if (_v2.$ === 'Just') {
+			var v = _v2.a;
+			return $elm$core$String$fromInt(v);
+		} else {
+			return '';
+		}
+	}();
+	var state = function () {
+		var _v1 = fullColorName.state;
+		if (_v1.$ === 'Just') {
+			var s = _v1.a;
+			return $author$project$Theme$stateToString(s);
+		} else {
+			return '';
+		}
+	}();
+	var nuance = function () {
+		var _v0 = fullColorName.nuance;
+		if (_v0.$ === 'Just') {
+			var n = _v0.a;
+			return n;
+		} else {
+			return '';
+		}
+	}();
+	return _Utils_ap(fullColorName.base, variant);
+};
+var $mdgriffith$elm_codegen$Internal$Compiler$documentation = F2(
+	function (rawDoc, decl) {
+		var doc = $elm$core$String$trim(rawDoc);
+		if ($elm$core$String$isEmpty(doc)) {
+			return decl;
+		} else {
+			switch (decl.$) {
+				case 'Comment':
+					return decl;
+				case 'Block':
+					return decl;
+				case 'ModuleDocs':
+					return decl;
+				case 'Declaration':
+					var details = decl.a;
+					return $mdgriffith$elm_codegen$Internal$Compiler$Declaration(
+						_Utils_update(
+							details,
+							{
+								docs: function () {
+									var _v1 = details.docs;
+									if (_v1.$ === 'Nothing') {
+										return $elm$core$Maybe$Just(doc);
+									} else {
+										var existing = _v1.a;
+										return $elm$core$Maybe$Just(doc + ('\n\n' + existing));
+									}
+								}()
+							}));
+				default:
+					var groupDecls = decl.a;
+					return $mdgriffith$elm_codegen$Internal$Compiler$Group(
+						A2(
+							$elm$core$List$map,
+							$mdgriffith$elm_codegen$Internal$Compiler$documentation(doc),
+							groupDecls));
+			}
+		}
+	});
+var $mdgriffith$elm_codegen$Elm$withDocumentation = $mdgriffith$elm_codegen$Internal$Compiler$documentation;
+var $author$project$Theme$Generate$Ui$generateElmColorTheme = function (theme) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$file,
+		_List_fromArray(
+			['Theme', 'Color']),
+		function () {
+			var _v0 = theme.themes;
+			if (_v0.$ === 'Nothing') {
+				return _List_Nil;
+			} else {
+				var themes = _v0.a;
+				var toStyles = F2(
+					function (name, themeList) {
+						return $mdgriffith$elm_codegen$Elm$group(
+							A2(
+								$elm$core$List$map,
+								$elm$core$Tuple$second,
+								A2(
+									$elm$core$List$sortBy,
+									$elm$core$Tuple$first,
+									A2(
+										$elm$core$List$concatMap,
+										function (_v1) {
+											var fullColorName = _v1.a;
+											return _List_fromArray(
+												[
+													A2(
+													$elm$core$Tuple$pair,
+													A2($author$project$Theme$toFullColorName, name, fullColorName),
+													A2(
+														$mdgriffith$elm_codegen$Elm$withDocumentation,
+														$author$project$Theme$toFullColorDescription(fullColorName),
+														$mdgriffith$elm_codegen$Elm$expose(
+															A3($author$project$Theme$Generate$Ui$toColorAttr, theme, name, fullColorName)))),
+													function () {
+													var hoverName = _Utils_update(
+														fullColorName,
+														{
+															state: $elm$core$Maybe$Just($author$project$Theme$Hover)
+														});
+													return A2(
+														$elm$core$Tuple$pair,
+														A2($author$project$Theme$toFullColorName, name, hoverName),
+														A2(
+															$mdgriffith$elm_codegen$Elm$withDocumentation,
+															$author$project$Theme$toFullColorDescription(hoverName),
+															$mdgriffith$elm_codegen$Elm$expose(
+																A3($author$project$Theme$Generate$Ui$toColorAttr, theme, name, hoverName))));
+												}(),
+													function () {
+													var activeName = _Utils_update(
+														fullColorName,
+														{
+															state: $elm$core$Maybe$Just($author$project$Theme$Active)
+														});
+													return A2(
+														$elm$core$Tuple$pair,
+														A2($author$project$Theme$toFullColorName, name, activeName),
+														A2(
+															$mdgriffith$elm_codegen$Elm$withDocumentation,
+															$author$project$Theme$toFullColorDescription(activeName),
+															$mdgriffith$elm_codegen$Elm$expose(
+																A3($author$project$Theme$Generate$Ui$toColorAttr, theme, name, activeName))));
+												}()
+												]);
+										},
+										themeList))));
+					});
+				return _List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$comment(' Text '),
+						A2(toStyles, 'text', themes._default.text),
+						$mdgriffith$elm_codegen$Elm$comment(' Backgrounds '),
+						A2(toStyles, 'background', themes._default.background),
+						$mdgriffith$elm_codegen$Elm$comment(' Borders '),
+						A2(toStyles, 'border', themes._default.border)
+					]);
+			}
+		}());
+};
+var $author$project$Theme$Generate$Ui$addNamespace = F2(
+	function (namespace, name) {
+		return (namespace === '') ? name : (namespace + ('-' + name));
+	});
+var $author$project$Gen$Html$moduleName_ = _List_fromArray(
+	['Html']);
+var $author$project$Gen$Html$annotation_ = {
+	attribute: function (attributeArg0) {
+		return A4(
+			$mdgriffith$elm_codegen$Elm$Annotation$alias,
+			$author$project$Gen$Html$moduleName_,
+			'Attribute',
+			_List_fromArray(
+				[attributeArg0]),
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['VirtualDom']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					])));
+	},
+	html: function (htmlArg0) {
+		return A4(
+			$mdgriffith$elm_codegen$Elm$Annotation$alias,
+			$author$project$Gen$Html$moduleName_,
+			'Html',
+			_List_fromArray(
+				[htmlArg0]),
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['VirtualDom']),
+				'Node',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					])));
+	}
+};
+var $author$project$Gen$Html$call_ = {
+	a: F2(
+		function (aArg_, aArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'a'
+					}),
+				_List_fromArray(
+					[aArg_, aArg_0]));
+		}),
+	abbr: F2(
+		function (abbrArg_, abbrArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'abbr'
+					}),
+				_List_fromArray(
+					[abbrArg_, abbrArg_0]));
+		}),
+	address: F2(
+		function (addressArg_, addressArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'address'
+					}),
+				_List_fromArray(
+					[addressArg_, addressArg_0]));
+		}),
+	article: F2(
+		function (articleArg_, articleArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'article'
+					}),
+				_List_fromArray(
+					[articleArg_, articleArg_0]));
+		}),
+	aside: F2(
+		function (asideArg_, asideArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'aside'
+					}),
+				_List_fromArray(
+					[asideArg_, asideArg_0]));
+		}),
+	audio: F2(
+		function (audioArg_, audioArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'audio'
+					}),
+				_List_fromArray(
+					[audioArg_, audioArg_0]));
+		}),
+	b: F2(
+		function (bArg_, bArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'b'
+					}),
+				_List_fromArray(
+					[bArg_, bArg_0]));
+		}),
+	bdi: F2(
+		function (bdiArg_, bdiArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'bdi'
+					}),
+				_List_fromArray(
+					[bdiArg_, bdiArg_0]));
+		}),
+	bdo: F2(
+		function (bdoArg_, bdoArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'bdo'
+					}),
+				_List_fromArray(
+					[bdoArg_, bdoArg_0]));
+		}),
+	blockquote: F2(
+		function (blockquoteArg_, blockquoteArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'blockquote'
+					}),
+				_List_fromArray(
+					[blockquoteArg_, blockquoteArg_0]));
+		}),
+	br: F2(
+		function (brArg_, brArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'br'
+					}),
+				_List_fromArray(
+					[brArg_, brArg_0]));
+		}),
+	button: F2(
+		function (buttonArg_, buttonArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'button'
+					}),
+				_List_fromArray(
+					[buttonArg_, buttonArg_0]));
+		}),
+	canvas: F2(
+		function (canvasArg_, canvasArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'canvas'
+					}),
+				_List_fromArray(
+					[canvasArg_, canvasArg_0]));
+		}),
+	caption: F2(
+		function (captionArg_, captionArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'caption'
+					}),
+				_List_fromArray(
+					[captionArg_, captionArg_0]));
+		}),
+	cite: F2(
+		function (citeArg_, citeArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'cite'
+					}),
+				_List_fromArray(
+					[citeArg_, citeArg_0]));
+		}),
+	code: F2(
+		function (codeArg_, codeArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'code'
+					}),
+				_List_fromArray(
+					[codeArg_, codeArg_0]));
+		}),
+	col: F2(
+		function (colArg_, colArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'col'
+					}),
+				_List_fromArray(
+					[colArg_, colArg_0]));
+		}),
+	colgroup: F2(
+		function (colgroupArg_, colgroupArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'colgroup'
+					}),
+				_List_fromArray(
+					[colgroupArg_, colgroupArg_0]));
+		}),
+	datalist: F2(
+		function (datalistArg_, datalistArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'datalist'
+					}),
+				_List_fromArray(
+					[datalistArg_, datalistArg_0]));
+		}),
+	dd: F2(
+		function (ddArg_, ddArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'dd'
+					}),
+				_List_fromArray(
+					[ddArg_, ddArg_0]));
+		}),
+	del: F2(
+		function (delArg_, delArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'del'
+					}),
+				_List_fromArray(
+					[delArg_, delArg_0]));
+		}),
+	details: F2(
+		function (detailsArg_, detailsArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'details'
+					}),
+				_List_fromArray(
+					[detailsArg_, detailsArg_0]));
+		}),
+	dfn: F2(
+		function (dfnArg_, dfnArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'dfn'
+					}),
+				_List_fromArray(
+					[dfnArg_, dfnArg_0]));
+		}),
+	div: F2(
+		function (divArg_, divArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'div'
+					}),
+				_List_fromArray(
+					[divArg_, divArg_0]));
+		}),
+	dl: F2(
+		function (dlArg_, dlArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'dl'
+					}),
+				_List_fromArray(
+					[dlArg_, dlArg_0]));
+		}),
+	dt: F2(
+		function (dtArg_, dtArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'dt'
+					}),
+				_List_fromArray(
+					[dtArg_, dtArg_0]));
+		}),
+	em: F2(
+		function (emArg_, emArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'em'
+					}),
+				_List_fromArray(
+					[emArg_, emArg_0]));
+		}),
+	embed: F2(
+		function (embedArg_, embedArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'embed'
+					}),
+				_List_fromArray(
+					[embedArg_, embedArg_0]));
+		}),
+	fieldset: F2(
+		function (fieldsetArg_, fieldsetArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'fieldset'
+					}),
+				_List_fromArray(
+					[fieldsetArg_, fieldsetArg_0]));
+		}),
+	figcaption: F2(
+		function (figcaptionArg_, figcaptionArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'figcaption'
+					}),
+				_List_fromArray(
+					[figcaptionArg_, figcaptionArg_0]));
+		}),
+	figure: F2(
+		function (figureArg_, figureArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'figure'
+					}),
+				_List_fromArray(
+					[figureArg_, figureArg_0]));
+		}),
+	footer: F2(
+		function (footerArg_, footerArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'footer'
+					}),
+				_List_fromArray(
+					[footerArg_, footerArg_0]));
+		}),
+	form: F2(
+		function (formArg_, formArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'form'
+					}),
+				_List_fromArray(
+					[formArg_, formArg_0]));
+		}),
+	h1: F2(
+		function (h1Arg_, h1Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'h1'
+					}),
+				_List_fromArray(
+					[h1Arg_, h1Arg_0]));
+		}),
+	h2: F2(
+		function (h2Arg_, h2Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'h2'
+					}),
+				_List_fromArray(
+					[h2Arg_, h2Arg_0]));
+		}),
+	h3: F2(
+		function (h3Arg_, h3Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'h3'
+					}),
+				_List_fromArray(
+					[h3Arg_, h3Arg_0]));
+		}),
+	h4: F2(
+		function (h4Arg_, h4Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'h4'
+					}),
+				_List_fromArray(
+					[h4Arg_, h4Arg_0]));
+		}),
+	h5: F2(
+		function (h5Arg_, h5Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'h5'
+					}),
+				_List_fromArray(
+					[h5Arg_, h5Arg_0]));
+		}),
+	h6: F2(
+		function (h6Arg_, h6Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'h6'
+					}),
+				_List_fromArray(
+					[h6Arg_, h6Arg_0]));
+		}),
+	header: F2(
+		function (headerArg_, headerArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'header'
+					}),
+				_List_fromArray(
+					[headerArg_, headerArg_0]));
+		}),
+	hr: F2(
+		function (hrArg_, hrArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'hr'
+					}),
+				_List_fromArray(
+					[hrArg_, hrArg_0]));
+		}),
+	i: F2(
+		function (iArg_, iArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'i'
+					}),
+				_List_fromArray(
+					[iArg_, iArg_0]));
+		}),
+	iframe: F2(
+		function (iframeArg_, iframeArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'iframe'
+					}),
+				_List_fromArray(
+					[iframeArg_, iframeArg_0]));
+		}),
+	img: F2(
+		function (imgArg_, imgArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'img'
+					}),
+				_List_fromArray(
+					[imgArg_, imgArg_0]));
+		}),
+	input: F2(
+		function (inputArg_, inputArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'input'
+					}),
+				_List_fromArray(
+					[inputArg_, inputArg_0]));
+		}),
+	ins: F2(
+		function (insArg_, insArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'ins'
+					}),
+				_List_fromArray(
+					[insArg_, insArg_0]));
+		}),
+	kbd: F2(
+		function (kbdArg_, kbdArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'kbd'
+					}),
+				_List_fromArray(
+					[kbdArg_, kbdArg_0]));
+		}),
+	label: F2(
+		function (labelArg_, labelArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'label'
+					}),
+				_List_fromArray(
+					[labelArg_, labelArg_0]));
+		}),
+	legend: F2(
+		function (legendArg_, legendArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'legend'
+					}),
+				_List_fromArray(
+					[legendArg_, legendArg_0]));
+		}),
+	li: F2(
+		function (liArg_, liArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'li'
+					}),
+				_List_fromArray(
+					[liArg_, liArg_0]));
+		}),
+	main_: F2(
+		function (main_Arg_, main_Arg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'main_'
+					}),
+				_List_fromArray(
+					[main_Arg_, main_Arg_0]));
+		}),
+	map: F2(
+		function (mapArg_, mapArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_codegen$Elm$Annotation$function,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]),
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Html']),
+										'Html',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'map'
+					}),
+				_List_fromArray(
+					[mapArg_, mapArg_0]));
+		}),
+	mark: F2(
+		function (markArg_, markArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'mark'
+					}),
+				_List_fromArray(
+					[markArg_, markArg_0]));
+		}),
+	math: F2(
+		function (mathArg_, mathArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'math'
+					}),
+				_List_fromArray(
+					[mathArg_, mathArg_0]));
+		}),
+	menu: F2(
+		function (menuArg_, menuArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'menu'
+					}),
+				_List_fromArray(
+					[menuArg_, menuArg_0]));
+		}),
+	menuitem: F2(
+		function (menuitemArg_, menuitemArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'menuitem'
+					}),
+				_List_fromArray(
+					[menuitemArg_, menuitemArg_0]));
+		}),
+	meter: F2(
+		function (meterArg_, meterArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'meter'
+					}),
+				_List_fromArray(
+					[meterArg_, meterArg_0]));
+		}),
+	nav: F2(
+		function (navArg_, navArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'nav'
+					}),
+				_List_fromArray(
+					[navArg_, navArg_0]));
+		}),
+	node: F3(
+		function (nodeArg_, nodeArg_0, nodeArg_1) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$string,
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'node'
+					}),
+				_List_fromArray(
+					[nodeArg_, nodeArg_0, nodeArg_1]));
+		}),
+	object: F2(
+		function (objectArg_, objectArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'object'
+					}),
+				_List_fromArray(
+					[objectArg_, objectArg_0]));
+		}),
+	ol: F2(
+		function (olArg_, olArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'ol'
+					}),
+				_List_fromArray(
+					[olArg_, olArg_0]));
+		}),
+	optgroup: F2(
+		function (optgroupArg_, optgroupArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'optgroup'
+					}),
+				_List_fromArray(
+					[optgroupArg_, optgroupArg_0]));
+		}),
+	option: F2(
+		function (optionArg_, optionArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'option'
+					}),
+				_List_fromArray(
+					[optionArg_, optionArg_0]));
+		}),
+	output: F2(
+		function (outputArg_, outputArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'output'
+					}),
+				_List_fromArray(
+					[outputArg_, outputArg_0]));
+		}),
+	p: F2(
+		function (pArg_, pArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'p'
+					}),
+				_List_fromArray(
+					[pArg_, pArg_0]));
+		}),
+	param: F2(
+		function (paramArg_, paramArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'param'
+					}),
+				_List_fromArray(
+					[paramArg_, paramArg_0]));
+		}),
+	pre: F2(
+		function (preArg_, preArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'pre'
+					}),
+				_List_fromArray(
+					[preArg_, preArg_0]));
+		}),
+	progress: F2(
+		function (progressArg_, progressArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'progress'
+					}),
+				_List_fromArray(
+					[progressArg_, progressArg_0]));
+		}),
+	q: F2(
+		function (qArg_, qArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'q'
+					}),
+				_List_fromArray(
+					[qArg_, qArg_0]));
+		}),
+	rp: F2(
+		function (rpArg_, rpArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'rp'
+					}),
+				_List_fromArray(
+					[rpArg_, rpArg_0]));
+		}),
+	rt: F2(
+		function (rtArg_, rtArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'rt'
+					}),
+				_List_fromArray(
+					[rtArg_, rtArg_0]));
+		}),
+	ruby: F2(
+		function (rubyArg_, rubyArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'ruby'
+					}),
+				_List_fromArray(
+					[rubyArg_, rubyArg_0]));
+		}),
+	s: F2(
+		function (sArg_, sArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 's'
+					}),
+				_List_fromArray(
+					[sArg_, sArg_0]));
+		}),
+	samp: F2(
+		function (sampArg_, sampArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'samp'
+					}),
+				_List_fromArray(
+					[sampArg_, sampArg_0]));
+		}),
+	section: F2(
+		function (sectionArg_, sectionArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'section'
+					}),
+				_List_fromArray(
+					[sectionArg_, sectionArg_0]));
+		}),
+	select: F2(
+		function (selectArg_, selectArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'select'
+					}),
+				_List_fromArray(
+					[selectArg_, selectArg_0]));
+		}),
+	small: F2(
+		function (smallArg_, smallArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'small'
+					}),
+				_List_fromArray(
+					[smallArg_, smallArg_0]));
+		}),
+	source: F2(
+		function (sourceArg_, sourceArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'source'
+					}),
+				_List_fromArray(
+					[sourceArg_, sourceArg_0]));
+		}),
+	span: F2(
+		function (spanArg_, spanArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'span'
+					}),
+				_List_fromArray(
+					[spanArg_, spanArg_0]));
+		}),
+	strong: F2(
+		function (strongArg_, strongArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'strong'
+					}),
+				_List_fromArray(
+					[strongArg_, strongArg_0]));
+		}),
+	sub: F2(
+		function (subArg_, subArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'sub'
+					}),
+				_List_fromArray(
+					[subArg_, subArg_0]));
+		}),
+	summary: F2(
+		function (summaryArg_, summaryArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'summary'
+					}),
+				_List_fromArray(
+					[summaryArg_, summaryArg_0]));
+		}),
+	sup: F2(
+		function (supArg_, supArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'sup'
+					}),
+				_List_fromArray(
+					[supArg_, supArg_0]));
+		}),
+	table: F2(
+		function (tableArg_, tableArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'table'
+					}),
+				_List_fromArray(
+					[tableArg_, tableArg_0]));
+		}),
+	tbody: F2(
+		function (tbodyArg_, tbodyArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'tbody'
+					}),
+				_List_fromArray(
+					[tbodyArg_, tbodyArg_0]));
+		}),
+	td: F2(
+		function (tdArg_, tdArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'td'
+					}),
+				_List_fromArray(
+					[tdArg_, tdArg_0]));
+		}),
+	text: function (textArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Html',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html']),
+					name: 'text'
+				}),
+			_List_fromArray(
+				[textArg_]));
+	},
+	textarea: F2(
+		function (textareaArg_, textareaArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'textarea'
+					}),
+				_List_fromArray(
+					[textareaArg_, textareaArg_0]));
+		}),
+	tfoot: F2(
+		function (tfootArg_, tfootArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'tfoot'
+					}),
+				_List_fromArray(
+					[tfootArg_, tfootArg_0]));
+		}),
+	th: F2(
+		function (thArg_, thArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'th'
+					}),
+				_List_fromArray(
+					[thArg_, thArg_0]));
+		}),
+	thead: F2(
+		function (theadArg_, theadArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'thead'
+					}),
+				_List_fromArray(
+					[theadArg_, theadArg_0]));
+		}),
+	time: F2(
+		function (timeArg_, timeArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'time'
+					}),
+				_List_fromArray(
+					[timeArg_, timeArg_0]));
+		}),
+	tr: F2(
+		function (trArg_, trArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'tr'
+					}),
+				_List_fromArray(
+					[trArg_, trArg_0]));
+		}),
+	track: F2(
+		function (trackArg_, trackArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'track'
+					}),
+				_List_fromArray(
+					[trackArg_, trackArg_0]));
+		}),
+	u: F2(
+		function (uArg_, uArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'u'
+					}),
+				_List_fromArray(
+					[uArg_, uArg_0]));
+		}),
+	ul: F2(
+		function (ulArg_, ulArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'ul'
+					}),
+				_List_fromArray(
+					[ulArg_, ulArg_0]));
+		}),
+	_var: F2(
+		function (varArg_, varArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'var'
+					}),
+				_List_fromArray(
+					[varArg_, varArg_0]));
+		}),
+	video: F2(
+		function (videoArg_, videoArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'video'
+					}),
+				_List_fromArray(
+					[videoArg_, videoArg_0]));
+		}),
+	wbr: F2(
+		function (wbrArg_, wbrArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Html']),
+											'Html',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html']),
+						name: 'wbr'
+					}),
+				_List_fromArray(
+					[wbrArg_, wbrArg_0]));
+		})
+};
+var $author$project$Gen$Ui$call_ = {
+	above: function (aboveArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'above'
+				}),
+			_List_fromArray(
+				[aboveArg_]));
+	},
+	attrIf: F2(
+		function (attrIfArg_, attrIfArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$bool,
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Attribute',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'attrIf'
+					}),
+				_List_fromArray(
+					[attrIfArg_, attrIfArg_0]));
+		}),
+	background: function (backgroundArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Color',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'background'
+				}),
+			_List_fromArray(
+				[backgroundArg_]));
+	},
+	backgroundGradient: function (backgroundGradientArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$list(
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Gradient',
+										_List_Nil))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'backgroundGradient'
+				}),
+			_List_fromArray(
+				[backgroundGradientArg_]));
+	},
+	behindContent: function (behindContentArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'behindContent'
+				}),
+			_List_fromArray(
+				[behindContentArg_]));
+	},
+	below: function (belowArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'below'
+				}),
+			_List_fromArray(
+				[belowArg_]));
+	},
+	border: function (borderArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'border'
+				}),
+			_List_fromArray(
+				[borderArg_]));
+	},
+	borderColor: function (borderColorArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Color',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'borderColor'
+				}),
+			_List_fromArray(
+				[borderColorArg_]));
+	},
+	borderGradient: function (borderGradientArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$record(
+									_List_fromArray(
+										[
+											_Utils_Tuple2('width', $mdgriffith$elm_codegen$Elm$Annotation$int),
+											_Utils_Tuple2(
+											'gradient',
+											A3(
+												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+												_List_fromArray(
+													['Ui']),
+												'Gradient',
+												_List_Nil)),
+											_Utils_Tuple2(
+											'background',
+											A3(
+												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+												_List_fromArray(
+													['Ui']),
+												'Gradient',
+												_List_Nil))
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'borderGradient'
+				}),
+			_List_fromArray(
+				[borderGradientArg_]));
+	},
+	borderWith: function (borderWithArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Edges',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'borderWith'
+				}),
+			_List_fromArray(
+				[borderWithArg_]));
+	},
+	clipped: F2(
+		function (clippedArg_, clippedArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'clipped'
+					}),
+				_List_fromArray(
+					[clippedArg_, clippedArg_0]));
+		}),
+	column: F2(
+		function (columnArg_, columnArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Element',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'column'
+					}),
+				_List_fromArray(
+					[columnArg_, columnArg_0]));
+		}),
+	down: function (downArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Position',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'down'
+				}),
+			_List_fromArray(
+				[downArg_]));
+	},
+	download: function (downloadArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'download'
+				}),
+			_List_fromArray(
+				[downloadArg_]));
+	},
+	downloadAs: function (downloadAsArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$record(
+									_List_fromArray(
+										[
+											_Utils_Tuple2('url', $mdgriffith$elm_codegen$Elm$Annotation$string),
+											_Utils_Tuple2('filename', $mdgriffith$elm_codegen$Elm$Annotation$string)
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'downloadAs'
+				}),
+			_List_fromArray(
+				[downloadAsArg_]));
+	},
+	el: F2(
+		function (elArg_, elArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'el'
+					}),
+				_List_fromArray(
+					[elArg_, elArg_0]));
+		}),
+	embed: F2(
+		function (embedArg_, embedArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'embed'
+					}),
+				_List_fromArray(
+					[embedArg_, embedArg_0]));
+		}),
+	explain: function (explainArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Todo',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'explain'
+				}),
+			_List_fromArray(
+				[explainArg_]));
+	},
+	height: function (heightArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Length',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'height'
+				}),
+			_List_fromArray(
+				[heightArg_]));
+	},
+	heightMax: function (heightMaxArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'heightMax'
+				}),
+			_List_fromArray(
+				[heightMaxArg_]));
+	},
+	heightMin: function (heightMinArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'heightMin'
+				}),
+			_List_fromArray(
+				[heightMinArg_]));
+	},
+	html: function (htmlArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Element',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'html'
+				}),
+			_List_fromArray(
+				[htmlArg_]));
+	},
+	htmlAttribute: function (htmlAttributeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'htmlAttribute'
+				}),
+			_List_fromArray(
+				[htmlAttributeArg_]));
+	},
+	id: function (idArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'id'
+				}),
+			_List_fromArray(
+				[idArg_]));
+	},
+	image: F2(
+		function (imageArg_, imageArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$record(
+										_List_fromArray(
+											[
+												_Utils_Tuple2('source', $mdgriffith$elm_codegen$Elm$Annotation$string),
+												_Utils_Tuple2('description', $mdgriffith$elm_codegen$Elm$Annotation$string)
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'image'
+					}),
+				_List_fromArray(
+					[imageArg_, imageArg_0]));
+		}),
+	imageWithFallback: F2(
+		function (imageWithFallbackArg_, imageWithFallbackArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$record(
+										_List_fromArray(
+											[
+												_Utils_Tuple2('source', $mdgriffith$elm_codegen$Elm$Annotation$string),
+												_Utils_Tuple2(
+												'fallback',
+												A3(
+													$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+													_List_fromArray(
+														['Ui']),
+													'Element',
+													_List_fromArray(
+														[
+															$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+														])))
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'imageWithFallback'
+					}),
+				_List_fromArray(
+					[imageWithFallbackArg_, imageWithFallbackArg_0]));
+		}),
+	inFront: function (inFrontArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'inFront'
+				}),
+			_List_fromArray(
+				[inFrontArg_]));
+	},
+	layout: F2(
+		function (layoutArg_, layoutArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Html',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'layout'
+					}),
+				_List_fromArray(
+					[layoutArg_, layoutArg_0]));
+		}),
+	left: function (leftArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Position',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'left'
+				}),
+			_List_fromArray(
+				[leftArg_]));
+	},
+	link: function (linkArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'link'
+				}),
+			_List_fromArray(
+				[linkArg_]));
+	},
+	linkNewTab: function (linkNewTabArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'linkNewTab'
+				}),
+			_List_fromArray(
+				[linkNewTabArg_]));
+	},
+	map: F2(
+		function (mapArg_, mapArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_codegen$Elm$Annotation$function,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]),
+										$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'map'
+					}),
+				_List_fromArray(
+					[mapArg_, mapArg_0]));
+		}),
+	mapAttribute: F2(
+		function (mapAttributeArg_, mapAttributeArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_codegen$Elm$Annotation$function,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]),
+										$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Attribute',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'mapAttribute'
+					}),
+				_List_fromArray(
+					[mapAttributeArg_, mapAttributeArg_0]));
+		}),
+	move: function (moveArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Position',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'move'
+				}),
+			_List_fromArray(
+				[moveArg_]));
+	},
+	node: F3(
+		function (nodeArg_, nodeArg_0, nodeArg_1) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$string,
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'node'
+					}),
+				_List_fromArray(
+					[nodeArg_, nodeArg_0, nodeArg_1]));
+		}),
+	onLeft: function (onLeftArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'onLeft'
+				}),
+			_List_fromArray(
+				[onLeftArg_]));
+	},
+	onRight: function (onRightArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'onRight'
+				}),
+			_List_fromArray(
+				[onRightArg_]));
+	},
+	opacity: function (opacityArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'opacity'
+				}),
+			_List_fromArray(
+				[opacityArg_]));
+	},
+	padding: function (paddingArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'padding'
+				}),
+			_List_fromArray(
+				[paddingArg_]));
+	},
+	paddingBottom: function (paddingBottomArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'paddingBottom'
+				}),
+			_List_fromArray(
+				[paddingBottomArg_]));
+	},
+	paddingLeft: function (paddingLeftArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'paddingLeft'
+				}),
+			_List_fromArray(
+				[paddingLeftArg_]));
+	},
+	paddingRight: function (paddingRightArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'paddingRight'
+				}),
+			_List_fromArray(
+				[paddingRightArg_]));
+	},
+	paddingTop: function (paddingTopArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'paddingTop'
+				}),
+			_List_fromArray(
+				[paddingTopArg_]));
+	},
+	paddingWith: function (paddingWithArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Edges',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'paddingWith'
+				}),
+			_List_fromArray(
+				[paddingWithArg_]));
+	},
+	paddingXY: F2(
+		function (paddingXYArg_, paddingXYArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'paddingXY'
+					}),
+				_List_fromArray(
+					[paddingXYArg_, paddingXYArg_0]));
+		}),
+	palette: function (paletteArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$record(
+									_List_fromArray(
+										[
+											_Utils_Tuple2(
+											'background',
+											A3(
+												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+												_List_fromArray(
+													['Ui']),
+												'Color',
+												_List_Nil)),
+											_Utils_Tuple2(
+											'border',
+											A3(
+												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+												_List_fromArray(
+													['Ui']),
+												'Color',
+												_List_Nil)),
+											_Utils_Tuple2(
+											'font',
+											A3(
+												$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+												_List_fromArray(
+													['Ui']),
+												'Color',
+												_List_Nil))
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'palette'
+				}),
+			_List_fromArray(
+				[paletteArg_]));
+	},
+	portion: function (portionArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Length',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'portion'
+				}),
+			_List_fromArray(
+				[portionArg_]));
+	},
+	px: function (pxArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Length',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'px'
+				}),
+			_List_fromArray(
+				[pxArg_]));
+	},
+	radians: function (radiansArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Angle',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'radians'
+				}),
+			_List_fromArray(
+				[radiansArg_]));
+	},
+	rgb: F3(
+		function (rgbArg_, rgbArg_0, rgbArg_1) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Color',
+									_List_Nil))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'rgb'
+					}),
+				_List_fromArray(
+					[rgbArg_, rgbArg_0, rgbArg_1]));
+		}),
+	rgba: F4(
+		function (rgbaArg_, rgbaArg_0, rgbaArg_1, rgbaArg_2) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$float]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Color',
+									_List_Nil))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'rgba'
+					}),
+				_List_fromArray(
+					[rgbaArg_, rgbaArg_0, rgbaArg_1, rgbaArg_2]));
+		}),
+	right: function (rightArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Position',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'right'
+				}),
+			_List_fromArray(
+				[rightArg_]));
+	},
+	rotate: function (rotateArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Angle',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'rotate'
+				}),
+			_List_fromArray(
+				[rotateArg_]));
+	},
+	rounded: function (roundedArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'rounded'
+				}),
+			_List_fromArray(
+				[roundedArg_]));
+	},
+	roundedWith: function (roundedWithArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$record(
+									_List_fromArray(
+										[
+											_Utils_Tuple2('topLeft', $mdgriffith$elm_codegen$Elm$Annotation$int),
+											_Utils_Tuple2('topRight', $mdgriffith$elm_codegen$Elm$Annotation$int),
+											_Utils_Tuple2('bottomLeft', $mdgriffith$elm_codegen$Elm$Annotation$int),
+											_Utils_Tuple2('bottomRight', $mdgriffith$elm_codegen$Elm$Annotation$int)
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'roundedWith'
+				}),
+			_List_fromArray(
+				[roundedWithArg_]));
+	},
+	row: F2(
+		function (rowArg_, rowArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Element',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												])))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'row'
+					}),
+				_List_fromArray(
+					[rowArg_, rowArg_0]));
+		}),
+	scale: function (scaleArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'scale'
+				}),
+			_List_fromArray(
+				[scaleArg_]));
+	},
+	scrollable: F2(
+		function (scrollableArg_, scrollableArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_fromArray(
+												['Ui']),
+											'Attribute',
+											_List_fromArray(
+												[
+													$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+												]))),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Element',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Ui']),
+						name: 'scrollable'
+					}),
+				_List_fromArray(
+					[scrollableArg_, scrollableArg_0]));
+		}),
+	spacing: function (spacingArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'spacing'
+				}),
+			_List_fromArray(
+				[spacingArg_]));
+	},
+	spacingWith: function (spacingWithArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$record(
+									_List_fromArray(
+										[
+											_Utils_Tuple2('horizontal', $mdgriffith$elm_codegen$Elm$Annotation$int),
+											_Utils_Tuple2('vertical', $mdgriffith$elm_codegen$Elm$Annotation$int)
+										]))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'spacingWith'
+				}),
+			_List_fromArray(
+				[spacingWithArg_]));
+	},
+	text: function (textArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Element',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'text'
+				}),
+			_List_fromArray(
+				[textArg_]));
+	},
+	turns: function (turnsArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Angle',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'turns'
+				}),
+			_List_fromArray(
+				[turnsArg_]));
+	},
+	up: function (upArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Position',
+								_List_Nil))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'up'
+				}),
+			_List_fromArray(
+				[upArg_]));
+	},
+	width: function (widthArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Ui']),
+									'Length',
+									_List_Nil)
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'width'
+				}),
+			_List_fromArray(
+				[widthArg_]));
+	},
+	widthMax: function (widthMaxArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'widthMax'
+				}),
+			_List_fromArray(
+				[widthMaxArg_]));
+	},
+	widthMin: function (widthMinArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Ui']),
+					name: 'widthMin'
+				}),
+			_List_fromArray(
+				[widthMinArg_]));
+	}
+};
+var $author$project$Theme$Generate$Ui$capitalize = function (str) {
+	var top = A2($elm$core$String$left, 1, str);
+	var remain = A2($elm$core$String$dropLeft, 1, str);
+	return _Utils_ap(
+		$elm$core$String$toUpper(top),
+		remain);
+};
+var $author$project$Theme$Generate$Ui$classAttr = F2(
+	function (target, name) {
+		if (target.$ === 'HTML') {
+			return $author$project$Gen$Html$Attributes$class(name);
+		} else {
+			return $author$project$Gen$Ui$htmlAttribute(
+				$author$project$Gen$Html$Attributes$class(name));
+		}
+	});
+var $author$project$Gen$Ui$Accessibility$h1 = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Ui']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					]))),
+		importFrom: _List_fromArray(
+			['Ui', 'Accessibility']),
+		name: 'h1'
+	});
+var $author$project$Gen$Ui$Accessibility$h2 = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Ui']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					]))),
+		importFrom: _List_fromArray(
+			['Ui', 'Accessibility']),
+		name: 'h2'
+	});
+var $author$project$Gen$Ui$Accessibility$h3 = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Ui']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					]))),
+		importFrom: _List_fromArray(
+			['Ui', 'Accessibility']),
+		name: 'h3'
+	});
+var $author$project$Gen$Ui$Accessibility$h4 = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Ui']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					]))),
+		importFrom: _List_fromArray(
+			['Ui', 'Accessibility']),
+		name: 'h4'
+	});
+var $author$project$Gen$Ui$Accessibility$h5 = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Ui']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					]))),
+		importFrom: _List_fromArray(
+			['Ui', 'Accessibility']),
+		name: 'h5'
+	});
+var $author$project$Gen$Ui$Accessibility$h6 = $mdgriffith$elm_codegen$Elm$value(
+	{
+		annotation: $elm$core$Maybe$Just(
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Ui']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					]))),
+		importFrom: _List_fromArray(
+			['Ui', 'Accessibility']),
+		name: 'h6'
+	});
+var $author$project$Theme$Generate$Ui$getHeaderAttr = function (cls) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (val, found) {
+				if (found.$ === 'Nothing') {
+					switch (val) {
+						case 'h1':
+							return $elm$core$Maybe$Just($author$project$Gen$Ui$Accessibility$h1);
+						case 'h2':
+							return $elm$core$Maybe$Just($author$project$Gen$Ui$Accessibility$h2);
+						case 'h3':
+							return $elm$core$Maybe$Just($author$project$Gen$Ui$Accessibility$h3);
+						case 'h4':
+							return $elm$core$Maybe$Just($author$project$Gen$Ui$Accessibility$h4);
+						case 'h5':
+							return $elm$core$Maybe$Just($author$project$Gen$Ui$Accessibility$h5);
+						case 'h6':
+							return $elm$core$Maybe$Just($author$project$Gen$Ui$Accessibility$h6);
+						default:
+							return $elm$core$Maybe$Nothing;
+					}
+				} else {
+					return found;
+				}
+			}),
+		$elm$core$Maybe$Nothing,
+		A2($elm$core$String$split, '-', cls));
+};
+var $author$project$Theme$Generate$Ui$toHtmlHeaderNode = function (typeface) {
+	var _v0 = $author$project$Theme$nameToString(typeface.name);
+	switch (_v0) {
+		case 'h1':
+			return $author$project$Gen$Html$call_.h1;
+		case 'h2':
+			return $author$project$Gen$Html$call_.h2;
+		case 'h3':
+			return $author$project$Gen$Html$call_.h3;
+		case 'h4':
+			return $author$project$Gen$Html$call_.h4;
+		case 'h5':
+			return $author$project$Gen$Html$call_.h5;
+		case 'h6':
+			return $author$project$Gen$Html$call_.h6;
+		default:
+			return $author$project$Gen$Html$call_.div;
+	}
+};
+var $author$project$Theme$weightNameToString = function (weightName) {
+	switch (weightName.$) {
+		case 'Default':
+			return '';
+		case 'Regular':
+			return '-reg';
+		case 'Bold':
+			return '-bold';
+		default:
+			return '-light';
+	}
+};
+var $author$project$Theme$Generate$Ui$typographyClassName = F2(
+	function (name, weight) {
+		return 'font-' + ($author$project$Theme$nameToString(name) + $author$project$Theme$weightNameToString(weight));
+	});
+var $author$project$Theme$weightNameField = function (weightName) {
+	switch (weightName.$) {
+		case 'Default':
+			return 'default';
+		case 'Regular':
+			return 'regular';
+		case 'Bold':
+			return 'bold';
+		default:
+			return 'light';
+	}
+};
+var $author$project$Theme$Generate$Ui$generateTextElements = function (theme) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$file,
+		_List_fromArray(
+			['Theme', 'Text']),
+		A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (name, fields, typographyRecord) {
+					if (!fields.b) {
+						return typographyRecord;
+					} else {
+						if (!fields.b.b) {
+							var single = fields.a;
+							return A2(
+								$elm$core$List$cons,
+								$mdgriffith$elm_codegen$Elm$expose(
+									A2($mdgriffith$elm_codegen$Elm$declaration, name, single.b)),
+								typographyRecord);
+						} else {
+							var many = fields;
+							var _new = $mdgriffith$elm_codegen$Elm$group(
+								A2(
+									$elm$core$List$map,
+									function (_v5) {
+										var innerName = _v5.a;
+										var body = _v5.b;
+										return $mdgriffith$elm_codegen$Elm$expose(
+											A2(
+												$mdgriffith$elm_codegen$Elm$declaration,
+												_Utils_ap(
+													name,
+													$author$project$Theme$Generate$Ui$capitalize(innerName)),
+												body));
+									},
+									many));
+							return A2($elm$core$List$cons, _new, typographyRecord);
+						}
+					}
+				}),
+			_List_Nil,
+			A3(
+				$elm$core$List$foldr,
+				F2(
+					function (typeface, gathered) {
+						var innerName = $author$project$Theme$weightNameField(typeface.item.weight.a);
+						var fullClassName = A2(
+							$author$project$Theme$Generate$Ui$addNamespace,
+							theme.namespace,
+							A2($author$project$Theme$Generate$Ui$typographyClassName, typeface.name, typeface.item.weight.a));
+						var fullClassAttr = A2($author$project$Theme$Generate$Ui$classAttr, theme.target, fullClassName);
+						var basename = $author$project$Theme$nameToString(typeface.name);
+						var addAcccessibilityAttrs = function (attrs) {
+							var _v3 = $author$project$Theme$Generate$Ui$getHeaderAttr(fullClassName);
+							if (_v3.$ === 'Nothing') {
+								return attrs;
+							} else {
+								var headerAttr = _v3.a;
+								return A2($mdgriffith$elm_codegen$Elm$Op$cons, headerAttr, attrs);
+							}
+						};
+						var elFn = function () {
+							var _v2 = theme.target;
+							if (_v2.$ === 'HTML') {
+								return A3(
+									$mdgriffith$elm_codegen$Elm$fn2,
+									A2(
+										$mdgriffith$elm_codegen$Elm$Arg$varWith,
+										'attrs',
+										$mdgriffith$elm_codegen$Elm$Annotation$list(
+											$author$project$Gen$Html$annotation_.attribute(
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')))),
+									A2($mdgriffith$elm_codegen$Elm$Arg$varWith, 'child', $mdgriffith$elm_codegen$Elm$Annotation$string),
+									F2(
+										function (attrs, child) {
+											return A3(
+												$author$project$Theme$Generate$Ui$toHtmlHeaderNode,
+												typeface,
+												A2($mdgriffith$elm_codegen$Elm$Op$cons, fullClassAttr, attrs),
+												$mdgriffith$elm_codegen$Elm$list(
+													_List_fromArray(
+														[
+															$author$project$Gen$Html$call_.text(child)
+														])));
+										}));
+							} else {
+								return A3(
+									$mdgriffith$elm_codegen$Elm$fn2,
+									$mdgriffith$elm_codegen$Elm$Arg$var('attrs'),
+									A2($mdgriffith$elm_codegen$Elm$Arg$varWith, 'child', $mdgriffith$elm_codegen$Elm$Annotation$string),
+									F2(
+										function (attrs, child) {
+											return A2(
+												$author$project$Gen$Ui$call_.el,
+												addAcccessibilityAttrs(
+													A2($mdgriffith$elm_codegen$Elm$Op$cons, fullClassAttr, attrs)),
+												$author$project$Gen$Ui$call_.text(child));
+										}));
+							}
+						}();
+						var _v0 = typeface.item.weight.a;
+						if (_v0.$ === 'Default') {
+							return A3(
+								$elm$core$Dict$insert,
+								basename,
+								_List_fromArray(
+									[
+										_Utils_Tuple2(innerName, elFn)
+									]),
+								gathered);
+						} else {
+							return A3(
+								$elm$core$Dict$update,
+								basename,
+								function (maybe) {
+									if (maybe.$ === 'Just') {
+										var fields = maybe.a;
+										return $elm$core$Maybe$Just(
+											A2(
+												$elm$core$List$cons,
+												_Utils_Tuple2(innerName, elFn),
+												fields));
+									} else {
+										return $elm$core$Maybe$Just(
+											_List_fromArray(
+												[
+													_Utils_Tuple2(innerName, elFn)
+												]));
+									}
+								},
+								gathered);
+						}
+					}),
+				$elm$core$Dict$empty,
+				theme.typography)));
+};
+var $author$project$Theme$Generate$Ui$All = {$: 'All'};
+var $author$project$Theme$Generate$Ui$Bottom = {$: 'Bottom'};
+var $author$project$Theme$Generate$Ui$Left = {$: 'Left'};
+var $author$project$Theme$Generate$Ui$Right = {$: 'Right'};
+var $author$project$Theme$Generate$Ui$Top = {$: 'Top'};
+var $author$project$Gen$Ui$moduleName_ = _List_fromArray(
+	['Ui']);
+var $author$project$Gen$Ui$annotation_ = {
+	angle: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Ui$moduleName_,
+		'Angle',
+		_List_Nil,
+		A3(
+			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+			_List_fromArray(
+				['Internal', 'Style2']),
+			'Angle',
+			_List_Nil)),
+	attribute: function (attributeArg0) {
+		return A4(
+			$mdgriffith$elm_codegen$Elm$Annotation$alias,
+			$author$project$Gen$Ui$moduleName_,
+			'Attribute',
+			_List_fromArray(
+				[attributeArg0]),
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Internal', 'Model2']),
+				'Attribute',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					])));
+	},
+	color: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Ui$moduleName_,
+		'Color',
+		_List_Nil,
+		A3(
+			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+			_List_fromArray(
+				['Internal', 'Style2']),
+			'Color',
+			_List_Nil)),
+	edges: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Ui$moduleName_,
+		'Edges',
+		_List_Nil,
+		$mdgriffith$elm_codegen$Elm$Annotation$record(
+			_List_fromArray(
+				[
+					_Utils_Tuple2('top', $mdgriffith$elm_codegen$Elm$Annotation$int),
+					_Utils_Tuple2('right', $mdgriffith$elm_codegen$Elm$Annotation$int),
+					_Utils_Tuple2('bottom', $mdgriffith$elm_codegen$Elm$Annotation$int),
+					_Utils_Tuple2('left', $mdgriffith$elm_codegen$Elm$Annotation$int)
+				]))),
+	element: function (elementArg0) {
+		return A4(
+			$mdgriffith$elm_codegen$Elm$Annotation$alias,
+			$author$project$Gen$Ui$moduleName_,
+			'Element',
+			_List_fromArray(
+				[elementArg0]),
+			A3(
+				$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+				_List_fromArray(
+					['Internal', 'Model2']),
+				'Element',
+				_List_fromArray(
+					[
+						$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+					])));
+	},
+	gradient: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Ui$moduleName_,
+		'Gradient',
+		_List_Nil,
+		A3(
+			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+			_List_fromArray(
+				['Internal', 'Style2']),
+			'Gradient',
+			_List_Nil)),
+	length: A3(
+		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+		_List_fromArray(
+			['Ui']),
+		'Length',
+		_List_Nil),
+	option: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Ui$moduleName_,
+		'Option',
+		_List_Nil,
+		A3(
+			$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+			_List_fromArray(
+				['Internal', 'Model2']),
+			'Option',
+			_List_Nil)),
+	position: A4(
+		$mdgriffith$elm_codegen$Elm$Annotation$alias,
+		$author$project$Gen$Ui$moduleName_,
+		'Position',
+		_List_Nil,
+		$mdgriffith$elm_codegen$Elm$Annotation$record(
+			_List_fromArray(
+				[
+					_Utils_Tuple2('x', $mdgriffith$elm_codegen$Elm$Annotation$int),
+					_Utils_Tuple2('y', $mdgriffith$elm_codegen$Elm$Annotation$int),
+					_Utils_Tuple2('z', $mdgriffith$elm_codegen$Elm$Annotation$int)
+				])))
+};
+var $author$project$Theme$Generate$Ui$attrType = function (target) {
+	if (target.$ === 'HTML') {
+		return $author$project$Gen$Html$annotation_.attribute(
+			$mdgriffith$elm_codegen$Elm$Annotation$var('msg'));
+	} else {
+		return $author$project$Gen$Ui$annotation_.attribute(
+			$mdgriffith$elm_codegen$Elm$Annotation$var('msg'));
+	}
+};
+var $author$project$Theme$Generate$Ui$attrBorderWidthsType = function (target) {
+	return A3(
+		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+		_List_Nil,
+		'BorderWidths',
+		_List_fromArray(
+			[
+				$author$project$Theme$Generate$Ui$attrType(target)
+			]));
+};
+var $author$project$Gen$Html$Attributes$call_ = {
+	accept: function (acceptArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'accept'
+				}),
+			_List_fromArray(
+				[acceptArg_]));
+	},
+	acceptCharset: function (acceptCharsetArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'acceptCharset'
+				}),
+			_List_fromArray(
+				[acceptCharsetArg_]));
+	},
+	accesskey: function (accesskeyArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$char]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'accesskey'
+				}),
+			_List_fromArray(
+				[accesskeyArg_]));
+	},
+	action: function (actionArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'action'
+				}),
+			_List_fromArray(
+				[actionArg_]));
+	},
+	align: function (alignArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'align'
+				}),
+			_List_fromArray(
+				[alignArg_]));
+	},
+	alt: function (altArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'alt'
+				}),
+			_List_fromArray(
+				[altArg_]));
+	},
+	attribute: F2(
+		function (attributeArg_, attributeArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[$mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Annotation$string]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html', 'Attributes']),
+						name: 'attribute'
+					}),
+				_List_fromArray(
+					[attributeArg_, attributeArg_0]));
+		}),
+	autocomplete: function (autocompleteArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'autocomplete'
+				}),
+			_List_fromArray(
+				[autocompleteArg_]));
+	},
+	autofocus: function (autofocusArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'autofocus'
+				}),
+			_List_fromArray(
+				[autofocusArg_]));
+	},
+	autoplay: function (autoplayArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'autoplay'
+				}),
+			_List_fromArray(
+				[autoplayArg_]));
+	},
+	checked: function (checkedArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'checked'
+				}),
+			_List_fromArray(
+				[checkedArg_]));
+	},
+	cite: function (citeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'cite'
+				}),
+			_List_fromArray(
+				[citeArg_]));
+	},
+	_class: function (classArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'class'
+				}),
+			_List_fromArray(
+				[classArg_]));
+	},
+	classList: function (classListArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$list(
+									A2($mdgriffith$elm_codegen$Elm$Annotation$tuple, $mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Annotation$bool))
+								]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'classList'
+				}),
+			_List_fromArray(
+				[classListArg_]));
+	},
+	cols: function (colsArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'cols'
+				}),
+			_List_fromArray(
+				[colsArg_]));
+	},
+	colspan: function (colspanArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'colspan'
+				}),
+			_List_fromArray(
+				[colspanArg_]));
+	},
+	contenteditable: function (contenteditableArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'contenteditable'
+				}),
+			_List_fromArray(
+				[contenteditableArg_]));
+	},
+	contextmenu: function (contextmenuArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'contextmenu'
+				}),
+			_List_fromArray(
+				[contextmenuArg_]));
+	},
+	controls: function (controlsArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'controls'
+				}),
+			_List_fromArray(
+				[controlsArg_]));
+	},
+	coords: function (coordsArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'coords'
+				}),
+			_List_fromArray(
+				[coordsArg_]));
+	},
+	datetime: function (datetimeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'datetime'
+				}),
+			_List_fromArray(
+				[datetimeArg_]));
+	},
+	_default: function (defaultArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'default'
+				}),
+			_List_fromArray(
+				[defaultArg_]));
+	},
+	dir: function (dirArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'dir'
+				}),
+			_List_fromArray(
+				[dirArg_]));
+	},
+	disabled: function (disabledArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'disabled'
+				}),
+			_List_fromArray(
+				[disabledArg_]));
+	},
+	download: function (downloadArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'download'
+				}),
+			_List_fromArray(
+				[downloadArg_]));
+	},
+	draggable: function (draggableArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'draggable'
+				}),
+			_List_fromArray(
+				[draggableArg_]));
+	},
+	dropzone: function (dropzoneArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'dropzone'
+				}),
+			_List_fromArray(
+				[dropzoneArg_]));
+	},
+	enctype: function (enctypeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'enctype'
+				}),
+			_List_fromArray(
+				[enctypeArg_]));
+	},
+	_for: function (forArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'for'
+				}),
+			_List_fromArray(
+				[forArg_]));
+	},
+	form: function (formArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'form'
+				}),
+			_List_fromArray(
+				[formArg_]));
+	},
+	headers: function (headersArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'headers'
+				}),
+			_List_fromArray(
+				[headersArg_]));
+	},
+	height: function (heightArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'height'
+				}),
+			_List_fromArray(
+				[heightArg_]));
+	},
+	hidden: function (hiddenArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'hidden'
+				}),
+			_List_fromArray(
+				[hiddenArg_]));
+	},
+	href: function (hrefArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'href'
+				}),
+			_List_fromArray(
+				[hrefArg_]));
+	},
+	hreflang: function (hreflangArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'hreflang'
+				}),
+			_List_fromArray(
+				[hreflangArg_]));
+	},
+	id: function (idArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'id'
+				}),
+			_List_fromArray(
+				[idArg_]));
+	},
+	ismap: function (ismapArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'ismap'
+				}),
+			_List_fromArray(
+				[ismapArg_]));
+	},
+	itemprop: function (itempropArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'itemprop'
+				}),
+			_List_fromArray(
+				[itempropArg_]));
+	},
+	kind: function (kindArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'kind'
+				}),
+			_List_fromArray(
+				[kindArg_]));
+	},
+	lang: function (langArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'lang'
+				}),
+			_List_fromArray(
+				[langArg_]));
+	},
+	list: function (listArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'list'
+				}),
+			_List_fromArray(
+				[listArg_]));
+	},
+	loop: function (loopArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'loop'
+				}),
+			_List_fromArray(
+				[loopArg_]));
+	},
+	manifest: function (manifestArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'manifest'
+				}),
+			_List_fromArray(
+				[manifestArg_]));
+	},
+	map: F2(
+		function (mapArg_, mapArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_codegen$Elm$Annotation$function,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]),
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')),
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Html']),
+										'Attribute',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+											]))
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html', 'Attributes']),
+						name: 'map'
+					}),
+				_List_fromArray(
+					[mapArg_, mapArg_0]));
+		}),
+	max: function (maxArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'max'
+				}),
+			_List_fromArray(
+				[maxArg_]));
+	},
+	maxlength: function (maxlengthArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'maxlength'
+				}),
+			_List_fromArray(
+				[maxlengthArg_]));
+	},
+	media: function (mediaArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'media'
+				}),
+			_List_fromArray(
+				[mediaArg_]));
+	},
+	method: function (methodArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'method'
+				}),
+			_List_fromArray(
+				[methodArg_]));
+	},
+	min: function (minArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'min'
+				}),
+			_List_fromArray(
+				[minArg_]));
+	},
+	minlength: function (minlengthArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'minlength'
+				}),
+			_List_fromArray(
+				[minlengthArg_]));
+	},
+	multiple: function (multipleArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'multiple'
+				}),
+			_List_fromArray(
+				[multipleArg_]));
+	},
+	name: function (nameArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'name'
+				}),
+			_List_fromArray(
+				[nameArg_]));
+	},
+	novalidate: function (novalidateArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'novalidate'
+				}),
+			_List_fromArray(
+				[novalidateArg_]));
+	},
+	pattern: function (patternArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'pattern'
+				}),
+			_List_fromArray(
+				[patternArg_]));
+	},
+	ping: function (pingArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'ping'
+				}),
+			_List_fromArray(
+				[pingArg_]));
+	},
+	placeholder: function (placeholderArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'placeholder'
+				}),
+			_List_fromArray(
+				[placeholderArg_]));
+	},
+	poster: function (posterArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'poster'
+				}),
+			_List_fromArray(
+				[posterArg_]));
+	},
+	preload: function (preloadArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'preload'
+				}),
+			_List_fromArray(
+				[preloadArg_]));
+	},
+	property: F2(
+		function (propertyArg_, propertyArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$string,
+										A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Json', 'Encode']),
+										'Value',
+										_List_Nil)
+									]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html', 'Attributes']),
+						name: 'property'
+					}),
+				_List_fromArray(
+					[propertyArg_, propertyArg_0]));
+		}),
+	pubdate: function (pubdateArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'pubdate'
+				}),
+			_List_fromArray(
+				[pubdateArg_]));
+	},
+	readonly: function (readonlyArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'readonly'
+				}),
+			_List_fromArray(
+				[readonlyArg_]));
+	},
+	rel: function (relArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'rel'
+				}),
+			_List_fromArray(
+				[relArg_]));
+	},
+	required: function (requiredArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'required'
+				}),
+			_List_fromArray(
+				[requiredArg_]));
+	},
+	reversed: function (reversedArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'reversed'
+				}),
+			_List_fromArray(
+				[reversedArg_]));
+	},
+	rows: function (rowsArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'rows'
+				}),
+			_List_fromArray(
+				[rowsArg_]));
+	},
+	rowspan: function (rowspanArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'rowspan'
+				}),
+			_List_fromArray(
+				[rowspanArg_]));
+	},
+	sandbox: function (sandboxArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'sandbox'
+				}),
+			_List_fromArray(
+				[sandboxArg_]));
+	},
+	scope: function (scopeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'scope'
+				}),
+			_List_fromArray(
+				[scopeArg_]));
+	},
+	selected: function (selectedArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'selected'
+				}),
+			_List_fromArray(
+				[selectedArg_]));
+	},
+	shape: function (shapeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'shape'
+				}),
+			_List_fromArray(
+				[shapeArg_]));
+	},
+	size: function (sizeArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'size'
+				}),
+			_List_fromArray(
+				[sizeArg_]));
+	},
+	spellcheck: function (spellcheckArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$bool]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'spellcheck'
+				}),
+			_List_fromArray(
+				[spellcheckArg_]));
+	},
+	src: function (srcArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'src'
+				}),
+			_List_fromArray(
+				[srcArg_]));
+	},
+	srcdoc: function (srcdocArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'srcdoc'
+				}),
+			_List_fromArray(
+				[srcdocArg_]));
+	},
+	srclang: function (srclangArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'srclang'
+				}),
+			_List_fromArray(
+				[srclangArg_]));
+	},
+	start: function (startArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'start'
+				}),
+			_List_fromArray(
+				[startArg_]));
+	},
+	step: function (stepArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'step'
+				}),
+			_List_fromArray(
+				[stepArg_]));
+	},
+	style: F2(
+		function (styleArg_, styleArg_0) {
+			return A2(
+				$mdgriffith$elm_codegen$Elm$apply,
+				$mdgriffith$elm_codegen$Elm$value(
+					{
+						annotation: $elm$core$Maybe$Just(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$function,
+								_List_fromArray(
+									[$mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Annotation$string]),
+								A3(
+									$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+									_List_fromArray(
+										['Html']),
+									'Attribute',
+									_List_fromArray(
+										[
+											$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+										])))),
+						importFrom: _List_fromArray(
+							['Html', 'Attributes']),
+						name: 'style'
+					}),
+				_List_fromArray(
+					[styleArg_, styleArg_0]));
+		}),
+	tabindex: function (tabindexArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'tabindex'
+				}),
+			_List_fromArray(
+				[tabindexArg_]));
+	},
+	target: function (targetArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'target'
+				}),
+			_List_fromArray(
+				[targetArg_]));
+	},
+	title: function (titleArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'title'
+				}),
+			_List_fromArray(
+				[titleArg_]));
+	},
+	type_: function (type_Arg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'type_'
+				}),
+			_List_fromArray(
+				[type_Arg_]));
+	},
+	usemap: function (usemapArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'usemap'
+				}),
+			_List_fromArray(
+				[usemapArg_]));
+	},
+	value: function (valueArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'value'
+				}),
+			_List_fromArray(
+				[valueArg_]));
+	},
+	width: function (widthArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'width'
+				}),
+			_List_fromArray(
+				[widthArg_]));
+	},
+	wrap: function (wrapArg_) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'wrap'
+				}),
+			_List_fromArray(
+				[wrapArg_]));
+	}
+};
+var $author$project$Theme$Generate$Ui$sideToString = function (side) {
+	switch (side.$) {
+		case 'All':
+			return 'all';
+		case 'Top':
+			return 'top';
+		case 'Right':
+			return 'right';
+		case 'Bottom':
+			return 'bottom';
+		default:
+			return 'left';
+	}
+};
+var $author$project$Theme$Generate$Ui$toBorder = F3(
+	function (target, side, widthInt) {
+		if (target.$ === 'HTML') {
+			if (side.$ === 'All') {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string(
+						'border-' + ($author$project$Theme$Generate$Ui$sideToString(side) + '-width')),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Op$append,
+						$author$project$Gen$String$call_.fromInt(widthInt),
+						$mdgriffith$elm_codegen$Elm$string('px')));
+			} else {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string(
+						'border-' + ($author$project$Theme$Generate$Ui$sideToString(side) + '-width')),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Op$append,
+						$author$project$Gen$String$call_.fromInt(widthInt),
+						$mdgriffith$elm_codegen$Elm$string('px')));
+			}
+		} else {
+			if (side.$ === 'All') {
+				return $author$project$Gen$Ui$call_.border(widthInt);
+			} else {
+				return $author$project$Gen$Ui$htmlAttribute(
+					A2(
+						$author$project$Gen$Html$Attributes$call_.style,
+						$mdgriffith$elm_codegen$Elm$string(
+							'border-' + ($author$project$Theme$Generate$Ui$sideToString(side) + '-width')),
+						A2(
+							$mdgriffith$elm_codegen$Elm$Op$append,
+							$author$project$Gen$String$call_.fromInt(widthInt),
+							$mdgriffith$elm_codegen$Elm$string('px'))));
+			}
+		}
+	});
+var $author$project$Theme$Generate$Ui$border = F2(
+	function (target, side) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$fn,
+			A2($mdgriffith$elm_codegen$Elm$Arg$varWith, 'width', $mdgriffith$elm_codegen$Elm$Annotation$int),
+			A2($author$project$Theme$Generate$Ui$toBorder, target, side));
+	});
+var $author$project$Theme$Generate$Ui$toBorderRadius = F3(
+	function (target, side, widthInt) {
+		if (target.$ === 'HTML') {
+			if (side.$ === 'All') {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string('border-width'),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Op$append,
+						$author$project$Gen$String$call_.fromInt(widthInt),
+						$mdgriffith$elm_codegen$Elm$string('px')));
+			} else {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string(
+						'border-' + ($author$project$Theme$Generate$Ui$sideToString(side) + '-width')),
+					A2(
+						$mdgriffith$elm_codegen$Elm$Op$append,
+						$author$project$Gen$String$call_.fromInt(widthInt),
+						$mdgriffith$elm_codegen$Elm$string('px')));
+			}
+		} else {
+			if (side.$ === 'All') {
+				return $author$project$Gen$Ui$call_.border(widthInt);
+			} else {
+				return $author$project$Gen$Ui$htmlAttribute(
+					A2(
+						$author$project$Gen$Html$Attributes$call_.style,
+						$mdgriffith$elm_codegen$Elm$string(
+							'border-' + ($author$project$Theme$Generate$Ui$sideToString(side) + '-width')),
+						A2(
+							$mdgriffith$elm_codegen$Elm$Op$append,
+							$author$project$Gen$String$call_.fromInt(widthInt),
+							$mdgriffith$elm_codegen$Elm$string('px'))));
+			}
+		}
+	});
+var $author$project$Theme$Generate$Ui$field = F2(
+	function (named, toVal) {
+		return _Utils_Tuple2(
+			$author$project$Theme$nameToString(named.name),
+			toVal(named.item));
+	});
+var $author$project$Theme$Generate$Ui$toFields = F2(
+	function (toExp, fields) {
+		return A2(
+			$elm$core$List$map,
+			function (item) {
+				return A2($author$project$Theme$Generate$Ui$field, item, toExp);
+			},
+			fields);
+	});
+var $author$project$Theme$Generate$Ui$toFieldsType = F2(
+	function (toType, fields) {
+		return $mdgriffith$elm_codegen$Elm$Annotation$record(
+			A2(
+				$elm$core$List$map,
+				function (named) {
+					return _Utils_Tuple2(
+						$author$project$Theme$nameToString(named.name),
+						toType(named.item));
+				},
+				fields));
+	});
+var $author$project$Theme$Generate$Ui$borders = function (theme) {
+	return $mdgriffith$elm_codegen$Elm$group(
+		_List_fromArray(
+			[
+				A2(
+				$mdgriffith$elm_codegen$Elm$alias,
+				'BorderWidths',
+				A2(
+					$author$project$Theme$Generate$Ui$toFieldsType,
+					function (_v0) {
+						return $mdgriffith$elm_codegen$Elm$Annotation$var('item');
+					},
+					theme.borderWidths)),
+				A2(
+				$mdgriffith$elm_codegen$Elm$declaration,
+				'mapBorderWidths',
+				A2(
+					$mdgriffith$elm_codegen$Elm$fn,
+					$mdgriffith$elm_codegen$Elm$Arg$var('f'),
+					function (f) {
+						return $mdgriffith$elm_codegen$Elm$record(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								function (s) {
+									return A2(
+										$mdgriffith$elm_codegen$Elm$apply,
+										f,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$int(s)
+											]));
+								},
+								theme.borderWidths));
+					})),
+				$mdgriffith$elm_codegen$Elm$exposeConstructor(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'borderWidth',
+					$mdgriffith$elm_codegen$Elm$record(
+						$elm$core$List$concat(
+							_List_fromArray(
+								[
+									A2(
+									$author$project$Theme$Generate$Ui$toFields,
+									function (_int) {
+										return A3(
+											$author$project$Theme$Generate$Ui$toBorder,
+											theme.target,
+											$author$project$Theme$Generate$Ui$All,
+											$mdgriffith$elm_codegen$Elm$int(_int));
+									},
+									theme.borderWidths),
+									_List_fromArray(
+									[
+										_Utils_Tuple2(
+										'top',
+										A2(
+											$mdgriffith$elm_codegen$Elm$withType,
+											$author$project$Theme$Generate$Ui$attrBorderWidthsType(theme.target),
+											A2(
+												$mdgriffith$elm_codegen$Elm$apply,
+												$mdgriffith$elm_codegen$Elm$val('mapBorderWidths'),
+												_List_fromArray(
+													[
+														A2($author$project$Theme$Generate$Ui$border, theme.target, $author$project$Theme$Generate$Ui$Top)
+													])))),
+										_Utils_Tuple2(
+										'right',
+										A2(
+											$mdgriffith$elm_codegen$Elm$withType,
+											$author$project$Theme$Generate$Ui$attrBorderWidthsType(theme.target),
+											A2(
+												$mdgriffith$elm_codegen$Elm$apply,
+												$mdgriffith$elm_codegen$Elm$val('mapBorderWidths'),
+												_List_fromArray(
+													[
+														A2($author$project$Theme$Generate$Ui$border, theme.target, $author$project$Theme$Generate$Ui$Right)
+													])))),
+										_Utils_Tuple2(
+										'bottom',
+										A2(
+											$mdgriffith$elm_codegen$Elm$withType,
+											$author$project$Theme$Generate$Ui$attrBorderWidthsType(theme.target),
+											A2(
+												$mdgriffith$elm_codegen$Elm$apply,
+												$mdgriffith$elm_codegen$Elm$val('mapBorderWidths'),
+												_List_fromArray(
+													[
+														A2($author$project$Theme$Generate$Ui$border, theme.target, $author$project$Theme$Generate$Ui$Bottom)
+													])))),
+										_Utils_Tuple2(
+										'left',
+										A2(
+											$mdgriffith$elm_codegen$Elm$withType,
+											$author$project$Theme$Generate$Ui$attrBorderWidthsType(theme.target),
+											A2(
+												$mdgriffith$elm_codegen$Elm$apply,
+												$mdgriffith$elm_codegen$Elm$val('mapBorderWidths'),
+												_List_fromArray(
+													[
+														A2($author$project$Theme$Generate$Ui$border, theme.target, $author$project$Theme$Generate$Ui$Left)
+													]))))
+									])
+								]))))),
+				$mdgriffith$elm_codegen$Elm$exposeConstructor(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'borderRadius',
+					$mdgriffith$elm_codegen$Elm$record(
+						$elm$core$List$concat(
+							_List_fromArray(
+								[
+									A2(
+									$author$project$Theme$Generate$Ui$toFields,
+									function (_int) {
+										return A3(
+											$author$project$Theme$Generate$Ui$toBorderRadius,
+											theme.target,
+											$author$project$Theme$Generate$Ui$All,
+											$mdgriffith$elm_codegen$Elm$int(_int));
+									},
+									theme.borderRadii),
+									_List_fromArray(
+									[
+										_Utils_Tuple2(
+										'top',
+										$mdgriffith$elm_codegen$Elm$record(
+											A2(
+												$author$project$Theme$Generate$Ui$toFields,
+												function (radii) {
+													return A3(
+														$author$project$Theme$Generate$Ui$toBorderRadius,
+														theme.target,
+														$author$project$Theme$Generate$Ui$Top,
+														$mdgriffith$elm_codegen$Elm$int(radii));
+												},
+												theme.borderRadii))),
+										_Utils_Tuple2(
+										'right',
+										$mdgriffith$elm_codegen$Elm$record(
+											A2(
+												$author$project$Theme$Generate$Ui$toFields,
+												function (radii) {
+													return A3(
+														$author$project$Theme$Generate$Ui$toBorderRadius,
+														theme.target,
+														$author$project$Theme$Generate$Ui$Right,
+														$mdgriffith$elm_codegen$Elm$int(radii));
+												},
+												theme.borderRadii))),
+										_Utils_Tuple2(
+										'bottom',
+										$mdgriffith$elm_codegen$Elm$record(
+											A2(
+												$author$project$Theme$Generate$Ui$toFields,
+												function (radii) {
+													return A3(
+														$author$project$Theme$Generate$Ui$toBorderRadius,
+														theme.target,
+														$author$project$Theme$Generate$Ui$Bottom,
+														$mdgriffith$elm_codegen$Elm$int(radii));
+												},
+												theme.borderRadii))),
+										_Utils_Tuple2(
+										'left',
+										$mdgriffith$elm_codegen$Elm$record(
+											A2(
+												$author$project$Theme$Generate$Ui$toFields,
+												function (radii) {
+													return A3(
+														$author$project$Theme$Generate$Ui$toBorderRadius,
+														theme.target,
+														$author$project$Theme$Generate$Ui$Left,
+														$mdgriffith$elm_codegen$Elm$int(radii));
+												},
+												theme.borderRadii)))
+									])
+								])))))
+			]));
+};
+var $author$project$Gen$Ui$spacing = function (spacingArg_) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$apply,
+		$mdgriffith$elm_codegen$Elm$value(
+			{
+				annotation: $elm$core$Maybe$Just(
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$function,
+						_List_fromArray(
+							[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								])))),
+				importFrom: _List_fromArray(
+					['Ui']),
+				name: 'spacing'
+			}),
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$int(spacingArg_)
+			]));
+};
+var $author$project$Gen$Html$Attributes$style = F2(
+	function (styleArg_, styleArg_0) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$apply,
+			$mdgriffith$elm_codegen$Elm$value(
+				{
+					annotation: $elm$core$Maybe$Just(
+						A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[$mdgriffith$elm_codegen$Elm$Annotation$string, $mdgriffith$elm_codegen$Elm$Annotation$string]),
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Html']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))),
+					importFrom: _List_fromArray(
+						['Html', 'Attributes']),
+					name: 'style'
+				}),
+			_List_fromArray(
+				[
+					$mdgriffith$elm_codegen$Elm$string(styleArg_),
+					$mdgriffith$elm_codegen$Elm$string(styleArg_0)
+				]));
+	});
+var $author$project$Theme$Generate$Ui$toSpacing = F2(
+	function (target, _int) {
+		if (target.$ === 'HTML') {
+			return A2(
+				$author$project$Gen$Html$Attributes$style,
+				'gap',
+				$elm$core$String$fromInt(_int) + 'px');
+		} else {
+			return $author$project$Gen$Ui$spacing(_int);
+		}
+	});
+var $author$project$Gen$Ui$values_ = {
+	above: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'above'
+		}),
+	alignBottom: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'alignBottom'
+		}),
+	alignLeft: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'alignLeft'
+		}),
+	alignRight: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'alignRight'
+		}),
+	alignTop: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'alignTop'
+		}),
+	attrIf: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$bool,
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'attrIf'
+		}),
+	background: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Color',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'background'
+		}),
+	backgroundGradient: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Gradient',
+								_List_Nil))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'backgroundGradient'
+		}),
+	behindContent: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'behindContent'
+		}),
+	below: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'below'
+		}),
+	border: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'border'
+		}),
+	borderColor: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Color',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'borderColor'
+		}),
+	borderGradient: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('width', $mdgriffith$elm_codegen$Elm$Annotation$int),
+									_Utils_Tuple2(
+									'gradient',
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Gradient',
+										_List_Nil)),
+									_Utils_Tuple2(
+									'background',
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Gradient',
+										_List_Nil))
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'borderGradient'
+		}),
+	borderWith: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Edges',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'borderWith'
+		}),
+	centerX: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'centerX'
+		}),
+	centerY: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'centerY'
+		}),
+	circle: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'circle'
+		}),
+	clipWithEllipsis: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'clipWithEllipsis'
+		}),
+	clipped: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'clipped'
+		}),
+	column: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Element',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'column'
+		}),
+	contentBottom: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'contentBottom'
+		}),
+	contentCenterX: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'contentCenterX'
+		}),
+	contentCenterY: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'contentCenterY'
+		}),
+	contentLeft: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'contentLeft'
+		}),
+	contentRight: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'contentRight'
+		}),
+	contentTop: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'contentTop'
+		}),
+	down: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Position',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'down'
+		}),
+	download: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'download'
+		}),
+	downloadAs: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('url', $mdgriffith$elm_codegen$Elm$Annotation$string),
+									_Utils_Tuple2('filename', $mdgriffith$elm_codegen$Elm$Annotation$string)
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'downloadAs'
+		}),
+	el: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'el'
+		}),
+	embed: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Html']),
+						'Html',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'embed'
+		}),
+	explain: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Todo',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'explain'
+		}),
+	fill: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Length',
+					_List_Nil)),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'fill'
+		}),
+	grab: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'grab'
+		}),
+	grabbing: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'grabbing'
+		}),
+	height: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Length',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'height'
+		}),
+	heightMax: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'heightMax'
+		}),
+	heightMin: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'heightMin'
+		}),
+	html: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Html']),
+							'Html',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'html'
+		}),
+	htmlAttribute: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Html']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'htmlAttribute'
+		}),
+	id: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'id'
+		}),
+	image: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('source', $mdgriffith$elm_codegen$Elm$Annotation$string),
+									_Utils_Tuple2('description', $mdgriffith$elm_codegen$Elm$Annotation$string)
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'image'
+		}),
+	imageWithFallback: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('source', $mdgriffith$elm_codegen$Elm$Annotation$string),
+									_Utils_Tuple2(
+									'fallback',
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Element',
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+											])))
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'imageWithFallback'
+		}),
+	inFront: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'inFront'
+		}),
+	layout: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Html']),
+						'Html',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'layout'
+		}),
+	left: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Position',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'left'
+		}),
+	link: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'link'
+		}),
+	linkNewTab: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'linkNewTab'
+		}),
+	map: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'map'
+		}),
+	mapAttribute: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_codegen$Elm$Annotation$function,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]),
+							$mdgriffith$elm_codegen$Elm$Annotation$var('b')),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('a')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('b')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'mapAttribute'
+		}),
+	move: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Position',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'move'
+		}),
+	noAttr: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'noAttr'
+		}),
+	node: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$string,
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'node'
+		}),
+	none: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Element',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'none'
+		}),
+	onLeft: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'onLeft'
+		}),
+	onRight: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'onRight'
+		}),
+	opacity: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'opacity'
+		}),
+	padding: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'padding'
+		}),
+	paddingBottom: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'paddingBottom'
+		}),
+	paddingLeft: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'paddingLeft'
+		}),
+	paddingRight: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'paddingRight'
+		}),
+	paddingTop: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'paddingTop'
+		}),
+	paddingWith: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Edges',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'paddingWith'
+		}),
+	paddingXY: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'paddingXY'
+		}),
+	palette: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
+									'background',
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Color',
+										_List_Nil)),
+									_Utils_Tuple2(
+									'border',
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Color',
+										_List_Nil)),
+									_Utils_Tuple2(
+									'font',
+									A3(
+										$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+										_List_fromArray(
+											['Ui']),
+										'Color',
+										_List_Nil))
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'palette'
+		}),
+	pointer: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'pointer'
+		}),
+	portion: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Length',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'portion'
+		}),
+	px: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Length',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'px'
+		}),
+	radians: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Angle',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'radians'
+		}),
+	rgb: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Color',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'rgb'
+		}),
+	rgba: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$int, $mdgriffith$elm_codegen$Elm$Annotation$float]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Color',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'rgba'
+		}),
+	right: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Position',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'right'
+		}),
+	rotate: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Angle',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'rotate'
+		}),
+	rounded: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'rounded'
+		}),
+	roundedWith: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('topLeft', $mdgriffith$elm_codegen$Elm$Annotation$int),
+									_Utils_Tuple2('topRight', $mdgriffith$elm_codegen$Elm$Annotation$int),
+									_Utils_Tuple2('bottomLeft', $mdgriffith$elm_codegen$Elm$Annotation$int),
+									_Utils_Tuple2('bottomRight', $mdgriffith$elm_codegen$Elm$Annotation$int)
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'roundedWith'
+		}),
+	row: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Element',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									])))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'row'
+		}),
+	scale: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'scale'
+		}),
+	scrollable: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A3(
+								$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+								_List_fromArray(
+									['Ui']),
+								'Attribute',
+								_List_fromArray(
+									[
+										$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+									]))),
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Element',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'scrollable'
+		}),
+	shrink: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Length',
+					_List_Nil)),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'shrink'
+		}),
+	spaceEvenly: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'spaceEvenly'
+		}),
+	spacing: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'spacing'
+		}),
+	spacingWith: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$record(
+							_List_fromArray(
+								[
+									_Utils_Tuple2('horizontal', $mdgriffith$elm_codegen$Elm$Annotation$int),
+									_Utils_Tuple2('vertical', $mdgriffith$elm_codegen$Elm$Annotation$int)
+								]))
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'spacingWith'
+		}),
+	text: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$string]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Element',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'text'
+		}),
+	turns: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$float]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Angle',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'turns'
+		}),
+	up: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Position',
+						_List_Nil))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'up'
+		}),
+	width: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[
+							A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Length',
+							_List_Nil)
+						]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'width'
+		}),
+	widthMax: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'widthMax'
+		}),
+	widthMin: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_codegen$Elm$Annotation$function,
+					_List_fromArray(
+						[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+					A3(
+						$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+						_List_fromArray(
+							['Ui']),
+						'Attribute',
+						_List_fromArray(
+							[
+								$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+							])))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'widthMin'
+		}),
+	wrap: $mdgriffith$elm_codegen$Elm$value(
+		{
+			annotation: $elm$core$Maybe$Just(
+				A3(
+					$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+					_List_fromArray(
+						['Ui']),
+					'Attribute',
+					_List_fromArray(
+						[
+							$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+						]))),
+			importFrom: _List_fromArray(
+				['Ui']),
+			name: 'wrap'
+		})
+};
+var $author$project$Theme$Generate$Ui$layout = function (theme) {
+	var _v0 = theme.target;
+	if (_v0.$ === 'HTML') {
+		return $mdgriffith$elm_codegen$Elm$group(
+			_List_fromArray(
+				[
+					$mdgriffith$elm_codegen$Elm$exposeConstructor(
+					A2(
+						$mdgriffith$elm_codegen$Elm$declaration,
+						'el',
+						A3(
+							$mdgriffith$elm_codegen$Elm$fn2,
+							$mdgriffith$elm_codegen$Elm$Arg$var('attrs'),
+							$mdgriffith$elm_codegen$Elm$Arg$var('child'),
+							F2(
+								function (attrs, child) {
+									return A2(
+										$author$project$Gen$Html$call_.div,
+										attrs,
+										$mdgriffith$elm_codegen$Elm$list(
+											_List_fromArray(
+												[child])));
+								})))),
+					$mdgriffith$elm_codegen$Elm$exposeConstructor(
+					A2(
+						$mdgriffith$elm_codegen$Elm$declaration,
+						'row',
+						$mdgriffith$elm_codegen$Elm$record(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								function (space) {
+									return A3(
+										$mdgriffith$elm_codegen$Elm$fn2,
+										$mdgriffith$elm_codegen$Elm$Arg$var('attrs'),
+										$mdgriffith$elm_codegen$Elm$Arg$var('children'),
+										F2(
+											function (attrs, children) {
+												return A2(
+													$author$project$Gen$Html$call_.div,
+													A2(
+														$mdgriffith$elm_codegen$Elm$Op$cons,
+														A2($author$project$Gen$Html$Attributes$style, 'flex-direction', 'row'),
+														A2(
+															$mdgriffith$elm_codegen$Elm$Op$cons,
+															A2($author$project$Gen$Html$Attributes$style, 'display', 'flex'),
+															A2(
+																$mdgriffith$elm_codegen$Elm$Op$cons,
+																A2($author$project$Theme$Generate$Ui$toSpacing, theme.target, space),
+																attrs))),
+													children);
+											}));
+								},
+								theme.spacing)))),
+					$mdgriffith$elm_codegen$Elm$exposeConstructor(
+					A2(
+						$mdgriffith$elm_codegen$Elm$declaration,
+						'column',
+						$mdgriffith$elm_codegen$Elm$record(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								function (space) {
+									return A3(
+										$mdgriffith$elm_codegen$Elm$fn2,
+										$mdgriffith$elm_codegen$Elm$Arg$var('attrs'),
+										$mdgriffith$elm_codegen$Elm$Arg$var('children'),
+										F2(
+											function (attrs, children) {
+												return A2(
+													$author$project$Gen$Html$call_.div,
+													A2(
+														$mdgriffith$elm_codegen$Elm$Op$cons,
+														A2($author$project$Gen$Html$Attributes$style, 'flex-direction', 'column'),
+														A2(
+															$mdgriffith$elm_codegen$Elm$Op$cons,
+															A2($author$project$Gen$Html$Attributes$style, 'display', 'flex'),
+															A2(
+																$mdgriffith$elm_codegen$Elm$Op$cons,
+																A2($author$project$Theme$Generate$Ui$toSpacing, theme.target, space),
+																attrs))),
+													children);
+											}));
+								},
+								theme.spacing))))
+				]));
+	} else {
+		return $mdgriffith$elm_codegen$Elm$group(
+			_List_fromArray(
+				[
+					$mdgriffith$elm_codegen$Elm$exposeConstructor(
+					A2($mdgriffith$elm_codegen$Elm$declaration, 'el', $author$project$Gen$Ui$values_.el)),
+					$mdgriffith$elm_codegen$Elm$exposeConstructor(
+					A2(
+						$mdgriffith$elm_codegen$Elm$declaration,
+						'row',
+						$mdgriffith$elm_codegen$Elm$record(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								function (space) {
+									return A3(
+										$mdgriffith$elm_codegen$Elm$fn2,
+										$mdgriffith$elm_codegen$Elm$Arg$var('attrs'),
+										$mdgriffith$elm_codegen$Elm$Arg$var('children'),
+										F2(
+											function (attrs, children) {
+												return A2(
+													$author$project$Gen$Ui$call_.row,
+													A2(
+														$mdgriffith$elm_codegen$Elm$Op$cons,
+														$author$project$Gen$Ui$spacing(space),
+														attrs),
+													children);
+											}));
+								},
+								theme.spacing)))),
+					$mdgriffith$elm_codegen$Elm$exposeConstructor(
+					A2(
+						$mdgriffith$elm_codegen$Elm$declaration,
+						'column',
+						$mdgriffith$elm_codegen$Elm$record(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								function (space) {
+									return A3(
+										$mdgriffith$elm_codegen$Elm$fn2,
+										$mdgriffith$elm_codegen$Elm$Arg$var('attrs'),
+										$mdgriffith$elm_codegen$Elm$Arg$var('children'),
+										F2(
+											function (attrs, children) {
+												return A2(
+													$author$project$Gen$Ui$call_.column,
+													A2(
+														$mdgriffith$elm_codegen$Elm$Op$cons,
+														$author$project$Gen$Ui$spacing(space),
+														attrs),
+													children);
+											}));
+								},
+								theme.spacing))))
+				]));
+	}
+};
+var $author$project$Theme$Generate$Ui$attr = F2(
+	function (target, a) {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$withType,
+			$author$project$Theme$Generate$Ui$attrType(target),
+			a);
+	});
+var $author$project$Theme$Generate$Ui$attrSpacingType = function (target) {
+	return A3(
+		$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+		_List_Nil,
+		'Spaced',
+		_List_fromArray(
+			[
+				$author$project$Theme$Generate$Ui$attrType(target)
+			]));
+};
+var $author$project$Theme$Generate$Ui$callPx = function (p) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$Op$append,
+		$author$project$Gen$String$call_.fromInt(p),
+		$mdgriffith$elm_codegen$Elm$string('px'));
+};
+var $author$project$Theme$Generate$Ui$padBottom = function (target) {
+	if (target.$ === 'HTML') {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$fn,
+			$mdgriffith$elm_codegen$Elm$Arg$var('px'),
+			function (v) {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string('padding-bottom'),
+					$author$project$Theme$Generate$Ui$callPx(v));
+			});
+	} else {
+		return $author$project$Gen$Ui$values_.paddingBottom;
+	}
+};
+var $author$project$Theme$Generate$Ui$padLeft = function (target) {
+	if (target.$ === 'HTML') {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$fn,
+			$mdgriffith$elm_codegen$Elm$Arg$var('px'),
+			function (v) {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string('padding-left'),
+					$author$project$Theme$Generate$Ui$callPx(v));
+			});
+	} else {
+		return $author$project$Gen$Ui$values_.paddingLeft;
+	}
+};
+var $author$project$Theme$Generate$Ui$padRight = function (target) {
+	if (target.$ === 'HTML') {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$fn,
+			$mdgriffith$elm_codegen$Elm$Arg$var('px'),
+			function (v) {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string('padding-right'),
+					$author$project$Theme$Generate$Ui$callPx(v));
+			});
+	} else {
+		return $author$project$Gen$Ui$values_.paddingRight;
+	}
+};
+var $author$project$Theme$Generate$Ui$padTop = function (target) {
+	if (target.$ === 'HTML') {
+		return A2(
+			$mdgriffith$elm_codegen$Elm$fn,
+			$mdgriffith$elm_codegen$Elm$Arg$var('px'),
+			function (v) {
+				return A2(
+					$author$project$Gen$Html$Attributes$call_.style,
+					$mdgriffith$elm_codegen$Elm$string('padding-top'),
+					$author$project$Theme$Generate$Ui$callPx(v));
+			});
+	} else {
+		return $author$project$Gen$Ui$values_.paddingTop;
+	}
+};
+var $author$project$Gen$Ui$padding = function (paddingArg_) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$apply,
+		$mdgriffith$elm_codegen$Elm$value(
+			{
+				annotation: $elm$core$Maybe$Just(
+					A2(
+						$mdgriffith$elm_codegen$Elm$Annotation$function,
+						_List_fromArray(
+							[$mdgriffith$elm_codegen$Elm$Annotation$int]),
+						A3(
+							$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+							_List_fromArray(
+								['Ui']),
+							'Attribute',
+							_List_fromArray(
+								[
+									$mdgriffith$elm_codegen$Elm$Annotation$var('msg')
+								])))),
+				importFrom: _List_fromArray(
+					['Ui']),
+				name: 'padding'
+			}),
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$int(paddingArg_)
+			]));
+};
+var $author$project$Theme$Generate$Ui$px = function (p) {
+	return $elm$core$String$fromInt(p) + 'px';
+};
+var $author$project$Theme$Generate$Ui$padding = F2(
+	function (target, _int) {
+		if (target.$ === 'HTML') {
+			return A2(
+				$author$project$Gen$Html$Attributes$style,
+				'padding',
+				$author$project$Theme$Generate$Ui$px(_int));
+		} else {
+			return $author$project$Gen$Ui$padding(_int);
+		}
+	});
+var $author$project$Theme$Generate$Ui$toPaddingXY = F3(
+	function (target, x, y) {
+		if (target.$ === 'HTML') {
+			return A2(
+				$author$project$Gen$Html$Attributes$call_.style,
+				$mdgriffith$elm_codegen$Elm$string('padding'),
+				A2(
+					$mdgriffith$elm_codegen$Elm$Op$append,
+					A2(
+						$mdgriffith$elm_codegen$Elm$Op$append,
+						$author$project$Theme$Generate$Ui$callPx(y),
+						$mdgriffith$elm_codegen$Elm$string(' ')),
+					$author$project$Theme$Generate$Ui$callPx(x)));
+		} else {
+			return A2($author$project$Gen$Ui$call_.paddingXY, x, y);
+		}
+	});
+var $author$project$Theme$Generate$Ui$spacing = function (theme) {
+	return $mdgriffith$elm_codegen$Elm$group(
+		_List_fromArray(
+			[
+				A2(
+				$mdgriffith$elm_codegen$Elm$declaration,
+				'space',
+				$mdgriffith$elm_codegen$Elm$record(
+					A2($author$project$Theme$Generate$Ui$toFields, $mdgriffith$elm_codegen$Elm$int, theme.spacing))),
+				A2(
+				$mdgriffith$elm_codegen$Elm$declaration,
+				'mapSpace',
+				A2(
+					$mdgriffith$elm_codegen$Elm$fn,
+					$mdgriffith$elm_codegen$Elm$Arg$var('f'),
+					function (f) {
+						return $mdgriffith$elm_codegen$Elm$record(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								function (s) {
+									return A2(
+										$mdgriffith$elm_codegen$Elm$apply,
+										f,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_codegen$Elm$int(s)
+											]));
+								},
+								theme.spacing));
+					})),
+				$mdgriffith$elm_codegen$Elm$exposeConstructor(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'gap',
+					$mdgriffith$elm_codegen$Elm$record(
+						A2(
+							$author$project$Theme$Generate$Ui$toFields,
+							A2(
+								$elm$core$Basics$composeL,
+								$author$project$Theme$Generate$Ui$attr(theme.target),
+								$author$project$Theme$Generate$Ui$toSpacing(theme.target)),
+							theme.spacing)))),
+				A2(
+				$mdgriffith$elm_codegen$Elm$alias,
+				'Spaced',
+				A2(
+					$author$project$Theme$Generate$Ui$toFieldsType,
+					function (_v0) {
+						return $mdgriffith$elm_codegen$Elm$Annotation$var('item');
+					},
+					theme.spacing)),
+				$mdgriffith$elm_codegen$Elm$exposeConstructor(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'pad',
+					$mdgriffith$elm_codegen$Elm$record(
+						_Utils_ap(
+							A2(
+								$author$project$Theme$Generate$Ui$toFields,
+								A2(
+									$elm$core$Basics$composeL,
+									$author$project$Theme$Generate$Ui$attr(theme.target),
+									$author$project$Theme$Generate$Ui$padding(theme.target)),
+								theme.spacing),
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
+									'xy',
+									A2(
+										$mdgriffith$elm_codegen$Elm$withType,
+										A3(
+											$mdgriffith$elm_codegen$Elm$Annotation$namedWith,
+											_List_Nil,
+											'Spaced',
+											_List_fromArray(
+												[
+													$author$project$Theme$Generate$Ui$attrSpacingType(theme.target)
+												])),
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											$mdgriffith$elm_codegen$Elm$val('mapSpace'),
+											_List_fromArray(
+												[
+													A2(
+													$mdgriffith$elm_codegen$Elm$fn,
+													A2($mdgriffith$elm_codegen$Elm$Arg$varWith, 'spacingX', $mdgriffith$elm_codegen$Elm$Annotation$int),
+													function (spacingX) {
+														return A2(
+															$mdgriffith$elm_codegen$Elm$apply,
+															$mdgriffith$elm_codegen$Elm$val('mapSpace'),
+															_List_fromArray(
+																[
+																	A2(
+																	$mdgriffith$elm_codegen$Elm$fn,
+																	A2($mdgriffith$elm_codegen$Elm$Arg$varWith, 'spacingY', $mdgriffith$elm_codegen$Elm$Annotation$int),
+																	function (spacingY) {
+																		return A3($author$project$Theme$Generate$Ui$toPaddingXY, theme.target, spacingX, spacingY);
+																	})
+																]));
+													})
+												])))),
+									_Utils_Tuple2(
+									'top',
+									A2(
+										$mdgriffith$elm_codegen$Elm$withType,
+										$author$project$Theme$Generate$Ui$attrSpacingType(theme.target),
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											$mdgriffith$elm_codegen$Elm$val('mapSpace'),
+											_List_fromArray(
+												[
+													$author$project$Theme$Generate$Ui$padTop(theme.target)
+												])))),
+									_Utils_Tuple2(
+									'right',
+									A2(
+										$mdgriffith$elm_codegen$Elm$withType,
+										$author$project$Theme$Generate$Ui$attrSpacingType(theme.target),
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											$mdgriffith$elm_codegen$Elm$val('mapSpace'),
+											_List_fromArray(
+												[
+													$author$project$Theme$Generate$Ui$padRight(theme.target)
+												])))),
+									_Utils_Tuple2(
+									'bottom',
+									A2(
+										$mdgriffith$elm_codegen$Elm$withType,
+										$author$project$Theme$Generate$Ui$attrSpacingType(theme.target),
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											$mdgriffith$elm_codegen$Elm$val('mapSpace'),
+											_List_fromArray(
+												[
+													$author$project$Theme$Generate$Ui$padBottom(theme.target)
+												])))),
+									_Utils_Tuple2(
+									'left',
+									A2(
+										$mdgriffith$elm_codegen$Elm$withType,
+										$author$project$Theme$Generate$Ui$attrSpacingType(theme.target),
+										A2(
+											$mdgriffith$elm_codegen$Elm$apply,
+											$mdgriffith$elm_codegen$Elm$val('mapSpace'),
+											_List_fromArray(
+												[
+													$author$project$Theme$Generate$Ui$padLeft(theme.target)
+												]))))
+								])))))
+			]));
+};
+var $author$project$Theme$Generate$Ui$typography = function (theme) {
+	return $mdgriffith$elm_codegen$Elm$group(
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$exposeConstructor(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'font',
+					$mdgriffith$elm_codegen$Elm$record(
+						A3(
+							$elm$core$Dict$foldl,
+							F3(
+								function (name, fields, typographyRecord) {
+									if (!fields.b) {
+										return typographyRecord;
+									} else {
+										if (!fields.b.b) {
+											var single = fields.a;
+											return A2(
+												$elm$core$List$cons,
+												_Utils_Tuple2(name, single.b),
+												typographyRecord);
+										} else {
+											var many = fields;
+											return A2(
+												$elm$core$List$cons,
+												_Utils_Tuple2(
+													name,
+													$mdgriffith$elm_codegen$Elm$record(many)),
+												typographyRecord);
+										}
+									}
+								}),
+							_List_Nil,
+							A3(
+								$elm$core$List$foldl,
+								F2(
+									function (typeface, gathered) {
+										var innerName = $author$project$Theme$weightNameField(typeface.item.weight.a);
+										var fullClassName = A2(
+											$author$project$Theme$Generate$Ui$classAttr,
+											theme.target,
+											A2(
+												$author$project$Theme$Generate$Ui$addNamespace,
+												theme.namespace,
+												A2($author$project$Theme$Generate$Ui$typographyClassName, typeface.name, typeface.item.weight.a)));
+										var basename = $author$project$Theme$nameToString(typeface.name);
+										var _v0 = typeface.item.weight.a;
+										if (_v0.$ === 'Default') {
+											return A3(
+												$elm$core$Dict$insert,
+												basename,
+												_List_fromArray(
+													[
+														_Utils_Tuple2(innerName, fullClassName)
+													]),
+												gathered);
+										} else {
+											return A3(
+												$elm$core$Dict$update,
+												basename,
+												function (maybe) {
+													if (maybe.$ === 'Just') {
+														var fields = maybe.a;
+														return $elm$core$Maybe$Just(
+															A2(
+																$elm$core$List$cons,
+																_Utils_Tuple2(innerName, fullClassName),
+																fields));
+													} else {
+														return $elm$core$Maybe$Just(
+															_List_fromArray(
+																[
+																	_Utils_Tuple2(innerName, fullClassName)
+																]));
+													}
+												},
+												gathered);
+										}
+									}),
+								$elm$core$Dict$empty,
+								theme.typography)))))
+			]));
+};
+var $author$project$Theme$Generate$Ui$generateTheme = function (theme) {
+	return A2(
+		$mdgriffith$elm_codegen$Elm$file,
+		_List_fromArray(
+			['Theme']),
+		_List_fromArray(
+			[
+				$author$project$Theme$Generate$Ui$typography(theme),
+				$author$project$Theme$Generate$Ui$layout(theme),
+				$author$project$Theme$Generate$Ui$spacing(theme),
+				$author$project$Theme$Generate$Ui$borders(theme)
+			]));
+};
+var $author$project$Theme$Generate$Stylesheet$ClassAll = function (a) {
+	return {$: 'ClassAll', a: a};
+};
 var $author$project$Theme$Generate$Stylesheet$Rule = F2(
 	function (a, b) {
 		return {$: 'Rule', a: a, b: b};
 	});
+var $author$project$Theme$Generate$Stylesheet$classAll = F2(
+	function (name, rules) {
+		return A2(
+			$author$project$Theme$Generate$Stylesheet$Rule,
+			$author$project$Theme$Generate$Stylesheet$ClassAll(name),
+			rules);
+	});
+var $author$project$Theme$Generate$Stylesheet$Root = {$: 'Root'};
 var $author$project$Theme$Generate$Stylesheet$root = function (rules) {
 	return A2($author$project$Theme$Generate$Stylesheet$Rule, $author$project$Theme$Generate$Stylesheet$Root, rules);
 };
@@ -37413,7 +50811,6 @@ var $author$project$Theme$Generate$Stylesheet$string = F2(
 		return $author$project$Theme$Generate$Stylesheet$Prop(
 			A2($author$project$Theme$Generate$Stylesheet$Str, key, value));
 	});
-var $elm$core$Basics$round = _Basics_round;
 var $avh4$elm_color$Color$toCssString = function (_v0) {
 	var r = _v0.a;
 	var g = _v0.b;
@@ -37445,8 +50842,23 @@ var $avh4$elm_color$Color$toCssString = function (_v0) {
 };
 var $author$project$Theme$Color$toCssString = function (colorVal) {
 	if (colorVal.$ === 'Color') {
-		var clr = colorVal.a;
-		return $avh4$elm_color$Color$toCssString(clr);
+		if (colorVal.a.$ === 'Nothing') {
+			var _v1 = colorVal.a;
+			var clr = colorVal.b;
+			return $avh4$elm_color$Color$toCssString(clr);
+		} else {
+			if (colorVal.a.a.$ === 'Lighten') {
+				var amount = colorVal.a.a.a;
+				var clr = colorVal.b;
+				var colorString = $avh4$elm_color$Color$toCssString(clr);
+				return 'oklch(from ' + (colorString + (' calc(l + ' + ($elm$core$String$fromInt(amount) + '%) c h)')));
+			} else {
+				var amount = colorVal.a.a.a;
+				var clr = colorVal.b;
+				var colorString = $avh4$elm_color$Color$toCssString(clr);
+				return 'oklch(from ' + (colorString + (' ' + ($elm$core$String$fromInt(amount) + '% c h)')));
+			}
+		}
 	} else {
 		var gradient = colorVal.a;
 		return gradient;
@@ -37467,9 +50879,72 @@ var $author$project$Theme$Generate$Ui$colorVars = function (colors) {
 };
 var $author$project$Theme$Generate$Stylesheet$Darkmode = {$: 'Darkmode'};
 var $author$project$Theme$Generate$Stylesheet$darkmode = $author$project$Theme$Generate$Stylesheet$Darkmode;
+var $author$project$Theme$Generate$Stylesheet$Active = {$: 'Active'};
 var $author$project$Theme$Generate$Stylesheet$Class = function (a) {
 	return {$: 'Class', a: a};
 };
+var $author$project$Theme$Generate$Stylesheet$Pseudo = F2(
+	function (a, b) {
+		return {$: 'Pseudo', a: a, b: b};
+	});
+var $author$project$Theme$Generate$Stylesheet$active = F2(
+	function (name, rules) {
+		return A2(
+			$author$project$Theme$Generate$Stylesheet$Rule,
+			A2(
+				$author$project$Theme$Generate$Stylesheet$Pseudo,
+				$author$project$Theme$Generate$Stylesheet$Active,
+				$author$project$Theme$Generate$Stylesheet$Class(name)),
+			rules);
+	});
+var $author$project$Theme$Generate$Ui$roundToNearestSlot = function (value) {
+	var bounded = A2(
+		$elm$core$Basics$max,
+		5,
+		A2($elm$core$Basics$min, 95, value));
+	var _v0 = (bounded / 10) | 0;
+	switch (_v0) {
+		case 0:
+			return 5;
+		case 1:
+			return 10;
+		case 2:
+			return 20;
+		case 3:
+			return 30;
+		case 4:
+			return 40;
+		case 5:
+			return 50;
+		case 6:
+			return 60;
+		case 7:
+			return 70;
+		case 8:
+			return 80;
+		case 9:
+			return 90;
+		case 10:
+			return 95;
+		default:
+			return bounded;
+	}
+};
+var $author$project$Theme$Generate$Ui$brighten = F2(
+	function (amount, fullColorName) {
+		var _v0 = fullColorName.variant;
+		if (_v0.$ === 'Nothing') {
+			return fullColorName;
+		} else {
+			var variant = _v0.a;
+			return _Utils_update(
+				fullColorName,
+				{
+					variant: $elm$core$Maybe$Just(
+						$author$project$Theme$Generate$Ui$roundToNearestSlot(variant + amount))
+				});
+		}
+	});
 var $author$project$Theme$Generate$Stylesheet$class = F2(
 	function (name, rules) {
 		return A2(
@@ -37477,29 +50952,12 @@ var $author$project$Theme$Generate$Stylesheet$class = F2(
 			$author$project$Theme$Generate$Stylesheet$Class(name),
 			rules);
 	});
-var $author$project$Theme$decapitalize = function (str) {
-	var top = A2($elm$core$String$left, 1, str);
-	var remain = A2($elm$core$String$dropLeft, 1, str);
-	return _Utils_ap(
-		$elm$core$String$toLower(top),
-		remain);
-};
-var $author$project$Theme$stateToString = function (state) {
-	switch (state.$) {
-		case 'Hover':
-			return 'Hover';
-		case 'Active':
-			return 'Active';
-		default:
-			return 'Focus';
-	}
-};
 var $author$project$Theme$fullColorNameToCssVar = function (fullColorName) {
 	var variant = function () {
 		var _v2 = fullColorName.variant;
 		if (_v2.$ === 'Just') {
 			var v = _v2.a;
-			return v;
+			return $elm$core$String$fromInt(v);
 		} else {
 			return '';
 		}
@@ -37524,70 +50982,88 @@ var $author$project$Theme$fullColorNameToCssVar = function (fullColorName) {
 	}();
 	return 'var(--' + ($author$project$Theme$decapitalize(fullColorName.base) + (variant + ')'));
 };
-var $author$project$Theme$fullColorToCssClass = F2(
-	function (functionName, fullColorName) {
-		var state = function () {
-			var _v2 = fullColorName.state;
-			if (_v2.$ === 'Just') {
-				var s = _v2.a;
-				return $author$project$Theme$stateToString(s);
-			} else {
-				return '';
-			}
-		}();
-		var nuance = function () {
-			var _v1 = fullColorName.nuance;
-			if (_v1.$ === 'Just') {
-				var n = _v1.a;
-				return $author$project$Theme$capitalize(n);
-			} else {
-				return '';
-			}
-		}();
-		var tail = function () {
-			var _final = _Utils_ap(state, nuance);
-			return $elm$core$String$isEmpty(_final) ? '' : ('-' + _final);
-		}();
-		var base = function () {
-			var _v0 = fullColorName.alias;
-			if (_v0.$ === 'Just') {
-				var alias = _v0.a;
-				return alias;
-			} else {
-				return fullColorName.base;
-			}
-		}();
-		return functionName + ('-' + ($author$project$Theme$decapitalize(base) + tail));
+var $author$project$Theme$Generate$Stylesheet$Hover = {$: 'Hover'};
+var $author$project$Theme$Generate$Stylesheet$hover = F2(
+	function (name, rules) {
+		return A2(
+			$author$project$Theme$Generate$Stylesheet$Rule,
+			A2(
+				$author$project$Theme$Generate$Stylesheet$Pseudo,
+				$author$project$Theme$Generate$Stylesheet$Hover,
+				$author$project$Theme$Generate$Stylesheet$Class(name)),
+			rules);
 	});
-var $author$project$Theme$Generate$Ui$generateColorRules = F2(
-	function (prefix, theme) {
-		var generateVars = F3(
-			function (colorType, propName, colors) {
-				return A2(
+var $author$project$Theme$Generate$Stylesheet$RuleList = function (a) {
+	return {$: 'RuleList', a: a};
+};
+var $author$project$Theme$Generate$Stylesheet$ruleList = $author$project$Theme$Generate$Stylesheet$RuleList;
+var $author$project$Theme$Generate$Ui$generateColorClasses = function (theme) {
+	var genColorClass = F3(
+		function (colorType, propName, colors) {
+			return $author$project$Theme$Generate$Stylesheet$ruleList(
+				A2(
 					$elm$core$List$map,
 					function (_v0) {
 						var fullColorName = _v0.a;
-						return A2(
-							$author$project$Theme$Generate$Stylesheet$class,
-							A2($author$project$Theme$fullColorToCssClass, colorType, fullColorName),
+						var className = A2($author$project$Theme$fullColorToCssClass, colorType, fullColorName);
+						var baseColor = $author$project$Theme$fullColorNameToCssVar(fullColorName);
+						return $author$project$Theme$Generate$Stylesheet$ruleList(
 							_List_fromArray(
 								[
 									A2(
-									$author$project$Theme$Generate$Stylesheet$string,
-									propName,
-									$author$project$Theme$fullColorNameToCssVar(fullColorName))
+									$author$project$Theme$Generate$Stylesheet$class,
+									className,
+									_List_fromArray(
+										[
+											A2($author$project$Theme$Generate$Stylesheet$string, propName, baseColor)
+										])),
+									A2(
+									$author$project$Theme$Generate$Stylesheet$hover,
+									A2(
+										$author$project$Theme$fullColorToCssClass,
+										colorType,
+										_Utils_update(
+											fullColorName,
+											{
+												state: $elm$core$Maybe$Just($author$project$Theme$Hover)
+											})),
+									_List_fromArray(
+										[
+											A2(
+											$author$project$Theme$Generate$Stylesheet$string,
+											propName,
+											$author$project$Theme$fullColorNameToCssVar(
+												A2($author$project$Theme$Generate$Ui$brighten, 10, fullColorName)))
+										])),
+									A2(
+									$author$project$Theme$Generate$Stylesheet$active,
+									A2(
+										$author$project$Theme$fullColorToCssClass,
+										colorType,
+										_Utils_update(
+											fullColorName,
+											{
+												state: $elm$core$Maybe$Just($author$project$Theme$Active)
+											})),
+									_List_fromArray(
+										[
+											A2(
+											$author$project$Theme$Generate$Stylesheet$string,
+											propName,
+											$author$project$Theme$fullColorNameToCssVar(
+												A2($author$project$Theme$Generate$Ui$brighten, -10, fullColorName)))
+										]))
 								]));
 					},
-					colors);
-			});
-		return $elm$core$List$concat(
-			_List_fromArray(
-				[
-					A3(generateVars, 'text', 'color', theme.text),
-					A3(generateVars, 'background', 'background-color', theme.background),
-					A3(generateVars, 'border', 'border-color', theme.border)
-				]));
-	});
+					colors));
+		});
+	return _List_fromArray(
+		[
+			A3(genColorClass, 'text', 'color', theme.text),
+			A3(genColorClass, 'background', 'background-color', theme.background),
+			A3(genColorClass, 'border', 'border-color', theme.border)
+		]);
+};
 var $author$project$Theme$Generate$Stylesheet$Media = function (a) {
 	return {$: 'Media', a: a};
 };
@@ -37604,29 +51080,45 @@ var $author$project$Theme$Generate$Stylesheet$media = F2(
 	});
 var $author$project$Theme$Generate$Stylesheet$NoProp = {$: 'NoProp'};
 var $author$project$Theme$Generate$Stylesheet$none = $author$project$Theme$Generate$Stylesheet$Prop($author$project$Theme$Generate$Stylesheet$NoProp);
-var $author$project$Theme$Generate$Stylesheet$RuleList = function (a) {
-	return {$: 'RuleList', a: a};
-};
-var $author$project$Theme$Generate$Stylesheet$ruleList = $author$project$Theme$Generate$Stylesheet$RuleList;
+var $elm$core$List$partition = F2(
+	function (pred, list) {
+		var step = F2(
+			function (x, _v0) {
+				var trues = _v0.a;
+				var falses = _v0.b;
+				return pred(x) ? _Utils_Tuple2(
+					A2($elm$core$List$cons, x, trues),
+					falses) : _Utils_Tuple2(
+					trues,
+					A2($elm$core$List$cons, x, falses));
+			});
+		return A3(
+			$elm$core$List$foldr,
+			step,
+			_Utils_Tuple2(_List_Nil, _List_Nil),
+			list);
+	});
 var $author$project$Theme$Generate$Ui$colorStyles = function (theme) {
 	var _v0 = theme.themes;
 	if (_v0.$ === 'Nothing') {
 		return _List_Nil;
 	} else {
 		var themes = _v0.a;
-		var defaultColorRules = A2($author$project$Theme$Generate$Ui$generateColorRules, 'default', themes._default);
+		var defaultColorRules = $author$project$Theme$Generate$Ui$generateColorClasses(themes._default);
+		var _v1 = A2(
+			$elm$core$List$partition,
+			function (t) {
+				return $author$project$Theme$nameToString(t.name) === 'dark';
+			},
+			themes.alternates);
+		var darkModeThemes = _v1.a;
+		var otherThemes = _v1.b;
 		var darkModeColorRules = function () {
-			var _v1 = A2(
-				$elm$core$List$filter,
-				function (t) {
-					return $author$project$Theme$nameToString(t.name) === 'dark';
-				},
-				themes.alternates);
-			if (_v1.b) {
-				var darkTheme = _v1.a;
-				return A2($author$project$Theme$Generate$Ui$generateColorRules, 'dark', darkTheme.item);
+			if (darkModeThemes.b) {
+				var darkTheme = darkModeThemes.a;
+				return $author$project$Theme$Generate$Ui$generateColorClasses(darkTheme.item);
 			} else {
-				return _List_Nil;
+				return $author$project$Theme$Generate$Ui$generateColorClasses(themes._default);
 			}
 		}();
 		var darkModeMediaQuery = $elm$core$List$isEmpty(darkModeColorRules) ? $author$project$Theme$Generate$Stylesheet$none : A2($author$project$Theme$Generate$Stylesheet$media, $author$project$Theme$Generate$Stylesheet$darkmode, darkModeColorRules);
@@ -37634,12 +51126,28 @@ var $author$project$Theme$Generate$Ui$colorStyles = function (theme) {
 			[
 				$author$project$Theme$Generate$Ui$colorVars(theme.colors),
 				$author$project$Theme$Generate$Stylesheet$ruleList(defaultColorRules),
+				A2($author$project$Theme$Generate$Stylesheet$classAll, 'darkmode', darkModeColorRules),
+				$author$project$Theme$Generate$Stylesheet$ruleList(
+				A2(
+					$elm$core$List$map,
+					function (other) {
+						var themeName = $author$project$Theme$nameToString(other.name);
+						return A2(
+							$author$project$Theme$Generate$Stylesheet$classAll,
+							themeName,
+							$author$project$Theme$Generate$Ui$generateColorClasses(other.item));
+					},
+					otherThemes)),
 				darkModeMediaQuery
 			]);
 	}
 };
 var $author$project$Theme$Generate$Stylesheet$SingleLine = {$: 'SingleLine'};
 var $author$project$Theme$Generate$Stylesheet$empty = {props: _List_Nil, rules: _List_Nil};
+var $author$project$Theme$Generate$Stylesheet$AllChildren = F2(
+	function (a, b) {
+		return {$: 'AllChildren', a: a, b: b};
+	});
 var $author$project$Theme$Generate$Stylesheet$Child = F2(
 	function (a, b) {
 		return {$: 'Child', a: a, b: b};
@@ -37647,6 +51155,10 @@ var $author$project$Theme$Generate$Stylesheet$Child = F2(
 var $author$project$Theme$Generate$Stylesheet$Compiled = F2(
 	function (a, b) {
 		return {$: 'Compiled', a: a, b: b};
+	});
+var $author$project$Theme$Generate$Stylesheet$CompiledMedia = F2(
+	function (a, b) {
+		return {$: 'CompiledMedia', a: a, b: b};
 	});
 var $author$project$Theme$Generate$Stylesheet$flatten = F3(
 	function (maybeParentSelector, rules, cursor) {
@@ -37660,28 +51172,47 @@ var $author$project$Theme$Generate$Stylesheet$flattenRule = F3(
 	function (maybeParentSelector, rule, cursor) {
 		switch (rule.$) {
 			case 'Rule':
-				var selector = rule.a;
-				var rules = rule.b;
-				var newSelector = function () {
-					if (maybeParentSelector.$ === 'Nothing') {
-						return selector;
-					} else {
-						var parentSelector = maybeParentSelector.a;
-						return A2($author$project$Theme$Generate$Stylesheet$Child, parentSelector, selector);
-					}
-				}();
-				var gathered = A3(
-					$author$project$Theme$Generate$Stylesheet$flatten,
-					$elm$core$Maybe$Just(newSelector),
-					rules,
-					$author$project$Theme$Generate$Stylesheet$empty);
-				var newRule = A2($author$project$Theme$Generate$Stylesheet$Compiled, newSelector, gathered.props);
-				return {
-					props: cursor.props,
-					rules: _Utils_ap(
-						gathered.rules,
-						A2($elm$core$List$cons, newRule, cursor.rules))
-				};
+				if (rule.a.$ === 'Media') {
+					var q = rule.a.a;
+					var rules = rule.b;
+					var gathered = A3($author$project$Theme$Generate$Stylesheet$flatten, maybeParentSelector, rules, $author$project$Theme$Generate$Stylesheet$empty);
+					var newRule = A2($author$project$Theme$Generate$Stylesheet$CompiledMedia, q, gathered.rules);
+					return {
+						props: cursor.props,
+						rules: A2($elm$core$List$cons, newRule, cursor.rules)
+					};
+				} else {
+					var selector = rule.a;
+					var rules = rule.b;
+					var newSelector = function () {
+						if (maybeParentSelector.$ === 'Nothing') {
+							return selector;
+						} else {
+							if (maybeParentSelector.a.$ === 'ClassAll') {
+								var cls = maybeParentSelector.a.a;
+								return A2(
+									$author$project$Theme$Generate$Stylesheet$AllChildren,
+									$author$project$Theme$Generate$Stylesheet$Class(cls),
+									selector);
+							} else {
+								var parentSelector = maybeParentSelector.a;
+								return A2($author$project$Theme$Generate$Stylesheet$Child, parentSelector, selector);
+							}
+						}
+					}();
+					var gathered = A3(
+						$author$project$Theme$Generate$Stylesheet$flatten,
+						$elm$core$Maybe$Just(newSelector),
+						rules,
+						$author$project$Theme$Generate$Stylesheet$empty);
+					var newRule = A2($author$project$Theme$Generate$Stylesheet$Compiled, newSelector, gathered.props);
+					return {
+						props: cursor.props,
+						rules: _Utils_ap(
+							gathered.rules,
+							A2($elm$core$List$cons, newRule, cursor.rules))
+					};
+				}
 			case 'RuleList':
 				var rules = rule.a;
 				return A3($author$project$Theme$Generate$Stylesheet$flatten, maybeParentSelector, rules, cursor);
@@ -37779,6 +51310,9 @@ var $author$project$Theme$Generate$Stylesheet$selectorToString = F2(
 			case 'Class':
 				var name = selector.a;
 				return '.' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
+			case 'ClassAll':
+				var name = selector.a;
+				return '.' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
 			case 'Id':
 				var name = selector.a;
 				return '#' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
@@ -37805,43 +51339,57 @@ var $author$project$Theme$Generate$Stylesheet$selectorToString = F2(
 				return '@media ' + query;
 		}
 	});
-var $author$project$Theme$Generate$Stylesheet$ruleToString = F3(
-	function (namespace, _v0, _v1) {
-		var selector = _v0.a;
-		var props = _v0.b;
-		var previousSize = _v1.a;
-		var rendered = _v1.b;
-		var addToRendered = F2(
-			function (size, rule) {
-				if ($elm$core$String$isEmpty(rendered)) {
-					return _Utils_Tuple2(size, rule);
-				} else {
-					if (previousSize.$ === 'SingleLine') {
-						if (size.$ === 'SingleLine') {
-							return _Utils_Tuple2(size, rendered + ('\n' + rule));
+var $author$project$Theme$Generate$Stylesheet$ruleToString = F4(
+	function (namespace, indentSize, compiled, _v0) {
+		var previousSize = _v0.a;
+		var rendered = _v0.b;
+		if (compiled.$ === 'CompiledMedia') {
+			var q = compiled.a;
+			var innerRules = compiled.b;
+			var _v2 = A3(
+				$elm$core$List$foldl,
+				A2($author$project$Theme$Generate$Stylesheet$ruleToString, namespace, 2),
+				_Utils_Tuple2($author$project$Theme$Generate$Stylesheet$SingleLine, ''),
+				innerRules);
+			var innerRuleSize = _v2.a;
+			var innerRulesRendered = _v2.b;
+			return _Utils_Tuple2($author$project$Theme$Generate$Stylesheet$Multiline, rendered + ('\n\n@media ' + (q + (' {\n' + (innerRulesRendered + '\n}')))));
+		} else {
+			var selector = compiled.a;
+			var props = compiled.b;
+			var indent = A2($elm$core$String$repeat, indentSize, ' ');
+			var addToRendered = F2(
+				function (size, rule) {
+					if ($elm$core$String$isEmpty(rendered)) {
+						return _Utils_Tuple2(size, rule);
+					} else {
+						if (previousSize.$ === 'SingleLine') {
+							if (size.$ === 'SingleLine') {
+								return _Utils_Tuple2(size, rendered + ('\n' + rule));
+							} else {
+								return _Utils_Tuple2(size, rendered + ('\n\n' + rule));
+							}
 						} else {
 							return _Utils_Tuple2(size, rendered + ('\n\n' + rule));
 						}
-					} else {
-						return _Utils_Tuple2(size, rendered + ('\n\n' + rule));
 					}
-				}
-			});
-		if ($elm$core$List$length(props) > 1) {
-			var renderedProps = A3($author$project$Theme$Generate$Stylesheet$renderProps, '\n', props, '');
-			var renderedRule = A2($author$project$Theme$Generate$Stylesheet$selectorToString, namespace, selector) + (' {\n  ' + (renderedProps + '}'));
-			return A2(addToRendered, $author$project$Theme$Generate$Stylesheet$Multiline, renderedRule);
-		} else {
-			var renderedProps = A3($author$project$Theme$Generate$Stylesheet$renderProps, '', props, '');
-			var renderedRule = A2($author$project$Theme$Generate$Stylesheet$selectorToString, namespace, selector) + (' { ' + (renderedProps + ' }'));
-			return A2(addToRendered, $author$project$Theme$Generate$Stylesheet$SingleLine, renderedRule);
+				});
+			if ($elm$core$List$length(props) > 1) {
+				var renderedProps = A3($author$project$Theme$Generate$Stylesheet$renderProps, '\n', props, '');
+				var renderedRule = indent + (A2($author$project$Theme$Generate$Stylesheet$selectorToString, namespace, selector) + (' {\n  ' + (renderedProps + '}')));
+				return $elm$core$String$isEmpty(renderedProps) ? _Utils_Tuple2(previousSize, rendered) : A2(addToRendered, $author$project$Theme$Generate$Stylesheet$Multiline, renderedRule);
+			} else {
+				var renderedProps = A3($author$project$Theme$Generate$Stylesheet$renderProps, '', props, '');
+				var renderedRule = indent + (A2($author$project$Theme$Generate$Stylesheet$selectorToString, namespace, selector) + (' { ' + (renderedProps + ' }')));
+				return $elm$core$String$isEmpty(renderedProps) ? _Utils_Tuple2(previousSize, rendered) : A2(addToRendered, $author$project$Theme$Generate$Stylesheet$SingleLine, renderedRule);
+			}
 		}
 	});
 var $author$project$Theme$Generate$Stylesheet$toString = F2(
 	function (namespace, rules) {
 		return A3(
 			$elm$core$List$foldl,
-			$author$project$Theme$Generate$Stylesheet$ruleToString(namespace),
+			A2($author$project$Theme$Generate$Stylesheet$ruleToString, namespace, 0),
 			_Utils_Tuple2($author$project$Theme$Generate$Stylesheet$SingleLine, ''),
 			A3($author$project$Theme$Generate$Stylesheet$flatten, $elm$core$Maybe$Nothing, rules, $author$project$Theme$Generate$Stylesheet$empty).rules).b;
 	});
@@ -37856,10 +51404,6 @@ var $author$project$Theme$Generate$Stylesheet$file = F3(
 var $author$project$Theme$Generate$Stylesheet$After = function (a) {
 	return {$: 'After', a: a};
 };
-var $author$project$Theme$Generate$Stylesheet$AllChildren = F2(
-	function (a, b) {
-		return {$: 'AllChildren', a: a, b: b};
-	});
 var $author$project$Theme$Generate$Stylesheet$Before = function (a) {
 	return {$: 'Before', a: a};
 };
@@ -37965,22 +51509,6 @@ var $author$project$Theme$Generate$Stylesheet$int = F2(
 				$author$project$Theme$Generate$Stylesheet$Str,
 				key,
 				$elm$core$String$fromInt(value)));
-	});
-var $author$project$Theme$weightNameToString = function (weightName) {
-	switch (weightName.$) {
-		case 'Default':
-			return '';
-		case 'Regular':
-			return '-reg';
-		case 'Bold':
-			return '-bold';
-		default:
-			return '-light';
-	}
-};
-var $author$project$Theme$Generate$Ui$typographyClassName = F2(
-	function (name, weight) {
-		return 'font-' + ($author$project$Theme$nameToString(name) + $author$project$Theme$weightNameToString(weight));
 	});
 var $author$project$Theme$Generate$Ui$typographyStyles = function (theme) {
 	return A2(
@@ -38139,7 +51667,11 @@ var $author$project$Theme$Generate$Ui$stylesheet = function (theme) {
 var $author$project$Theme$Generate$Ui$generate = function (theme) {
 	return _List_fromArray(
 		[
-			$author$project$Theme$Generate$Ui$stylesheet(theme)
+			$author$project$Theme$Generate$Ui$stylesheet(theme),
+			$author$project$Theme$Generate$Ui$generateElmColorPalette(theme),
+			$author$project$Theme$Generate$Ui$generateElmColorTheme(theme),
+			$author$project$Theme$Generate$Ui$generateTextElements(theme),
+			$author$project$Theme$Generate$Ui$generateTheme(theme)
 		]);
 };
 var $author$project$Theme$Generate$generate = function (theme) {

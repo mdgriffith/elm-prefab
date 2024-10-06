@@ -59,8 +59,6 @@ const defaultTheme = {
 };
 
 const defaultColors = {
-  white: "#ffffff",
-  black: "#030301",
   grey: {
     "900": "#121214",
     "800": "#27272F",
@@ -73,7 +71,6 @@ const defaultColors = {
     "100": "#FAFAFC",
   },
   purple: {
-    alias: "primary",
     "700": "#3B2D96",
     "600": "#4530CC",
     "500": "#6049F5",
@@ -112,14 +109,7 @@ function generateVariants(color: string): { lch: culori.Lch; rgb: string }[] {
 
 const guaranteeDefaults = (options: Options.ThemeOptions) => {
   if (!options.spacing) {
-    options.spacing = {};
-  }
-
-  for (const key in defaultSpacings) {
-    if (!(key in options.spacing)) {
-      // @ts-ignore
-      options.spacing[key] = defaultSpacings[key];
-    }
+    options.spacing = defaultSpacings;
   }
 
   if (!options.borders) {
@@ -169,10 +159,12 @@ export const generator = (options: Options.ThemeOptions): Options.Generator => {
 
       guaranteeDefaults(options);
 
-      ThemeWebComponents.copy(runOptions, summary);
+      // ThemeWebComponents.copy(runOptions, summary);
       const newSummary = await Generator.run(runOptions.internalSrc, {
         theme: options,
       });
+
+      console.log("Generated for theme", newSummary);
 
       return Options.mergeSummaries(summary, newSummary);
     },

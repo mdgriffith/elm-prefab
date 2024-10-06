@@ -5,15 +5,39 @@ import Parser exposing ((|.), (|=))
 
 
 type Color
-    = Color Color.Color
+    = Color (Maybe Adjustments) Color.Color
     | Grad String
+
+
+type Adjustments
+    = Lighten Int
+    | AtLightness Int
+
+
+atLightness : Int -> Color.Color -> Color
+atLightness amount clr =
+    Color (Just (AtLightness amount)) clr
 
 
 toCssString : Color -> String
 toCssString colorVal =
     case colorVal of
-        Color clr ->
+        Color Nothing clr ->
             Color.toCssString clr
+
+        Color (Just (Lighten amount)) clr ->
+            let
+                colorString =
+                    Color.toCssString clr
+            in
+            "oklch(from " ++ colorString ++ " calc(l + " ++ String.fromInt amount ++ "%) c h)"
+
+        Color (Just (AtLightness amount)) clr ->
+            let
+                colorString =
+                    Color.toCssString clr
+            in
+            "oklch(from " ++ colorString ++ " " ++ String.fromInt amount ++ "% c h)"
 
         Grad gradient ->
             gradient
@@ -68,8 +92,8 @@ type AnchorY
 cssParser : Parser.Parser Color
 cssParser =
     Parser.oneOf
-        [ Parser.map Color parseRgb
-        , Parser.map Color parseHex
+        [ Parser.map (Color Nothing) parseRgb
+        , Parser.map (Color Nothing) parseHex
         , parseGradient
         ]
 

@@ -8,36 +8,23 @@ import Elm
 import Elm.Annotation
 import Elm.Arg
 import Elm.Op
+import Gen.Html
 import Gen.Html.Attributes
 import Gen.String
 import Gen.Ui
 import Gen.Ui.Accessibility
-import Gen.Ui.Anim
-import Gen.Ui.Font
-import Gen.Ui.Input
 import Theme
 import Theme.Color
 import Theme.Generate.Stylesheet as Style
 
 
-attr : Elm.Expression -> Elm.Expression
-attr a =
-    a
-        |> Elm.withType attrType
-
-
-attrType : Elm.Annotation.Annotation
-attrType =
-    Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg")
-
-
 generate : Theme.Theme -> List Elm.File
 generate theme =
-    [ generateColors theme
-    , generateColorTheme theme
+    [ stylesheet theme
+    , generateElmColorPalette theme
+    , generateElmColorTheme theme
     , generateTextElements theme
     , generateTheme theme
-    , stylesheet theme
     ]
 
 
@@ -49,29 +36,6 @@ type Tag
     | Borders
 
 
-tagToString : Tag -> String
-tagToString tag =
-    case tag of
-        Layout ->
-            "Layout"
-
-        Typography ->
-            "Typography"
-
-        Palettes ->
-            "Palettes"
-
-        Spacing ->
-            "Spacing"
-
-        Borders ->
-            "Borders"
-
-
-expose tag =
-    Elm.exposeConstructor
-
-
 addNamespace : String -> String -> String
 addNamespace namespace name =
     if namespace == "" then
@@ -81,304 +45,478 @@ addNamespace namespace name =
         namespace ++ "-" ++ name
 
 
-classNameString : String -> Theme.Name -> String -> String
-classNameString namespace name suffix =
-    addNamespace namespace (Theme.nameToString name ++ suffix)
-
-
-classAttr : String -> Elm.Expression
-classAttr name =
-    Gen.Ui.htmlAttribute
-        (Gen.Html.Attributes.class name)
-
-
-className : String -> Theme.Name -> String -> Elm.Expression
-className namespace name suffix =
-    Gen.Ui.htmlAttribute
-        (Gen.Html.Attributes.class (classNameString namespace name suffix))
-
-
 generateTheme : Theme.Theme -> Elm.File
 generateTheme theme =
-    Elm.file [ "Ui", "Theme" ]
-        (List.concat
-            [ typography theme
-            , layout theme
-            , spacing theme
-            , borders theme
-            ]
-        )
+    Elm.file [ "Theme" ]
+        [ typography theme
+        , layout theme
+        , spacing theme
+        , borders theme
+        ]
 
 
-attrBorderWidthsType =
-    Elm.Annotation.namedWith [] "BorderWidths" [ attrType ]
+attrBorderWidthsType target =
+    Elm.Annotation.namedWith [] "BorderWidths" [ attrType target ]
 
 
-border side =
+type Side
+    = All
+    | Top
+    | Right
+    | Bottom
+    | Left
+
+
+sideToString : Side -> String
+sideToString side =
+    case side of
+        All ->
+            "all"
+
+        Top ->
+            "top"
+
+        Right ->
+            "right"
+
+        Bottom ->
+            "bottom"
+
+        Left ->
+            "left"
+
+
+border target side =
     Elm.fn (Elm.Arg.varWith "width" Elm.Annotation.int)
-        (\widthInt ->
-            Gen.Ui.htmlAttribute
-                (Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ side ++ "-width"))
-                    (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
-                )
-        )
+        (toBorder target side)
 
 
-borders : Theme.Theme -> List Elm.Declaration
+borders : Theme.Theme -> Elm.Declaration
 borders theme =
-    [ Elm.alias "BorderWidths"
-        (toFieldsType (\_ -> Elm.Annotation.var "item") theme.borderWidths)
-    , Elm.declaration "mapBorderWidths"
-        (Elm.fn
-            (Elm.Arg.var "f")
-            (\f ->
-                Elm.record
-                    (toFields
-                        (\s ->
-                            Elm.apply f [ Elm.int s ]
+    Elm.group
+        [ Elm.alias "BorderWidths"
+            (toFieldsType (\_ -> Elm.Annotation.var "item") theme.borderWidths)
+        , Elm.declaration "mapBorderWidths"
+            (Elm.fn
+                (Elm.Arg.var "f")
+                (\f ->
+                    Elm.record
+                        (toFields
+                            (\s ->
+                                Elm.apply f [ Elm.int s ]
+                            )
+                            theme.borderWidths
                         )
-                        theme.borderWidths
-                    )
+                )
             )
-        )
-    , Elm.declaration "borderWidth"
-        ([ toFields
-            Gen.Ui.border
-            theme.borderWidths
-         , [ ( "top"
-             , Elm.apply (Elm.val "mapBorderWidths") [ border "top" ]
-                |> Elm.withType attrBorderWidthsType
-             )
-           , ( "right"
-             , Elm.apply (Elm.val "mapBorderWidths") [ border "right" ]
-                |> Elm.withType attrBorderWidthsType
-             )
-           , ( "bottom"
-             , Elm.apply (Elm.val "mapBorderWidths") [ border "bottom" ]
-                |> Elm.withType attrBorderWidthsType
-             )
-           , ( "left"
-             , Elm.apply (Elm.val "mapBorderWidths") [ border "left" ]
-                |> Elm.withType attrBorderWidthsType
-             )
-           ]
-         ]
-            |> List.concat
-            |> Elm.record
-        )
-        |> expose Borders
-    , Elm.declaration "borderRadius"
-        ([ toFields Gen.Ui.rounded
-            theme.borderRadii
-         , [ ( "top"
-             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = radii, topRight = radii, bottomRight = 0, bottomLeft = 0 })
-                theme.borderRadii
+        , Elm.declaration "borderWidth"
+            ([ toFields
+                (\int -> toBorder theme.target All (Elm.int int))
+                theme.borderWidths
+             , [ ( "top"
+                 , Elm.apply (Elm.val "mapBorderWidths") [ border theme.target Top ]
+                    |> Elm.withType (attrBorderWidthsType theme.target)
+                 )
+               , ( "right"
+                 , Elm.apply (Elm.val "mapBorderWidths") [ border theme.target Right ]
+                    |> Elm.withType (attrBorderWidthsType theme.target)
+                 )
+               , ( "bottom"
+                 , Elm.apply (Elm.val "mapBorderWidths") [ border theme.target Bottom ]
+                    |> Elm.withType (attrBorderWidthsType theme.target)
+                 )
+               , ( "left"
+                 , Elm.apply (Elm.val "mapBorderWidths") [ border theme.target Left ]
+                    |> Elm.withType (attrBorderWidthsType theme.target)
+                 )
+               ]
+             ]
+                |> List.concat
                 |> Elm.record
-             )
-           , ( "right"
-             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = 0, topRight = radii, bottomRight = radii, bottomLeft = 0 })
+            )
+            |> Elm.exposeConstructor
+        , Elm.declaration "borderRadius"
+            ([ toFields (\int -> toBorderRadius theme.target All (Elm.int int))
                 theme.borderRadii
+             , [ ( "top"
+                 , toFields (\radii -> toBorderRadius theme.target Top (Elm.int radii))
+                    theme.borderRadii
+                    |> Elm.record
+                 )
+               , ( "right"
+                 , toFields (\radii -> toBorderRadius theme.target Right (Elm.int radii))
+                    theme.borderRadii
+                    |> Elm.record
+                 )
+               , ( "bottom"
+                 , toFields (\radii -> toBorderRadius theme.target Bottom (Elm.int radii))
+                    theme.borderRadii
+                    |> Elm.record
+                 )
+               , ( "left"
+                 , toFields (\radii -> toBorderRadius theme.target Left (Elm.int radii))
+                    theme.borderRadii
+                    |> Elm.record
+                 )
+               ]
+             ]
+                |> List.concat
                 |> Elm.record
-             )
-           , ( "bottom"
-             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = 0, topRight = 0, bottomRight = radii, bottomLeft = radii })
-                theme.borderRadii
-                |> Elm.record
-             )
-           , ( "left"
-             , toFields (\radii -> Gen.Ui.roundedWith { topLeft = radii, topRight = 0, bottomRight = 0, bottomLeft = radii })
-                theme.borderRadii
-                |> Elm.record
-             )
-           ]
-         ]
-            |> List.concat
-            |> Elm.record
-        )
-        |> expose Borders
-    ]
+            )
+            |> Elm.exposeConstructor
+        ]
 
 
-layout : Theme.Theme -> List Elm.Declaration
+layout : Theme.Theme -> Elm.Declaration
 layout theme =
-    [ Elm.declaration "el"
-        Gen.Ui.values_.el
-        |> expose Layout
-    , Elm.declaration "row"
-        (Elm.record
-            (toFields
-                (\space ->
-                    Elm.fn2
+    case theme.target of
+        Theme.HTML ->
+            Elm.group
+                [ Elm.declaration "el"
+                    (Elm.fn2
                         (Elm.Arg.var "attrs")
-                        (Elm.Arg.var "children")
-                        (\attrs children ->
-                            Gen.Ui.call_.row (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
+                        (Elm.Arg.var "child")
+                        (\attrs child ->
+                            Gen.Html.call_.div attrs (Elm.list [ child ])
                         )
-                )
-                theme.spacing
-            )
-        )
-        |> expose Layout
-    , Elm.declaration "column"
-        (Elm.record
-            (toFields
-                (\space ->
-                    Elm.fn2
-                        (Elm.Arg.var "attrs")
-                        (Elm.Arg.var "children")
-                        (\attrs children ->
-                            Gen.Ui.call_.column (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
-                        )
-                )
-                theme.spacing
-            )
-        )
-        |> expose Layout
-    ]
-
-
-attrSpacingType =
-    Elm.Annotation.namedWith [] "Spaced" [ attrType ]
-
-
-spacing : Theme.Theme -> List Elm.Declaration
-spacing theme =
-    [ Elm.declaration "space"
-        (Elm.record
-            (toFields Elm.int
-                theme.spacing
-            )
-        )
-    , Elm.declaration "mapSpace"
-        (Elm.fn
-            (Elm.Arg.var "f")
-            (\f ->
-                Elm.record
-                    (toFields
-                        (\s ->
-                            Elm.apply f [ Elm.int s ]
-                        )
-                        theme.spacing
                     )
-            )
-        )
-    , Elm.declaration "spacing"
-        (Elm.record
-            (toFields (attr << Gen.Ui.spacing)
-                theme.spacing
-            )
-        )
-        |> expose Spacing
-    , Elm.alias "Spaced"
-        (toFieldsType (\_ -> Elm.Annotation.var "item") theme.spacing)
-    , Elm.declaration "padding"
-        (Elm.record
-            (toFields (attr << Gen.Ui.padding)
-                theme.spacing
-                ++ [ ( "xy"
-                     , Elm.apply (Elm.val "mapSpace")
-                        [ Elm.fn
-                            (Elm.Arg.varWith "spacingX" Elm.Annotation.int)
-                            (\spacingX ->
-                                Elm.apply (Elm.val "mapSpace")
-                                    [ Elm.fn
-                                        (Elm.Arg.varWith "spacingY" Elm.Annotation.int)
-                                        (\spacingY ->
-                                            Gen.Ui.call_.paddingXY spacingX spacingY
-                                        )
-                                    ]
+                    |> Elm.exposeConstructor
+                , Elm.declaration "row"
+                    (Elm.record
+                        (toFields
+                            (\space ->
+                                Elm.fn2
+                                    (Elm.Arg.var "attrs")
+                                    (Elm.Arg.var "children")
+                                    (\attrs children ->
+                                        Gen.Html.call_.div
+                                            (attrs
+                                                |> Elm.Op.cons (toSpacing theme.target space)
+                                                |> Elm.Op.cons (Gen.Html.Attributes.style "display" "flex")
+                                                |> Elm.Op.cons (Gen.Html.Attributes.style "flex-direction" "row")
+                                            )
+                                            children
+                                    )
                             )
-                        ]
-                        |> Elm.withType
-                            (Elm.Annotation.namedWith []
-                                "Spaced"
-                                [ attrSpacingType
-                                ]
+                            theme.spacing
+                        )
+                    )
+                    |> Elm.exposeConstructor
+                , Elm.declaration "column"
+                    (Elm.record
+                        (toFields
+                            (\space ->
+                                Elm.fn2
+                                    (Elm.Arg.var "attrs")
+                                    (Elm.Arg.var "children")
+                                    (\attrs children ->
+                                        Gen.Html.call_.div
+                                            (attrs
+                                                |> Elm.Op.cons (toSpacing theme.target space)
+                                                |> Elm.Op.cons (Gen.Html.Attributes.style "display" "flex")
+                                                |> Elm.Op.cons (Gen.Html.Attributes.style "flex-direction" "column")
+                                            )
+                                            children
+                                    )
                             )
-                     )
-                   , ( "top"
-                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingTop ]
-                        |> Elm.withType attrSpacingType
-                     )
-                   , ( "right"
-                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingRight ]
-                        |> Elm.withType attrSpacingType
-                     )
-                   , ( "bottom"
-                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingBottom ]
-                        |> Elm.withType attrSpacingType
-                     )
-                   , ( "left"
-                     , Elm.apply (Elm.val "mapSpace") [ Gen.Ui.values_.paddingLeft ]
-                        |> Elm.withType attrSpacingType
-                     )
-                   ]
+                            theme.spacing
+                        )
+                    )
+                    |> Elm.exposeConstructor
+                ]
+
+        Theme.ElmUI ->
+            Elm.group
+                [ Elm.declaration "el"
+                    Gen.Ui.values_.el
+                    |> Elm.exposeConstructor
+                , Elm.declaration "row"
+                    (Elm.record
+                        (toFields
+                            (\space ->
+                                Elm.fn2
+                                    (Elm.Arg.var "attrs")
+                                    (Elm.Arg.var "children")
+                                    (\attrs children ->
+                                        Gen.Ui.call_.row (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
+                                    )
+                            )
+                            theme.spacing
+                        )
+                    )
+                    |> Elm.exposeConstructor
+                , Elm.declaration "column"
+                    (Elm.record
+                        (toFields
+                            (\space ->
+                                Elm.fn2
+                                    (Elm.Arg.var "attrs")
+                                    (Elm.Arg.var "children")
+                                    (\attrs children ->
+                                        Gen.Ui.call_.column (Elm.Op.cons (Gen.Ui.spacing space) attrs) children
+                                    )
+                            )
+                            theme.spacing
+                        )
+                    )
+                    |> Elm.exposeConstructor
+                ]
+
+
+attrSpacingType target =
+    Elm.Annotation.namedWith [] "Spaced" [ attrType target ]
+
+
+padding : Theme.Target -> Int -> Elm.Expression
+padding target int =
+    case target of
+        Theme.HTML ->
+            Gen.Html.Attributes.style "padding" (px int)
+
+        Theme.ElmUI ->
+            Gen.Ui.padding int
+
+
+px : Int -> String
+px p =
+    String.fromInt p ++ "px"
+
+
+callPx : Elm.Expression -> Elm.Expression
+callPx p =
+    Elm.Op.append (Gen.String.call_.fromInt p) (Elm.string "px")
+
+
+toPaddingXY : Theme.Target -> Elm.Expression -> Elm.Expression -> Elm.Expression
+toPaddingXY target x y =
+    case target of
+        Theme.HTML ->
+            Gen.Html.Attributes.call_.style (Elm.string "padding")
+                (Elm.Op.append
+                    (Elm.Op.append (callPx y)
+                        (Elm.string " ")
+                    )
+                    (callPx x)
+                )
+
+        Theme.ElmUI ->
+            Gen.Ui.call_.paddingXY x y
+
+
+padTop : Theme.Target -> Elm.Expression
+padTop target =
+    case target of
+        Theme.HTML ->
+            Elm.fn
+                (Elm.Arg.var "px")
+                (\v ->
+                    Gen.Html.Attributes.call_.style
+                        (Elm.string "padding-top")
+                        (callPx v)
+                )
+
+        Theme.ElmUI ->
+            Gen.Ui.values_.paddingTop
+
+
+padBottom : Theme.Target -> Elm.Expression
+padBottom target =
+    case target of
+        Theme.HTML ->
+            Elm.fn
+                (Elm.Arg.var "px")
+                (\v ->
+                    Gen.Html.Attributes.call_.style
+                        (Elm.string "padding-bottom")
+                        (callPx v)
+                )
+
+        Theme.ElmUI ->
+            Gen.Ui.values_.paddingBottom
+
+
+padLeft : Theme.Target -> Elm.Expression
+padLeft target =
+    case target of
+        Theme.HTML ->
+            Elm.fn
+                (Elm.Arg.var "px")
+                (\v ->
+                    Gen.Html.Attributes.call_.style
+                        (Elm.string "padding-left")
+                        (callPx v)
+                )
+
+        Theme.ElmUI ->
+            Gen.Ui.values_.paddingLeft
+
+
+padRight : Theme.Target -> Elm.Expression
+padRight target =
+    case target of
+        Theme.HTML ->
+            Elm.fn
+                (Elm.Arg.var "px")
+                (\v ->
+                    Gen.Html.Attributes.call_.style
+                        (Elm.string "padding-right")
+                        (callPx v)
+                )
+
+        Theme.ElmUI ->
+            Gen.Ui.values_.paddingRight
+
+
+toSpacing : Theme.Target -> Int -> Elm.Expression
+toSpacing target int =
+    case target of
+        Theme.HTML ->
+            Gen.Html.Attributes.style "gap" (String.fromInt int ++ "px")
+
+        Theme.ElmUI ->
+            Gen.Ui.spacing int
+
+
+spacing : Theme.Theme -> Elm.Declaration
+spacing theme =
+    Elm.group
+        [ Elm.declaration "space"
+            (Elm.record
+                (toFields Elm.int
+                    theme.spacing
+                )
             )
-        )
-        |> expose Spacing
-    ]
-
-
-typography : Theme.Theme -> List Elm.Declaration
-typography theme =
-    [ Elm.declaration "font"
-        (theme.typography
-            |> List.foldl
-                (\typeface gathered ->
-                    let
-                        basename =
-                            Theme.nameToString typeface.name
-
-                        fullClassName =
-                            -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
-                            typographyClassName typeface.name (Tuple.first typeface.item.weight)
-                                |> addNamespace theme.namespace
-                                |> classAttr
-
-                        innerName =
-                            Theme.weightNameField (Tuple.first typeface.item.weight)
-                    in
-                    case Tuple.first typeface.item.weight of
-                        Theme.Default ->
-                            Dict.insert basename
-                                [ ( innerName, fullClassName )
-                                ]
-                                gathered
-
-                        _ ->
-                            Dict.update basename
-                                (\maybe ->
-                                    case maybe of
-                                        Just fields ->
-                                            Just (( innerName, fullClassName ) :: fields)
-
-                                        Nothing ->
-                                            Just
-                                                [ ( innerName, fullClassName )
-                                                ]
+        , Elm.declaration "mapSpace"
+            (Elm.fn
+                (Elm.Arg.var "f")
+                (\f ->
+                    Elm.record
+                        (toFields
+                            (\s ->
+                                Elm.apply f [ Elm.int s ]
+                            )
+                            theme.spacing
+                        )
+                )
+            )
+        , Elm.declaration "gap"
+            (Elm.record
+                (toFields (attr theme.target << toSpacing theme.target)
+                    theme.spacing
+                )
+            )
+            |> Elm.exposeConstructor
+        , Elm.alias "Spaced"
+            (toFieldsType (\_ -> Elm.Annotation.var "item") theme.spacing)
+        , Elm.declaration "pad"
+            (Elm.record
+                (toFields (attr theme.target << padding theme.target)
+                    theme.spacing
+                    ++ [ ( "xy"
+                         , Elm.apply (Elm.val "mapSpace")
+                            [ Elm.fn
+                                (Elm.Arg.varWith "spacingX" Elm.Annotation.int)
+                                (\spacingX ->
+                                    Elm.apply (Elm.val "mapSpace")
+                                        [ Elm.fn
+                                            (Elm.Arg.varWith "spacingY" Elm.Annotation.int)
+                                            (\spacingY ->
+                                                toPaddingXY theme.target spacingX spacingY
+                                            )
+                                        ]
                                 )
-                                gathered
+                            ]
+                            |> Elm.withType
+                                (Elm.Annotation.namedWith []
+                                    "Spaced"
+                                    [ attrSpacingType theme.target
+                                    ]
+                                )
+                         )
+                       , ( "top"
+                         , Elm.apply (Elm.val "mapSpace") [ padTop theme.target ]
+                            |> Elm.withType (attrSpacingType theme.target)
+                         )
+                       , ( "right"
+                         , Elm.apply (Elm.val "mapSpace") [ padRight theme.target ]
+                            |> Elm.withType (attrSpacingType theme.target)
+                         )
+                       , ( "bottom"
+                         , Elm.apply (Elm.val "mapSpace") [ padBottom theme.target ]
+                            |> Elm.withType (attrSpacingType theme.target)
+                         )
+                       , ( "left"
+                         , Elm.apply (Elm.val "mapSpace") [ padLeft theme.target ]
+                            |> Elm.withType (attrSpacingType theme.target)
+                         )
+                       ]
                 )
-                Dict.empty
-            |> Dict.foldl
-                (\name fields typographyRecord ->
-                    case fields of
-                        [] ->
-                            typographyRecord
+            )
+            |> Elm.exposeConstructor
+        ]
 
-                        [ single ] ->
-                            ( name, Tuple.second single )
-                                :: typographyRecord
 
-                        many ->
-                            ( name, Elm.record many )
-                                :: typographyRecord
-                )
-                []
-            |> Elm.record
-        )
-        |> expose Typography
-    ]
+typography : Theme.Theme -> Elm.Declaration
+typography theme =
+    Elm.group
+        [ Elm.declaration "font"
+            (theme.typography
+                |> List.foldl
+                    (\typeface gathered ->
+                        let
+                            basename =
+                                Theme.nameToString typeface.name
+
+                            fullClassName =
+                                -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
+                                typographyClassName typeface.name (Tuple.first typeface.item.weight)
+                                    |> addNamespace theme.namespace
+                                    |> classAttr theme.target
+
+                            innerName =
+                                Theme.weightNameField (Tuple.first typeface.item.weight)
+                        in
+                        case Tuple.first typeface.item.weight of
+                            Theme.Default ->
+                                Dict.insert basename
+                                    [ ( innerName, fullClassName )
+                                    ]
+                                    gathered
+
+                            _ ->
+                                Dict.update basename
+                                    (\maybe ->
+                                        case maybe of
+                                            Just fields ->
+                                                Just (( innerName, fullClassName ) :: fields)
+
+                                            Nothing ->
+                                                Just
+                                                    [ ( innerName, fullClassName )
+                                                    ]
+                                    )
+                                    gathered
+                    )
+                    Dict.empty
+                |> Dict.foldl
+                    (\name fields typographyRecord ->
+                        case fields of
+                            [] ->
+                                typographyRecord
+
+                            [ single ] ->
+                                ( name, Tuple.second single )
+                                    :: typographyRecord
+
+                            many ->
+                                ( name, Elm.record many )
+                                    :: typographyRecord
+                    )
+                    []
+                |> Elm.record
+            )
+            |> Elm.exposeConstructor
+        ]
 
 
 capitalize : String -> String
@@ -393,9 +531,29 @@ capitalize str =
     String.toUpper top ++ remain
 
 
-toWeight : Int -> Elm.Expression
-toWeight weight =
-    Gen.Ui.Font.weight weight
+toHtmlHeaderNode : Theme.Named Theme.Typeface -> (Elm.Expression -> Elm.Expression -> Elm.Expression)
+toHtmlHeaderNode typeface =
+    case Theme.nameToString typeface.name of
+        "h1" ->
+            Gen.Html.call_.h1
+
+        "h2" ->
+            Gen.Html.call_.h2
+
+        "h3" ->
+            Gen.Html.call_.h3
+
+        "h4" ->
+            Gen.Html.call_.h4
+
+        "h5" ->
+            Gen.Html.call_.h5
+
+        "h6" ->
+            Gen.Html.call_.h6
+
+        _ ->
+            Gen.Html.call_.div
 
 
 getHeaderAttr : String -> Maybe Elm.Expression
@@ -435,21 +593,20 @@ getHeaderAttr cls =
 
 generateTextElements : Theme.Theme -> Elm.File
 generateTextElements theme =
-    Elm.file [ "Ui", "Theme", "Text" ]
+    Elm.file [ "Theme", "Text" ]
         (theme.typography
-            |> List.foldl
+            |> List.foldr
                 (\typeface gathered ->
                     let
                         basename =
                             Theme.nameToString typeface.name
 
                         fullClassName =
-                            -- className theme.namespace typeface.name (Theme.weightNameToString (Tuple.first typeface.item.weight))
                             typographyClassName typeface.name (Tuple.first typeface.item.weight)
                                 |> addNamespace theme.namespace
 
                         fullClassAttr =
-                            classAttr fullClassName
+                            classAttr theme.target fullClassName
 
                         addAcccessibilityAttrs : Elm.Expression -> Elm.Expression
                         addAcccessibilityAttrs attrs =
@@ -463,14 +620,32 @@ generateTextElements theme =
                                         attrs
 
                         elFn =
-                            Elm.fn2
-                                (Elm.Arg.var "attrs")
-                                (Elm.Arg.varWith "child" Elm.Annotation.string)
-                                (\attrs child ->
-                                    Gen.Ui.call_.el
-                                        (addAcccessibilityAttrs (Elm.Op.cons fullClassAttr attrs))
-                                        (Gen.Ui.call_.text child)
-                                )
+                            case theme.target of
+                                Theme.HTML ->
+                                    Elm.fn2
+                                        (Elm.Arg.varWith "attrs"
+                                            (Elm.Annotation.list
+                                                (Gen.Html.annotation_.attribute
+                                                    (Elm.Annotation.var "msg")
+                                                )
+                                            )
+                                        )
+                                        (Elm.Arg.varWith "child" Elm.Annotation.string)
+                                        (\attrs child ->
+                                            toHtmlHeaderNode typeface
+                                                (Elm.Op.cons fullClassAttr attrs)
+                                                (Elm.list [ Gen.Html.call_.text child ])
+                                        )
+
+                                Theme.ElmUI ->
+                                    Elm.fn2
+                                        (Elm.Arg.var "attrs")
+                                        (Elm.Arg.varWith "child" Elm.Annotation.string)
+                                        (\attrs child ->
+                                            Gen.Ui.call_.el
+                                                (addAcccessibilityAttrs (Elm.Op.cons fullClassAttr attrs))
+                                                (Gen.Ui.call_.text child)
+                                        )
 
                         innerName =
                             Theme.weightNameField (Tuple.first typeface.item.weight)
@@ -518,118 +693,120 @@ generateTextElements theme =
                                                 |> Elm.expose
                                         )
                                         many
+                                        |> Elm.group
                             in
-                            new ++ typographyRecord
+                            new :: typographyRecord
                 )
                 []
         )
 
 
-generateColors : Theme.Theme -> Elm.File
-generateColors theme =
-    Elm.file [ "Ui", "Theme", "Color", "Palette" ]
+generateElmColorPalette : Theme.Theme -> Elm.File
+generateElmColorPalette theme =
+    Elm.file [ "Theme", "Color", "Palette" ]
         (List.foldl
             (\colorInstance list ->
-                case colorInstance.color of
-                    Theme.Color.Color clr ->
-                        (Elm.declaration (Theme.toColorName colorInstance) (toColor clr)
-                            |> Elm.expose
-                        )
-                            :: list
+                case theme.target of
+                    Theme.HTML ->
+                        case colorInstance.color of
+                            Theme.Color.Color adjust clr ->
+                                (Elm.declaration (Theme.toColorName colorInstance) (toColor theme.target clr)
+                                    |> Elm.expose
+                                )
+                                    :: list
 
-                    Theme.Color.Grad _ ->
-                        list
+                            Theme.Color.Grad _ ->
+                                list
+
+                    Theme.ElmUI ->
+                        case colorInstance.color of
+                            Theme.Color.Color adjust clr ->
+                                (Elm.declaration (Theme.toColorName colorInstance) (toColor theme.target clr)
+                                    |> Elm.expose
+                                )
+                                    :: list
+
+                            Theme.Color.Grad _ ->
+                                list
             )
             []
             theme.colors
         )
 
 
-generateColorTheme : Theme.Theme -> Elm.File
-generateColorTheme theme =
-    Elm.file [ "Ui", "Theme", "Color" ]
+toColorAttr : Theme.Theme -> String -> Theme.FullColorName -> Elm.Declaration
+toColorAttr theme colorType fullColorName =
+    Elm.declaration
+        (Theme.toFullColorName colorType fullColorName)
+        (toColorClassAttribute theme colorType fullColorName)
+
+
+toColorClassAttribute : Theme.Theme -> String -> Theme.FullColorName -> Elm.Expression
+toColorClassAttribute theme colorType fullColorName =
+    let
+        className =
+            theme.namespace ++ "-" ++ Theme.fullColorToCssClass colorType fullColorName
+    in
+    case theme.target of
+        Theme.HTML ->
+            Gen.Html.Attributes.class className
+
+        Theme.ElmUI ->
+            Gen.Ui.htmlAttribute
+                (Gen.Html.Attributes.class className)
+
+
+generateElmColorTheme : Theme.Theme -> Elm.File
+generateElmColorTheme theme =
+    Elm.file [ "Theme", "Color" ]
         (case theme.themes of
             Nothing ->
                 []
 
             Just themes ->
-                [ List.foldl
-                    (\( fullColorName, colorVal ) list ->
-                        case colorVal of
-                            Theme.Color.Color clr ->
-                                (Elm.declaration (Theme.toFullColorName "text" fullColorName)
-                                    (Gen.Ui.Font.color (toColor clr))
-                                    |> Elm.expose
-                                    |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
-                                    |> Tuple.pair (Theme.toFullColorName "Text" fullColorName)
+                let
+                    toStyles name themeList =
+                        themeList
+                            |> List.concatMap
+                                (\( fullColorName, _ ) ->
+                                    [ toColorAttr theme name fullColorName
+                                        |> Elm.expose
+                                        |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
+                                        |> Tuple.pair (Theme.toFullColorName name fullColorName)
+                                    , let
+                                        hoverName =
+                                            { fullColorName | state = Just Theme.Hover }
+                                      in
+                                      toColorAttr theme name hoverName
+                                        |> Elm.expose
+                                        |> Elm.withDocumentation (Theme.toFullColorDescription hoverName)
+                                        |> Tuple.pair (Theme.toFullColorName name hoverName)
+                                    , let
+                                        activeName =
+                                            { fullColorName | state = Just Theme.Active }
+                                      in
+                                      toColorAttr theme name activeName
+                                        |> Elm.expose
+                                        |> Elm.withDocumentation (Theme.toFullColorDescription activeName)
+                                        |> Tuple.pair (Theme.toFullColorName name activeName)
+                                    ]
                                 )
-                                    :: list
-
-                            Theme.Color.Grad _ ->
-                                list
-                    )
-                    []
-                    themes.default.text
-                , List.foldl
-                    (\( fullColorName, colorVal ) list ->
-                        case colorVal of
-                            Theme.Color.Color clr ->
-                                (Elm.declaration (Theme.toFullColorName "background" fullColorName)
-                                    (Gen.Ui.background (toColor clr))
-                                    |> Elm.expose
-                                    |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
-                                    |> Tuple.pair (Theme.toFullColorName "background" fullColorName)
-                                )
-                                    :: list
-
-                            Theme.Color.Grad _ ->
-                                list
-                    )
-                    []
-                    themes.default.background
-                , List.foldl
-                    (\( fullColorName, colorVal ) list ->
-                        case colorVal of
-                            Theme.Color.Color clr ->
-                                (Elm.declaration (Theme.toFullColorName "border" fullColorName)
-                                    (Gen.Ui.borderColor (toColor clr))
-                                    |> Elm.expose
-                                    |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
-                                    |> Tuple.pair (Theme.toFullColorName "border" fullColorName)
-                                )
-                                    :: list
-
-                            Theme.Color.Grad _ ->
-                                list
-                    )
-                    []
-                    themes.default.border
+                            |> List.sortBy Tuple.first
+                            |> List.map Tuple.second
+                            |> Elm.group
+                in
+                [ Elm.comment " Text "
+                , toStyles "text" themes.default.text
+                , Elm.comment " Backgrounds "
+                , toStyles "background" themes.default.background
+                , Elm.comment " Borders "
+                , toStyles "border" themes.default.border
                 ]
-                    |> List.concat
-                    |> List.sortBy Tuple.first
-                    |> List.map Tuple.second
         )
 
 
 
 {- HELPERS -}
-
-
-to255 : Float -> Int
-to255 value =
-    round (value * 255)
-
-
-toColor : Color.Color -> Elm.Expression
-toColor clr =
-    let
-        rgb =
-            Color.toRgba clr
-    in
-    Gen.Ui.rgb
-        (to255 rgb.red)
-        (to255 rgb.green)
-        (to255 rgb.blue)
 
 
 toFieldsType : (thing -> Elm.Annotation.Annotation) -> List (Theme.Named thing) -> Elm.Annotation.Annotation
@@ -667,24 +844,186 @@ field named toVal =
 {---}
 
 
-color : String -> Theme.Color.Color -> Style.Rule
-color name clr =
-    case clr of
-        Theme.Color.Color c ->
-            Style.color name c
-
-        Theme.Color.Grad gradient ->
-            Style.string name gradient
-
-
 stylesheet : Theme.Theme -> Elm.File
 stylesheet theme =
     Style.file (Just theme.namespace)
         [ "elm-ui.css" ]
         (List.concat
-            [ typographyStyles theme
+            [ colorStyles theme
+            , typographyStyles theme
             ]
         )
+
+
+colorStyles : Theme.Theme -> List Style.Rule
+colorStyles theme =
+    case theme.themes of
+        Nothing ->
+            []
+
+        Just themes ->
+            let
+                defaultColorRules =
+                    generateColorClasses themes.default
+
+                ( darkModeThemes, otherThemes ) =
+                    List.partition (\t -> Theme.nameToString t.name == "dark") themes.alternates
+
+                darkModeColorRules =
+                    case darkModeThemes of
+                        darkTheme :: _ ->
+                            generateColorClasses darkTheme.item
+
+                        [] ->
+                            -- Autogenerate dark mode
+                            generateColorClasses themes.default
+
+                darkModeMediaQuery =
+                    if List.isEmpty darkModeColorRules then
+                        Style.none
+
+                    else
+                        Style.media Style.darkmode
+                            darkModeColorRules
+            in
+            [ colorVars theme.colors
+            , Style.ruleList defaultColorRules
+            , Style.classAll "darkmode" darkModeColorRules
+            , Style.ruleList
+                (otherThemes
+                    |> List.map
+                        (\other ->
+                            let
+                                themeName =
+                                    Theme.nameToString other.name
+                            in
+                            Style.classAll themeName
+                                (generateColorClasses other.item)
+                        )
+                )
+            , darkModeMediaQuery
+            ]
+
+
+colorVars : List Theme.ColorInstance -> Style.Rule
+colorVars colors =
+    colors
+        |> List.map
+            (\clr ->
+                let
+                    varName =
+                        "--" ++ Theme.toColorName clr
+                in
+                Style.string varName (Theme.Color.toCssString clr.color)
+            )
+        |> Style.root
+
+
+generateColorClasses : Theme.ColorTheme -> List Style.Rule
+generateColorClasses theme =
+    let
+        genColorClass colorType propName colors =
+            List.map
+                (\( fullColorName, _ ) ->
+                    let
+                        className =
+                            Theme.fullColorToCssClass colorType fullColorName
+
+                        baseColor =
+                            Theme.fullColorNameToCssVar fullColorName
+                    in
+                    Style.ruleList
+                        -- Base color
+                        [ Style.class className
+                            [ Style.string propName baseColor
+                            ]
+
+                        -- Hover
+                        , Style.hover (Theme.fullColorToCssClass colorType { fullColorName | state = Just Theme.Hover })
+                            [ Style.string propName
+                                (Theme.fullColorNameToCssVar
+                                    (brighten 10 fullColorName)
+                                )
+                            ]
+
+                        -- Active
+                        , Style.active (Theme.fullColorToCssClass colorType { fullColorName | state = Just Theme.Active })
+                            [ Style.string propName
+                                (Theme.fullColorNameToCssVar
+                                    (brighten -10 fullColorName)
+                                )
+                            ]
+                        ]
+                )
+                colors
+                |> Style.ruleList
+    in
+    [ genColorClass "text" "color" theme.text
+    , genColorClass "background" "background-color" theme.background
+    , genColorClass "border" "border-color" theme.border
+    ]
+
+
+brighten : Int -> Theme.FullColorName -> Theme.FullColorName
+brighten amount fullColorName =
+    case fullColorName.variant of
+        Nothing ->
+            fullColorName
+
+        Just variant ->
+            { fullColorName | variant = Just (roundToNearestSlot (variant + amount)) }
+
+
+{-| The allowed values are 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95
+-}
+roundToNearestSlot : Int -> Int
+roundToNearestSlot value =
+    let
+        bounded =
+            max 5 (min 95 value)
+    in
+    -- Round to the nearest allowed values are 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95
+    -- without using pattern matching
+    case bounded // 10 of
+        0 ->
+            5
+
+        1 ->
+            10
+
+        2 ->
+            20
+
+        3 ->
+            30
+
+        4 ->
+            40
+
+        5 ->
+            50
+
+        6 ->
+            60
+
+        7 ->
+            70
+
+        8 ->
+            80
+
+        9 ->
+            90
+
+        10 ->
+            95
+
+        _ ->
+            bounded
+
+
+
+{- Typography -}
 
 
 typographyClassName : Theme.Name -> Theme.WeightName -> String
@@ -711,6 +1050,71 @@ typographyStyles theme =
 
                     fontClass =
                         typographyClassName name (Tuple.first item.weight)
+
+                    capitalSizingStyles =
+                        case item.capitalSizing of
+                            Nothing ->
+                                Style.none
+
+                            Just capitalSizing ->
+                                if theme.target == Theme.HTML then
+                                    Style.none
+
+                                else
+                                    Style.ruleList
+                                        [ Style.custom
+                                            (Style.AllChildren
+                                                (Style.Class fontClass)
+                                                -- Paragraph class in elm-ui
+                                                (Style.Class "p")
+                                                |> Style.After
+                                            )
+                                            [ Style.string "content" "\" \""
+                                            , Style.string "margin-top"
+                                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                                ("calc(1em * " ++ String.fromFloat capitalSizing.bottom ++ ")")
+                                            , Style.string "display" "table"
+                                            ]
+                                        , Style.custom
+                                            (Style.AllChildren
+                                                (Style.Class fontClass)
+                                                -- Paragraph class in elm-ui
+                                                (Style.Class "p")
+                                                |> Style.Before
+                                            )
+                                            [ Style.string "content" "\" \""
+                                            , Style.string "margin-bottom"
+                                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                                ("calc(1em * " ++ String.fromFloat capitalSizing.top ++ ")")
+                                            , Style.string "display" "table"
+                                            ]
+                                        , Style.custom
+                                            (Style.AllChildren
+                                                (Style.Class fontClass)
+                                                -- text class in elm-ui
+                                                (Style.Class "t")
+                                                |> Style.After
+                                            )
+                                            [ Style.string "content" "\" \""
+                                            , Style.string "margin-top"
+                                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                                ("calc(1em * " ++ String.fromFloat capitalSizing.bottom ++ ")")
+                                            , Style.string "display" "table"
+                                            ]
+                                        , Style.custom
+                                            (Style.AllChildren
+                                                (Style.Class fontClass)
+                                                -- text class in elm-ui
+                                                (Style.Class "t")
+                                                |> Style.Before
+                                            )
+                                            [ Style.string "content" "\" \""
+                                            , Style.string "margin-bottom"
+                                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
+                                                ("calc(1em * " ++ String.fromFloat capitalSizing.top ++ ")")
+                                            , Style.string "display" "table"
+                                            ]
+                                        ]
                 in
                 [ Style.class fontClass
                     [ Style.string "font-family" (fontFamily (item.face :: item.fallback))
@@ -735,78 +1139,7 @@ typographyStyles theme =
                         _ ->
                             Style.string "font-variant" (String.join " " variants)
                     ]
-                , case item.capitalSizing of
-                    Nothing ->
-                        Style.none
-
-                    Just capitalSizing ->
-                        Style.custom
-                            (Style.AllChildren
-                                (Style.Class fontClass)
-                                -- Paragraph class in elm-ui
-                                (Style.Class "p")
-                                |> Style.After
-                            )
-                            [ Style.string "content" "\" \""
-                            , Style.string "margin-top"
-                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
-                                ("calc(1em * " ++ String.fromFloat capitalSizing.bottom ++ ")")
-                            , Style.string "display" "table"
-                            ]
-                , case item.capitalSizing of
-                    Nothing ->
-                        Style.none
-
-                    Just capitalSizing ->
-                        Style.custom
-                            (Style.AllChildren
-                                (Style.Class fontClass)
-                                -- Paragraph class in elm-ui
-                                (Style.Class "p")
-                                |> Style.Before
-                            )
-                            [ Style.string "content" "\" \""
-                            , Style.string "margin-bottom"
-                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
-                                ("calc(1em * " ++ String.fromFloat capitalSizing.top ++ ")")
-                            , Style.string "display" "table"
-                            ]
-                , case item.capitalSizing of
-                    Nothing ->
-                        Style.none
-
-                    Just capitalSizing ->
-                        Style.custom
-                            (Style.AllChildren
-                                (Style.Class fontClass)
-                                -- text class in elm-ui
-                                (Style.Class "t")
-                                |> Style.After
-                            )
-                            [ Style.string "content" "\" \""
-                            , Style.string "margin-top"
-                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
-                                ("calc(1em * " ++ String.fromFloat capitalSizing.bottom ++ ")")
-                            , Style.string "display" "table"
-                            ]
-                , case item.capitalSizing of
-                    Nothing ->
-                        Style.none
-
-                    Just capitalSizing ->
-                        Style.custom
-                            (Style.AllChildren
-                                (Style.Class fontClass)
-                                -- text class in elm-ui
-                                (Style.Class "t")
-                                |> Style.Before
-                            )
-                            [ Style.string "content" "\" \""
-                            , Style.string "margin-bottom"
-                                -- autocalc is :  "calc((1lh - 1cap) / -2)"
-                                ("calc(1em * " ++ String.fromFloat capitalSizing.top ++ ")")
-                            , Style.string "display" "table"
-                            ]
+                , capitalSizingStyles
                 ]
             )
 
@@ -843,3 +1176,110 @@ captureVariants textTransform italic variants vars =
 fontFamily : List String -> String
 fontFamily fonts =
     String.join ", " (List.map (\f -> "\"" ++ f ++ "\"") fonts)
+
+
+
+{- Helpers that vary by target (e.g. html vs elm-ui) -}
+
+
+classAttr : Theme.Target -> String -> Elm.Expression
+classAttr target name =
+    case target of
+        Theme.HTML ->
+            Gen.Html.Attributes.class name
+
+        Theme.ElmUI ->
+            Gen.Ui.htmlAttribute
+                (Gen.Html.Attributes.class name)
+
+
+attr : Theme.Target -> Elm.Expression -> Elm.Expression
+attr target a =
+    a
+        |> Elm.withType (attrType target)
+
+
+attrType : Theme.Target -> Elm.Annotation.Annotation
+attrType target =
+    case target of
+        Theme.HTML ->
+            Gen.Html.annotation_.attribute (Elm.Annotation.var "msg")
+
+        Theme.ElmUI ->
+            Gen.Ui.annotation_.attribute (Elm.Annotation.var "msg")
+
+
+to255 : Float -> Int
+to255 value =
+    round (value * 255)
+
+
+toColor : Theme.Target -> Color.Color -> Elm.Expression
+toColor target clr =
+    let
+        rgb =
+            Color.toRgba clr
+    in
+    case target of
+        Theme.HTML ->
+            Elm.record
+                [ ( "red", Elm.int (to255 rgb.red) )
+                , ( "green", Elm.int (to255 rgb.green) )
+                , ( "blue", Elm.int (to255 rgb.blue) )
+                ]
+
+        Theme.ElmUI ->
+            Gen.Ui.rgb
+                (to255 rgb.red)
+                (to255 rgb.green)
+                (to255 rgb.blue)
+
+
+toBorder : Theme.Target -> Side -> Elm.Expression -> Elm.Expression
+toBorder target side widthInt =
+    case target of
+        Theme.HTML ->
+            case side of
+                All ->
+                    Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ sideToString side ++ "-width"))
+                        (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+
+                _ ->
+                    Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ sideToString side ++ "-width"))
+                        (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+
+        Theme.ElmUI ->
+            case side of
+                All ->
+                    Gen.Ui.call_.border widthInt
+
+                _ ->
+                    Gen.Ui.htmlAttribute
+                        (Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ sideToString side ++ "-width"))
+                            (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+                        )
+
+
+toBorderRadius : Theme.Target -> Side -> Elm.Expression -> Elm.Expression
+toBorderRadius target side widthInt =
+    case target of
+        Theme.HTML ->
+            case side of
+                All ->
+                    Gen.Html.Attributes.call_.style (Elm.string "border-width")
+                        (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+
+                _ ->
+                    Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ sideToString side ++ "-width"))
+                        (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+
+        Theme.ElmUI ->
+            case side of
+                All ->
+                    Gen.Ui.call_.border widthInt
+
+                _ ->
+                    Gen.Ui.htmlAttribute
+                        (Gen.Html.Attributes.call_.style (Elm.string ("border-" ++ sideToString side ++ "-width"))
+                            (Elm.Op.append (Gen.String.call_.fromInt widthInt) (Elm.string "px"))
+                        )

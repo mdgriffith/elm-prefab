@@ -48,7 +48,7 @@ export const AssetConfig = mapObject(
       src: z.string(),
       onServer: z.string(),
     })
-    .strict(),
+    .strict()
 );
 
 export const GraphQLConfig = z
@@ -113,6 +113,14 @@ export const ColorTree: z.ZodType<ColorTree> = z
   .or(mapObject(z.lazy(() => ColorTree)));
 
 export const ColorAliasTheme = z.object({
+  // palette selection
+  neutral: z.string(),
+  primary: z.string(),
+  focus: z.string().optional(),
+  success: z.string().optional(),
+  error: z.string().optional(),
+
+  // semantic usage
   text: ColorTree.optional(),
   background: ColorTree.optional(),
   border: ColorTree.optional(),
@@ -222,7 +230,7 @@ export type Generated = { outputDir: string; path: string };
 
 export const addGenerated = (
   summary: Summary,
-  generatedFile: Generated,
+  generatedFile: Generated
 ): Summary => {
   if ("generated" in summary) {
     summary.generated.push(generatedFile);
@@ -283,13 +291,13 @@ const renderExample = (path: (string | number)[]): string => {
   }
 
   return ` Here's an example of what I'm expecting at ${jsonPathToString(
-    path,
+    path
   )}:\n${JSON.stringify(example, null, 2)}`;
 };
 
 const formatError = (issue: z.ZodIssue, issueDescription: string): string => {
   return `${issueDescription} at ${jsonPathToString(issue.path)}${errorFollowup(
-    issue,
+    issue
   )}`;
 };
 
@@ -370,7 +378,7 @@ export const readConfig = async (filepath: string): Promise<Config | null> => {
     console.log(`Elm Prefab
 
     I tried to read your ${Chalk.yellow(
-      "elm.generate.json",
+      "elm.generate.json"
     )} file doesn't look like valid JSON.
 `);
     process.exit(1);
@@ -387,7 +395,7 @@ export const readConfig = async (filepath: string): Promise<Config | null> => {
     }
 
     let message = `I tried to read your ${Chalk.yellow(
-      "elm.generate.json",
+      "elm.generate.json"
     )} file but found ${issueCount}.
 
 `;
@@ -430,6 +438,6 @@ export const writeConfig = (dir: string, config: Config) => {
 
   fs.writeFileSync(
     path.join(dir, "elm.generate.json"),
-    JSON.stringify(clone, null, 2),
+    JSON.stringify(clone, null, 2)
   );
 };

@@ -8,6 +8,58 @@ import Parser exposing ((|.), (|=))
 import Theme.Color
 
 
+type alias Theme =
+    { namespace : String
+    , colors : List ColorInstance
+    , target : Target
+    , themes : Maybe ColorThemeDefinitions
+    , spacing : List (Named Int)
+    , typography : List (Named Typeface)
+    , borderRadii : List (Named Int)
+    , borderWidths : List (Named Int)
+    }
+
+
+type alias ColorThemeDefinitions =
+    { default : ColorTheme
+    , alternates : List (Named ColorTheme)
+    }
+
+
+type alias FullColorName =
+    { base : String -- purple
+    , alias : Maybe String -- primary
+    , variant : Maybe Int -- 700
+    , state : Maybe State -- hover
+    , nuance : Maybe String -- subtle
+    }
+
+
+type State
+    = Hover
+    | Active
+    | Focus
+
+
+type alias ColorTheme =
+    { text : List ( FullColorName, Theme.Color.Color )
+    , background : List ( FullColorName, Theme.Color.Color )
+    , border : List ( FullColorName, Theme.Color.Color )
+    }
+
+
+type Target
+    = HTML
+    | ElmUI
+
+
+type alias ColorInstance =
+    { color : Theme.Color.Color
+    , name : String
+    , variant : Maybe Int
+    }
+
+
 type Name
     = Name String
 
@@ -23,28 +75,13 @@ type alias Named thing =
     }
 
 
-type alias ColorThemeDefinitions =
-    { default : ColorTheme
-    , alternates : List (Named ColorTheme)
-    }
-
-
-type alias FullColorName =
-    { base : String -- primary
-    , alias : Maybe String -- primary
-    , variant : Maybe String -- 700
-    , state : Maybe State -- hover
-    , nuance : Maybe String -- subtle
-    }
-
-
 toFullColorDescription : FullColorName -> String
 toFullColorDescription fullColorName =
     let
         variant =
             case fullColorName.variant of
                 Just v ->
-                    v
+                    String.fromInt v
 
                 Nothing ->
                     ""
@@ -74,7 +111,7 @@ fullColorNameToCssVar fullColorName =
         variant =
             case fullColorName.variant of
                 Just v ->
-                    v
+                    String.fromInt v
 
                 Nothing ->
                     ""
@@ -112,7 +149,7 @@ fullColorToCssClass functionName fullColorName =
         state =
             case fullColorName.state of
                 Just s ->
-                    stateToString s
+                    stateToCssClassName s
 
                 Nothing ->
                     ""
@@ -153,7 +190,7 @@ toFullColorName functionName fullColorName =
         variant =
             case fullColorName.variant of
                 Just v ->
-                    capitalize v
+                    String.fromInt v
 
                 Nothing ->
                     ""
@@ -177,6 +214,19 @@ toFullColorName functionName fullColorName =
     functionName ++ capitalize base ++ state ++ nuance
 
 
+stateToCssClassName : State -> String
+stateToCssClassName state =
+    case state of
+        Hover ->
+            "hover"
+
+        Active ->
+            "active"
+
+        Focus ->
+            "focus"
+
+
 stateToString : State -> String
 stateToString state =
     case state of
@@ -190,67 +240,14 @@ stateToString state =
             "Focus"
 
 
-type State
-    = Hover
-    | Active
-    | Focus
-
-
-type alias ColorTheme =
-    { text : List ( FullColorName, Theme.Color.Color )
-    , background : List ( FullColorName, Theme.Color.Color )
-    , border : List ( FullColorName, Theme.Color.Color )
-    }
-
-
-type Target
-    = HTML
-    | ElmUI
-
-
-type alias Theme =
-    { namespace : String
-    , colors : List ColorInstance
-    , target : Target
-    , themes : Maybe ColorThemeDefinitions
-    , spacing : List (Named Int)
-    , typography : List (Named Typeface)
-    , borderRadii : List (Named Int)
-    , borderWidths : List (Named Int)
-    }
-
-
-type alias ColorInstance =
-    { color : Theme.Color.Color
-    , name : String
-    , alias : Maybe String
-    , variant : Maybe String
-    }
-
-
 toColorName : ColorInstance -> String
 toColorName colorInstance =
     case colorInstance.variant of
         Just variant ->
-            colorInstance.name ++ capitalize variant
+            colorInstance.name ++ String.fromInt variant
 
         Nothing ->
             colorInstance.name
-
-
-toColorAlias : ColorInstance -> String
-toColorAlias colorInstance =
-    let
-        alias =
-            colorInstance.alias
-                |> Maybe.withDefault colorInstance.name
-    in
-    case colorInstance.variant of
-        Just variant ->
-            alias ++ capitalize variant
-
-        Nothing ->
-            alias
 
 
 capitalize : String -> String

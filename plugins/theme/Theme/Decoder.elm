@@ -2,6 +2,8 @@ module Theme.Decoder exposing (decode)
 
 {-| -}
 
+import Color
+import Dict
 import Json.Decode
 import Parser exposing ((|.), (|=))
 import Theme exposing (..)
@@ -76,24 +78,58 @@ decodeThemes colors =
         (decodeNamed (decodeColorAliasTheme colors))
 
 
+{-| A map of color names to semantic names
+-}
+type alias SemanticMap =
+    Dict.Dict String String
+
+
 decodeColorAliasTheme : List Theme.ColorInstance -> Json.Decode.Decoder ColorTheme
 decodeColorAliasTheme colors =
-    Json.Decode.map3
-        (\text bgs borders ->
-            { text = text
-            , background = bgs
-            , border = borders
-            }
-        )
-        (Json.Decode.field "text" (decodeColorTree colors))
-        (Json.Decode.field "background" (decodeColorTree colors))
-        (Json.Decode.field "border" (decodeColorTree colors))
+    decodeSemanticMap
+        [ "primary"
+        , "neutral"
+        , "success"
+        , "error"
+        ]
+        |> Json.Decode.andThen
+            (\semanticMap ->
+                Json.Decode.map3
+                    (\text bgs borders ->
+                        { text = text
+                        , background = bgs
+                        , border = borders
+                        }
+                    )
+                    (Json.Decode.field "text" (decodeColorTree colors semanticMap))
+                    (Json.Decode.field "background" (decodeColorTree colors semanticMap))
+                    (Json.Decode.field "border" (decodeColorTree colors semanticMap))
+            )
+
+
+decodeSemanticMap : List String -> Json.Decode.Decoder SemanticMap
+decodeSemanticMap allowedKeys =
+    Json.Decode.dict Json.Decode.string
+        |> Json.Decode.map
+            (\dict ->
+                Dict.foldl
+                    (\key value acc ->
+                        if List.member key allowedKeys then
+                            Dict.insert value key acc
+
+                        else
+                            acc
+                    )
+                    Dict.empty
+                    dict
+            )
 
 
 decodeColorTree :
     List Theme.ColorInstance
+    -> SemanticMap
     -> Json.Decode.Decoder (List ( Theme.FullColorName, Theme.Color.Color ))
-decodeColorTree colors =
+decodeColorTree colors semanticMap =
     decodeColorTreeHelper
         |> Json.Decode.map
             (\keyVals ->
@@ -105,7 +141,7 @@ decodeColorTree colors =
                         in
                         List.map
                             (\found ->
-                                ( pathToFullColorName path found
+                                ( pathToFullColorName semanticMap path found
                                 , found.color
                                 )
                             )
@@ -113,6 +149,16 @@ decodeColorTree colors =
                     )
                     keyVals
             )
+
+
+pathToFullColorName : SemanticMap -> List String -> Theme.ColorInstance -> Theme.FullColorName
+pathToFullColorName semantic path instance =
+    { base = instance.name -- purple
+    , variant = instance.variant -- 700
+    , alias = Dict.get instance.name semantic -- primary
+    , state = getState path -- hover
+    , nuance = getNuance instance.name path -- subtle
+    }
 
 
 {-|
@@ -135,15 +181,7 @@ lookupColorPath colorVar colors =
         matchVariant instance =
             case instance.variant of
                 Just variant ->
-                    colorVar == variant
-
-                Nothing ->
-                    False
-
-        matchAlias instance =
-            case instance.alias of
-                Just alias ->
-                    colorVar == alias
+                    colorVar == String.fromInt variant
 
                 Nothing ->
                     False
@@ -151,21 +189,9 @@ lookupColorPath colorVar colors =
         match instance =
             (colorVar == instance.name)
                 || matchVariant instance
-                || matchAlias instance
                 || (colorVar == Theme.toColorName instance)
-                || (colorVar == Theme.toColorAlias instance)
     in
     List.filter match colors
-
-
-pathToFullColorName : List String -> Theme.ColorInstance -> Theme.FullColorName
-pathToFullColorName path instance =
-    { base = instance.name -- purple
-    , variant = instance.variant -- 700
-    , alias = instance.alias -- primary
-    , state = getState path -- hover
-    , nuance = getNuance instance.name path -- subtle
-    }
 
 
 getNuance : String -> List String -> Maybe String
@@ -256,8 +282,7 @@ decodeColorTreeHelper =
 type ColorIntermediate
     = SingleColor Theme.Color.Color
     | PaletteColor
-        { alias_ : Maybe String
-        , colors : List { name : String, color : Theme.Color.Color }
+        { colors : List { name : String, color : Theme.Color.Color }
         }
 
 
@@ -266,36 +291,27 @@ decodeColorSwatch =
     Json.Decode.keyValuePairs
         (Json.Decode.oneOf
             [ Json.Decode.map SingleColor decodeColor
-            , Json.Decode.maybe (Json.Decode.field "alias" Json.Decode.string)
+            , Json.Decode.keyValuePairs (Json.Decode.maybe decodeColor)
                 |> Json.Decode.andThen
-                    (\maybeAlias ->
-                        Json.Decode.keyValuePairs (Json.Decode.maybe decodeColor)
-                            |> Json.Decode.andThen
-                                (\colorPairs ->
-                                    Json.Decode.succeed
-                                        (PaletteColor
-                                            { alias_ = maybeAlias
-                                            , colors =
-                                                List.filterMap
-                                                    (\( name, maybeColor ) ->
-                                                        if name == "alias" then
-                                                            Nothing
+                    (\colorPairs ->
+                        Json.Decode.succeed
+                            (PaletteColor
+                                { colors =
+                                    List.filterMap
+                                        (\( name, maybeColor ) ->
+                                            case maybeColor of
+                                                Nothing ->
+                                                    Nothing
 
-                                                        else
-                                                            case maybeColor of
-                                                                Nothing ->
-                                                                    Nothing
-
-                                                                Just color ->
-                                                                    Just
-                                                                        { name = name
-                                                                        , color = color
-                                                                        }
-                                                    )
-                                                    colorPairs
-                                            }
+                                                Just color ->
+                                                    Just
+                                                        { name = name
+                                                        , color = color
+                                                        }
                                         )
-                                )
+                                        colorPairs
+                                }
+                            )
                     )
             ]
         )
@@ -303,21 +319,27 @@ decodeColorSwatch =
             (List.concatMap
                 (\( key, inner ) ->
                     case inner of
-                        SingleColor color ->
-                            [ { color = color
+                        SingleColor (Theme.Color.Grad grad) ->
+                            [ { color = Theme.Color.Grad grad
                               , name = key
-                              , alias = Nothing
                               , variant = Nothing
                               }
                             ]
+
+                        SingleColor (Theme.Color.Color _ color) ->
+                            autoswatch key color
 
                         PaletteColor pal ->
                             List.map
                                 (\item ->
                                     { color = item.color
                                     , name = key
-                                    , alias = pal.alias_
-                                    , variant = Just item.name
+                                    , variant =
+                                        String.toInt item.name
+                                            |> Maybe.map
+                                                (\n ->
+                                                    min 100 (max 0 n)
+                                                )
                                     }
                                 )
                                 pal.colors
@@ -325,22 +347,27 @@ decodeColorSwatch =
             )
 
 
-flattenPalette ( key, palette ) =
-    case palette of
-        Single color ->
-            [ { name = Name key
-              , item = color
-              }
-            ]
-
-        Palette colors ->
-            List.map
-                (\{ name, item } ->
-                    { name = Name (key ++ Theme.nameToString name)
-                    , item = item
-                    }
-                )
-                colors
+autoswatch : String -> Color.Color -> List Theme.ColorInstance
+autoswatch baseName baseColor =
+    let
+        toLuminance n color =
+            { color = Theme.Color.atLightness n color
+            , name = baseName
+            , variant = Just n
+            }
+    in
+    [ toLuminance 5 baseColor
+    , toLuminance 10 baseColor
+    , toLuminance 20 baseColor
+    , toLuminance 30 baseColor
+    , toLuminance 40 baseColor
+    , toLuminance 50 baseColor
+    , toLuminance 60 baseColor
+    , toLuminance 70 baseColor
+    , toLuminance 80 baseColor
+    , toLuminance 90 baseColor
+    , toLuminance 95 baseColor
+    ]
 
 
 decodeColor : Json.Decode.Decoder Theme.Color.Color
