@@ -5,7 +5,8 @@ import Docs.Packages
 import Elm.Docs
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Ui
+import Theme
+import Ui.Attr
 
 
 padding : Int
@@ -21,21 +22,21 @@ width =
 view : {} -> Html msg
 view options =
     Html.nav
-        [ Ui.width width
-        , Ui.widthMax width
-        , Ui.noShrink
-        , Ui.noGrow
-        , Ui.borderBox
+        [ Ui.Attr.width width
+        , Ui.Attr.widthMax width
+        , Ui.Attr.noShrink
+        , Ui.Attr.noGrow
+        , Ui.Attr.borderBox
         , heightWindow
         ]
         [ Html.div
             [ Attr.style "position" "fixed"
             , heightWindow
-            , Ui.pad padding
-            , Ui.width width
-            , Ui.widthMax width
-            , Ui.borderBox
-            , Ui.scrollbars
+            , Ui.Attr.pad padding
+            , Ui.Attr.width width
+            , Ui.Attr.widthMax width
+            , Ui.Attr.borderBox
+            , Ui.Attr.scrollbars
             , Attr.class "navbar"
             ]
             [ viewSection "Guides"
@@ -52,9 +53,9 @@ heightWindow =
 
 viewSection : String -> List (Html msg) -> Html msg
 viewSection title items =
-    Ui.column [ Ui.gap 16 ]
+    Theme.column.sm []
         [ Html.h2 [ Ui.pad 0 ] [ Html.text title ]
-        , Ui.column [ Ui.gap -2 ] items
+        , Theme.column.zero [ Ui.gap -2 ] items
         ]
 
 
@@ -66,8 +67,8 @@ viewPackage package =
                 (App.Route.toString
                     (App.Route.Package { path_ = String.split "/" package.name })
                 )
-            , Ui.ellipsis
-            , Ui.width (width - (padding * 2))
+            , Ui.Attr.ellipsis
+            , Ui.Attr.width (width - (padding * 2))
             , Attr.style "display" "inline-block"
             ]
             [ Html.text package.name ]

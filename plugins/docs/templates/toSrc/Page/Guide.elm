@@ -15,6 +15,7 @@ import Effect exposing (Effect)
 import Html exposing (Html)
 import Listen exposing (Listen)
 import Ui
+import Ui.Attr
 
 
 {-| -}
@@ -66,9 +67,9 @@ view viewId shared model =
                 Ui.Markdown.view guide.content
                     |> Ui.el
                         [ Ui.pad 48
-                        , Ui.width 800
+                        , Ui.Attr.width 800
                         ]
 
             Nothing ->
-                Ui.text "Guide not found"
+                Html.text "Guide not found"
     }

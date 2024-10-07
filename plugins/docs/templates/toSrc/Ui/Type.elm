@@ -1,13 +1,10 @@
-module Ui.Type exposing (view)
+module Ui.Attr.Type exposing (view)
 
-import Ui
 import Elm.Type
 import Html exposing (Html)
-import Html.Attributes as Attr
-import Ui.Syntax as Syntax
-
-
-
+import Theme
+import Ui.Attr.Attr
+import Ui.Attr.Syntax as Syntax
 
 
 shouldBeMultiline : Elm.Type.Type -> Bool
@@ -95,14 +92,14 @@ recordWidth =
 
 indentPadding : Int -> Html.Attribute msg
 indentPadding indent =
-    Ui.padXY
+    Ui.Attr.padXY
         (indent * 8)
         0
 
 
 parens : Html msg -> Html msg
 parens content =
-    Ui.row []
+    Theme.row.zero []
         [ punctuation "("
         , content
         , punctuation ")"
@@ -111,13 +108,13 @@ parens content =
 
 verticalParens : Html msg -> Html msg
 verticalParens content =
-    Ui.column []
-        [ Ui.row []
-            [ Ui.el
-                [ Ui.alignTop
+    Theme.column.zero []
+        [ Theme.row.zero []
+            [ Theme.el
+                [ Ui.Attr.alignTop
                 , Syntax.punctuation
                 ]
-                (Ui.text "(")
+                (Html.text "(")
             , content
             ]
         , punctuation ")"
@@ -172,7 +169,7 @@ viewNew forceMultiline indent tipe =
     case tipe of
         Elm.Type.Var var ->
             { multiline = forceMultiline
-            , content = Ui.el [ Syntax.typevar, Ui.alignTop ] (Ui.text var)
+            , content = Theme.el [ Syntax.typevar, Ui.Attr.alignTop ] (Html.text var)
             }
 
         Elm.Type.Lambda one two ->
@@ -209,8 +206,8 @@ viewNew forceMultiline indent tipe =
                         indent
                         (viewNew forceMultiline (indent + 4))
                         vals
-                        { rowSpacer = Ui.el [ Syntax.punctuation ] (Ui.text ", ")
-                        , columnSpacer = Ui.el [ Syntax.punctuation ] (Ui.text ", ")
+                        { rowSpacer = Theme.el [ Syntax.punctuation ] (Html.text ", ")
+                        , columnSpacer = Theme.el [ Syntax.punctuation ] (Html.text ", ")
                         }
             in
             { multiline = forceMultiline || renderedItems.multiline
@@ -221,7 +218,7 @@ viewNew forceMultiline indent tipe =
 
         Elm.Type.Type typename [] ->
             { multiline = forceMultiline
-            , content = Ui.el [ Syntax.type_, Ui.alignTop ] (Ui.text typename)
+            , content = Theme.el [ Syntax.type_, Ui.Attr.alignTop ] (Html.text typename)
             }
 
         Elm.Type.Type typename varTypes ->
@@ -242,21 +239,21 @@ viewNew forceMultiline indent tipe =
                             }
                         )
                         varTypes
-                        { rowSpacer = Ui.text " "
-                        , columnSpacer = Ui.none
+                        { rowSpacer = Html.text " "
+                        , columnSpacer = Ui.Attr.none
                         }
             in
             { multiline = forceMultiline || renderedItems.multiline
             , content =
                 columnIf (forceMultiline || renderedItems.multiline)
                     []
-                    [ Ui.row [ Ui.alignTop ]
-                        [ Ui.el [ Ui.alignTop, Syntax.type_ ] (Ui.text typename)
-                        , Ui.text " "
+                    [ Theme.row.zero [ Ui.Attr.alignTop ]
+                        [ Theme.el [ Ui.Attr.alignTop, Syntax.type_ ] (Html.text typename)
+                        , Html.text " "
                         ]
                     , if forceMultiline || renderedItems.multiline then
-                        Ui.row []
-                            [ Ui.text "    "
+                        Theme.row.zero []
+                            [ Html.text "    "
                             , renderedItems.content
                             ]
 
@@ -276,19 +273,19 @@ viewNew forceMultiline indent tipe =
                     , content =
                         columnIf fieldContent.multiline
                             []
-                            [ Ui.row [ Ui.alignTop, Syntax.field ]
+                            [ Theme.row.zero [ Ui.Attr.alignTop, Syntax.field ]
                                 [ if cursor.isFirst then
-                                    Ui.row []
+                                    Theme.row.zero []
                                         [ punctuation "{ "
                                         , case maybeExtensibleName of
                                             Nothing ->
-                                                Ui.none
+                                                Ui.Attr.none
 
                                             Just recordName ->
                                                 fieldName recordName
                                         , case maybeExtensibleName of
                                             Nothing ->
-                                                Ui.none
+                                                Ui.Attr.none
 
                                             Just recordName ->
                                                 punctuation " | "
@@ -300,8 +297,8 @@ viewNew forceMultiline indent tipe =
                                 , keyword " : "
                                 ]
                             , if fieldContent.multiline then
-                                Ui.row []
-                                    [ Ui.text "    "
+                                Theme.row.zero []
+                                    [ Html.text "    "
                                     , fieldContent.content
                                     ]
 
@@ -320,7 +317,7 @@ viewNew forceMultiline indent tipe =
                 |> (\result ->
                         { multiline = result.multiline
                         , content =
-                            Ui.column [ Ui.gap 4 ]
+                            Theme.column.zero [ Ui.Attr.gap 4 ]
                                 ((punctuation "}" :: result.content)
                                     |> List.reverse
                                 )
@@ -329,15 +326,15 @@ viewNew forceMultiline indent tipe =
 
 
 keyword str =
-    Ui.el [ Syntax.keyword ] (Ui.text str)
+    Theme.el [ Syntax.keyword ] (Html.text str)
 
 
 fieldName str =
-    Ui.el [ Syntax.field ] (Ui.text str)
+    Theme.el [ Syntax.field ] (Html.text str)
 
 
 punctuation str =
-    Ui.el [ Syntax.punctuation ] (Ui.text str)
+    Theme.el [ Syntax.punctuation ] (Html.text str)
 
 
 viewList :
@@ -370,9 +367,9 @@ viewList forceMultiline indent viewItem items spacer =
             , content =
                 columnIf (forceMultiline || fieldContent.multiline)
                     []
-                    [ Ui.row []
+                    [ Theme.row.zero []
                         [ if cursor.isFirst then
-                            Ui.none
+                            Ui.Attr.none
 
                           else if forceMultiline || fieldContent.multiline then
                             spacer.columnSpacer
@@ -423,7 +420,7 @@ viewFnArgs forceMultiline indent tipe =
             in
             { multiline = args.multiline
             , items =
-                Ui.row [ Ui.alignTop ]
+                Theme.row.zero [ Ui.Attr.alignTop ]
                     [ arrowRight (forceMultiline || args.multiline)
                     , new.content
                     ]
@@ -437,7 +434,7 @@ viewFnArgs forceMultiline indent tipe =
             in
             { multiline = new.multiline
             , items =
-                [ Ui.row [ Ui.alignTop ]
+                [ Theme.row.zero [ Ui.Attr.alignTop ]
                     [ arrowRight (forceMultiline || new.multiline)
                     , new.content
                     ]
@@ -448,16 +445,16 @@ viewFnArgs forceMultiline indent tipe =
 columnIf : Bool -> List (Html.Attribute msg) -> List (Html msg) -> Html msg
 columnIf on attrs children =
     if on then
-        Ui.column (Ui.gap 4 :: attrs) children
+        Theme.column.zero (Ui.Attr.gap 4 :: attrs) children
 
     else
-        Ui.row attrs children
+        Theme.row.zero attrs children
 
 
 arrowRight : Bool -> Html msg
 arrowRight multiline =
     if multiline then
-        Ui.el [ Ui.alignTop, Syntax.keyword ] (Ui.text "-> ")
+        Theme.el [ Ui.Attr.alignTop, Syntax.keyword ] (Html.text "-> ")
 
     else
-        Ui.el [ Ui.alignTop, Syntax.keyword ] (Ui.text " -> ")
+        Theme.el [ Ui.Attr.alignTop, Syntax.keyword ] (Html.text " -> ")

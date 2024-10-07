@@ -108,7 +108,7 @@ view resources toAppMsg model innerView =
     { title = innerView.title
     , body =
         [ stylesheet
-        , Ui.row [ heightWindow ]
+        , Ui.row.zero [ heightWindow ]
             [ Ui.Nav.view {}
             , Html.div
                 [ heightWindow

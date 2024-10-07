@@ -1,14 +1,29 @@
-module Ui.Syntax exposing (..)
+module Ui.Syntax exposing (field, keyword, punctuation, type_, typevar)
 
+import Html
 import Html.Attributes as Attr
 
-typevar = Attr.class "typevar"
+
+typevar : Html.Attribute msg
+typevar =
+    Attr.class "typevar"
 
 
-punctuation = Attr.class "punctuation"
+punctuation : Html.Attribute msg
+punctuation =
+    Attr.class "punctuation"
 
-type_ = Attr.class "type"
 
-field = Attr.class "field"
+type_ : Html.Attribute msg
+type_ =
+    Attr.class "type"
 
-keyword = Attr.class "keyword"
+
+field : Html.Attribute msg
+field =
+    Attr.class "field"
+
+
+keyword : Html.Attribute msg
+keyword =
+    Attr.class "keyword"

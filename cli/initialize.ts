@@ -317,6 +317,7 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
         Package: Options.toUrl("/package/*"),
       },
     },
+    theme: defaultTheme,
     docs: {
       src: "..",
       modules: [],
@@ -330,11 +331,7 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
     JSON.stringify(
       {
         type: "application",
-        "source-directories": [
-          "src/app",
-          ".elm-prefab",
-          "/Users/mattgriffith/projects/mdgriffith/elm-ui/src",
-        ],
+        "source-directories": ["src/app", ".elm-prefab"],
         "elm-version": "0.19.1",
         dependencies: {
           direct: {
