@@ -1,10 +1,10 @@
-module Ui.Attr.Type exposing (view)
+module Ui.Type exposing (view)
 
 import Elm.Type
 import Html exposing (Html)
 import Theme
-import Ui.Attr.Attr
-import Ui.Attr.Syntax as Syntax
+import Ui.Attr
+import Ui.Syntax as Syntax
 
 
 shouldBeMultiline : Elm.Type.Type -> Bool
@@ -240,7 +240,7 @@ viewNew forceMultiline indent tipe =
                         )
                         varTypes
                         { rowSpacer = Html.text " "
-                        , columnSpacer = Ui.Attr.none
+                        , columnSpacer = Html.text " "
                         }
             in
             { multiline = forceMultiline || renderedItems.multiline
@@ -279,13 +279,13 @@ viewNew forceMultiline indent tipe =
                                         [ punctuation "{ "
                                         , case maybeExtensibleName of
                                             Nothing ->
-                                                Ui.Attr.none
+                                                Html.text ""
 
                                             Just recordName ->
                                                 fieldName recordName
                                         , case maybeExtensibleName of
                                             Nothing ->
-                                                Ui.Attr.none
+                                                Html.text ""
 
                                             Just recordName ->
                                                 punctuation " | "
@@ -369,7 +369,7 @@ viewList forceMultiline indent viewItem items spacer =
                     []
                     [ Theme.row.zero []
                         [ if cursor.isFirst then
-                            Ui.Attr.none
+                            Html.text ""
 
                           else if forceMultiline || fieldContent.multiline then
                             spacer.columnSpacer

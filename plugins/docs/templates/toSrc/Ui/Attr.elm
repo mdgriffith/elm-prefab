@@ -5,6 +5,7 @@ module Ui.Attr exposing
     , gap
     , noGrow
     , noShrink
+    , none
     , overflowHidden
     , pad
     , padXY
@@ -15,6 +16,11 @@ module Ui.Attr exposing
 
 import Html exposing (Html)
 import Html.Attributes as Attr
+
+
+none : Html.Attribute msg
+none =
+    Attr.class ""
 
 
 alignTop : Html.Attribute msg

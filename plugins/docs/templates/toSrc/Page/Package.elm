@@ -14,15 +14,17 @@ import App.View.Id
 import Docs.Packages
 import Effect exposing (Effect)
 import Elm.Docs
+import Elm.Type
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Listen exposing (Listen)
-import Ui
+import Theme
+import Ui.Attr
 import Ui.Docs.Block
 import Ui.Markdown
-import Elm.Type
 import Ui.Type
+
 
 {-| -}
 type alias Model =
@@ -121,40 +123,39 @@ view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
 view viewId shared model =
     { title = model.name
     , body =
-       Ui.column
-          [ Ui.pad 48
-          , Ui.width 800
-          ]
-          [ Html.h1 [] [ Html.text model.name ]
-          , Html.div []
-              (List.map
-                  (\mod ->
-                      Html.div
-                          [ Events.onClick (ModuleClicked mod.name)
-                          , Attr.style "cursor" "pointer"
-                          , Attr.style "text-decoration" "underline"
-                          ]
-                          [ Html.text mod.name ]
-                  )
-                  model.modules
-              )
-          , case Maybe.andThen (getModule model.modules) model.focusedModule of
-              Nothing ->
-                  Html.text ""
+        Theme.column.lg3
+            [ Ui.Attr.pad 48
+            , Ui.Attr.width 800
+            ]
+            [ Html.h1 [] [ Html.text model.name ]
+            , Html.div []
+                (List.map
+                    (\mod ->
+                        Html.div
+                            [ Events.onClick (ModuleClicked mod.name)
+                            , Attr.style "cursor" "pointer"
+                            , Attr.style "text-decoration" "underline"
+                            ]
+                            [ Html.text mod.name ]
+                    )
+                    model.modules
+                )
+            , case Maybe.andThen (getModule model.modules) model.focusedModule of
+                Nothing ->
+                    Html.text ""
 
-              Just focusedModule ->
-                  viewModule focusedModule
-          ]
+                Just focusedModule ->
+                    viewModule focusedModule
+            ]
     }
 
 
 viewModule : Elm.Docs.Module -> Html Msg
 viewModule mod =
-   Ui.column [ Ui.gap 24 ]
+    Theme.column.lg []
         [ Html.h2 [] [ Html.text mod.name ]
-        , Ui.column
-            [ Ui.gap 24
-            ]
+        , Theme.column.lg
+            []
             (mod
                 |> Elm.Docs.toBlocks
                 |> List.map
@@ -203,10 +204,11 @@ viewName name =
         [ Html.text name
         ]
 
-viewTypeDefinition : {docs | name : String, tipe : Elm.Type.Type } -> Html Msg
+
+viewTypeDefinition : { docs | name : String, tipe : Elm.Type.Type } -> Html Msg
 viewTypeDefinition details =
-    Ui.row []
-        [ Html.span [] [ Html.text (details.name  ++ " : ")]
+    Theme.row.zero []
+        [ Html.span [] [ Html.text (details.name ++ " : ") ]
         , Ui.Type.view details.tipe
         ]
 

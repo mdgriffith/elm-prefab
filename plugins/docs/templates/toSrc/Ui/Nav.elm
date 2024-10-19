@@ -1,9 +1,10 @@
 module Ui.Nav exposing (view)
 
 import App.Route
+import Docs.Guides
 import Docs.Packages
 import Elm.Docs
-import Html exposing (Html)
+import Html exposing (Html, i)
 import Html.Attributes as Attr
 import Theme
 import Ui.Attr
@@ -40,7 +41,7 @@ view options =
             , Attr.class "navbar"
             ]
             [ viewSection "Guides"
-                ()
+                (List.map viewGuide Docs.Guides.all_)
             , viewSection "Packages"
                 (List.map viewPackage Docs.Packages.directory)
             ]
@@ -53,10 +54,33 @@ heightWindow =
 
 viewSection : String -> List (Html msg) -> Html msg
 viewSection title items =
-    Theme.column.sm []
-        [ Html.h2 [ Ui.pad 0 ] [ Html.text title ]
-        , Theme.column.zero [ Ui.gap -2 ] items
+    if List.isEmpty items then
+        Html.text ""
+
+    else
+        Theme.column.sm []
+            [ Html.h2 [ Ui.Attr.pad 0 ] [ Html.text title ]
+            , Theme.column.zero [ Ui.Attr.gap -2 ] items
+            ]
+
+
+viewGuide : { path : String, content : String } -> Html msg
+viewGuide guide =
+    Html.a
+        [ Attr.href
+            (App.Route.toString
+                (App.Route.Guide
+                    { path_ =
+                        String.split "/"
+                            guide.path
+                    }
+                )
+            )
+        , Ui.Attr.ellipsis
+        , Ui.Attr.width (width - (padding * 2))
+        , Attr.style "display" "inline-block"
         ]
+        [ Html.text guide.path ]
 
 
 viewPackage : { name : String, modules : List Elm.Docs.Module } -> Html msg

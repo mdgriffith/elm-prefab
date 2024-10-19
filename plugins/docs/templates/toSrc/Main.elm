@@ -12,7 +12,7 @@ import Effect.Scroll
 import Html
 import Html.Attributes as Attr
 import Listen
-import Ui
+import Theme
 import Ui.Nav
 import Url
 
@@ -108,7 +108,7 @@ view resources toAppMsg model innerView =
     { title = innerView.title
     , body =
         [ stylesheet
-        , Ui.row.zero [ heightWindow ]
+        , Theme.row.zero [ heightWindow ]
             [ Ui.Nav.view {}
             , Html.div
                 [ heightWindow

@@ -11,11 +11,13 @@ import App.Page.Id
 import App.Resources
 import App.View
 import App.View.Id
+import Docs.Guides
 import Effect exposing (Effect)
 import Html exposing (Html)
 import Listen exposing (Listen)
-import Ui
+import Theme
 import Ui.Attr
+import Ui.Markdown
 
 
 {-| -}
@@ -45,7 +47,7 @@ init pageId params shared maybeCached =
 
 lookupGuide : String -> Maybe { path : String, content : String }
 lookupGuide path =
-    List.head (List.filter (\guide -> guide.path == path) guides)
+    List.head (List.filter (\guide -> guide.path == path) Docs.Guides.all_)
 
 
 update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect Msg )
@@ -65,8 +67,8 @@ view viewId shared model =
         case model.guide of
             Just guide ->
                 Ui.Markdown.view guide.content
-                    |> Ui.el
-                        [ Ui.pad 48
+                    |> Theme.el
+                        [ Ui.Attr.pad 48
                         , Ui.Attr.width 800
                         ]
 

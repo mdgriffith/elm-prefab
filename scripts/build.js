@@ -112,7 +112,7 @@ const toCopyAll = (templates) => {
       copyCommands += `  ${template}.copyTo(options.internalSrc, true, false, summary)\n`;
     } else {
       copyCommands += `  ${template}.copyTo(options.${templateNameToDir(
-        template,
+        template
       )}, false, !options.generateDefaultFiles, summary)\n`;
     }
   }
@@ -151,7 +151,7 @@ const copyDir = (dir, targetFilePath) => {
   fs.mkdirSync(targetDir, { recursive: true });
   fs.writeFileSync(
     targetFilePath,
-    toTypescriptFile(links.join("\n"), allValues),
+    toTypescriptFile(links.join("\n"), allValues)
   );
 };
 
@@ -173,7 +173,7 @@ const getDirectories = (pathStr) =>
 
 const isFile = (filepath) => fs.statSync(filepath).isFile();
 
-const getFiles = (filepath) =>
+const listFiles = (filepath) =>
   fs
     .readdirSync(filepath)
     .map((name) => path.join(filepath, name))
@@ -185,7 +185,7 @@ const getFilesRecursively = (filepath) => {
   let files = dirs
     .map((dir) => getFilesRecursively(dir)) // go through each directory
     .reduce((a, b) => a.concat(b), []); // map returns a 2d array (array of file arrays) so flatten
-  return files.concat(getFiles(filepath));
+  return files.concat(listFiles(filepath));
 };
 
 const customizables = [];
@@ -222,7 +222,7 @@ for (const dir of getDirectories("plugins")) {
     for (const file of getFilesRecursively(oneOffDir)) {
       copyFile(
         file,
-        `./cli/templates/${pluginName}/oneOff/${path.basename(file)}.ts`,
+        `./cli/templates/${pluginName}/oneOff/${path.basename(file)}.ts`
       );
     }
   }
@@ -268,3 +268,28 @@ for (const pluginName of plugins) {
 content += "];";
 
 fs.writeFileSync(`./cli/templates/allCopy.ts`, content);
+
+// Create index file for guides
+const createPrefabGuideIndex = (markdownDir) => {
+  // Read all markdown files in the docs dir
+  // and create an index file that exports them all
+  const files = getFilesRecursively(markdownDir).filter((file) =>
+    file.endsWith(".md")
+  );
+
+  let imports = "";
+  let exports = "export const guides = {\n";
+
+  files.forEach((file) => {
+    const variableName = file.replace(/[^a-zA-Z0-9]/g, "_");
+    imports += `import ${variableName} from '../../${file}';\n`;
+    exports += `  '${file}': ${variableName},\n`;
+  });
+
+  exports += "};\n";
+
+  const indexContent = imports + "\n" + exports;
+  fs.writeFileSync(`./cli/templates/guides.ts`, indexContent);
+};
+
+createPrefabGuideIndex("./guides");
