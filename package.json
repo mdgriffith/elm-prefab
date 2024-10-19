@@ -19,7 +19,8 @@
     "test:cli:help": "pnpm build ; node ./dist/elm-prefab.js --help",
     "test:cli:add": "pnpm build ; node ./dist/elm-prefab.js add",
     "test:cli:customize": "pnpm build ; node ./dist/elm-prefab.js customize",
-    "test:playground": "pnpm build ; bash scripts/test-playground.sh"
+    "test:playground": "pnpm build ; bash scripts/test-playground.sh",
+    "test:docs:regenerate": "pnpm build ; cd playground/test/docs ; node ../../../dist/elm-prefab.js generate"
   },
   "repository": {
     "type": "git",
@@ -45,7 +46,7 @@
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "elm": "0.19.1-5",
-    "elm-codegen": "^0.6.0",
+    "elm-codegen": "^0.6.1",
     "elm-optimize-level-2": "^0.3.5",
     "elm-test": "0.19.1-revision12",
     "esbuild": "^0.19.4",

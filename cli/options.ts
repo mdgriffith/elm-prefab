@@ -67,6 +67,7 @@ export const DocsConfig = z
   .object({
     src: z.string(),
     modules: z.array(z.string()).optional().default([]),
+    guides: z.array(z.string()).optional().default(["guides"]),
   })
   .strict();
 
