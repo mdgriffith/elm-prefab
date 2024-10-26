@@ -6,6 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as OneOffGraphQLEffect from "./templates/graphql/oneOff/Effect.elm";
 import * as OneOffPage from "./templates/app/oneOff/Page.elm";
+import * as Guides from "./templates/guides";
 
 // const testTheme: Options.ThemeOptions = {
 //   colors: {
@@ -302,6 +303,9 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
     process.exit(1);
   }
 
+  // Generate guides
+  // console.log(Guides.guides);
+
   // Create the docs dir
   fs.mkdirSync(dir, { recursive: true });
 
@@ -321,6 +325,7 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
     docs: {
       src: "..",
       modules: [],
+      guides: ["guides"],
     },
   };
   Options.writeConfig(dir, docsConfig);
@@ -529,8 +534,6 @@ function addDependencies(
         " "
       )}`;
       break;
-    case Options.PackageManager.Manual:
-      return;
     default:
       throw new Error("Unsupported package manager");
   }
@@ -567,13 +570,13 @@ function readPackageJsonOrInitialize(directory: string = process.cwd()): {
         version: "0.1.0",
         scripts: {
           dev: "vite",
-          build: "vite build",
+          build: "elm-prefab generate && vite build",
         },
       },
       undefined,
       2
     );
-    fs.writeFileSync("package.json", contents, "utf-8");
+    fs.writeFileSync(path.join(directory, "package.json"), contents, "utf-8");
     return {
       pkg: { dependencies: {}, devDependencies: {} },
       fileCreated: true,
