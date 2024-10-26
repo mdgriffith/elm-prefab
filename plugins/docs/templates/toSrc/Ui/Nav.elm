@@ -2,6 +2,7 @@ module Ui.Nav exposing (view)
 
 import App.Route
 import Docs.Guides
+import Docs.Modules
 import Docs.Packages
 import Elm.Docs
 import Html exposing (Html, i)
@@ -42,6 +43,8 @@ view options =
             ]
             [ viewSection "Guides"
                 (List.map viewGuide Docs.Guides.all_)
+            , viewSection "Modules"
+                (List.map viewModules Docs.Modules.modules)
             , viewSection "Packages"
                 (List.map viewPackage Docs.Packages.directory)
             ]
@@ -62,6 +65,25 @@ viewSection title items =
             [ Html.h2 [ Ui.Attr.pad 0 ] [ Html.text title ]
             , Theme.column.sm3 [ Ui.Attr.gap -2 ] items
             ]
+
+
+viewModules : Elm.Docs.Module -> Html msg
+viewModules module_ =
+    Html.a
+        [ Attr.href
+            (App.Route.toString
+                (App.Route.Module
+                    { path_ =
+                        String.split "/"
+                            module_.name
+                    }
+                )
+            )
+        , Ui.Attr.ellipsis
+        , Ui.Attr.width (width - (padding * 2))
+        , Attr.style "display" "inline-block"
+        ]
+        [ Html.text module_.name ]
 
 
 viewGuide : { path : String, content : String } -> Html msg

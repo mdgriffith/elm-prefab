@@ -182,12 +182,15 @@ generateModules docs =
                 [ Elm.declaration "modules" (Elm.string "No modules found") ]
 
             _ ->
-                List.map
-                    (\mod ->
-                        Elm.declaration (String.replace "." "_" mod.name)
-                            (Generate.Docs.Module.generate mod)
+                [ Elm.declaration "modules"
+                    (Elm.list
+                        (List.map
+                            Generate.Docs.Module.generate
+                            docs.modules
+                        )
                     )
-                    docs.modules
+                    |> Elm.expose
+                ]
         )
 
 
