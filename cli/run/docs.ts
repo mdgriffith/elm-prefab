@@ -25,62 +25,65 @@ export const generator = (options: Options.Config): Options.Generator => {
         elmJson = JSON.parse(
           fs.readFileSync(
             path.join(runOptions.root, options.docs.src, "elm.json"),
-            "utf-8",
-          ),
+            "utf-8"
+          )
         );
       } catch (e) {
         console.log(
-          `I ran into an issue trying to read  ${Chalk.cyan(path.resolve(path.join(runOptions.root, options.docs.src, "elm.json")))}`,
+          `I ran into an issue trying to read  ${Chalk.cyan(
+            path.resolve(
+              path.join(runOptions.root, options.docs.src, "elm.json")
+            )
+          )}`
         );
         console.log(e);
         process.exit(1);
       }
-      console.log("Getting dependency docs");
+
       const depDocs = await getDepDocs(elmJson.dependencies.direct);
 
-      const docs = [];
+      // @ts-ignore
+      let docs = [];
 
       // Get module info
       const modules = options.docs ? options.docs.modules : [];
       for (const mod of modules) {
         const moduleDocs = await ElmDev.execute(`docs ${mod}`);
-        docs.push(moduleDocs);
+        // @ts-ignore
+        docs = docs.concat(moduleDocs);
       }
 
       let readme = null;
       try {
         readme = fs.readFileSync(
           path.join(runOptions.root, "README.md"),
-          "utf-8",
+          "utf-8"
         );
       } catch (e) {}
 
-      const guidesPath = path.join(runOptions.root, "guides");
-      console.log("Reading guides");
-
       const guides: Util.File[] = [];
-      if (fs.existsSync(guidesPath)) {
-        await Util.readFilesRecursively(guidesPath, guides);
+      for (const guidesFolder of options.docs.guides) {
+        const guidesPath = path.join(runOptions.root, guidesFolder);
+        if (fs.existsSync(guidesPath)) {
+          await Util.readFilesRecursively(guidesPath, guides);
+        }
       }
-      console.log("Guides", guides.length);
 
-      console.log("Running docs generator");
       const summary = await Generator.run(
         path.join(runOptions.root, ".elm-prefab"),
         {
           docs: {
-            // output: options.output ? options.output : "docs",
-            // project: docs,
-            // viewers: [],
             readme: readme,
             project: elmJson,
             modules: docs,
             guides,
             deps: depDocs,
           },
-        },
+        }
       );
-      console.log("Docs", summary);
+      if ("errors" in summary) {
+        console.log("Errors", summary.errors);
+      }
 
       // return Options.mergeSummaries(subsummary, summary);
       return summary;
