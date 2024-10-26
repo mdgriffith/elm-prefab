@@ -30,7 +30,7 @@ view options =
         , Ui.Attr.borderBox
         , heightWindow
         ]
-        [ Html.div
+        [ Theme.column.sm
             [ Attr.style "position" "fixed"
             , heightWindow
             , Ui.Attr.pad padding
@@ -58,9 +58,9 @@ viewSection title items =
         Html.text ""
 
     else
-        Theme.column.sm []
+        Theme.column.sm2 []
             [ Html.h2 [ Ui.Attr.pad 0 ] [ Html.text title ]
-            , Theme.column.zero [ Ui.Attr.gap -2 ] items
+            , Theme.column.sm3 [ Ui.Attr.gap -2 ] items
             ]
 
 
