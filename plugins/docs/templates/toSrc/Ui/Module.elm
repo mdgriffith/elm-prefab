@@ -3,6 +3,7 @@ module Ui.Module exposing (view)
 import Elm.Docs
 import Elm.Type
 import Html exposing (..)
+import Html.Attributes as Attr
 import Theme
 import Ui.Markdown
 import Ui.Type
@@ -30,7 +31,7 @@ viewBlock block =
 
         Elm.Docs.UnionBlock details ->
             Html.div []
-                [ viewName details.name
+                [ viewUnionDefinition details
                 , viewMarkdown details.comment
                 ]
 
@@ -54,6 +55,75 @@ viewBlock block =
 
         Elm.Docs.UnknownBlock text ->
             Html.text text
+
+
+viewUnionDefinition : Elm.Docs.Union -> Html msg
+viewUnionDefinition details =
+    Html.pre []
+        [ Html.code []
+            [ Html.span [] [ Html.text "type " ]
+            , Html.span [] [ Html.text (details.name ++ " ") ]
+            , Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
+            , Html.span []
+                (List.foldl
+                    (\( tagName, pieces ) ( isFirst, gathered ) ->
+                        let
+                            divider =
+                                if isFirst then
+                                    "="
+
+                                else
+                                    "|"
+
+                            isMultiline =
+                                List.any Ui.Type.shouldBeMultiline pieces
+                        in
+                        ( False
+                        , Html.span []
+                            [ Html.text ("\n    " ++ divider ++ " " ++ tagName ++ " ")
+                            , Html.span []
+                                (List.map
+                                    (\tipe ->
+                                        let
+                                            lineIsMulti =
+                                                Ui.Type.shouldBeMultiline tipe
+
+                                            end =
+                                                if lineIsMulti then
+                                                    "       )"
+
+                                                else
+                                                    ")"
+
+                                            needsParens =
+                                                Ui.Type.needsParens tipe
+                                        in
+                                        if needsParens then
+                                            if isMultiline then
+                                                Html.div [] [ Html.text "       (", Ui.Type.view tipe, Html.text end ]
+
+                                            else
+                                                Html.span [] [ Html.text "(", Ui.Type.view tipe, Html.text ") " ]
+
+                                        else if isMultiline then
+                                            Html.div [] [ Html.text "       ", Ui.Type.view tipe ]
+
+                                        else
+                                            Html.span [] [ Ui.Type.view tipe, Html.text " " ]
+                                    )
+                                    pieces
+                                )
+                            ]
+                            :: gathered
+                        )
+                    )
+                    ( True, [] )
+                    details.tags
+                    |> Tuple.second
+                    |> List.reverse
+                )
+            ]
+        ]
 
 
 viewName : String -> Html msg

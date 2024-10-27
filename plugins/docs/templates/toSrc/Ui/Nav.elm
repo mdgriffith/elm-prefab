@@ -155,7 +155,7 @@ viewSection title items =
     else
         Theme.column.sm2 []
             [ sectionHeader title
-            , Theme.column.sm3 [ Ui.Attr.gap -2 ] items
+            , Theme.column.sm3 [] items
             ]
 
 
