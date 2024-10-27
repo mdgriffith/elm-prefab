@@ -69,7 +69,7 @@ view viewId shared model =
                 Ui.Markdown.view guide.content
                     |> Theme.el
                         [ Ui.Attr.pad 48
-                        , Ui.Attr.width 800
+                        , Ui.Attr.width 600
                         ]
 
             Nothing ->

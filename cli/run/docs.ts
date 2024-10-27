@@ -5,6 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import Chalk from "chalk";
 import * as Util from "../util";
+import * as Guides from "../templates/guides";
 
 export const generator = (options: Options.Config): Options.Generator => {
   return {
@@ -67,6 +68,13 @@ export const generator = (options: Options.Config): Options.Generator => {
         if (fs.existsSync(guidesPath)) {
           await Util.readFilesRecursively(guidesPath, guides);
         }
+      }
+      // Add Elm Prefab Guides
+      for (const [key, value] of Object.entries(Guides.guides)) {
+        guides.push({
+          path: key,
+          contents: value,
+        });
       }
 
       const summary = await Generator.run(

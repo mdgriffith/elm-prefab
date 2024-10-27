@@ -126,7 +126,7 @@ view viewId shared model =
     , body =
         Theme.column.lg3
             [ Ui.Attr.pad 48
-            , Ui.Attr.width 800
+            , Ui.Attr.width 600
             ]
             [ Html.h1 [] [ Html.text model.name ]
             , Html.div []

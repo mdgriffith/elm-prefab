@@ -42,7 +42,12 @@ view options =
             , Attr.class "navbar"
             ]
             [ viewSection "Guides"
-                (List.map viewGuide Docs.Guides.all_)
+                (Docs.Guides.all_
+                    |> List.foldl gatherGuideGroups
+                        { label = [], rendered = [] }
+                    |> .rendered
+                    |> List.reverse
+                )
             , viewSection "Modules"
                 (List.map viewModules Docs.Modules.modules)
             , viewSection "Packages"
@@ -51,8 +56,95 @@ view options =
         ]
 
 
+gatherGuideGroups :
+    { content : String, path : String }
+    ->
+        { label : List String
+        , rendered : List (Html msg)
+        }
+    ->
+        { label : List String
+        , rendered : List (Html msg)
+        }
+gatherGuideGroups guide { label, rendered } =
+    let
+        pieces =
+            String.split "/" guide.path
+
+        groupStack =
+            pieces
+                -- Drop 'guides' at the beginning
+                |> List.drop 1
+                |> List.reverse
+                -- Drop the filename
+                |> List.drop 1
+                |> List.reverse
+                |> List.map
+                    (\inner ->
+                        inner
+                            |> capitalize
+                            |> String.replace "-" " "
+                            |> String.replace "_" " "
+                    )
+
+        newHeaders =
+            headerDiff label groupStack
+                |> List.reverse
+    in
+    { label = groupStack
+    , rendered =
+        case newHeaders of
+            [] ->
+                viewGuide guide :: rendered
+
+            _ ->
+                viewGuide guide :: List.map sectionSubheader newHeaders ++ rendered
+    }
+
+
+headerDiff : List String -> List String -> List String
+headerDiff existing new =
+    case existing of
+        [] ->
+            new
+
+        top :: remain ->
+            case new of
+                [] ->
+                    []
+
+                topNew :: remainingNew ->
+                    if top == topNew then
+                        headerDiff remain remainingNew
+
+                    else
+                        new
+
+
 heightWindow =
     Attr.style "height" "100vh"
+
+
+sectionHeader : String -> Html msg
+sectionHeader title =
+    Html.h2
+        [ Ui.Attr.pad 0
+        , Attr.style "font-size" "1rem"
+        , Attr.style "font-weight" "bold    "
+        ]
+        [ Html.text title ]
+
+
+sectionSubheader : String -> Html msg
+sectionSubheader title =
+    Html.h3
+        [ Ui.Attr.pad 0
+        , Attr.style "font-size" "0.9rem"
+
+        -- small caps
+        , Attr.style "font-variant" "small-caps"
+        ]
+        [ Html.text title ]
 
 
 viewSection : String -> List (Html msg) -> Html msg
@@ -62,7 +154,7 @@ viewSection title items =
 
     else
         Theme.column.sm2 []
-            [ Html.h2 [ Ui.Attr.pad 0 ] [ Html.text title ]
+            [ sectionHeader title
             , Theme.column.sm3 [ Ui.Attr.gap -2 ] items
             ]
 
@@ -86,8 +178,35 @@ viewModules module_ =
         [ Html.text module_.name ]
 
 
+capitalize : String -> String
+capitalize str =
+    let
+        top =
+            String.left 1 str
+
+        remain =
+            String.dropLeft 1 str
+    in
+    String.toUpper top ++ remain
+
+
 viewGuide : { path : String, content : String } -> Html msg
 viewGuide guide =
+    let
+        pieces =
+            String.split "/" guide.path
+
+        name =
+            List.reverse pieces
+                |> List.head
+                |> Maybe.withDefault guide.path
+                |> String.split "."
+                |> List.head
+                |> Maybe.withDefault guide.path
+                |> capitalize
+                |> String.replace "-" " "
+                |> String.replace "_" " "
+    in
     Html.a
         [ Attr.href
             (App.Route.toString
@@ -102,7 +221,7 @@ viewGuide guide =
         , Ui.Attr.width (width - (padding * 2))
         , Attr.style "display" "inline-block"
         ]
-        [ Html.text guide.path ]
+        [ Html.text name ]
 
 
 viewPackage : { name : String, modules : List Elm.Docs.Module } -> Html msg

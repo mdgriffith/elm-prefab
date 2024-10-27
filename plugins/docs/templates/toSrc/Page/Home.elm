@@ -15,7 +15,6 @@ import App.View.Id
 import Docs.Packages
 import Effect exposing (Effect)
 import Html
-import Html.Attributes as Attr
 import Listen exposing (Listen)
 
 
@@ -64,5 +63,4 @@ view viewId shared model =
 viewPackages =
     Html.div []
         [ Html.h1 [] [ Html.text "Packages" ]
-
         ]
