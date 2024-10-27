@@ -1,7 +1,13 @@
-module Ui.Type exposing (needsParens, shouldBeMultiline, view)
+module Ui.Type exposing
+    ( needsParens
+    , shouldBeMultiline
+    , view
+    , viewWithIndent
+    )
 
 import Elm.Type
 import Html exposing (Html)
+import Html.Attributes as Attr
 import Theme
 import Ui.Attr
 import Ui.Syntax as Syntax
@@ -38,7 +44,12 @@ shouldBeMultiline tipe =
 -}
 view : Elm.Type.Type -> Html msg
 view tipe =
-    viewNew (shouldBeMultiline tipe) 0 tipe
+    viewWithIndent 0 tipe
+
+
+viewWithIndent : Int -> Elm.Type.Type -> Html msg
+viewWithIndent indent tipe =
+    viewNew (shouldBeMultiline tipe) indent tipe
         |> .content
 
 
@@ -128,6 +139,15 @@ parens content =
         ]
 
 
+spacedParens : Html msg -> Html msg
+spacedParens content =
+    Html.span []
+        [ punctuation "( "
+        , content
+        , punctuation " )"
+        ]
+
+
 verticalParens : Html msg -> Html msg
 verticalParens content =
     Html.span []
@@ -184,6 +204,38 @@ span attrs content =
     Html.span attrs [ content ]
 
 
+isBuiltIn : String -> Bool
+isBuiltIn typename =
+    (typename == "Int")
+        || (typename == "Float")
+        || (typename == "String")
+        || (typename == "Char")
+        || (typename == "Bool")
+        || (typename == "List")
+        || (typename == "Maybe")
+        || (typename == "Result")
+        || (typename == "Cmd")
+        || (typename == "Sub")
+        || (typename == "Array")
+        || (typename == "Dict")
+        || (typename == "Set")
+        || (typename == "Platform.Cmd.Cmd")
+        || (typename == "Platform.Sub.Sub")
+
+
+typeLink : String -> List (Html.Attribute msg) -> Html msg -> Html msg
+typeLink typename attrs content =
+    if isBuiltIn typename then
+        span attrs content
+
+    else
+        Html.a
+            (Attr.href ("https://package.elm-lang.org/packages/elm/core/latest/" ++ typename ++ "#")
+                :: attrs
+            )
+            [ content ]
+
+
 viewNew :
     Bool
     -> Int
@@ -196,7 +248,7 @@ viewNew forceMultiline indent tipe =
     case tipe of
         Elm.Type.Var var ->
             { multiline = forceMultiline
-            , content = span [ Syntax.typevar, Ui.Attr.alignTop ] (Html.text var)
+            , content = span [ Syntax.typevar ] (Html.text var)
             }
 
         Elm.Type.Lambda one two ->
@@ -240,12 +292,16 @@ viewNew forceMultiline indent tipe =
             { multiline = forceMultiline || renderedItems.multiline
             , content =
                 renderedItems.content
-                    |> parens
+                    |> spacedParens
             }
 
         Elm.Type.Type typename [] ->
             { multiline = forceMultiline
-            , content = span [ Syntax.type_, Ui.Attr.alignTop ] (Html.text typename)
+            , content =
+                typeLink typename
+                    [ Syntax.type_
+                    ]
+                    (Html.text typename)
             }
 
         Elm.Type.Type typename varTypes ->
@@ -274,8 +330,8 @@ viewNew forceMultiline indent tipe =
             , content =
                 columnIf (forceMultiline || renderedItems.multiline)
                     []
-                    [ Html.span [ Ui.Attr.alignTop ]
-                        [ span [ Ui.Attr.alignTop, Syntax.type_ ] (Html.text typename)
+                    [ Html.span []
+                        [ typeLink typename [ Syntax.type_ ] (Html.text typename)
                         , Html.text " "
                         ]
                     , if forceMultiline || renderedItems.multiline then
@@ -346,7 +402,7 @@ viewNew forceMultiline indent tipe =
                         , content =
                             Theme.column.zero
                                 [ Ui.Attr.gap 4
-                                , indentPadding (10 + indent)
+                                , indentPadding indent
                                 ]
                                 ((punctuation "}" :: result.content)
                                     |> List.reverse
@@ -430,6 +486,15 @@ viewList forceMultiline indent viewItem items spacer =
            )
 
 
+attrIf : Bool -> Html.Attribute msg -> Html.Attribute msg
+attrIf condition attr =
+    if condition then
+        attr
+
+    else
+        Attr.class ""
+
+
 viewFnArgs :
     Bool
     -> Int
@@ -450,7 +515,9 @@ viewFnArgs forceMultiline indent tipe =
             in
             { multiline = args.multiline
             , items =
-                Html.span [ Ui.Attr.alignTop ]
+                Html.span
+                    [ attrIf (forceMultiline || args.multiline) (indentPadding indent)
+                    ]
                     [ arrowRight (forceMultiline || args.multiline)
                     , new.content
                     ]
@@ -464,7 +531,7 @@ viewFnArgs forceMultiline indent tipe =
             in
             { multiline = new.multiline
             , items =
-                [ Html.span [ Ui.Attr.alignTop ]
+                [ Html.span [ attrIf (forceMultiline || new.multiline) (indentPadding indent) ]
                     [ arrowRight (forceMultiline || new.multiline)
                     , new.content
                     ]
