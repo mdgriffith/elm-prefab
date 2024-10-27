@@ -177,21 +177,16 @@ generateGuides docs =
 generateModules : Options.Docs.Docs -> Elm.File
 generateModules docs =
     Elm.file [ "Docs", "Modules" ]
-        (case docs.modules of
-            [] ->
-                [ Elm.declaration "modules" (Elm.string "No modules found") ]
-
-            _ ->
-                [ Elm.declaration "modules"
-                    (Elm.list
-                        (List.map
-                            Generate.Docs.Module.generate
-                            docs.modules
-                        )
-                    )
-                    |> Elm.expose
-                ]
-        )
+        [ Elm.declaration "modules"
+            (Elm.list
+                (List.map
+                    Generate.Docs.Module.generate
+                    docs.modules
+                )
+                |> Elm.withType (Type.list (Type.named [ "Elm", "Docs" ] "Module"))
+            )
+            |> Elm.expose
+        ]
 
 
 generatePackages : Options.Docs.Docs -> List Elm.File

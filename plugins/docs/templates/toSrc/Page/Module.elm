@@ -11,10 +11,9 @@ import App.Page.Id
 import App.Resources
 import App.View
 import App.View.Id
-import Doc.Modules
+import Docs.Modules
 import Effect exposing (Effect)
 import Elm.Docs
-import Html
 import Listen exposing (Listen)
 import Ui.Module
 
@@ -41,13 +40,13 @@ page =
 
 
 init : App.Page.Id.Id -> App.Page.Id.Module_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
-init pageId params shared maybeCached =
+init pageId params resources maybeCached =
     case maybeCached of
         Just model ->
             App.Page.init model
 
         Nothing ->
-            case lookupModule params.path_ shared.modules of
+            case lookupModule params.path_ Docs.Modules.modules of
                 Just module_ ->
                     App.Page.init { module_ = module_ }
 

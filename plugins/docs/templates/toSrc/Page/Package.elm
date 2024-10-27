@@ -23,6 +23,7 @@ import Theme
 import Ui.Attr
 import Ui.Docs.Block
 import Ui.Markdown
+import Ui.Module
 import Ui.Type
 
 
@@ -145,74 +146,6 @@ view viewId shared model =
                     Html.text ""
 
                 Just focusedModule ->
-                    viewModule focusedModule
+                    Ui.Module.view focusedModule
             ]
     }
-
-
-viewModule : Elm.Docs.Module -> Html Msg
-viewModule mod =
-    Theme.column.lg []
-        [ Html.h2 [] [ Html.text mod.name ]
-        , Theme.column.lg
-            []
-            (mod
-                |> Elm.Docs.toBlocks
-                |> List.map
-                    viewBlock
-            )
-        ]
-
-
-viewBlock : Elm.Docs.Block -> Html Msg
-viewBlock block =
-    case block of
-        Elm.Docs.MarkdownBlock markdown ->
-            viewMarkdown markdown
-
-        Elm.Docs.UnionBlock details ->
-            Html.div []
-                [ viewName details.name
-                , viewMarkdown details.comment
-                ]
-
-        Elm.Docs.AliasBlock details ->
-            Html.div []
-                [ viewName details.name
-                , viewMarkdown details.comment
-                ]
-
-        Elm.Docs.ValueBlock details ->
-            Html.div []
-                [ viewTypeDefinition details
-                , viewMarkdown details.comment
-                ]
-
-        Elm.Docs.BinopBlock details ->
-            Html.div []
-                [ viewName details.name
-                , viewMarkdown details.comment
-                ]
-
-        Elm.Docs.UnknownBlock text ->
-            Html.text text
-
-
-viewName : String -> Html Msg
-viewName name =
-    Html.h2 []
-        [ Html.text name
-        ]
-
-
-viewTypeDefinition : { docs | name : String, tipe : Elm.Type.Type } -> Html Msg
-viewTypeDefinition details =
-    Theme.row.zero []
-        [ Html.span [] [ Html.text (details.name ++ " : ") ]
-        , Ui.Type.view details.tipe
-        ]
-
-
-viewMarkdown : String -> Html Msg
-viewMarkdown markdown =
-    Ui.Markdown.view markdown

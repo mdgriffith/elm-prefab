@@ -4,6 +4,8 @@ import Elm.Docs
 import Elm.Type
 import Html exposing (..)
 import Theme
+import Ui.Markdown
+import Ui.Type
 
 
 view : Elm.Docs.Module -> Html msg
