@@ -70,7 +70,13 @@ export const generator = (options: Options.Config): Options.Generator => {
         }
       }
       // Add Elm Prefab Guides
-      for (const [key, value] of Object.entries(Guides.guides)) {
+      // Sort Elm Prefab Guides by key
+      const sortedGuides = Object.entries(Guides.guides).sort(
+        ([keyA], [keyB]) => keyA.localeCompare(keyB)
+      );
+
+      // Add sorted Elm Prefab Guides
+      for (const [key, value] of sortedGuides) {
         guides.push({
           path: key,
           contents: value,
