@@ -2,16 +2,9 @@
 
 `elm-prefab` supports GraphQL by calling [vendrinc/elm-gql](https://github.com/Vendrinc/elm-gql) behind the scenes.
 
-Add this to your `elm.generate.json` file:
+Run `elm-prefab add graphql` to get started.
 
-```json
-{
-  "graphql": {
-    "schema": "https://api.github.com/graphql",
-    "header": ["Authorization: bearer $GITHUB_API_TOKEN"]
-  }
-}
-```
+## Config
 
 For the `schema` and `headers` fields, if a `$VAR` is found, it'll be replaced by that environment variable internally.
 Environment variables must start with a dollar sign and only include uppercase letters and underscore.

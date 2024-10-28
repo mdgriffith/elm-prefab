@@ -1,4 +1,4 @@
-# Sharing Data and Globally Available Resources
+# Global Data using Resources
 
 Once you have the standard setup of a global `App` and as many `Pages` as you'd like, you'll probably run into situations where you have some global data that you'd like to share.
 
