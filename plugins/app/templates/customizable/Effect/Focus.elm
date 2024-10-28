@@ -1,6 +1,9 @@
-port module Effect.Focus exposing (blur, focus, select)
+port module Effect.Focus exposing (focus, blur, select)
 
 {-| Focus a text input and select the text.
+
+@docs focus, blur, select
+
 -}
 
 import Browser.Dom

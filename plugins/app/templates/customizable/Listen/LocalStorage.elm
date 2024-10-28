@@ -1,4 +1,10 @@
-port module Listen.LocalStorage exposing (..)
+port module Listen.LocalStorage exposing (onUpdated)
+
+{-|
+
+@docs onUpdated
+
+-}
 
 import Json.Decode
 import Json.Encode

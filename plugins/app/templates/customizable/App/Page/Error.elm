@@ -9,6 +9,8 @@ Common errors are
     - Unauthenticated — When you require someone to be signed in in order to see a page.
     - Permission denied — When you require taht someone is both signed in and has certain permissions.
 
+@docs Error
+
 -}
 
 

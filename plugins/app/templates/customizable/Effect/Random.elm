@@ -1,5 +1,11 @@
 module Effect.Random exposing (generate)
 
+{-|
+
+@docs generate
+
+-}
+
 import Effect
 import Random
 

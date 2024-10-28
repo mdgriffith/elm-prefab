@@ -18,6 +18,8 @@ And to listen for this message, in your subscriptions, you'd have
                     Nothing
         )
 
+@docs Msg
+
 -}
 
 

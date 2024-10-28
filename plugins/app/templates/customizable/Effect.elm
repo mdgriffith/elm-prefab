@@ -1,5 +1,6 @@
 module Effect exposing
-    ( Effect(..), none, batch, map
+    ( none, batch, map
+    , Effect(..)
     , broadcast
     , now, nowAfter
     , sendMsg, sendMsgAfter
@@ -9,7 +10,9 @@ module Effect exposing
 
 {-|
 
-@docs Effect, none, batch, map
+@docs none, batch, map
+
+@docs Effect
 
 
 # Broadcast

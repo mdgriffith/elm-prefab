@@ -1,6 +1,10 @@
 port module Effect.LocalStorage exposing (clear, save)
 
-{-| -}
+{-|
+
+@docs clear, save
+
+-}
 
 import Effect
 import Json.Encode as Json
