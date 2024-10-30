@@ -19,7 +19,6 @@ export const generator = (options: Options.Config): Options.Generator => {
         return { generated: [] };
       }
 
-      // console.log(docs);
       let elmJson: any = null;
       try {
         // Reading the *source* elm.json.
@@ -47,7 +46,33 @@ export const generator = (options: Options.Config): Options.Generator => {
       let docs = [];
 
       // Get module info
-      const modules = options.docs ? options.docs.modules : [];
+      let modules = options.docs ? options.docs.modules : [];
+      modules = modules.concat([
+        "Broadcast",
+        "Listen",
+        "Listen.LocalStorage",
+        "Effect",
+        "Effect.Clipboard",
+        "Effect.Debounce",
+        "Effect.Http",
+        "Effect.File",
+        "Effect.Nav",
+        "Effect.Page",
+        "Effect.Random",
+        "Effect.Scroll",
+      ]);
+
+      modules = modules.concat([
+        "App.Route",
+        "App.Resource",
+        "App.View",
+        "App.Page.Error",
+        "App.Page.Id",
+        "App.View.Id",
+      ]);
+
+      modules.sort();
+
       for (const mod of modules) {
         const moduleDocs = await ElmDev.execute(`docs ${mod}`);
         // @ts-ignore
@@ -71,14 +96,27 @@ export const generator = (options: Options.Config): Options.Generator => {
       }
       // Add Elm Prefab Guides
       // Sort Elm Prefab Guides by key
+
       const sortedGuides = Object.entries(Guides.guides).sort(
-        ([keyA], [keyB]) => keyA.localeCompare(keyB)
+        ([keyA], [keyB]) => {
+          // Split paths into directory and filename parts
+          const [dirA, fileA = ""] = keyA.split("/").reverse();
+          const [dirB, fileB = ""] = keyB.split("/").reverse();
+
+          // Compare directories first
+          const dirCompare = (
+            fileA ? keyA.slice(0, -dirA.length) : ""
+          ).localeCompare(fileB ? keyB.slice(0, -dirB.length) : "");
+
+          // If directories are the same, compare filenames
+          return dirCompare !== 0 ? dirCompare : dirA.localeCompare(dirB);
+        }
       );
 
       // Add sorted Elm Prefab Guides
       for (const [key, value] of sortedGuides) {
         guides.push({
-          path: key,
+          path: key.replace(/^[0-9_]+/, ""), // Remove leading numbers and underscores
           contents: value,
         });
       }
