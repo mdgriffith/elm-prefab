@@ -26,7 +26,7 @@ view mod =
 
 viewBlock : Elm.Docs.Block -> Html msg
 viewBlock block =
-    case Debug.log "BLOCK" block of
+    case block of
         Elm.Docs.MarkdownBlock markdown ->
             viewMarkdown markdown
 
