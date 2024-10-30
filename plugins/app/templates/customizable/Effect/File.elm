@@ -11,13 +11,13 @@ import File
 
 
 {-| -}
-file : List String -> (File.File -> msg) -> Effect.Effect msg
-file =
+selectFile : List String -> (File.File -> msg) -> Effect.Effect msg
+selectFile =
     Effect.File
 
 
-files : List String -> (File.File -> List File.File -> msg) -> Effect.Effect msg
-files =
+selectMultipleFiles : List String -> (File.File -> List File.File -> msg) -> Effect.Effect msg
+selectMultipleFiles =
     Effect.Files
 
 
