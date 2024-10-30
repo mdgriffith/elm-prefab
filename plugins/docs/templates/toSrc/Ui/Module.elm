@@ -26,7 +26,7 @@ view mod =
 
 viewBlock : Elm.Docs.Block -> Html msg
 viewBlock block =
-    case block of
+    case Debug.log "BLOCK" block of
         Elm.Docs.MarkdownBlock markdown ->
             viewMarkdown markdown
 
@@ -70,7 +70,7 @@ viewMarkdown comment =
 
 viewAliasDefinition : Elm.Docs.Alias -> Html msg
 viewAliasDefinition details =
-    Html.pre []
+    Html.pre [ Attr.style "line-height" "1.4" ]
         [ Html.code []
             [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type alias " ]
             , Html.span [] [ Html.text (details.name ++ " ") ]
@@ -83,7 +83,7 @@ viewAliasDefinition details =
 
 viewUnionDefinition : Elm.Docs.Union -> Html msg
 viewUnionDefinition details =
-    Html.pre []
+    Html.pre [ Attr.style "line-height" "1.4" ]
         [ Html.code []
             [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type " ]
             , Html.span [] [ Html.text (details.name ++ " ") ]
@@ -131,7 +131,7 @@ viewUnionDefinition details =
                                                 Html.span [] [ Html.text "(", Ui.Type.view tipe, Html.text ") " ]
 
                                         else if isMultiline then
-                                            Html.div [] [ Html.text "       ", Ui.Type.view tipe ]
+                                            Html.div [] [ Html.text "          ", Ui.Type.viewWithIndent 12 tipe ]
 
                                         else
                                             Html.span [] [ Ui.Type.viewWithIndent 11 tipe, Html.text " " ]
@@ -161,7 +161,7 @@ viewName name =
 viewValueDefinition : { docs | name : String, tipe : Elm.Type.Type } -> Html msg
 viewValueDefinition details =
     if Ui.Type.shouldBeMultiline details.tipe then
-        Html.pre []
+        Html.pre [ Attr.style "line-height" "1.4" ]
             [ Html.code []
                 [ Html.span [] [ Html.text (details.name ++ " : ") ]
                 , Ui.Type.viewWithIndent 4 details.tipe
@@ -169,7 +169,7 @@ viewValueDefinition details =
             ]
 
     else
-        Html.pre []
+        Html.pre [ Attr.style "line-height" "1.4" ]
             [ Html.code []
                 [ Html.span [] [ Html.text (details.name ++ " : ") ]
                 , Ui.Type.view details.tipe

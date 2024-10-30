@@ -31,7 +31,7 @@ view options =
         , Ui.Attr.borderBox
         , heightWindow
         ]
-        [ Theme.column.sm
+        [ Theme.column.lg
             [ Attr.style "position" "fixed"
             , heightWindow
             , Ui.Attr.pad padding
@@ -140,11 +140,32 @@ sectionSubheader title =
     Html.h3
         [ Ui.Attr.pad 0
         , Attr.style "font-size" "0.9rem"
+        , Attr.style "padding-top" "0.4rem"
+        , Attr.style "width" "100%"
+        , Attr.style "display" "flex"
+        , Attr.style "gap" "0.5rem"
+        , Attr.style "flex-direction" "row"
 
         -- small caps
         , Attr.style "font-variant" "small-caps"
         ]
-        [ Html.text title ]
+        [ Html.span
+            [ Attr.style "flex-shrink" "0"
+            , Attr.style "opacity" "0.5"
+            ]
+            [ Html.text title ]
+
+        -- divider line
+        , Html.hr
+            [ Attr.style "height" "1px"
+            , Attr.style "background-color" "#eee"
+            , Attr.style "width" "100%"
+            , Attr.style "border" "none"
+            , Attr.style "top" "3px"
+            , Attr.style "position" "relative"
+            ]
+            []
+        ]
 
 
 viewSection : String -> List (Html msg) -> Html msg
@@ -218,6 +239,7 @@ viewGuide guide =
                 )
             )
         , Ui.Attr.ellipsis
+        , Attr.style "padding-left" "0.5rem"
         , Ui.Attr.width (width - (padding * 2))
         , Attr.style "display" "inline-block"
         ]
