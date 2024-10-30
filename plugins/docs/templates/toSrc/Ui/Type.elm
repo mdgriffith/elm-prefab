@@ -35,6 +35,16 @@ needsParens tipe =
             False
 
 
+isFunc : Elm.Type.Type -> Bool
+isFunc tipe =
+    case tipe of
+        Elm.Type.Lambda _ _ ->
+            True
+
+        _ ->
+            False
+
+
 shouldBeMultiline : Elm.Type.Type -> Bool
 shouldBeMultiline tipe =
     linearWidth tipe > 50
@@ -42,14 +52,35 @@ shouldBeMultiline tipe =
 
 {-| View a type definition
 -}
-view : Elm.Type.Type -> Html msg
+view : Elm.Type.Type -> List (Html msg)
 view tipe =
     viewWithIndent 0 tipe
 
 
-viewWithIndent : Int -> Elm.Type.Type -> Html msg
+viewWithIndent : Int -> Elm.Type.Type -> List (Html msg)
 viewWithIndent indent tipe =
-    viewType (shouldBeMultiline tipe) indent tipe
+    let
+        isMultiline =
+            shouldBeMultiline tipe && not (startsWithRecord tipe)
+    in
+    if isMultiline then
+        Html.text ("\n" ++ indentSpace indent) :: viewType isMultiline indent tipe
+
+    else
+        viewType isMultiline indent tipe
+
+
+startsWithRecord : Elm.Type.Type -> Bool
+startsWithRecord tipe =
+    case tipe of
+        Elm.Type.Record _ _ ->
+            True
+
+        Elm.Type.Lambda (Elm.Type.Record _ _) _ ->
+            True
+
+        _ ->
+            False
 
 
 linearWidth : Elm.Type.Type -> Int
@@ -124,9 +155,12 @@ recordWidth =
 
 indentPadding : Int -> Html.Attribute msg
 indentPadding indent =
-    Ui.Attr.padXY
-        (indent * 8)
-        0
+    Attr.style "padding-left" (String.fromInt (indent * 8) ++ "px")
+
+
+indentSpace : Int -> String
+indentSpace indent =
+    String.repeat indent " "
 
 
 parens : Html msg -> Html msg
@@ -136,6 +170,18 @@ parens content =
         , content
         , punctuation ")"
         ]
+
+
+parenList : List (Html msg) -> List (Html msg)
+parenList items =
+    case items of
+        [] ->
+            [ punctuation "( )" ]
+
+        _ ->
+            punctuation "( "
+                :: items
+                ++ [ punctuation " )" ]
 
 
 spacedParens : Html msg -> Html msg
@@ -274,19 +320,19 @@ viewType :
     Bool
     -> Int
     -> Elm.Type.Type
-    -> Html msg
+    -> List (Html msg)
 viewType forceMultiline indent tipe =
     case tipe of
         Elm.Type.Var var ->
-            span [ Syntax.typevar ] (Html.text var)
+            [ span [ Syntax.typevar ] (Html.text var) ]
 
         Elm.Type.Lambda one two ->
             let
                 oneRendered =
-                    viewType forceMultiline indent one
+                    viewType (shouldBeMultiline one) indent one
 
                 twoRendered =
-                    viewFnArgs forceMultiline indent two
+                    viewFnArgs (shouldBeMultiline tipe) indent two
 
                 multiline =
                     forceMultiline
@@ -298,32 +344,32 @@ viewType forceMultiline indent tipe =
                     else
                         linearWidth tipe > 50
             in
-            Html.span []
-                (addParensInFunction one oneRendered
-                    :: twoRendered
-                )
+            addParensInFunction one (Html.span [] oneRendered)
+                :: twoRendered
 
         Elm.Type.Tuple [] ->
-            parens (Html.text "")
+            [ Html.text "()" ]
 
         Elm.Type.Tuple vals ->
             let
                 renderedItems =
                     viewList forceMultiline
                         indent
-                        (viewType forceMultiline (indent + 4))
+                        (\t -> Html.span [] (viewType forceMultiline (indent + 4) t))
                         vals
                         { rowSpacer = span [ Syntax.punctuation ] (Html.text ", ")
                         , columnSpacer = span [ Syntax.punctuation ] (Html.text ", ")
                         }
             in
-            renderedItems.content
+            [ renderedItems.content
                 |> spacedParens
+            ]
 
         Elm.Type.Type typename [] ->
-            typeLink typename
+            [ typeLink typename
                 [ Syntax.type_
                 ]
+            ]
 
         Elm.Type.Type typename varTypes ->
             let
@@ -335,78 +381,128 @@ viewType forceMultiline indent tipe =
                                 rendered =
                                     viewType forceMultiline (indent + 4) var
                             in
-                            addParens var rendered
+                            addParens var (Html.span [] rendered)
                         )
                         varTypes
                         { rowSpacer = Html.text " "
                         , columnSpacer = Html.text " "
                         }
             in
-            Html.span []
-                [ Html.span []
-                    [ typeLink typename [ Syntax.type_ ]
-                    , Html.text " "
-                    ]
-                , renderedItems.content
-                ]
+            [ typeLink typename [ Syntax.type_ ]
+            , Html.text " "
+            , renderedItems.content
+            ]
 
         Elm.Type.Record fields maybeExtensibleName ->
             case fields of
                 [] ->
-                    Html.span [] [ punctuation "{}" ]
+                    [ punctuation "{}" ]
 
                 _ ->
+                    let
+                        spacer =
+                            String.repeat indent " "
+
+                        isMultiline =
+                            List.length fields > 1
+                    in
                     List.foldl
-                        (\( name, type_ ) cursor ->
+                        (\( name, fieldType ) cursor ->
                             let
+                                fieldContentIsMultiline =
+                                    shouldBeMultiline fieldType
+
                                 fieldContent =
-                                    viewType False (indent + 4) type_
+                                    viewType fieldContentIsMultiline (indent + 4) fieldType
+
+                                extName =
+                                    case maybeExtensibleName of
+                                        Nothing ->
+                                            Html.text ""
+
+                                        Just recordName ->
+                                            fieldName recordName
+
+                                extNameDivider =
+                                    case maybeExtensibleName of
+                                        Nothing ->
+                                            Html.text ""
+
+                                        Just recordName ->
+                                            punctuation " | "
                             in
                             { isFirst = False
                             , content =
-                                Html.span []
-                                    [ Html.span [ Syntax.field ]
-                                        [ if cursor.isFirst then
-                                            Html.span []
-                                                [ punctuation "{ "
-                                                , case maybeExtensibleName of
-                                                    Nothing ->
-                                                        Html.text ""
+                                List.concat
+                                    [ [ if isMultiline then
+                                            Html.text "\n"
 
-                                                    Just recordName ->
-                                                        fieldName recordName
-                                                , case maybeExtensibleName of
-                                                    Nothing ->
-                                                        Html.text ""
-
-                                                    Just recordName ->
-                                                        punctuation " | "
-                                                ]
-
-                                          else
-                                            punctuation ", "
-                                        , fieldName name
-                                        , keyword " : "
+                                        else
+                                            Html.text ""
+                                      ]
+                                    , List.reverse fieldContent
+                                    , [ indentIf fieldContentIsMultiline (indent + 4)
+                                      , newlineIf fieldContentIsMultiline
+                                      ]
+                                    , [ keyword " : "
+                                      , fieldName name
+                                      ]
+                                    , if cursor.isFirst then
+                                        [ extName
+                                        , extNameDivider
+                                        , punctuation "{ "
                                         ]
-                                    , fieldContent
+
+                                      else
+                                        [ punctuation ", " ]
+                                    , if isMultiline then
+                                        [ Html.text spacer ]
+
+                                      else
+                                        []
                                     ]
-                                    :: cursor.content
-                            , multiline = cursor.multiline
+                                    ++ cursor.content
                             }
                         )
                         { isFirst = True
-                        , content = []
-                        , multiline = True --List.length fields > 1
+                        , content =
+                            [ if isMultiline then
+                                Html.text "\n"
+
+                              else
+                                Html.text ""
+                            ]
                         }
                         fields
                         |> (\result ->
-                                Theme.column.zero
-                                    [ indentPadding indent
-                                    ]
-                                    ((punctuation "}" :: result.content)
-                                        |> List.reverse
+                                punctuation
+                                    (if isMultiline then
+                                        spacer ++ "}"
+
+                                     else
+                                        " }"
                                     )
+                                    :: result.content
+                                    |> List.reverse
                            )
+
+
+indentIf : Bool -> Int -> Html msg
+indentIf isMultiline indent =
+    if isMultiline then
+        Html.text (indentSpace indent)
+
+    else
+        Html.text ""
+
+
+newlineIf : Bool -> Html msg
+newlineIf isMultiline =
+    if isMultiline then
+        Html.text "\n"
+
+    else
+        Html.text ""
 
 
 keyword str =
@@ -492,41 +588,43 @@ viewFnArgs :
     -> List (Html msg)
 viewFnArgs forceMultiline indent tipe =
     let
-        node =
-            if forceMultiline then
-                Html.div
-                    [ attrIf forceMultiline (indentPadding indent)
-                    ]
+        node children =
+            Html.text
+                (if forceMultiline then
+                    "\n" ++ indentSpace indent
 
-            else
-                Html.span
-                    [ attrIf forceMultiline (indentPadding indent)
-                    ]
+                 else
+                    ""
+                )
+                :: children
     in
     case tipe of
         Elm.Type.Lambda one two ->
             let
                 args =
                     viewFnArgs forceMultiline indent two
+
+                argType =
+                    if isFunc one then
+                        parenList (viewType False indent one)
+
+                    else
+                        viewType False indent one
             in
             node
-                [ arrowRight forceMultiline
-                , viewType False indent one
-                ]
-                :: args
+                (arrowRight forceMultiline :: argType ++ args)
 
         everythingElse ->
-            [ node
-                [ arrowRight forceMultiline
-                , viewType False indent everythingElse
-                ]
-            ]
+            node
+                (arrowRight forceMultiline
+                    :: viewType False indent everythingElse
+                )
 
 
 arrowRight : Bool -> Html msg
 arrowRight multiline =
     if multiline then
-        span [ Ui.Attr.alignTop, Syntax.keyword ] (Html.text "-> ")
+        span [ Syntax.keyword ] (Html.text "-> ")
 
     else
-        span [ Ui.Attr.alignTop, Syntax.keyword ] (Html.text " -> ")
+        span [ Syntax.keyword ] (Html.text " -> ")

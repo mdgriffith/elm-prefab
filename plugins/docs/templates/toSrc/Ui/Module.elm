@@ -70,20 +70,20 @@ viewMarkdown comment =
 
 viewAliasDefinition : Elm.Docs.Alias -> Html msg
 viewAliasDefinition details =
-    Html.pre [ Attr.style "line-height" "1.4" ]
+    Html.pre [ Attr.style "line-height" lineHeight ]
         [ Html.code []
-            [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type alias " ]
-            , Html.span [] [ Html.text (details.name ++ " ") ]
-            , Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
-            , Html.span [] [ Html.text "= " ]
-            , Ui.Type.viewWithIndent 5 details.tipe
-            ]
+            (Html.span [ Ui.Syntax.keyword ] [ Html.text "type alias " ]
+                :: Html.span [] [ Html.text (details.name ++ " ") ]
+                :: Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
+                :: Html.span [] [ Html.text "= " ]
+                :: Ui.Type.viewWithIndent 5 details.tipe
+            )
         ]
 
 
 viewUnionDefinition : Elm.Docs.Union -> Html msg
 viewUnionDefinition details =
-    Html.pre [ Attr.style "line-height" "1.4" ]
+    Html.pre [ Attr.style "line-height" lineHeight ]
         [ Html.code []
             [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type " ]
             , Html.span [] [ Html.text (details.name ++ " ") ]
@@ -107,7 +107,7 @@ viewUnionDefinition details =
                             [ Html.span [ Ui.Syntax.keyword ] [ Html.text ("\n    " ++ divider) ]
                             , Html.text (" " ++ tagName ++ " ")
                             , Html.span []
-                                (List.map
+                                (List.concatMap
                                     (\tipe ->
                                         let
                                             lineIsMulti =
@@ -125,16 +125,16 @@ viewUnionDefinition details =
                                         in
                                         if needsParens then
                                             if isMultiline then
-                                                Html.div [] [ Html.text "         (", Ui.Type.viewWithIndent 12 tipe, Html.text end ]
+                                                Html.text "         (" :: Ui.Type.viewWithIndent 12 tipe ++ [ Html.text end ]
 
                                             else
-                                                Html.span [] [ Html.text "(", Ui.Type.view tipe, Html.text ") " ]
+                                                Html.text "(" :: Ui.Type.view tipe ++ [ Html.text ") " ]
 
                                         else if isMultiline then
-                                            Html.div [] [ Html.text "          ", Ui.Type.viewWithIndent 12 tipe ]
+                                            Html.text "          " :: Ui.Type.viewWithIndent 12 tipe
 
                                         else
-                                            Html.span [] [ Ui.Type.viewWithIndent 11 tipe, Html.text " " ]
+                                            Ui.Type.viewWithIndent 11 tipe ++ [ Html.text " " ]
                                     )
                                     pieces
                                 )
@@ -158,20 +158,16 @@ viewName name =
         ]
 
 
+lineHeight : String
+lineHeight =
+    "1.5"
+
+
 viewValueDefinition : { docs | name : String, tipe : Elm.Type.Type } -> Html msg
 viewValueDefinition details =
-    if Ui.Type.shouldBeMultiline details.tipe then
-        Html.pre [ Attr.style "line-height" "1.4" ]
-            [ Html.code []
-                [ Html.span [] [ Html.text (details.name ++ " : ") ]
-                , Ui.Type.viewWithIndent 4 details.tipe
-                ]
-            ]
-
-    else
-        Html.pre [ Attr.style "line-height" "1.4" ]
-            [ Html.code []
-                [ Html.span [] [ Html.text (details.name ++ " : ") ]
-                , Ui.Type.view details.tipe
-                ]
-            ]
+    Html.pre [ Attr.style "line-height" lineHeight ]
+        [ Html.code []
+            (Html.text (details.name ++ " : ")
+                :: Ui.Type.viewWithIndent 4 details.tipe
+            )
+        ]
