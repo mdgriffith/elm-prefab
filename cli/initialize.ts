@@ -319,6 +319,7 @@ Choose a name that doesn't already exist in the repo to create a new docs site.`
         Guide: Options.toUrl("/guide/*"),
         Module: Options.toUrl("/module/*"),
         Package: Options.toUrl("/package/*"),
+        Reference: Options.toUrl("/reference"),
       },
     },
     theme: defaultTheme,

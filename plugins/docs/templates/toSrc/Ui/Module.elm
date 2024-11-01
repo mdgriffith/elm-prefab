@@ -1,4 +1,4 @@
-module Ui.Module exposing (view)
+module Ui.Module exposing (view, viewBlock)
 
 import Elm.Docs
 import Elm.Type
