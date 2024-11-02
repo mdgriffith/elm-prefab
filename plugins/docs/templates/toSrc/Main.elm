@@ -3,11 +3,14 @@ module Main exposing (main)
 {-| -}
 
 import App
+import App.Page.Id
 import App.Resources
 import App.View
+import App.View.Id
 import Browser
 import Effect exposing (Effect)
 import Effect.Nav
+import Effect.Page
 import Effect.Scroll
 import Html
 import Html.Attributes as Attr
@@ -31,7 +34,7 @@ main =
                 ( {}
                 , Effect.batch
                     [ Effect.Nav.toUrl url
-                    , Effect.Page.loadAt App.View.Id.Detail App.Page.Id.Reference
+                    , Effect.Page.loadAt App.View.Id.Detail (App.Page.Id.Reference {})
                     ]
                 )
         , onUrlChange = UrlChanged
@@ -68,7 +71,7 @@ main =
                         }
 
                     Just (App.View page) ->
-                        view resources toAppMsg model page regions
+                        view resources toAppMsg model regions page
         }
 
 
@@ -104,13 +107,6 @@ heightWindow =
     Attr.style "height" "100vh"
 
 
-view :
-    App.Resources.Resources
-    -> (Msg -> App.Msg Msg)
-    -> Model
-    -> App.View.Regions (App.View.View Msg)
-    -> App.View.View (App.Msg Msg)
-    -> Browser.Document (App.Msg Msg)
 view resources toAppMsg model regions innerView =
     { title = innerView.title
     , body =
