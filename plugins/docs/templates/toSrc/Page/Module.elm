@@ -41,17 +41,12 @@ page =
 
 init : App.Page.Id.Id -> App.Page.Id.Module_Params -> App.Resources.Resources -> Maybe Model -> App.Page.Init Msg Model
 init pageId params resources maybeCached =
-    case maybeCached of
-        Just model ->
-            App.Page.init model
+    case lookupModule params.path_ Docs.Modules.modules of
+        Just module_ ->
+            App.Page.init { module_ = module_ }
 
         Nothing ->
-            case lookupModule params.path_ Docs.Modules.modules of
-                Just module_ ->
-                    App.Page.init { module_ = module_ }
-
-                Nothing ->
-                    App.Page.notFound
+            App.Page.notFound
 
 
 lookupModule : List String -> List Elm.Docs.Module -> Maybe Elm.Docs.Module
