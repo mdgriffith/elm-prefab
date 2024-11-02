@@ -13,6 +13,7 @@ import Html
 import Html.Attributes as Attr
 import Listen
 import Theme
+import Theme.Color
 import Ui.Nav
 import Url
 
@@ -27,7 +28,12 @@ main =
     App.app
         { init =
             \resources flags url ->
-                ( {}, Effect.Nav.toUrl url )
+                ( {}
+                , Effect.batch
+                    [ Effect.Nav.toUrl url
+                    , Effect.Page.loadAt App.View.Id.Detail App.Page.Id.Reference
+                    ]
+                )
         , onUrlChange = UrlChanged
         , onUrlRequest = UrlRequested
         , update = update
@@ -41,7 +47,7 @@ main =
                 case regions.primary of
                     Nothing ->
                         { title = "Nothing"
-                        , body = [ Html.text "Nothing" ]
+                        , body = [ Html.text "" ]
                         }
 
                     Just (App.Loading _) ->
@@ -62,7 +68,7 @@ main =
                         }
 
                     Just (App.View page) ->
-                        view resources toAppMsg model page
+                        view resources toAppMsg model page regions
         }
 
 
@@ -102,21 +108,52 @@ view :
     App.Resources.Resources
     -> (Msg -> App.Msg Msg)
     -> Model
+    -> App.View.Regions (App.View.View Msg)
     -> App.View.View (App.Msg Msg)
     -> Browser.Document (App.Msg Msg)
-view resources toAppMsg model innerView =
+view resources toAppMsg model regions innerView =
     { title = innerView.title
     , body =
         [ stylesheet
-        , Theme.row.zero [ heightWindow ]
-            [ Ui.Nav.view {}
-            , Html.div
-                [ heightWindow
+        , Html.div []
+            [ Theme.row.zero [ heightWindow ]
+                [ Ui.Nav.view {}
+                , Html.div
+                    [ heightWindow
+                    ]
+                    [ innerView.body ]
+                , viewDetails regions.detail
                 ]
-                [ innerView.body ]
             ]
         ]
     }
+
+
+viewDetails details =
+    case details of
+        Nothing ->
+            Html.text ""
+
+        Just (App.Loading _) ->
+            Html.text ""
+
+        Just App.NotFound ->
+            Html.text ""
+
+        Just (App.Error error) ->
+            Html.text ""
+
+        Just (App.View page) ->
+            Html.div
+                [ Attr.style "position" "fixed"
+                , Attr.style "top" "0"
+                , Attr.style "bottom" "0"
+                , Attr.style "right" "0"
+                , Attr.style "width" "500px"
+                , Theme.pad.sm
+                , Theme.Color.backgroundNeutral
+                ]
+                [ page.body ]
 
 
 stylesheet =
