@@ -12,10 +12,10 @@ import App.Resources
 import App.View
 import App.View.Id
 import Effect exposing (Effect)
-import Elm.Docs
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Listen exposing (Listen)
+import Ref
 import Theme
 import Ui.Attr
 import Ui.Module
@@ -23,74 +23,14 @@ import Ui.Module
 
 {-| -}
 type alias Model =
-    { references : List Ref
+    { references : List Ref.Ref
     }
-
-
-type Ref
-    = Ref RefDetails
-
-
-type alias RefDetails =
-    { id : Id
-    , source : Source
-    , block : Elm.Docs.Block
-    }
-
-
-type Id
-    = Id String
-
-
-type Source
-    = FromModule
-        { moduleName : String
-        }
-    | FromPackage
-        { moduleName : String
-        , package : String
-        }
-
-
-toId : Source -> Elm.Docs.Block -> Id
-toId source block =
-    let
-        blockId =
-            blockToIdString block
-    in
-    case source of
-        FromModule { moduleName } ->
-            Id (moduleName ++ ":" ++ blockId)
-
-        FromPackage { moduleName, package } ->
-            Id (package ++ ":" ++ moduleName ++ ":" ++ blockId)
-
-
-blockToIdString : Elm.Docs.Block -> String
-blockToIdString block =
-    case block of
-        Elm.Docs.MarkdownBlock markdown ->
-            markdown
-
-        Elm.Docs.UnionBlock details ->
-            details.name
-
-        Elm.Docs.AliasBlock details ->
-            details.name
-
-        Elm.Docs.ValueBlock details ->
-            details.name
-
-        Elm.Docs.BinopBlock details ->
-            details.name
-
-        Elm.Docs.UnknownBlock text ->
-            text
 
 
 {-| -}
 type Msg
-    = RemoveById Id
+    = RemoveById Ref.Id
+    | RefAdded Ref.Ref
 
 
 page : App.Page.Page App.Resources.Resources App.Page.Id.Reference_Params Msg Model
@@ -121,12 +61,19 @@ init pageId params shared maybeCached =
 
 
 update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect Msg )
-update shared msg model =
+update resources msg model =
     case msg of
+        RefAdded ref ->
+            ( { model
+                | references = ref :: model.references
+              }
+            , Effect.none
+            )
+
         RemoveById removedId ->
             ( { model
                 | references =
-                    List.filter (\(Ref { id }) -> id /= removedId)
+                    List.filter (\{ id } -> id /= removedId)
                         model.references
               }
             , Effect.none
@@ -134,8 +81,13 @@ update shared msg model =
 
 
 subscriptions : App.Resources.Resources -> Model -> Listen Msg
-subscriptions shared model =
-    Listen.none
+subscriptions resources model =
+    Listen.onBroadcast
+        (\broadcastMsg ->
+            case broadcastMsg of
+                Broadcast.RefPinned ref ->
+                    Just (RefAdded ref)
+        )
 
 
 view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
@@ -147,6 +99,6 @@ view viewId shared model =
             , Attr.style "max-width" (String.fromInt 600 ++ "px")
             ]
             (model.references
-                |> List.map (\(Ref { block }) -> Ui.Module.viewBlock block)
+                |> List.foldl (\{ block } rendered -> Ui.Module.viewBlock block :: rendered) []
             )
     }
