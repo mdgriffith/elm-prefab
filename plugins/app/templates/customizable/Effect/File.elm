@@ -1,8 +1,8 @@
-module Effect.File exposing (file, files, toUrl)
+module Effect.File exposing (selectFile, selectMultipleFiles, toUrl)
 
 {-|
 
-@docs file, files, toUrl
+@docs selectFile, selectMultipleFiles, toUrl
 
 -}
 
