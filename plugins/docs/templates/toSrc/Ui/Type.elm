@@ -9,7 +9,6 @@ import Elm.Type
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
-import Theme
 import Ui.Attr
 import Ui.Syntax as Syntax
 
@@ -70,11 +69,7 @@ viewWithIndent options indent tipe =
         isMultiline =
             shouldBeMultiline tipe && not (startsWithRecord tipe)
     in
-    if isMultiline then
-        Html.text ("\n" ++ indentSpace indent) :: viewType options isMultiline indent tipe
-
-    else
-        viewType options isMultiline indent tipe
+    viewType options isMultiline indent tipe
 
 
 startsWithRecord : Elm.Type.Type -> Bool

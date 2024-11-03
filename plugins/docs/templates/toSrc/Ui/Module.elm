@@ -131,24 +131,25 @@ viewUnionDefinition modName options details =
                                             lineIsMulti =
                                                 Ui.Type.shouldBeMultiline tipe
 
-                                            end =
-                                                if lineIsMulti then
-                                                    "         )"
-
-                                                else
-                                                    ")"
-
                                             needsParens =
                                                 Ui.Type.needsParens tipe
                                         in
                                         if needsParens then
                                             if isMultiline then
-                                                Html.text "         ("
+                                                let
+                                                    end =
+                                                        if lineIsMulti then
+                                                            "\n         )"
+
+                                                        else
+                                                            ")"
+                                                in
+                                                Html.text "\n         ("
                                                     :: Ui.Type.viewWithIndent
                                                         { currentModule = Just modName
                                                         , onClick = options.onClick
                                                         }
-                                                        12
+                                                        9
                                                         tipe
                                                     ++ [ Html.text end ]
 
@@ -167,7 +168,7 @@ viewUnionDefinition modName options details =
                                                     { currentModule = Just modName
                                                     , onClick = options.onClick
                                                     }
-                                                    12
+                                                    9
                                                     tipe
 
                                         else
@@ -175,7 +176,7 @@ viewUnionDefinition modName options details =
                                                 { currentModule = Just modName
                                                 , onClick = options.onClick
                                                 }
-                                                11
+                                                9
                                                 tipe
                                                 ++ [ Html.text " " ]
                                     )
