@@ -8,6 +8,7 @@ module Ui.Type exposing
 import Elm.Type
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Events as Events
 import Theme
 import Ui.Attr
 import Ui.Syntax as Syntax
@@ -50,24 +51,30 @@ shouldBeMultiline tipe =
     linearWidth tipe > 50
 
 
+type alias Options msg =
+    { currentModule : Maybe String
+    , onClick : Maybe (String -> msg)
+    }
+
+
 {-| View a type definition
 -}
-view : Elm.Type.Type -> List (Html msg)
-view tipe =
-    viewWithIndent 0 tipe
+view : Options msg -> Elm.Type.Type -> List (Html msg)
+view options tipe =
+    viewWithIndent options 0 tipe
 
 
-viewWithIndent : Int -> Elm.Type.Type -> List (Html msg)
-viewWithIndent indent tipe =
+viewWithIndent : Options msg -> Int -> Elm.Type.Type -> List (Html msg)
+viewWithIndent options indent tipe =
     let
         isMultiline =
             shouldBeMultiline tipe && not (startsWithRecord tipe)
     in
     if isMultiline then
-        Html.text ("\n" ++ indentSpace indent) :: viewType isMultiline indent tipe
+        Html.text ("\n" ++ indentSpace indent) :: viewType options isMultiline indent tipe
 
     else
-        viewType isMultiline indent tipe
+        viewType options isMultiline indent tipe
 
 
 startsWithRecord : Elm.Type.Type -> Bool
@@ -269,59 +276,89 @@ isBuiltIn typename =
         || (typename == "Platform.Sub.Sub")
 
 
-builtInName : String -> String
-builtInName typename =
-    case typename of
-        "String.String" ->
-            "String"
+toName : Options msg -> String -> String
+toName options typename =
+    let
+        toBuiltInName name =
+            case name of
+                "String.String" ->
+                    "String"
 
-        "List.List" ->
-            "List"
+                "List.List" ->
+                    "List"
 
-        "Basics.Bool" ->
-            "Bool"
+                "Basics.Bool" ->
+                    "Bool"
 
-        "Basics.Float" ->
-            "Float"
+                "Basics.Float" ->
+                    "Float"
 
-        "Basics.Int" ->
-            "Int"
+                "Basics.Int" ->
+                    "Int"
 
-        "Result.Result" ->
-            "Result"
+                "Result.Result" ->
+                    "Result"
 
-        "Maybe.Maybe" ->
-            "Maybe"
+                "Maybe.Maybe" ->
+                    "Maybe"
 
-        "Platform.Cmd.Cmd" ->
-            "Cmd"
+                "Platform.Cmd.Cmd" ->
+                    "Cmd"
 
-        "Platform.Sub.Sub" ->
-            "Sub"
+                "Platform.Sub.Sub" ->
+                    "Sub"
 
-        _ ->
-            typename
+                _ ->
+                    typename
+    in
+    case options.currentModule of
+        Just current ->
+            if String.startsWith current typename then
+                String.dropLeft (String.length current + 1) typename
+
+            else
+                toBuiltInName typename
+
+        Nothing ->
+            toBuiltInName typename
 
 
-typeLink : String -> List (Html.Attribute msg) -> Html msg
-typeLink typename attrs =
-    if isBuiltIn typename then
-        span attrs (Html.text (builtInName typename))
+typeLink : Options msg -> String -> List (Html.Attribute msg) -> Html msg
+typeLink options typename attrs =
+    case options.onClick of
+        Nothing ->
+            span attrs (Html.text (toName options typename))
 
-    else
-        Html.a
-            (Attr.href ("https://package.elm-lang.org/packages/elm/core/latest/" ++ typename ++ "#")
-                :: attrs
-            )
-            [ Html.text (builtInName typename) ]
+        Just onClick ->
+            let
+                fullRefName =
+                    case options.currentModule of
+                        Nothing ->
+                            typename
+
+                        Just currentModule ->
+                            if String.contains "." typename then
+                                typename
+
+                            else
+                                currentModule ++ "." ++ typename
+            in
+            --Attr.href ("https://package.elm-lang.org/packages/elm/core/latest/" ++ typename ++ "#")
+            Html.span
+                (Events.onClick (onClick fullRefName)
+                    :: Attr.style "cursor" "pointer"
+                    :: attrs
+                )
+                [ Html.text (toName options typename) ]
 
 
 viewType :
-    Bool
+    Options msg
+    -> Bool
     -> Int
     -> Elm.Type.Type
     -> List (Html msg)
-viewType forceMultiline indent tipe =
+viewType options forceMultiline indent tipe =
     case tipe of
         Elm.Type.Var var ->
             [ span [ Syntax.typevar ] (Html.text var) ]
@@ -329,10 +366,10 @@ viewType forceMultiline indent tipe =
         Elm.Type.Lambda one two ->
             let
                 oneRendered =
-                    viewType (shouldBeMultiline one) indent one
+                    viewType options (shouldBeMultiline one) indent one
 
                 twoRendered =
-                    viewFnArgs (shouldBeMultiline tipe) indent two
+                    viewFnArgs options (shouldBeMultiline tipe) indent two
 
                 multiline =
                     forceMultiline
@@ -355,7 +392,7 @@ viewType forceMultiline indent tipe =
                 renderedItems =
                     viewList forceMultiline
                         indent
-                        (\t -> Html.span [] (viewType forceMultiline (indent + 4) t))
+                        (\t -> Html.span [] (viewType options forceMultiline (indent + 4) t))
                         vals
                         { rowSpacer = span [ Syntax.punctuation ] (Html.text ", ")
                         , columnSpacer = span [ Syntax.punctuation ] (Html.text ", ")
@@ -366,7 +403,8 @@ viewType forceMultiline indent tipe =
             ]
 
         Elm.Type.Type typename [] ->
-            [ typeLink typename
+            [ typeLink options
+                typename
                 [ Syntax.type_
                 ]
             ]
@@ -379,7 +417,7 @@ viewType forceMultiline indent tipe =
                         (\var ->
                             let
                                 rendered =
-                                    viewType forceMultiline (indent + 4) var
+                                    viewType options forceMultiline (indent + 4) var
                             in
                             addParens var (Html.span [] rendered)
                         )
@@ -388,7 +426,7 @@ viewType forceMultiline indent tipe =
                         , columnSpacer = Html.text " "
                         }
             in
-            [ typeLink typename [ Syntax.type_ ]
+            [ typeLink options typename [ Syntax.type_ ]
             , Html.text " "
             , renderedItems.content
             ]
@@ -413,7 +451,7 @@ viewType forceMultiline indent tipe =
                                     shouldBeMultiline fieldType
 
                                 fieldContent =
-                                    viewType fieldContentIsMultiline (indent + 4) fieldType
+                                    viewType options fieldContentIsMultiline (indent + 4) fieldType
 
                                 extName =
                                     case maybeExtensibleName of
@@ -582,11 +620,12 @@ attrIf condition attr =
 
 
 viewFnArgs :
-    Bool
+    Options msg
+    -> Bool
     -> Int
     -> Elm.Type.Type
     -> List (Html msg)
-viewFnArgs forceMultiline indent tipe =
+viewFnArgs options forceMultiline indent tipe =
     let
         node children =
             Html.text
@@ -602,14 +641,14 @@ viewFnArgs forceMultiline indent tipe =
         Elm.Type.Lambda one two ->
             let
                 args =
-                    viewFnArgs forceMultiline indent two
+                    viewFnArgs options forceMultiline indent two
 
                 argType =
                     if isFunc one then
-                        parenList (viewType False indent one)
+                        parenList (viewType options False indent one)
 
                     else
-                        viewType False indent one
+                        viewType options False indent one
             in
             node
                 (arrowRight forceMultiline :: argType ++ args)
@@ -617,7 +656,7 @@ viewFnArgs forceMultiline indent tipe =
         everythingElse ->
             node
                 (arrowRight forceMultiline
-                    :: viewType False indent everythingElse
+                    :: viewType options False indent everythingElse
                 )
 
 

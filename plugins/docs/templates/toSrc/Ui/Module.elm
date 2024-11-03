@@ -10,8 +10,17 @@ import Ui.Syntax
 import Ui.Type
 
 
-view : Elm.Docs.Module -> Html msg
-view mod =
+type alias Options msg =
+    { onClick : Maybe (TypeName -> msg)
+    }
+
+
+type alias TypeName =
+    String
+
+
+view : Options msg -> Elm.Docs.Module -> Html msg
+view options mod =
     Theme.column.lg []
         [ Html.h2 [] [ Html.text mod.name ]
         , Theme.column.lg
@@ -19,32 +28,32 @@ view mod =
             (mod
                 |> Elm.Docs.toBlocks
                 |> List.map
-                    viewBlock
+                    (viewBlock mod.name options)
             )
         ]
 
 
-viewBlock : Elm.Docs.Block -> Html msg
-viewBlock block =
+viewBlock : ModuleName -> Options msg -> Elm.Docs.Block -> Html msg
+viewBlock moduleName options block =
     case block of
         Elm.Docs.MarkdownBlock markdown ->
             viewMarkdown markdown
 
         Elm.Docs.UnionBlock details ->
             Html.div []
-                [ viewUnionDefinition details
+                [ viewUnionDefinition moduleName options details
                 , viewMarkdown details.comment
                 ]
 
         Elm.Docs.AliasBlock details ->
             Html.div []
-                [ viewAliasDefinition details
+                [ viewAliasDefinition moduleName options details
                 , viewMarkdown details.comment
                 ]
 
         Elm.Docs.ValueBlock details ->
             Html.div []
-                [ viewValueDefinition details
+                [ viewValueDefinition moduleName options details
                 , viewMarkdown details.comment
                 ]
 
@@ -68,21 +77,30 @@ viewMarkdown comment =
             [ Ui.Markdown.view comment ]
 
 
-viewAliasDefinition : Elm.Docs.Alias -> Html msg
-viewAliasDefinition details =
+type alias ModuleName =
+    String
+
+
+viewAliasDefinition : ModuleName -> Options msg -> Elm.Docs.Alias -> Html msg
+viewAliasDefinition modName options details =
     Html.pre [ Attr.style "line-height" lineHeight ]
         [ Html.code []
             (Html.span [ Ui.Syntax.keyword ] [ Html.text "type alias " ]
                 :: Html.span [] [ Html.text (details.name ++ " ") ]
                 :: Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
                 :: Html.span [] [ Html.text "= " ]
-                :: Ui.Type.viewWithIndent 5 details.tipe
+                :: Ui.Type.viewWithIndent
+                    { currentModule = Just modName
+                    , onClick = options.onClick
+                    }
+                    5
+                    details.tipe
             )
         ]
 
 
-viewUnionDefinition : Elm.Docs.Union -> Html msg
-viewUnionDefinition details =
+viewUnionDefinition : ModuleName -> Options msg -> Elm.Docs.Union -> Html msg
+viewUnionDefinition modName options details =
     Html.pre [ Attr.style "line-height" lineHeight ]
         [ Html.code []
             [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type " ]
@@ -125,16 +143,41 @@ viewUnionDefinition details =
                                         in
                                         if needsParens then
                                             if isMultiline then
-                                                Html.text "         (" :: Ui.Type.viewWithIndent 12 tipe ++ [ Html.text end ]
+                                                Html.text "         ("
+                                                    :: Ui.Type.viewWithIndent
+                                                        { currentModule = Just modName
+                                                        , onClick = options.onClick
+                                                        }
+                                                        12
+                                                        tipe
+                                                    ++ [ Html.text end ]
 
                                             else
-                                                Html.text "(" :: Ui.Type.view tipe ++ [ Html.text ") " ]
+                                                Html.text "("
+                                                    :: Ui.Type.view
+                                                        { currentModule = Just modName
+                                                        , onClick = options.onClick
+                                                        }
+                                                        tipe
+                                                    ++ [ Html.text ") " ]
 
                                         else if isMultiline then
-                                            Html.text "          " :: Ui.Type.viewWithIndent 12 tipe
+                                            Html.text "          "
+                                                :: Ui.Type.viewWithIndent
+                                                    { currentModule = Just modName
+                                                    , onClick = options.onClick
+                                                    }
+                                                    12
+                                                    tipe
 
                                         else
-                                            Ui.Type.viewWithIndent 11 tipe ++ [ Html.text " " ]
+                                            Ui.Type.viewWithIndent
+                                                { currentModule = Just modName
+                                                , onClick = options.onClick
+                                                }
+                                                11
+                                                tipe
+                                                ++ [ Html.text " " ]
                                     )
                                     pieces
                                 )
@@ -163,11 +206,16 @@ lineHeight =
     "1.5"
 
 
-viewValueDefinition : { docs | name : String, tipe : Elm.Type.Type } -> Html msg
-viewValueDefinition details =
+viewValueDefinition : ModuleName -> Options msg -> { docs | name : String, tipe : Elm.Type.Type } -> Html msg
+viewValueDefinition moduleName options details =
     Html.pre [ Attr.style "line-height" lineHeight ]
         [ Html.code []
             (Html.text (details.name ++ " : ")
-                :: Ui.Type.viewWithIndent 4 details.tipe
+                :: Ui.Type.viewWithIndent
+                    { currentModule = Just moduleName
+                    , onClick = options.onClick
+                    }
+                    4
+                    details.tipe
             )
         ]

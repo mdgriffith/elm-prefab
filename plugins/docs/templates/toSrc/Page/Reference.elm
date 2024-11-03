@@ -100,6 +100,13 @@ view viewId shared model =
             , Attr.style "max-width" (String.fromInt 600 ++ "px")
             ]
             (model.references
-                |> List.foldl (\{ block } rendered -> Ui.Module.viewBlock block :: rendered) []
+                |> List.foldl
+                    (\ref rendered ->
+                        Ui.Module.viewBlock (Ref.toModuleName ref)
+                            { onClick = Nothing }
+                            ref.block
+                            :: rendered
+                    )
+                    []
             )
     }

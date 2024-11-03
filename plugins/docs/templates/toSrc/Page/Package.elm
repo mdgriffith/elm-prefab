@@ -11,20 +11,18 @@ import App.Page.Id
 import App.Resources
 import App.View
 import App.View.Id
+import Broadcast
 import Docs.Packages
 import Effect exposing (Effect)
 import Elm.Docs
-import Elm.Type
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Listen exposing (Listen)
+import Ref
 import Theme
 import Ui.Attr
-import Ui.Docs.Block
-import Ui.Markdown
 import Ui.Module
-import Ui.Type
 
 
 {-| -}
@@ -38,6 +36,7 @@ type alias Model =
 {-| -}
 type Msg
     = ModuleClicked String
+    | TypeClicked String
 
 
 page : App.Page.Page App.Resources.Resources App.Page.Id.Package_Params Msg Model
@@ -95,6 +94,16 @@ update shared msg model =
             , Effect.none
             )
 
+        TypeClicked typename ->
+            ( model
+            , case Ref.lookup typename of
+                Nothing ->
+                    Effect.none
+
+                Just ref ->
+                    Effect.broadcast (Broadcast.RefPinned ref)
+            )
+
 
 subscriptions : App.Resources.Resources -> Model -> Listen Msg
 subscriptions shared model =
@@ -146,6 +155,6 @@ view viewId shared model =
                     Html.text ""
 
                 Just focusedModule ->
-                    Ui.Module.view focusedModule
+                    Ui.Module.view { onClick = Just TypeClicked } focusedModule
             ]
     }

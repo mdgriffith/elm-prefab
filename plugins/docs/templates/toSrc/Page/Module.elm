@@ -11,10 +11,12 @@ import App.Page.Id
 import App.Resources
 import App.View
 import App.View.Id
+import Broadcast
 import Docs.Modules
 import Effect exposing (Effect)
 import Elm.Docs
 import Listen exposing (Listen)
+import Ref
 import Ui.Module
 
 
@@ -26,7 +28,7 @@ type alias Model =
 
 {-| -}
 type Msg
-    = ReplaceMe
+    = TypeClicked String
 
 
 page : App.Page.Page App.Resources.Resources App.Page.Id.Module_Params Msg Model
@@ -74,7 +76,16 @@ lookupModule path_ modules =
 
 update : App.Resources.Resources -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
-    ( model, Effect.none )
+    case msg of
+        TypeClicked name ->
+            ( model
+            , case Ref.lookup name of
+                Nothing ->
+                    Effect.none
+
+                Just ref ->
+                    Effect.broadcast (Broadcast.RefPinned ref)
+            )
 
 
 subscriptions : App.Resources.Resources -> Model -> Listen Msg
@@ -85,5 +96,8 @@ subscriptions shared model =
 view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
 view viewId shared model =
     { title = model.module_.name
-    , body = Ui.Module.view model.module_
+    , body =
+        Ui.Module.view
+            { onClick = Just TypeClicked }
+            model.module_
     }
