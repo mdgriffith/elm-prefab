@@ -1,7 +1,7 @@
 module Theme.Generate.Stylesheet exposing
     ( File, file
     , none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
-    , class, classAll, id, root
+    , class, classAll, id, root, raw
     , media
     , Media, darkmode
     , ruleList
@@ -16,7 +16,7 @@ module Theme.Generate.Stylesheet exposing
 
 @docs none, color, string, transition, maybe, px, int, float, fontSizeInPxAsRem
 
-@docs class, classAll, id, root
+@docs class, classAll, id, root, raw
 
 @docs media
 
@@ -142,6 +142,11 @@ classAll name rules =
     Rule (ClassAll name) rules
 
 
+raw : String -> List Rule -> Rule
+raw selector rules =
+    Rule (Raw selector) rules
+
+
 id : String -> List Rule -> Rule
 id name rules =
     Rule (Id name) rules
@@ -174,6 +179,7 @@ transition ms =
 
 type Selector
     = Root
+    | Raw String
     | Class String
     | ClassAll String
     | Id String
@@ -255,6 +261,9 @@ flattenRule maybeParentSelector rule cursor =
 
                         Just (ClassAll cls) ->
                             AllChildren (Class cls) selector
+
+                        Just (Raw rawSelector) ->
+                            Raw (rawSelector ++ selectorToString Nothing selector)
 
                         Just parentSelector ->
                             Child parentSelector selector
@@ -376,6 +385,9 @@ selectorToString maybeNamespace selector =
     case selector of
         Root ->
             ":root"
+
+        Raw rawSelector ->
+            rawSelector
 
         Class name ->
             "." ++ withNamespace maybeNamespace name

@@ -111,18 +111,37 @@ view resources toAppMsg model regions innerView =
     { title = innerView.title
     , body =
         [ stylesheet
-        , Html.div []
-            [ Theme.row.zero [ heightWindow ]
+        , Html.div
+            [ Theme.Color.backgroundNeutral
+            , Theme.Color.textNeutral
+            , forceTheme (Just Light)
+            ]
+            [ Theme.row.zero []
                 [ Ui.Nav.view {}
-                , Html.div
-                    [ heightWindow
-                    ]
-                    [ innerView.body ]
+                , innerView.body
                 , viewDetails regions.detail
                 ]
             ]
         ]
     }
+
+
+type Theme
+    = Dark
+    | Light
+
+
+forceTheme : Maybe Theme -> Html.Attribute msg
+forceTheme theme =
+    case theme of
+        Nothing ->
+            Attr.class "automode"
+
+        Just Dark ->
+            Attr.class "ui-darkmode"
+
+        Just Light ->
+            Attr.class "ui-lightmode"
 
 
 viewDetails details =
@@ -148,6 +167,7 @@ viewDetails details =
                 , Attr.style "width" "500px"
                 , Theme.pad.sm
                 , Theme.Color.backgroundNeutral
+                , Attr.style "overflow" "auto"
                 ]
                 [ page.body ]
 
@@ -157,7 +177,14 @@ stylesheet =
         []
         [ Html.text """
 html, head, body {
+  background-color: white;
   margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    background-color: var(--grey5);
+  }
 }
 
 body {

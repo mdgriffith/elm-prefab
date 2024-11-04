@@ -5,6 +5,7 @@ module Theme.Decoder exposing (decode)
 import Color
 import Dict
 import Json.Decode
+import Json.Encode
 import Parser exposing ((|.), (|=))
 import Theme exposing (..)
 import Theme.Color
@@ -109,22 +110,28 @@ decodeColorAliasTheme colors =
 
 decodeSemanticMap : List String -> Json.Decode.Decoder SemanticMap
 decodeSemanticMap allowedKeys =
-    Json.Decode.dict Json.Decode.string
-        |> Json.Decode.map
-            (\dict ->
-                Dict.foldl
-                    (\key value acc ->
-                        if List.member key allowedKeys then
-                            Dict.insert value key acc
+    case allowedKeys of
+        [] ->
+            Json.Decode.succeed Dict.empty
 
-                        else
-                            acc
+        key :: remaining ->
+            Json.Decode.maybe (Json.Decode.field key Json.Decode.string)
+                |> Json.Decode.andThen
+                    (\maybeValue ->
+                        decodeSemanticMap remaining
+                            |> Json.Decode.map
+                                (\restOfMap ->
+                                    case maybeValue of
+                                        Nothing ->
+                                            restOfMap
+
+                                        Just value ->
+                                            Dict.insert value key restOfMap
+                                )
                     )
-                    Dict.empty
-                    dict
-            )
 
 
+{-| -}
 decodeColorTree :
     List Theme.ColorInstance
     -> SemanticMap
@@ -136,8 +143,12 @@ decodeColorTree colors semanticMap =
                 List.concatMap
                     (\( path, colorVar ) ->
                         let
+                            _ =
+                                Debug.log "path" ( path, colorVar )
+
                             namedColors =
                                 lookupColorPath colorVar colors
+                                    |> Debug.log "Found colors"
                         in
                         List.map
                             (\found ->
@@ -149,6 +160,27 @@ decodeColorTree colors semanticMap =
                     )
                     keyVals
             )
+
+
+decodeColorTreeHelper : Json.Decode.Decoder (List ( List String, String ))
+decodeColorTreeHelper =
+    Json.Decode.oneOf
+        [ Json.Decode.map (\var -> List.singleton ( [], var )) Json.Decode.string
+        , Json.Decode.keyValuePairs
+            (Json.Decode.lazy (\_ -> decodeColorTreeHelper))
+            |> Json.Decode.map
+                (\keyVals ->
+                    List.concatMap
+                        (\( name, pathsAndVars ) ->
+                            List.map
+                                (\( path, var ) ->
+                                    ( name :: path, var )
+                                )
+                                pathsAndVars
+                        )
+                        keyVals
+                )
+        ]
 
 
 pathToFullColorName : SemanticMap -> List String -> Theme.ColorInstance -> Theme.FullColorName
@@ -200,6 +232,18 @@ getNuance base path =
         [] ->
             Nothing
 
+        "neutral" :: remaining ->
+            getNuance base remaining
+
+        "primary" :: remaining ->
+            getNuance base remaining
+
+        "success" :: remaining ->
+            getNuance base remaining
+
+        "error" :: remaining ->
+            getNuance base remaining
+
         "default" :: remaining ->
             getNuance base remaining
 
@@ -237,27 +281,6 @@ getState path =
 
         _ :: remain ->
             getState remain
-
-
-decodeColorTreeHelper : Json.Decode.Decoder (List ( List String, String ))
-decodeColorTreeHelper =
-    Json.Decode.oneOf
-        [ Json.Decode.map (\var -> List.singleton ( [], var )) Json.Decode.string
-        , Json.Decode.keyValuePairs
-            (Json.Decode.lazy (\_ -> decodeColorTreeHelper))
-            |> Json.Decode.map
-                (\keyVals ->
-                    List.concatMap
-                        (\( name, pathsAndVars ) ->
-                            List.map
-                                (\( path, var ) ->
-                                    ( name :: path, var )
-                                )
-                                pathsAndVars
-                        )
-                        keyVals
-                )
-        ]
 
 
 

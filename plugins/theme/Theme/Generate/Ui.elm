@@ -884,10 +884,11 @@ colorStyles theme =
 
                     else
                         Style.media Style.darkmode
-                            darkModeColorRules
+                            [ Style.classAll "automode" darkModeColorRules ]
             in
             [ colorVars theme.colors
             , Style.ruleList defaultColorRules
+            , Style.classAll "lightmode" defaultColorRules
             , Style.classAll "darkmode" darkModeColorRules
             , Style.ruleList
                 (otherThemes

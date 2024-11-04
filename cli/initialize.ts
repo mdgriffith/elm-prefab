@@ -116,44 +116,27 @@ import * as Guides from "./templates/guides";
 const defaultTheme: Options.ThemeOptions = {
   target: Options.ThemeTarget.HTML,
   colors: {
-    // grey: {
-    //   50: "#fafafa",
-    //   100: "#f5f5f5",
-    //   200: "#e5e5e5",
-    //   300: "#d4d4d4",
-    //   400: "#a3a3a3",
-    //   500: "#737373",
-    //   600: "#525252",
-    //   700: "#404040",
-    //   800: "#262626",
-    //   900: "#171717",
-    //   950: "#0a0a0a",
-    // },
     grey: "#737373",
-    purple: "#a855f7",
-    // purple: {
-    //   50: "#faf5ff",
-    //   100: "#f3e8ff",
-    //   200: "#e9d5ff",
-    //   300: "#d8b4fe",
-    //   400: "#c084fc",
-    //   500: "#a855f7",
-    //   600: "#9333ea",
-    //   700: "#7e22ce",
-    //   800: "#6b21a8",
-    //   900: "#581c87",
-    //   950: "#3b0764",
-    // },
+    blue: "#1293D8",
   },
   themes: {
     default: {
       // Palette selection
       neutral: "grey",
+      primary: "blue",
+      // semantic usage
+      text: { neutral: "grey95", primary: "blue60" },
+      background: "95",
+      border: "40",
+    },
+    dark: {
+      // Palette selection
+      neutral: "grey",
       primary: "purple",
       // semantic usage
-      text: "80",
-      background: "5",
-      border: "40",
+      text: "95",
+      background: "10",
+      border: "20",
     },
   },
   borders: {

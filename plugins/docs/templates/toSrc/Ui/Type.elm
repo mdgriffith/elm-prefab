@@ -9,8 +9,15 @@ import Elm.Type
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
+import Theme
+import Theme.Color
 import Ui.Attr
 import Ui.Syntax as Syntax
+
+
+styles =
+    { link = [ Theme.Color.textPrimary, Theme.Color.textPrimaryHover ]
+    }
 
 
 needsParens : Elm.Type.Type -> Bool
@@ -342,7 +349,8 @@ typeLink options typename attrs =
             Html.span
                 (Events.onClick (onClick fullRefName)
                     :: Attr.style "cursor" "pointer"
-                    :: attrs
+                    :: styles.link
+                    ++ attrs
                 )
                 [ Html.text (toName options typename) ]
 

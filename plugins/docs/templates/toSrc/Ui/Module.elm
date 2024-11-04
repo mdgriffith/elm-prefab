@@ -5,6 +5,7 @@ import Elm.Type
 import Html exposing (..)
 import Html.Attributes as Attr
 import Theme
+import Theme.Color
 import Ui.Markdown
 import Ui.Syntax
 import Ui.Type
@@ -81,117 +82,124 @@ type alias ModuleName =
     String
 
 
+code : List (Html msg) -> Html msg
+code content =
+    Html.pre
+        [ Attr.style "line-height" lineHeight
+        , Theme.Color.backgroundNeutral
+        , Theme.Color.textNeutral
+        , Attr.style "border" "none"
+        ]
+        [ Html.code [ Attr.style "line-height" lineHeight ] content ]
+
+
 viewAliasDefinition : ModuleName -> Options msg -> Elm.Docs.Alias -> Html msg
 viewAliasDefinition modName options details =
-    Html.pre [ Attr.style "line-height" lineHeight ]
-        [ Html.code []
-            (Html.span [ Ui.Syntax.keyword ] [ Html.text "type alias " ]
-                :: Html.span [] [ Html.text (details.name ++ " ") ]
-                :: Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
-                :: Html.span [] [ Html.text "= " ]
-                :: Ui.Type.viewWithIndent
-                    { currentModule = Just modName
-                    , onClick = options.onClick
-                    }
-                    5
-                    details.tipe
-            )
-        ]
+    code
+        (Html.span [ Ui.Syntax.keyword ] [ Html.text "type alias " ]
+            :: Html.span [] [ Html.text (details.name ++ " ") ]
+            :: Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
+            :: Html.span [] [ Html.text "= " ]
+            :: Ui.Type.viewWithIndent
+                { currentModule = Just modName
+                , onClick = options.onClick
+                }
+                5
+                details.tipe
+        )
 
 
 viewUnionDefinition : ModuleName -> Options msg -> Elm.Docs.Union -> Html msg
 viewUnionDefinition modName options details =
-    Html.pre [ Attr.style "line-height" lineHeight ]
-        [ Html.code []
-            [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type " ]
-            , Html.span [] [ Html.text (details.name ++ " ") ]
-            , Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
-            , Html.span []
-                (List.foldl
-                    (\( tagName, pieces ) ( isFirst, gathered ) ->
-                        let
-                            divider =
-                                if isFirst then
-                                    "="
+    code
+        [ Html.span [ Ui.Syntax.keyword ] [ Html.text "type " ]
+        , Html.span [] [ Html.text (details.name ++ " ") ]
+        , Html.span [] (List.map (\v -> Html.text (v ++ " ")) details.args)
+        , Html.span []
+            (List.foldl
+                (\( tagName, pieces ) ( isFirst, gathered ) ->
+                    let
+                        divider =
+                            if isFirst then
+                                "="
 
-                                else
-                                    "|"
+                            else
+                                "|"
 
-                            isMultiline =
-                                List.any Ui.Type.shouldBeMultiline pieces
-                        in
-                        ( False
+                        isMultiline =
+                            List.any Ui.Type.shouldBeMultiline pieces
+                    in
+                    ( False
+                    , Html.span []
+                        [ Html.span [ Ui.Syntax.keyword ] [ Html.text ("\n    " ++ divider) ]
+                        , Html.text (" " ++ tagName ++ " ")
                         , Html.span []
-                            [ Html.span [ Ui.Syntax.keyword ] [ Html.text ("\n    " ++ divider) ]
-                            , Html.text (" " ++ tagName ++ " ")
-                            , Html.span []
-                                (List.concatMap
-                                    (\tipe ->
-                                        let
-                                            lineIsMulti =
-                                                Ui.Type.shouldBeMultiline tipe
+                            (List.concatMap
+                                (\tipe ->
+                                    let
+                                        lineIsMulti =
+                                            Ui.Type.shouldBeMultiline tipe
 
-                                            needsParens =
-                                                Ui.Type.needsParens tipe
-                                        in
-                                        if needsParens then
-                                            if isMultiline then
-                                                let
-                                                    end =
-                                                        if lineIsMulti then
-                                                            "\n         )"
+                                        needsParens =
+                                            Ui.Type.needsParens tipe
+                                    in
+                                    if needsParens then
+                                        if isMultiline then
+                                            let
+                                                end =
+                                                    if lineIsMulti then
+                                                        "\n         )"
 
-                                                        else
-                                                            ")"
-                                                in
-                                                Html.text "\n         ("
-                                                    :: Ui.Type.viewWithIndent
-                                                        { currentModule = Just modName
-                                                        , onClick = options.onClick
-                                                        }
-                                                        9
-                                                        tipe
-                                                    ++ [ Html.text end ]
-
-                                            else
-                                                Html.text "("
-                                                    :: Ui.Type.view
-                                                        { currentModule = Just modName
-                                                        , onClick = options.onClick
-                                                        }
-                                                        tipe
-                                                    ++ [ Html.text ") " ]
-
-                                        else if isMultiline then
-                                            Html.text "          "
+                                                    else
+                                                        ")"
+                                            in
+                                            Html.text "\n         ("
                                                 :: Ui.Type.viewWithIndent
                                                     { currentModule = Just modName
                                                     , onClick = options.onClick
                                                     }
                                                     9
                                                     tipe
+                                                ++ [ Html.text end ]
 
                                         else
-                                            Ui.Type.viewWithIndent
+                                            Html.text "("
+                                                :: Ui.Type.view
+                                                    { currentModule = Just modName
+                                                    , onClick = options.onClick
+                                                    }
+                                                    tipe
+                                                ++ [ Html.text ") " ]
+
+                                    else if isMultiline then
+                                        Html.text "          "
+                                            :: Ui.Type.viewWithIndent
                                                 { currentModule = Just modName
                                                 , onClick = options.onClick
                                                 }
                                                 9
                                                 tipe
-                                                ++ [ Html.text " " ]
-                                    )
-                                    pieces
+
+                                    else
+                                        Ui.Type.viewWithIndent
+                                            { currentModule = Just modName
+                                            , onClick = options.onClick
+                                            }
+                                            9
+                                            tipe
+                                            ++ [ Html.text " " ]
                                 )
-                            ]
-                            :: gathered
-                        )
+                                pieces
+                            )
+                        ]
+                        :: gathered
                     )
-                    ( True, [] )
-                    details.tags
-                    |> Tuple.second
-                    |> List.reverse
                 )
-            ]
+                ( True, [] )
+                details.tags
+                |> Tuple.second
+                |> List.reverse
+            )
         ]
 
 
@@ -209,14 +217,25 @@ lineHeight =
 
 viewValueDefinition : ModuleName -> Options msg -> { docs | name : String, tipe : Elm.Type.Type } -> Html msg
 viewValueDefinition moduleName options details =
-    Html.pre [ Attr.style "line-height" lineHeight ]
-        [ Html.code []
-            (Html.text (details.name ++ " : ")
-                :: Ui.Type.viewWithIndent
-                    { currentModule = Just moduleName
-                    , onClick = options.onClick
-                    }
-                    4
-                    details.tipe
+    let
+        isMultiline =
+            Ui.Type.shouldBeMultiline details.tipe
+    in
+    code
+        (Html.text
+            (details.name
+                ++ " : "
+                ++ (if isMultiline then
+                        "\n    "
+
+                    else
+                        ""
+                   )
             )
-        ]
+            :: Ui.Type.viewWithIndent
+                { currentModule = Just moduleName
+                , onClick = options.onClick
+                }
+                6
+                details.tipe
+        )

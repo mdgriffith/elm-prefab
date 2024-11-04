@@ -41,6 +41,7 @@ type State
     | Focus
 
 
+{-| -}
 type alias ColorTheme =
     { text : List ( FullColorName, Theme.Color.Color )
     , background : List ( FullColorName, Theme.Color.Color )
@@ -157,7 +158,7 @@ fullColorToCssClass functionName fullColorName =
         nuance =
             case fullColorName.nuance of
                 Just n ->
-                    capitalize n
+                    n
 
                 Nothing ->
                     ""
@@ -165,7 +166,17 @@ fullColorToCssClass functionName fullColorName =
         tail =
             let
                 final =
-                    state ++ nuance
+                    case state of
+                        "" ->
+                            nuance
+
+                        _ ->
+                            case nuance of
+                                "" ->
+                                    state
+
+                                _ ->
+                                    state ++ "-" ++ nuance
             in
             if String.isEmpty final then
                 ""
