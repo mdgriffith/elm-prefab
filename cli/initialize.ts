@@ -121,12 +121,14 @@ const defaultTheme: Options.ThemeOptions = {
   },
   themes: {
     default: {
-      // Palette selection
       neutral: "grey",
       primary: "blue",
-      // semantic usage
-      text: { neutral: "grey95", primary: "blue60" },
-      background: "95",
+      text: { neutral: "grey5", primary: "blue60" },
+      background: {
+        neutral: "grey95",
+        elevated: "grey90",
+        primary: "blue60",
+      },
       border: "40",
     },
     dark: {
