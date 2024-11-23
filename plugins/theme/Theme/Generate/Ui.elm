@@ -7,6 +7,7 @@ import Dict
 import Elm
 import Elm.Annotation
 import Elm.Arg
+import Elm.Case
 import Elm.Op
 import Gen.Html
 import Gen.Html.Attributes
@@ -28,14 +29,6 @@ generate theme =
     ]
 
 
-type Tag
-    = Layout
-    | Typography
-    | Palettes
-    | Spacing
-    | Borders
-
-
 addNamespace : String -> String -> String
 addNamespace namespace name =
     if namespace == "" then
@@ -48,10 +41,62 @@ addNamespace namespace name =
 generateTheme : Theme.Theme -> Elm.File
 generateTheme theme =
     Elm.file [ "Theme" ]
-        [ typography theme
+        [ helpers theme
+        , typography theme
         , layout theme
         , spacing theme
         , borders theme
+        ]
+
+
+helpers : Theme.Theme -> Elm.Declaration
+helpers theme =
+    let
+        themeList =
+            [ Nothing, Just "darkmode" ]
+    in
+    Elm.group
+        [ Elm.customType "Mode"
+            (themeList
+                |> List.map
+                    (\maybe ->
+                        case maybe of
+                            Nothing ->
+                                Elm.variant "Default"
+
+                            Just name ->
+                                Elm.variant (capitalize name)
+                    )
+            )
+            |> Elm.exposeConstructor
+        , Elm.declaration "setMode"
+            (Elm.fn
+                (Elm.Arg.varWith "mode" (Elm.Annotation.named [] "Mode"))
+                (\mode ->
+                    Elm.Case.custom mode
+                        (Elm.Annotation.named [] "Mode")
+                        (themeList
+                            |> List.map
+                                (\maybe ->
+                                    case maybe of
+                                        Nothing ->
+                                            Elm.Case.branch (Elm.Arg.customType "Default" ())
+                                                (\_ ->
+                                                    Gen.Html.Attributes.class
+                                                        (theme.namespace ++ "-automode")
+                                                )
+
+                                        Just modeName ->
+                                            Elm.Case.branch (Elm.Arg.customType (capitalize modeName) ())
+                                                (\_ ->
+                                                    Gen.Html.Attributes.class
+                                                        (theme.namespace ++ "-" ++ modeName)
+                                                )
+                                )
+                        )
+                )
+            )
+            |> Elm.expose
         ]
 
 
@@ -734,28 +779,6 @@ generateElmColorPalette theme =
         )
 
 
-toColorAttr : Theme.Theme -> String -> Theme.FullColorName -> Elm.Declaration
-toColorAttr theme colorType fullColorName =
-    Elm.declaration
-        (Theme.toFullColorName colorType fullColorName)
-        (toColorClassAttribute theme colorType fullColorName)
-
-
-toColorClassAttribute : Theme.Theme -> String -> Theme.FullColorName -> Elm.Expression
-toColorClassAttribute theme colorType fullColorName =
-    let
-        className =
-            theme.namespace ++ "-" ++ Theme.fullColorToCssClass colorType fullColorName
-    in
-    case theme.target of
-        Theme.HTML ->
-            Gen.Html.Attributes.class className
-
-        Theme.ElmUI ->
-            Gen.Ui.htmlAttribute
-                (Gen.Html.Attributes.class className)
-
-
 generateElmColorTheme : Theme.Theme -> Elm.File
 generateElmColorTheme theme =
     Elm.file [ "Theme", "Color" ]
@@ -765,30 +788,27 @@ generateElmColorTheme theme =
 
             Just themes ->
                 let
-                    toStyles name themeList =
-                        themeList
+                    toStyles : String -> List Theme.ColorDefinition -> Elm.Declaration
+                    toStyles propName colorDefs =
+                        colorDefs
                             |> List.concatMap
-                                (\( fullColorName, _ ) ->
-                                    [ toColorAttr theme name fullColorName
-                                        |> Elm.expose
-                                        |> Elm.withDocumentation (Theme.toFullColorDescription fullColorName)
-                                        |> Tuple.pair (Theme.toFullColorName name fullColorName)
-                                    , let
-                                        hoverName =
-                                            { fullColorName | state = Just Theme.Hover }
-                                      in
-                                      toColorAttr theme name hoverName
-                                        |> Elm.expose
-                                        |> Elm.withDocumentation (Theme.toFullColorDescription hoverName)
-                                        |> Tuple.pair (Theme.toFullColorName name hoverName)
-                                    , let
-                                        activeName =
-                                            { fullColorName | state = Just Theme.Active }
-                                      in
-                                      toColorAttr theme name activeName
-                                        |> Elm.expose
-                                        |> Elm.withDocumentation (Theme.toFullColorDescription activeName)
-                                        |> Tuple.pair (Theme.toFullColorName name activeName)
+                                (\colorDef ->
+                                    let
+                                        className =
+                                            Theme.colorDefintionToCssClass theme propName colorDef
+                                    in
+                                    [ ( className
+                                      , Elm.declaration (propName ++ capitalize colorDef.name)
+                                            (case theme.target of
+                                                Theme.HTML ->
+                                                    Gen.Html.Attributes.class className
+
+                                                Theme.ElmUI ->
+                                                    Gen.Ui.htmlAttribute
+                                                        (Gen.Html.Attributes.class className)
+                                            )
+                                            |> Elm.expose
+                                      )
                                     ]
                                 )
                             |> List.sortBy Tuple.first
@@ -864,19 +884,20 @@ colorStyles theme =
         Just themes ->
             let
                 defaultColorRules =
-                    generateColorClasses themes.default
+                    generateColorClasses theme themes.default
 
                 ( darkModeThemes, otherThemes ) =
-                    List.partition (\t -> Theme.nameToString t.name == "dark") themes.alternates
+                    List.partition (\t -> Theme.nameToString t.name == "darkmode") themes.alternates
 
                 darkModeColorRules =
                     case darkModeThemes of
                         darkTheme :: _ ->
-                            generateColorClasses darkTheme.item
+                            generateColorClasses theme darkTheme.item
 
                         [] ->
                             -- Autogenerate dark mode
-                            generateColorClasses themes.default
+                            -- generateColorClasses theme themes.default
+                            []
 
                 darkModeMediaQuery =
                     if List.isEmpty darkModeColorRules then
@@ -888,7 +909,6 @@ colorStyles theme =
             in
             [ colorVars theme.colors
             , Style.ruleList defaultColorRules
-            , Style.classAll "lightmode" defaultColorRules
             , Style.classAll "darkmode" darkModeColorRules
             , Style.ruleList
                 (otherThemes
@@ -899,7 +919,7 @@ colorStyles theme =
                                     Theme.nameToString other.name
                             in
                             Style.classAll themeName
-                                (generateColorClasses other.item)
+                                (generateColorClasses theme other.item)
                         )
                 )
             , darkModeMediaQuery
@@ -909,51 +929,73 @@ colorStyles theme =
 colorVars : List Theme.ColorInstance -> Style.Rule
 colorVars colors =
     colors
-        |> List.map
-            (\clr ->
+        |> List.foldl
+            (\clr dict ->
                 let
                     varName =
-                        "--" ++ Theme.toColorName clr
+                        "--" ++ clr.name
                 in
-                Style.string varName (Theme.Color.toCssString clr.color)
+                if not (Dict.member varName dict) then
+                    Dict.insert varName
+                        (Style.string varName (Theme.Color.toCssStringBase clr.color))
+                        dict
+
+                else
+                    dict
             )
+            Dict.empty
+        |> Dict.values
         |> Style.root
 
 
-generateColorClasses : Theme.ColorTheme -> List Style.Rule
-generateColorClasses theme =
+generateColorClasses : Theme.Theme -> Theme.ColorTheme -> List Style.Rule
+generateColorClasses fullTheme theme =
     let
         genColorClass colorType propName colors =
             List.map
-                (\( fullColorName, _ ) ->
+                (\colorDef ->
                     let
                         className =
-                            Theme.fullColorToCssClass colorType fullColorName
-
-                        baseColor =
-                            Theme.fullColorNameToCssVar fullColorName
+                            Theme.colorDefintionToCssClassNoNamespace colorType colorDef
                     in
                     Style.ruleList
                         -- Base color
                         [ Style.class className
-                            [ Style.string propName baseColor
+                            [ Style.string propName (Theme.toColorVar colorDef.color)
                             ]
 
                         -- Hover
-                        , Style.hover (Theme.fullColorToCssClass colorType { fullColorName | state = Just Theme.Hover })
-                            [ Style.string propName
-                                (Theme.fullColorNameToCssVar
-                                    (brighten 10 fullColorName)
-                                )
-                            ]
+                        , case colorDef.hover of
+                            Nothing ->
+                                Style.none
+
+                            Just hoverColor ->
+                                Style.hover className
+                                    [ Style.string propName
+                                        (Theme.toColorVar hoverColor)
+                                    ]
 
                         -- Active
-                        , Style.active (Theme.fullColorToCssClass colorType { fullColorName | state = Just Theme.Active })
-                            [ Style.string propName
-                                (Theme.fullColorNameToCssVar
-                                    (brighten -10 fullColorName)
-                                )
-                            ]
+                        , case colorDef.active of
+                            Nothing ->
+                                Style.none
+
+                            Just activeColor ->
+                                Style.active className
+                                    [ Style.string propName
+                                        (Theme.toColorVar activeColor)
+                                    ]
+
+                        -- Focus
+                        , case colorDef.focus of
+                            Nothing ->
+                                Style.none
+
+                            Just focusColor ->
+                                Style.active className
+                                    [ Style.string propName
+                                        (Theme.toColorVar focusColor)
+                                    ]
                         ]
                 )
                 colors

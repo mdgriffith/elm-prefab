@@ -19,6 +19,16 @@ atLightness amount clr =
     Color (Just (AtLightness amount)) clr
 
 
+toCssStringBase : Color -> String
+toCssStringBase colorVal =
+    case colorVal of
+        Color _ clr ->
+            Color.toCssString clr
+
+        Grad gradient ->
+            gradient
+
+
 toCssString : Color -> String
 toCssString colorVal =
     case colorVal of

@@ -107,11 +107,30 @@ export const BorderConfig = z
   .strict();
 
 // special keys of color/active/hover/focus
-type ColorTree = { [key: string]: ColorTree } | string;
+// type ColorTree = { [key: string]: ColorTree } | string;
 
-export const ColorTree: z.ZodType<ColorTree> = z
-  .string()
-  .or(mapObject(z.lazy(() => ColorTree)));
+// export const ColorTree: z.ZodType<ColorTree> = z
+//   .string()
+//   .or(mapObject(z.lazy(() => ColorTree)));
+
+// Define the style object type (for reuse in recursive definition)
+const styleObject = z.object({
+  color: z.string(),
+  ":hover": z.string().optional(),
+  ":active": z.string().optional(),
+  ":focus": z.string().optional(),
+});
+
+// Define the final schema with @darkmode support
+const recursiveStyleObject = styleObject.extend({
+  "@darkmode": z.union([z.string(), styleObject]).optional(),
+});
+
+// Define the final schema that allows any string key
+const styleSchema = z.union([
+  z.string(),
+  z.record(z.string(), z.union([z.string(), recursiveStyleObject])),
+]);
 
 export const ColorAliasTheme = z.object({
   // palette selection
@@ -120,11 +139,6 @@ export const ColorAliasTheme = z.object({
   focus: z.string().optional(),
   success: z.string().optional(),
   error: z.string().optional(),
-
-  // semantic usage
-  text: ColorTree.optional(),
-  background: ColorTree.optional(),
-  border: ColorTree.optional(),
 });
 
 export enum ThemeTarget {
@@ -134,11 +148,21 @@ export enum ThemeTarget {
 
 const ThemeTargetSchema = z.nativeEnum(ThemeTarget);
 
+export const ColorsTheme = z.object({
+  // palette selection
+  palette: mapObject(z.string().or(Swatch)).optional(),
+  aliases: ColorAliasTheme.optional(),
+
+  // Semantic usage
+  text: styleSchema.optional(),
+  background: styleSchema.optional(),
+  border: styleSchema.optional(),
+});
+
 export const ThemeConfig = z
   .object({
     target: ThemeTargetSchema.optional().default(ThemeTarget.HTML),
-    colors: mapObject(z.string().or(Swatch)).optional(),
-    themes: mapObject(ColorAliasTheme).optional(),
+    colors: ColorsTheme.optional(),
     spacing: mapObject(z.number()).optional(),
     typography: z.array(Font).optional(),
     borders: BorderConfig.optional(),
@@ -287,10 +311,11 @@ const jsonPathToString = (path: (string | number)[]): string => {
 };
 
 const renderExample = (path: (string | number)[]): string => {
-  const example = getValueByPath(examples, path);
-  if (example === null) {
-    return "";
-  }
+  // const example = getValueByPath(examples, path);
+  // if (example === null) {
+  //   return "";
+  // }
+  const example = "example";
 
   return ` Here's an example of what I'm expecting at ${jsonPathToString(
     path

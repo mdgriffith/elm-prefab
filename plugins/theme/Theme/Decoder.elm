@@ -5,8 +5,8 @@ module Theme.Decoder exposing (decode)
 import Color
 import Dict
 import Json.Decode
-import Json.Encode
 import Parser exposing ((|.), (|=))
+import Set
 import Theme exposing (..)
 import Theme.Color
 
@@ -24,9 +24,24 @@ literal str value =
             )
 
 
+gatherAltnerateThemeNames : List Theme.ColorDefinition -> Set.Set String -> Set.Set String
+gatherAltnerateThemeNames defs existing =
+    List.foldl
+        (\def set ->
+            case def.theme of
+                Just name ->
+                    Set.insert name set
+
+                Nothing ->
+                    set
+        )
+        existing
+        defs
+
+
 decode : Json.Decode.Decoder Theme
 decode =
-    Json.Decode.field "colors" decodeColorSwatch
+    Json.Decode.at [ "colors", "palette" ] decodeColorSwatch
         |> Json.Decode.andThen
             (\colorSwatches ->
                 Json.Decode.map6 (Theme "ui" colorSwatches)
@@ -38,8 +53,50 @@ decode =
                         )
                     )
                     (Json.Decode.map Just
-                        (Json.Decode.field "themes"
-                            (decodeThemes colorSwatches)
+                        (Json.Decode.at [ "colors", "aliases" ]
+                            (decodeSemanticMap
+                                [ "primary"
+                                , "neutral"
+                                , "success"
+                                , "error"
+                                ]
+                            )
+                            |> Json.Decode.andThen
+                                (\semanticMap ->
+                                    Json.Decode.field "colors"
+                                        (Json.Decode.map3
+                                            (\text bgs borders ->
+                                                let
+                                                    uniqueThemeNames =
+                                                        Set.empty
+                                                            |> gatherAltnerateThemeNames text
+                                                            |> gatherAltnerateThemeNames bgs
+                                                            |> gatherAltnerateThemeNames borders
+                                                in
+                                                { default =
+                                                    { text = List.filter (\t -> t.theme == Nothing) text
+                                                    , background = List.filter (\t -> t.theme == Nothing) bgs
+                                                    , border = List.filter (\t -> t.theme == Nothing) borders
+                                                    }
+                                                , alternates =
+                                                    Set.toList uniqueThemeNames
+                                                        |> List.map
+                                                            (\name ->
+                                                                { name = Name name
+                                                                , item =
+                                                                    { text = List.filter (\t -> t.theme == Just name) text
+                                                                    , background = List.filter (\t -> t.theme == Just name) bgs
+                                                                    , border = List.filter (\t -> t.theme == Just name) borders
+                                                                    }
+                                                                }
+                                                            )
+                                                }
+                                            )
+                                            (Json.Decode.field "text" (decodeNamedColorDefinitions colorSwatches semanticMap))
+                                            (Json.Decode.field "background" (decodeNamedColorDefinitions colorSwatches semanticMap))
+                                            (Json.Decode.field "border" (decodeNamedColorDefinitions colorSwatches semanticMap))
+                                        )
+                                )
                         )
                     )
                     (Json.Decode.field "spacing"
@@ -63,49 +120,10 @@ decode =
             )
 
 
-decodeThemes : List Theme.ColorInstance -> Json.Decode.Decoder ColorThemeDefinitions
-decodeThemes colors =
-    Json.Decode.map2
-        (\default keyValues ->
-            ColorThemeDefinitions default
-                (List.filter
-                    (\{ name } ->
-                        Theme.nameToString name /= "default"
-                    )
-                    keyValues
-                )
-        )
-        (Json.Decode.field "default" (decodeColorAliasTheme colors))
-        (decodeNamed (decodeColorAliasTheme colors))
-
-
 {-| A map of color names to semantic names
 -}
 type alias SemanticMap =
     Dict.Dict String String
-
-
-decodeColorAliasTheme : List Theme.ColorInstance -> Json.Decode.Decoder ColorTheme
-decodeColorAliasTheme colors =
-    decodeSemanticMap
-        [ "primary"
-        , "neutral"
-        , "success"
-        , "error"
-        ]
-        |> Json.Decode.andThen
-            (\semanticMap ->
-                Json.Decode.map3
-                    (\text bgs borders ->
-                        { text = text
-                        , background = bgs
-                        , border = borders
-                        }
-                    )
-                    (Json.Decode.field "text" (decodeColorTree colors semanticMap))
-                    (Json.Decode.field "background" (decodeColorTree colors semanticMap))
-                    (Json.Decode.field "border" (decodeColorTree colors semanticMap))
-            )
 
 
 decodeSemanticMap : List String -> Json.Decode.Decoder SemanticMap
@@ -131,66 +149,206 @@ decodeSemanticMap allowedKeys =
                     )
 
 
-{-| -}
-decodeColorTree :
-    List Theme.ColorInstance
-    -> SemanticMap
-    -> Json.Decode.Decoder (List ( Theme.FullColorName, Theme.Color.Color ))
-decodeColorTree colors semanticMap =
-    decodeColorTreeHelper
-        |> Json.Decode.map
-            (\keyVals ->
-                List.concatMap
-                    (\( path, colorVar ) ->
-                        let
-                            _ =
-                                Debug.log "path" ( path, colorVar )
-
-                            namedColors =
-                                lookupColorPath colorVar colors
-                                    |> Debug.log "Found colors"
-                        in
-                        List.map
-                            (\found ->
-                                ( pathToFullColorName semanticMap path found
-                                , found.color
-                                )
-                            )
-                            namedColors
-                    )
-                    keyVals
-            )
-
-
-decodeColorTreeHelper : Json.Decode.Decoder (List ( List String, String ))
-decodeColorTreeHelper =
+decodeNamedColorDefinitions : List Theme.ColorInstance -> SemanticMap -> Json.Decode.Decoder (List Theme.ColorDefinition)
+decodeNamedColorDefinitions colors semanticMap =
     Json.Decode.oneOf
-        [ Json.Decode.map (\var -> List.singleton ( [], var )) Json.Decode.string
-        , Json.Decode.keyValuePairs
-            (Json.Decode.lazy (\_ -> decodeColorTreeHelper))
+        [ Json.Decode.string
+            |> Json.Decode.andThen
+                (\colorStr ->
+                    case lookupExactColor colorStr colors of
+                        Just color ->
+                            Json.Decode.succeed
+                                [ { name = ""
+                                  , color = color
+                                  , hover = Nothing
+                                  , active = Nothing
+                                  , focus = Nothing
+                                  , theme = Nothing
+                                  }
+                                ]
+
+                        Nothing ->
+                            Json.Decode.fail ("I don't recognize this color: " ++ colorStr)
+                )
+        , Json.Decode.keyValuePairs (decodeColorDefinition "" colors semanticMap)
             |> Json.Decode.map
-                (\keyVals ->
+                (\keyValues ->
                     List.concatMap
-                        (\( name, pathsAndVars ) ->
-                            List.map
-                                (\( path, var ) ->
-                                    ( name :: path, var )
-                                )
-                                pathsAndVars
+                        (\( name, defs ) ->
+                            defs
+                                |> List.map
+                                    (\def ->
+                                        { def
+                                            | name = name
+                                        }
+                                    )
                         )
-                        keyVals
+                        keyValues
                 )
         ]
 
 
-pathToFullColorName : SemanticMap -> List String -> Theme.ColorInstance -> Theme.FullColorName
-pathToFullColorName semantic path instance =
-    { base = instance.name -- purple
-    , variant = instance.variant -- 700
-    , alias = Dict.get instance.name semantic -- primary
-    , state = getState path -- hover
-    , nuance = getNuance instance.name path -- subtle
-    }
+{-| -}
+decodeColorDefinition :
+    String
+    -> List Theme.ColorInstance
+    -> SemanticMap
+    -> Json.Decode.Decoder (List Theme.ColorDefinition)
+decodeColorDefinition styleName colors semanticMap =
+    Json.Decode.oneOf
+        [ -- Handle simple string case
+          Json.Decode.string
+            |> Json.Decode.map
+                (\colorStr ->
+                    case lookupExactColor colorStr colors of
+                        Just color ->
+                            [ { name = ""
+                              , color = color
+                              , hover = Nothing
+                              , active = Nothing
+                              , focus = Nothing
+                              , theme = Nothing
+                              }
+                            ]
+
+                        Nothing ->
+                            []
+                )
+
+        -- Handle object case
+        , Json.Decode.map2 (::)
+            (decodeColorDefinitionNode Nothing styleName colors semanticMap)
+            (Json.Decode.keyValuePairs Json.Decode.value
+                |> Json.Decode.andThen
+                    (\keyValues ->
+                        let
+                            decodePair ( key, value ) =
+                                if String.startsWith "@" key then
+                                    case
+                                        Json.Decode.decodeValue
+                                            (decodeColorDefinitionNode
+                                                (Just (String.dropLeft 1 key))
+                                                styleName
+                                                colors
+                                                semanticMap
+                                            )
+                                            value
+                                    of
+                                        Ok colorDef ->
+                                            Ok (Just colorDef)
+
+                                        Err err ->
+                                            Err err
+
+                                else
+                                    Ok Nothing
+
+                            decodedResults =
+                                List.map decodePair keyValues
+                        in
+                        case
+                            List.foldr
+                                (\result acc ->
+                                    case ( result, acc ) of
+                                        ( Ok maybeVal, Ok vals ) ->
+                                            case maybeVal of
+                                                Just val ->
+                                                    Ok (val :: vals)
+
+                                                Nothing ->
+                                                    Ok vals
+
+                                        ( Err err, _ ) ->
+                                            Err err
+
+                                        ( _, Err err ) ->
+                                            Err err
+                                )
+                                (Ok [])
+                                decodedResults
+                        of
+                            Ok values ->
+                                Json.Decode.succeed values
+
+                            Err err ->
+                                Json.Decode.fail (Json.Decode.errorToString err)
+                    )
+            )
+        ]
+
+
+decodeColorDefinitionNode :
+    Maybe String
+    -> String
+    -> List Theme.ColorInstance
+    -> SemanticMap
+    -> Json.Decode.Decoder Theme.ColorDefinition
+decodeColorDefinitionNode maybeTheme styleName colors semanticMap =
+    Json.Decode.oneOf
+        [ Json.Decode.string
+            |> Json.Decode.andThen
+                (\colorStr ->
+                    case lookupExactColor colorStr colors of
+                        Just color ->
+                            Json.Decode.succeed
+                                { name = styleName
+                                , color = color
+                                , hover = Nothing
+                                , active = Nothing
+                                , focus = Nothing
+                                , theme = Nothing
+                                }
+
+                        Nothing ->
+                            Json.Decode.fail ("I don't recognize this color: " ++ colorStr)
+                )
+        , Json.Decode.map4
+            (\color hover active focus ->
+                { name = styleName
+                , color = color
+                , hover = hover
+                , active = active
+                , focus = focus
+                , theme = maybeTheme
+                }
+            )
+            (Json.Decode.field "color" (decodeColorRef colors))
+            (maybeField ":hover" (decodeColorRef colors))
+            (maybeField ":active" (decodeColorRef colors))
+            (maybeField ":focus" (decodeColorRef colors))
+        ]
+
+
+maybeField : String -> Json.Decode.Decoder a -> Json.Decode.Decoder (Maybe a)
+maybeField key decoder =
+    Json.Decode.oneOf
+        [ Json.Decode.field key decoder |> Json.Decode.map Just
+        , Json.Decode.field key (Json.Decode.succeed ())
+            |> Json.Decode.andThen
+                (\_ ->
+                    Json.Decode.fail ("I don't recognize the value for " ++ key)
+                )
+        , Json.Decode.succeed Nothing
+        ]
+
+
+decodeColorRef : List Theme.ColorInstance -> Json.Decode.Decoder Theme.ColorInstance
+decodeColorRef colors =
+    Json.Decode.string
+        |> Json.Decode.andThen
+            (\str ->
+                case lookupExactColor str colors of
+                    Just color ->
+                        Json.Decode.succeed color
+
+                    Nothing ->
+                        Json.Decode.fail ("I don't recognize this color: " ++ str)
+            )
+
+
+lookupExactColor : String -> List Theme.ColorInstance -> Maybe Theme.ColorInstance
+lookupExactColor colorVar colors =
+    List.head (lookupColorPath colorVar colors)
 
 
 {-|

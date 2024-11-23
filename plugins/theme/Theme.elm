@@ -43,10 +43,56 @@ type State
 
 {-| -}
 type alias ColorTheme =
-    { text : List ( FullColorName, Theme.Color.Color )
-    , background : List ( FullColorName, Theme.Color.Color )
-    , border : List ( FullColorName, Theme.Color.Color )
+    { text : List ColorDefinition
+    , background : List ColorDefinition
+    , border : List ColorDefinition
     }
+
+
+type alias ColorDefinition =
+    { name : String
+    , color : ColorInstance
+    , hover : Maybe ColorInstance
+    , active : Maybe ColorInstance
+    , focus : Maybe ColorInstance
+    , theme : Maybe String
+    }
+
+
+colorDefintionToCssClass : Theme -> String -> ColorDefinition -> String
+colorDefintionToCssClass theme propName colorDef =
+    if String.isEmpty colorDef.name then
+        theme.namespace ++ "-" ++ propName
+
+    else
+        theme.namespace ++ "-" ++ propName ++ "-" ++ colorDef.name
+
+
+colorDefintionToCssClassNoNamespace : String -> ColorDefinition -> String
+colorDefintionToCssClassNoNamespace propName colorDef =
+    if String.isEmpty colorDef.name then
+        propName
+
+    else
+        propName ++ "-" ++ colorDef.name
+
+
+colorDefToCssVar : Theme -> String -> ColorDefinition -> Maybe State -> String
+colorDefToCssVar theme propName colorDef maybeState =
+    let
+        stateString =
+            case maybeState of
+                Just state ->
+                    "-" ++ stateToString state
+
+                Nothing ->
+                    ""
+    in
+    if String.isEmpty colorDef.name then
+        theme.namespace ++ "-" ++ propName ++ stateString
+
+    else
+        theme.namespace ++ "-" ++ propName ++ "-" ++ colorDef.name ++ stateString
 
 
 type Target
@@ -249,6 +295,20 @@ stateToString state =
 
         Focus ->
             "Focus"
+
+
+toColorVar : ColorInstance -> String
+toColorVar colorInstance =
+    let
+        var =
+            "var(--" ++ decapitalize colorInstance.name ++ ")"
+    in
+    case colorInstance.variant of
+        Just variant ->
+            "oklch(from " ++ var ++ " " ++ String.fromInt variant ++ "% c h)"
+
+        Nothing ->
+            var
 
 
 toColorName : ColorInstance -> String

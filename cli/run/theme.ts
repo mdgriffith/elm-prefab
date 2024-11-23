@@ -59,26 +59,22 @@ const defaultTheme = {
   },
 };
 
-const defaultColors = {
-  grey: {
-    "900": "#121214",
-    "800": "#27272F",
-    "700": "#53535F",
-    "600": "#72727E",
-    "500": "#B1B1B8",
-    "400": "#CECED6",
-    "300": "#E5E5EA",
-    "200": "#F3F4F6",
-    "100": "#FAFAFC",
+const defaultColors: typeof Options.ColorsTheme = {
+  palette: {
+    grey: "#737373",
+    blue: "#1293D8",
   },
-  purple: {
-    "700": "#3B2D96",
-    "600": "#4530CC",
-    "500": "#6049F5",
-    "400": "#BBB1FC",
-    "300": "#E6E3FC",
-    "200": "#F8F5FF",
+  aliases: {
+    neutral: "grey",
+    primary: "blue",
   },
+  text: { default: "grey5", primary: "blue60" },
+  background: {
+    default: "grey95",
+    elevated: "grey90",
+    primary: "blue60",
+  },
+  border: "40",
 };
 
 const guaranteeDefaults = (options: Options.ThemeOptions) => {
@@ -119,9 +115,9 @@ const guaranteeDefaults = (options: Options.ThemeOptions) => {
     options.colors = defaultColors;
   }
 
-  if (!options.themes) {
-    options.themes = defaultTheme;
-  }
+  // if (!options.themes) {
+  //   options.themes = defaultTheme;
+  // }
 };
 
 export const generator = (options: Options.ThemeOptions): Options.Generator => {
@@ -147,7 +143,12 @@ export const generator = (options: Options.ThemeOptions): Options.Generator => {
         theme: options,
       });
 
-      console.log("Generated for theme", newSummary);
+      if ("errors" in newSummary) {
+        for (const error of newSummary.errors) {
+          // @ts-ignore
+          console.log(error["description"]);
+        }
+      }
 
       return Options.mergeSummaries(summary, newSummary);
     },
