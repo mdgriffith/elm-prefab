@@ -43,7 +43,7 @@ export const js_text_selection_ts = {
 export const main_ts = {
    moduleName: "main",
    path: "/main.ts",
-   contents: "// @ts-ignore\nimport { Elm } from \"./app/Main.elm\";\nimport * as LocalStorage from \"./js/local-storage\";\nimport * as Ports from \"./js/ports\";\nimport Webcomponents from \"./js/webcomponents\";\n\n// Include any custom elements we need.\nWebcomponents();\n\n// Boot up the Elm App\nconst app = Elm.Main.init({\n  flags: { now: Date.now(), localStorage: LocalStorage.getAll() },\n});\n\n// Connect ports\nPorts.connect(app);\n"
+   contents: "// @ts-ignore\nimport { Elm } from \"./app/Main.elm\";\nimport * as LocalStorage from \"./js/local-storage\";\nimport * as Ports from \"./js/ports\";\nimport Webcomponents from \"./js/webcomponents\";\n\n// Import all generated CSS files\nimport.meta.glob(\"../.elm-prefab/**/*.css\", { eager: true });\n\n// Include any custom elements we need.\nWebcomponents();\n\n// Boot up the Elm App\nconst app = Elm.Main.init({\n  flags: { now: Date.now(), localStorage: LocalStorage.getAll() },\n});\n\n// Connect ports\nPorts.connect(app);\n"
 }
 
 export const all = [

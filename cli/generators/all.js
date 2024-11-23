@@ -4120,9 +4120,16 @@ var $author$project$Options$App$decode = A3(
 		$elm$json$Json$Decode$list($author$project$Options$App$decodeResource)));
 var $author$project$Theme$ElmUI = {$: 'ElmUI'};
 var $author$project$Theme$HTML = {$: 'HTML'};
+var $author$project$Theme$Name = function (a) {
+	return {$: 'Name', a: a};
+};
 var $author$project$Theme$Theme = F8(
 	function (namespace, colors, target, themes, spacing, typography, borderRadii, borderWidths) {
 		return {borderRadii: borderRadii, borderWidths: borderWidths, colors: colors, namespace: namespace, spacing: spacing, target: target, themes: themes, typography: typography};
+	});
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
 	});
 var $elm$core$List$append = F2(
 	function (xs, ys) {
@@ -4674,9 +4681,6 @@ var $author$project$Theme$Decoder$decodeColorSwatch = A2(
 					$elm$json$Json$Decode$keyValuePairs(
 						$elm$json$Json$Decode$maybe($author$project$Theme$Decoder$decodeColor)))
 				]))));
-var $author$project$Theme$Name = function (a) {
-	return {$: 'Name', a: a};
-};
 var $author$project$Theme$Decoder$decodeNamed = function (inner) {
 	return A2(
 		$elm$json$Json$Decode$map,
@@ -4691,66 +4695,15 @@ var $author$project$Theme$Decoder$decodeNamed = function (inner) {
 			}),
 		$elm$json$Json$Decode$keyValuePairs(inner));
 };
-var $author$project$Theme$ColorThemeDefinitions = F2(
-	function (_default, alternates) {
-		return {alternates: alternates, _default: _default};
-	});
-var $elm$json$Json$Decode$lazy = function (thunk) {
-	return A2(
-		$elm$json$Json$Decode$andThen,
-		thunk,
-		$elm$json$Json$Decode$succeed(_Utils_Tuple0));
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
 };
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
-function $author$project$Theme$Decoder$cyclic$decodeColorTreeHelper() {
-	return $elm$json$Json$Decode$oneOf(
-		_List_fromArray(
-			[
-				A2(
-				$elm$json$Json$Decode$map,
-				function (_var) {
-					return $elm$core$List$singleton(
-						_Utils_Tuple2(_List_Nil, _var));
-				},
-				$elm$json$Json$Decode$string),
-				A2(
-				$elm$json$Json$Decode$map,
-				function (keyVals) {
-					return A2(
-						$elm$core$List$concatMap,
-						function (_v1) {
-							var name = _v1.a;
-							var pathsAndVars = _v1.b;
-							return A2(
-								$elm$core$List$map,
-								function (_v2) {
-									var path = _v2.a;
-									var _var = _v2.b;
-									return _Utils_Tuple2(
-										A2($elm$core$List$cons, name, path),
-										_var);
-								},
-								pathsAndVars);
-						},
-						keyVals);
-				},
-				$elm$json$Json$Decode$keyValuePairs(
-					$elm$json$Json$Decode$lazy(
-						function (_v0) {
-							return $author$project$Theme$Decoder$cyclic$decodeColorTreeHelper();
-						})))
-			]));
-}
-try {
-	var $author$project$Theme$Decoder$decodeColorTreeHelper = $author$project$Theme$Decoder$cyclic$decodeColorTreeHelper();
-	$author$project$Theme$Decoder$cyclic$decodeColorTreeHelper = function () {
-		return $author$project$Theme$Decoder$decodeColorTreeHelper;
-	};
-} catch ($) {
-	throw 'Some top-level definitions from `Theme.Decoder` are causing infinite recursion:\n\n  ┌─────┐\n  │    decodeColorTreeHelper\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -4793,270 +4746,268 @@ var $author$project$Theme$Decoder$lookupColorPath = F2(
 		};
 		return A2($elm$core$List$filter, match, colors);
 	});
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
+var $author$project$Theme$Decoder$lookupExactColor = F2(
+	function (colorVar, colors) {
+		return $elm$core$List$head(
+			A2($author$project$Theme$Decoder$lookupColorPath, colorVar, colors));
 	});
-var $elm$core$Basics$neq = _Utils_notEqual;
-var $author$project$Theme$Decoder$getNuance = F2(
-	function (base, path) {
-		getNuance:
-		while (true) {
-			if (!path.b) {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				switch (path.a) {
-					case 'default':
-						var remaining = path.b;
-						var $temp$base = base,
-							$temp$path = remaining;
-						base = $temp$base;
-						path = $temp$path;
-						continue getNuance;
-					case 'active':
-						var remaining = path.b;
-						var $temp$base = base,
-							$temp$path = remaining;
-						base = $temp$base;
-						path = $temp$path;
-						continue getNuance;
-					case 'focus':
-						var remaining = path.b;
-						var $temp$base = base,
-							$temp$path = remaining;
-						base = $temp$base;
-						path = $temp$path;
-						continue getNuance;
-					case 'hover':
-						var remaining = path.b;
-						var $temp$base = base,
-							$temp$path = remaining;
-						base = $temp$base;
-						path = $temp$path;
-						continue getNuance;
-					default:
-						var nuance = path.a;
-						var remain = path.b;
-						if (!_Utils_eq(base, nuance)) {
-							return $elm$core$Maybe$Just(nuance);
-						} else {
-							var $temp$base = base,
-								$temp$path = remain;
-							base = $temp$base;
-							path = $temp$path;
-							continue getNuance;
-						}
-				}
-			}
-		}
-	});
-var $author$project$Theme$Active = {$: 'Active'};
-var $author$project$Theme$Focus = {$: 'Focus'};
-var $author$project$Theme$Hover = {$: 'Hover'};
-var $author$project$Theme$Decoder$getState = function (path) {
-	getState:
-	while (true) {
-		if (!path.b) {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			switch (path.a) {
-				case 'hover':
-					var remaining = path.b;
-					return $elm$core$Maybe$Just($author$project$Theme$Hover);
-				case 'active':
-					var remaining = path.b;
-					return $elm$core$Maybe$Just($author$project$Theme$Active);
-				case 'focus':
-					var remaining = path.b;
-					return $elm$core$Maybe$Just($author$project$Theme$Focus);
-				default:
-					var remain = path.b;
-					var $temp$path = remain;
-					path = $temp$path;
-					continue getState;
-			}
-		}
-	}
-};
-var $author$project$Theme$Decoder$pathToFullColorName = F3(
-	function (semantic, path, instance) {
-		return {
-			alias: A2($elm$core$Dict$get, instance.name, semantic),
-			base: instance.name,
-			nuance: A2($author$project$Theme$Decoder$getNuance, instance.name, path),
-			state: $author$project$Theme$Decoder$getState(path),
-			variant: instance.variant
-		};
-	});
-var $author$project$Theme$Decoder$decodeColorTree = F2(
-	function (colors, semanticMap) {
-		return A2(
-			$elm$json$Json$Decode$map,
-			function (keyVals) {
-				return A2(
-					$elm$core$List$concatMap,
-					function (_v0) {
-						var path = _v0.a;
-						var colorVar = _v0.b;
-						var namedColors = A2($author$project$Theme$Decoder$lookupColorPath, colorVar, colors);
-						return A2(
-							$elm$core$List$map,
-							function (found) {
-								return _Utils_Tuple2(
-									A3($author$project$Theme$Decoder$pathToFullColorName, semanticMap, path, found),
-									found.color);
-							},
-							namedColors);
-					},
-					keyVals);
-			},
-			$author$project$Theme$Decoder$decodeColorTreeHelper);
-	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
-var $elm$json$Json$Decode$dict = function (decoder) {
-	return A2(
-		$elm$json$Json$Decode$map,
-		$elm$core$Dict$fromList,
-		$elm$json$Json$Decode$keyValuePairs(decoder));
-};
-var $elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3($elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
-	});
-var $author$project$Theme$Decoder$decodeSemanticMap = function (allowedKeys) {
-	return A2(
-		$elm$json$Json$Decode$map,
-		function (dict) {
-			return A3(
-				$elm$core$Dict$foldl,
-				F3(
-					function (key, value, acc) {
-						return A2($elm$core$List$member, key, allowedKeys) ? A3($elm$core$Dict$insert, value, key, acc) : acc;
-					}),
-				$elm$core$Dict$empty,
-				dict);
-		},
-		$elm$json$Json$Decode$dict($elm$json$Json$Decode$string));
-};
-var $elm$json$Json$Decode$map3 = _Json_map3;
-var $author$project$Theme$Decoder$decodeColorAliasTheme = function (colors) {
+var $author$project$Theme$Decoder$decodeColorRef = function (colors) {
 	return A2(
 		$elm$json$Json$Decode$andThen,
-		function (semanticMap) {
-			return A4(
-				$elm$json$Json$Decode$map3,
-				F3(
-					function (text, bgs, borders) {
-						return {background: bgs, border: borders, text: text};
-					}),
-				A2(
-					$elm$json$Json$Decode$field,
-					'text',
-					A2($author$project$Theme$Decoder$decodeColorTree, colors, semanticMap)),
-				A2(
-					$elm$json$Json$Decode$field,
-					'background',
-					A2($author$project$Theme$Decoder$decodeColorTree, colors, semanticMap)),
-				A2(
-					$elm$json$Json$Decode$field,
-					'border',
-					A2($author$project$Theme$Decoder$decodeColorTree, colors, semanticMap)));
+		function (str) {
+			var _v0 = A2($author$project$Theme$Decoder$lookupExactColor, str, colors);
+			if (_v0.$ === 'Just') {
+				var color = _v0.a;
+				return $elm$json$Json$Decode$succeed(color);
+			} else {
+				return $elm$json$Json$Decode$fail('I don\'t recognize this color: ' + str);
+			}
 		},
-		$author$project$Theme$Decoder$decodeSemanticMap(
+		$elm$json$Json$Decode$string);
+};
+var $elm$json$Json$Decode$map4 = _Json_map4;
+var $author$project$Theme$Decoder$maybeField = F2(
+	function (key, decoder) {
+		return $elm$json$Json$Decode$oneOf(
 			_List_fromArray(
-				['primary', 'neutral', 'success', 'error'])));
-};
-var $author$project$Theme$nameToString = function (_v0) {
-	var name = _v0.a;
-	return name;
-};
-var $author$project$Theme$Decoder$decodeThemes = function (colors) {
-	return A3(
-		$elm$json$Json$Decode$map2,
-		F2(
-			function (_default, keyValues) {
-				return A2(
-					$author$project$Theme$ColorThemeDefinitions,
-					_default,
+				[
 					A2(
-						$elm$core$List$filter,
-						function (_v0) {
-							var name = _v0.name;
-							return $author$project$Theme$nameToString(name) !== 'default';
+					$elm$json$Json$Decode$map,
+					$elm$core$Maybe$Just,
+					A2($elm$json$Json$Decode$field, key, decoder)),
+					A2(
+					$elm$json$Json$Decode$andThen,
+					function (_v0) {
+						return $elm$json$Json$Decode$fail('I don\'t recognize the value for ' + key);
+					},
+					A2(
+						$elm$json$Json$Decode$field,
+						key,
+						$elm$json$Json$Decode$succeed(_Utils_Tuple0))),
+					$elm$json$Json$Decode$succeed($elm$core$Maybe$Nothing)
+				]));
+	});
+var $author$project$Theme$Decoder$decodeColorDefinitionNode = F4(
+	function (maybeTheme, styleName, colors, semanticMap) {
+		return $elm$json$Json$Decode$oneOf(
+			_List_fromArray(
+				[
+					A2(
+					$elm$json$Json$Decode$andThen,
+					function (colorStr) {
+						var _v0 = A2($author$project$Theme$Decoder$lookupExactColor, colorStr, colors);
+						if (_v0.$ === 'Just') {
+							var color = _v0.a;
+							return $elm$json$Json$Decode$succeed(
+								{active: $elm$core$Maybe$Nothing, color: color, focus: $elm$core$Maybe$Nothing, hover: $elm$core$Maybe$Nothing, name: styleName, theme: $elm$core$Maybe$Nothing});
+						} else {
+							return $elm$json$Json$Decode$fail('I don\'t recognize this color: ' + colorStr);
+						}
+					},
+					$elm$json$Json$Decode$string),
+					A5(
+					$elm$json$Json$Decode$map4,
+					F4(
+						function (color, hover, active, focus) {
+							return {active: active, color: color, focus: focus, hover: hover, name: styleName, theme: maybeTheme};
+						}),
+					A2(
+						$elm$json$Json$Decode$field,
+						'color',
+						$author$project$Theme$Decoder$decodeColorRef(colors)),
+					A2(
+						$author$project$Theme$Decoder$maybeField,
+						':hover',
+						$author$project$Theme$Decoder$decodeColorRef(colors)),
+					A2(
+						$author$project$Theme$Decoder$maybeField,
+						':active',
+						$author$project$Theme$Decoder$decodeColorRef(colors)),
+					A2(
+						$author$project$Theme$Decoder$maybeField,
+						':focus',
+						$author$project$Theme$Decoder$decodeColorRef(colors)))
+				]));
+	});
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $elm$core$String$dropLeft = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(
+			$elm$core$String$slice,
+			n,
+			$elm$core$String$length(string),
+			string);
+	});
+var $elm$core$String$startsWith = _String_startsWith;
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Theme$Decoder$decodeColorDefinition = F3(
+	function (styleName, colors, semanticMap) {
+		return $elm$json$Json$Decode$oneOf(
+			_List_fromArray(
+				[
+					A2(
+					$elm$json$Json$Decode$map,
+					function (colorStr) {
+						var _v0 = A2($author$project$Theme$Decoder$lookupExactColor, colorStr, colors);
+						if (_v0.$ === 'Just') {
+							var color = _v0.a;
+							return _List_fromArray(
+								[
+									{active: $elm$core$Maybe$Nothing, color: color, focus: $elm$core$Maybe$Nothing, hover: $elm$core$Maybe$Nothing, name: '', theme: $elm$core$Maybe$Nothing}
+								]);
+						} else {
+							return _List_Nil;
+						}
+					},
+					$elm$json$Json$Decode$string),
+					A3(
+					$elm$json$Json$Decode$map2,
+					$elm$core$List$cons,
+					A4($author$project$Theme$Decoder$decodeColorDefinitionNode, $elm$core$Maybe$Nothing, styleName, colors, semanticMap),
+					A2(
+						$elm$json$Json$Decode$andThen,
+						function (keyValues) {
+							var decodePair = function (_v5) {
+								var key = _v5.a;
+								var value = _v5.b;
+								if (A2($elm$core$String$startsWith, '@', key)) {
+									var _v4 = A2(
+										$elm$json$Json$Decode$decodeValue,
+										A4(
+											$author$project$Theme$Decoder$decodeColorDefinitionNode,
+											$elm$core$Maybe$Just(
+												A2($elm$core$String$dropLeft, 1, key)),
+											styleName,
+											colors,
+											semanticMap),
+										value);
+									if (_v4.$ === 'Ok') {
+										var colorDef = _v4.a;
+										return $elm$core$Result$Ok(
+											$elm$core$Maybe$Just(colorDef));
+									} else {
+										var err = _v4.a;
+										return $elm$core$Result$Err(err);
+									}
+								} else {
+									return $elm$core$Result$Ok($elm$core$Maybe$Nothing);
+								}
+							};
+							var decodedResults = A2($elm$core$List$map, decodePair, keyValues);
+							var _v1 = A3(
+								$elm$core$List$foldr,
+								F2(
+									function (result, acc) {
+										var _v2 = _Utils_Tuple2(result, acc);
+										if (_v2.a.$ === 'Ok') {
+											if (_v2.b.$ === 'Ok') {
+												var maybeVal = _v2.a.a;
+												var vals = _v2.b.a;
+												if (maybeVal.$ === 'Just') {
+													var val = maybeVal.a;
+													return $elm$core$Result$Ok(
+														A2($elm$core$List$cons, val, vals));
+												} else {
+													return $elm$core$Result$Ok(vals);
+												}
+											} else {
+												var err = _v2.b.a;
+												return $elm$core$Result$Err(err);
+											}
+										} else {
+											var err = _v2.a.a;
+											return $elm$core$Result$Err(err);
+										}
+									}),
+								$elm$core$Result$Ok(_List_Nil),
+								decodedResults);
+							if (_v1.$ === 'Ok') {
+								var values = _v1.a;
+								return $elm$json$Json$Decode$succeed(values);
+							} else {
+								var err = _v1.a;
+								return $elm$json$Json$Decode$fail(
+									$elm$json$Json$Decode$errorToString(err));
+							}
 						},
-						keyValues));
-			}),
-		A2(
-			$elm$json$Json$Decode$field,
-			'default',
-			$author$project$Theme$Decoder$decodeColorAliasTheme(colors)),
-		$author$project$Theme$Decoder$decodeNamed(
-			$author$project$Theme$Decoder$decodeColorAliasTheme(colors)));
+						$elm$json$Json$Decode$keyValuePairs($elm$json$Json$Decode$value)))
+				]));
+	});
+var $author$project$Theme$Decoder$decodeNamedColorDefinitions = F2(
+	function (colors, semanticMap) {
+		return $elm$json$Json$Decode$oneOf(
+			_List_fromArray(
+				[
+					A2(
+					$elm$json$Json$Decode$andThen,
+					function (colorStr) {
+						var _v0 = A2($author$project$Theme$Decoder$lookupExactColor, colorStr, colors);
+						if (_v0.$ === 'Just') {
+							var color = _v0.a;
+							return $elm$json$Json$Decode$succeed(
+								_List_fromArray(
+									[
+										{active: $elm$core$Maybe$Nothing, color: color, focus: $elm$core$Maybe$Nothing, hover: $elm$core$Maybe$Nothing, name: '', theme: $elm$core$Maybe$Nothing}
+									]));
+						} else {
+							return $elm$json$Json$Decode$fail('I don\'t recognize this color: ' + colorStr);
+						}
+					},
+					$elm$json$Json$Decode$string),
+					A2(
+					$elm$json$Json$Decode$map,
+					function (keyValues) {
+						return A2(
+							$elm$core$List$concatMap,
+							function (_v1) {
+								var name = _v1.a;
+								var defs = _v1.b;
+								return A2(
+									$elm$core$List$map,
+									function (def) {
+										return _Utils_update(
+											def,
+											{name: name});
+									},
+									defs);
+							},
+							keyValues);
+					},
+					$elm$json$Json$Decode$keyValuePairs(
+						A3($author$project$Theme$Decoder$decodeColorDefinition, '', colors, semanticMap)))
+				]));
+	});
+var $author$project$Theme$Decoder$decodeSemanticMap = function (allowedKeys) {
+	if (!allowedKeys.b) {
+		return $elm$json$Json$Decode$succeed($elm$core$Dict$empty);
+	} else {
+		var key = allowedKeys.a;
+		var remaining = allowedKeys.b;
+		return A2(
+			$elm$json$Json$Decode$andThen,
+			function (maybeValue) {
+				return A2(
+					$elm$json$Json$Decode$map,
+					function (restOfMap) {
+						if (maybeValue.$ === 'Nothing') {
+							return restOfMap;
+						} else {
+							var value = maybeValue.a;
+							return A3($elm$core$Dict$insert, value, key, restOfMap);
+						}
+					},
+					$author$project$Theme$Decoder$decodeSemanticMap(remaining));
+			},
+			$elm$json$Json$Decode$maybe(
+				A2($elm$json$Json$Decode$field, key, $elm$json$Json$Decode$string)));
+	}
 };
 var $author$project$Theme$Named = F2(
 	function (name, item) {
 		return {item: item, name: name};
 	});
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$map3 = _Json_map3;
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -5082,6 +5033,10 @@ var $author$project$Theme$Decoder$decodeCapitalSizing = A4(
 		A2($elm$json$Json$Decode$field, 'bottom', $elm$json$Json$Decode$float)),
 	$elm$json$Json$Decode$maybe(
 		A2($elm$json$Json$Decode$field, 'fontSizeByCapital', $elm$json$Json$Decode$float)));
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
 var $author$project$Theme$Decoder$decodeVariants = $elm$json$Json$Decode$oneOf(
 	_List_fromArray(
 		[
@@ -5189,7 +5144,6 @@ var $author$project$Theme$Decoder$decodeWeights = $elm$json$Json$Decode$oneOf(
 					_Utils_Tuple2($author$project$Theme$Default, 400)
 				]))
 		]));
-var $elm$json$Json$Decode$map4 = _Json_map4;
 var $author$project$Theme$Decoder$decodeTypefaceSize = A5(
 	$elm$json$Json$Decode$map4,
 	F4(
@@ -5257,6 +5211,23 @@ var $author$project$Theme$Decoder$decodeTypeface = A4(
 		$elm$json$Json$Decode$field,
 		'sizes',
 		$elm$json$Json$Decode$keyValuePairs($author$project$Theme$Decoder$decodeTypefaceSize)));
+var $author$project$Theme$Decoder$gatherAltnerateThemeNames = F2(
+	function (defs, existing) {
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (def, set) {
+					var _v0 = def.theme;
+					if (_v0.$ === 'Just') {
+						var name = _v0.a;
+						return A2($elm$core$Set$insert, name, set);
+					} else {
+						return set;
+					}
+				}),
+			existing,
+			defs);
+	});
 var $author$project$Theme$Decoder$literal = F2(
 	function (str, value) {
 		return A2(
@@ -5286,9 +5257,99 @@ var $author$project$Theme$Decoder$decode = A2(
 				$elm$json$Json$Decode$map,
 				$elm$core$Maybe$Just,
 				A2(
-					$elm$json$Json$Decode$field,
-					'themes',
-					$author$project$Theme$Decoder$decodeThemes(colorSwatches))),
+					$elm$json$Json$Decode$andThen,
+					function (semanticMap) {
+						return A2(
+							$elm$json$Json$Decode$field,
+							'colors',
+							A4(
+								$elm$json$Json$Decode$map3,
+								F3(
+									function (text, bgs, borders) {
+										var uniqueThemeNames = A2(
+											$author$project$Theme$Decoder$gatherAltnerateThemeNames,
+											borders,
+											A2(
+												$author$project$Theme$Decoder$gatherAltnerateThemeNames,
+												bgs,
+												A2($author$project$Theme$Decoder$gatherAltnerateThemeNames, text, $elm$core$Set$empty)));
+										return {
+											alternates: A2(
+												$elm$core$List$map,
+												function (name) {
+													return {
+														item: {
+															background: A2(
+																$elm$core$List$filter,
+																function (t) {
+																	return _Utils_eq(
+																		t.theme,
+																		$elm$core$Maybe$Just(name));
+																},
+																bgs),
+															border: A2(
+																$elm$core$List$filter,
+																function (t) {
+																	return _Utils_eq(
+																		t.theme,
+																		$elm$core$Maybe$Just(name));
+																},
+																borders),
+															text: A2(
+																$elm$core$List$filter,
+																function (t) {
+																	return _Utils_eq(
+																		t.theme,
+																		$elm$core$Maybe$Just(name));
+																},
+																text)
+														},
+														name: $author$project$Theme$Name(name)
+													};
+												},
+												$elm$core$Set$toList(uniqueThemeNames)),
+											_default: {
+												background: A2(
+													$elm$core$List$filter,
+													function (t) {
+														return _Utils_eq(t.theme, $elm$core$Maybe$Nothing);
+													},
+													bgs),
+												border: A2(
+													$elm$core$List$filter,
+													function (t) {
+														return _Utils_eq(t.theme, $elm$core$Maybe$Nothing);
+													},
+													borders),
+												text: A2(
+													$elm$core$List$filter,
+													function (t) {
+														return _Utils_eq(t.theme, $elm$core$Maybe$Nothing);
+													},
+													text)
+											}
+										};
+									}),
+								A2(
+									$elm$json$Json$Decode$field,
+									'text',
+									A2($author$project$Theme$Decoder$decodeNamedColorDefinitions, colorSwatches, semanticMap)),
+								A2(
+									$elm$json$Json$Decode$field,
+									'background',
+									A2($author$project$Theme$Decoder$decodeNamedColorDefinitions, colorSwatches, semanticMap)),
+								A2(
+									$elm$json$Json$Decode$field,
+									'border',
+									A2($author$project$Theme$Decoder$decodeNamedColorDefinitions, colorSwatches, semanticMap))));
+					},
+					A2(
+						$elm$json$Json$Decode$at,
+						_List_fromArray(
+							['colors', 'aliases']),
+						$author$project$Theme$Decoder$decodeSemanticMap(
+							_List_fromArray(
+								['primary', 'neutral', 'success', 'error']))))),
 			A2(
 				$elm$json$Json$Decode$field,
 				'spacing',
@@ -5323,7 +5384,11 @@ var $author$project$Theme$Decoder$decode = A2(
 							'width',
 							$author$project$Theme$Decoder$decodeNamed($elm$json$Json$Decode$int))))));
 	},
-	A2($elm$json$Json$Decode$field, 'colors', $author$project$Theme$Decoder$decodeColorSwatch));
+	A2(
+		$elm$json$Json$Decode$at,
+		_List_fromArray(
+			['colors', 'palette']),
+		$author$project$Theme$Decoder$decodeColorSwatch));
 var $author$project$Options$Assets$AssetGroup = F3(
 	function (name, files, fileInfo) {
 		return {fileInfo: fileInfo, files: files, name: name};
@@ -5352,6 +5417,24 @@ var $author$project$Options$Assets$decodeFile = A5(
 		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
 	A2($elm$json$Json$Decode$field, 'pathOnServer', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'content', $author$project$Options$Assets$decodeContent));
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $elm$json$Json$Decode$dict = function (decoder) {
+	return A2(
+		$elm$json$Json$Decode$map,
+		$elm$core$Dict$fromList,
+		$elm$json$Json$Decode$keyValuePairs(decoder));
+};
 var $author$project$Options$Assets$decodeAssetGroup = A4(
 	$elm$json$Json$Decode$map3,
 	$author$project$Options$Assets$AssetGroup,
@@ -5377,10 +5460,6 @@ var $author$project$Options$Assets$decodeAssetGroup = A4(
 					$elm$json$Json$Decode$field,
 					'frontmatter',
 					$elm$json$Json$Decode$dict($elm$json$Json$Decode$string))))));
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
 var $author$project$Press$Model$Many = {$: 'Many'};
 var $author$project$Press$Model$One = {$: 'One'};
 var $author$project$Press$Model$decodeRegionType = function (strs) {
@@ -5541,6 +5620,37 @@ var $elm$project_metadata_utils$Elm$Type$isInnerVarChar = function (_char) {
 		_Utils_chr('_'));
 };
 var $elm$parser$Parser$ExpectingVariable = {$: 'ExpectingVariable'};
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
 var $elm$core$Dict$member = F2(
 	function (key, dict) {
 		var _v0 = A2($elm$core$Dict$get, key, dict);
@@ -6146,7 +6256,7 @@ var $elm$project_metadata_utils$Elm$Type$decoderHelp = function (string) {
 	}
 };
 var $elm$project_metadata_utils$Elm$Type$decoder = A2($elm$json$Json$Decode$andThen, $elm$project_metadata_utils$Elm$Type$decoderHelp, $elm$json$Json$Decode$string);
-var $elm$project_metadata_utils$Elm$Docs$aliasDecoder = A5(
+var $author$project$Options$Docs$aliasDecoder = A5(
 	$elm$json$Json$Decode$map4,
 	$elm$project_metadata_utils$Elm$Docs$Alias,
 	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
@@ -6163,6 +6273,148 @@ var $elm$project_metadata_utils$Elm$Docs$Binop = F5(
 var $elm$project_metadata_utils$Elm$Docs$Left = {$: 'Left'};
 var $elm$project_metadata_utils$Elm$Docs$None = {$: 'None'};
 var $elm$project_metadata_utils$Elm$Docs$Right = {$: 'Right'};
+var $author$project$Options$Docs$toAssoc = function (str) {
+	switch (str) {
+		case 'left':
+			return $elm$json$Json$Decode$succeed($elm$project_metadata_utils$Elm$Docs$Left);
+		case 'non':
+			return $elm$json$Json$Decode$succeed($elm$project_metadata_utils$Elm$Docs$None);
+		case 'right':
+			return $elm$json$Json$Decode$succeed($elm$project_metadata_utils$Elm$Docs$Right);
+		default:
+			return $elm$json$Json$Decode$fail('expecting one of the following values: left, non, right');
+	}
+};
+var $author$project$Options$Docs$assocDecoder = A2($elm$json$Json$Decode$andThen, $author$project$Options$Docs$toAssoc, $elm$json$Json$Decode$string);
+var $elm$json$Json$Decode$map5 = _Json_map5;
+var $author$project$Options$Docs$binopDecoder = A6(
+	$elm$json$Json$Decode$map5,
+	$elm$project_metadata_utils$Elm$Docs$Binop,
+	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'comment', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'type', $elm$project_metadata_utils$Elm$Type$decoder),
+	A2($elm$json$Json$Decode$field, 'associativity', $author$project$Options$Docs$assocDecoder),
+	A2($elm$json$Json$Decode$field, 'precedence', $elm$json$Json$Decode$int));
+var $elm$core$Debug$log = _Debug_log;
+var $author$project$Options$Docs$safeList = F2(
+	function (tag, innerDecoder) {
+		return $elm$json$Json$Decode$oneOf(
+			_List_fromArray(
+				[
+					$elm$json$Json$Decode$list(innerDecoder),
+					A2(
+					$elm$json$Json$Decode$andThen,
+					function (_v0) {
+						var _v1 = A2($elm$core$Debug$log, tag, 'Failed!');
+						return $elm$json$Json$Decode$succeed(_List_Nil);
+					},
+					$elm$json$Json$Decode$succeed(_List_Nil))
+				]));
+	});
+var $author$project$Options$Docs$safeString = function (tag) {
+	return $elm$json$Json$Decode$oneOf(
+		_List_fromArray(
+			[
+				$elm$json$Json$Decode$string,
+				A2(
+				$elm$json$Json$Decode$andThen,
+				function (_v0) {
+					var _v1 = A2($elm$core$Debug$log, tag, 'Failed string!');
+					return $elm$json$Json$Decode$succeed('');
+				},
+				$elm$json$Json$Decode$succeed(''))
+			]));
+};
+var $elm$project_metadata_utils$Elm$Docs$Union = F4(
+	function (name, comment, args, tags) {
+		return {args: args, comment: comment, name: name, tags: tags};
+	});
+var $author$project$Options$Docs$tagDecoder = A3(
+	$elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2($elm$json$Json$Decode$index, 0, $elm$json$Json$Decode$string),
+	A2(
+		$elm$json$Json$Decode$index,
+		1,
+		$elm$json$Json$Decode$list($elm$project_metadata_utils$Elm$Type$decoder)));
+var $author$project$Options$Docs$unionDecoder = A5(
+	$elm$json$Json$Decode$map4,
+	$elm$project_metadata_utils$Elm$Docs$Union,
+	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'comment', $elm$json$Json$Decode$string),
+	A2(
+		$elm$json$Json$Decode$field,
+		'args',
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+	A2(
+		$elm$json$Json$Decode$field,
+		'cases',
+		$elm$json$Json$Decode$list($author$project$Options$Docs$tagDecoder)));
+var $elm$project_metadata_utils$Elm$Docs$Value = F3(
+	function (name, comment, tipe) {
+		return {comment: comment, name: name, tipe: tipe};
+	});
+var $author$project$Options$Docs$valueDecoder = A4(
+	$elm$json$Json$Decode$map3,
+	$elm$project_metadata_utils$Elm$Docs$Value,
+	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'comment', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'type', $elm$project_metadata_utils$Elm$Type$decoder));
+var $author$project$Options$Docs$decodeModule = $elm$json$Json$Decode$oneOf(
+	_List_fromArray(
+		[
+			A7(
+			$elm$json$Json$Decode$map6,
+			$elm$project_metadata_utils$Elm$Docs$Module,
+			A2(
+				$elm$json$Json$Decode$field,
+				'name',
+				$author$project$Options$Docs$safeString('name')),
+			A2(
+				$elm$json$Json$Decode$field,
+				'comment',
+				$author$project$Options$Docs$safeString('comment')),
+			A2(
+				$elm$json$Json$Decode$field,
+				'unions',
+				A2($author$project$Options$Docs$safeList, 'unions', $author$project$Options$Docs$unionDecoder)),
+			A2(
+				$elm$json$Json$Decode$field,
+				'aliases',
+				A2($author$project$Options$Docs$safeList, 'alias', $author$project$Options$Docs$aliasDecoder)),
+			A2(
+				$elm$json$Json$Decode$field,
+				'values',
+				A2($author$project$Options$Docs$safeList, 'values', $author$project$Options$Docs$valueDecoder)),
+			A2(
+				$elm$json$Json$Decode$field,
+				'binops',
+				A2($author$project$Options$Docs$safeList, 'binops', $author$project$Options$Docs$binopDecoder))),
+			A2(
+			$elm$json$Json$Decode$andThen,
+			function (value) {
+				var _v0 = A2(
+					$elm$core$Debug$log,
+					'Failed!',
+					A2($elm$json$Json$Encode$encode, 4, value));
+				return $elm$json$Json$Decode$succeed(
+					A6($elm$project_metadata_utils$Elm$Docs$Module, 'FAILED', '', _List_Nil, _List_Nil, _List_Nil, _List_Nil));
+			},
+			$elm$json$Json$Decode$value)
+		]));
+var $elm$project_metadata_utils$Elm$Docs$aliasDecoder = A5(
+	$elm$json$Json$Decode$map4,
+	$elm$project_metadata_utils$Elm$Docs$Alias,
+	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'comment', $elm$json$Json$Decode$string),
+	A2(
+		$elm$json$Json$Decode$field,
+		'args',
+		$elm$json$Json$Decode$list($elm$json$Json$Decode$string)),
+	A2($elm$json$Json$Decode$field, 'type', $elm$project_metadata_utils$Elm$Type$decoder));
 var $elm$project_metadata_utils$Elm$Docs$toAssoc = function (str) {
 	switch (str) {
 		case 'left':
@@ -6176,7 +6428,6 @@ var $elm$project_metadata_utils$Elm$Docs$toAssoc = function (str) {
 	}
 };
 var $elm$project_metadata_utils$Elm$Docs$assocDecoder = A2($elm$json$Json$Decode$andThen, $elm$project_metadata_utils$Elm$Docs$toAssoc, $elm$json$Json$Decode$string);
-var $elm$json$Json$Decode$map5 = _Json_map5;
 var $elm$project_metadata_utils$Elm$Docs$binopDecoder = A6(
 	$elm$json$Json$Decode$map5,
 	$elm$project_metadata_utils$Elm$Docs$Binop,
@@ -6185,10 +6436,6 @@ var $elm$project_metadata_utils$Elm$Docs$binopDecoder = A6(
 	A2($elm$json$Json$Decode$field, 'type', $elm$project_metadata_utils$Elm$Type$decoder),
 	A2($elm$json$Json$Decode$field, 'associativity', $elm$project_metadata_utils$Elm$Docs$assocDecoder),
 	A2($elm$json$Json$Decode$field, 'precedence', $elm$json$Json$Decode$int));
-var $elm$project_metadata_utils$Elm$Docs$Union = F4(
-	function (name, comment, args, tags) {
-		return {args: args, comment: comment, name: name, tags: tags};
-	});
 var $elm$project_metadata_utils$Elm$Docs$tagDecoder = A3(
 	$elm$json$Json$Decode$map2,
 	F2(
@@ -6213,10 +6460,6 @@ var $elm$project_metadata_utils$Elm$Docs$unionDecoder = A5(
 		$elm$json$Json$Decode$field,
 		'cases',
 		$elm$json$Json$Decode$list($elm$project_metadata_utils$Elm$Docs$tagDecoder)));
-var $elm$project_metadata_utils$Elm$Docs$Value = F3(
-	function (name, comment, tipe) {
-		return {comment: comment, name: name, tipe: tipe};
-	});
 var $elm$project_metadata_utils$Elm$Docs$valueDecoder = A4(
 	$elm$json$Json$Decode$map3,
 	$elm$project_metadata_utils$Elm$Docs$Value,
@@ -6303,7 +6546,6 @@ var $elm$project_metadata_utils$Elm$Package$isBadChar = function (_char) {
 		_char,
 		_Utils_chr('_')));
 };
-var $elm$core$String$startsWith = _String_startsWith;
 var $elm$project_metadata_utils$Elm$Package$isBadProjectName = function (project) {
 	var _v0 = $elm$core$String$uncons(project);
 	if (_v0.$ === 'Nothing') {
@@ -6804,7 +7046,7 @@ var $author$project$Options$Docs$decoder = A6(
 	A2(
 		$elm$json$Json$Decode$field,
 		'modules',
-		$elm$json$Json$Decode$list($elm$project_metadata_utils$Elm$Docs$decoder)),
+		$elm$json$Json$Decode$list($author$project$Options$Docs$decodeModule)),
 	A2(
 		$elm$json$Json$Decode$field,
 		'deps',
@@ -6844,7 +7086,6 @@ var $author$project$Run$decodePlugin = $elm$json$Json$Decode$oneOf(
 			'docs',
 			A2($elm$json$Json$Decode$map, $author$project$Run$Docs, $author$project$Options$Docs$decoder))
 		]));
-var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $author$project$Extra$Parser$problemToInlineString = function (problem) {
 	switch (problem.$) {
 		case 'Expecting':
@@ -7020,6 +7261,31 @@ var $stil4m$elm_syntax$Elm$Syntax$TypeAnnotation$GenericRecord = F2(
 var $stil4m$elm_syntax$Elm$Syntax$Node$Node = F2(
 	function (a, b) {
 		return {$: 'Node', a: a, b: b};
+	});
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
 	});
 var $elm$core$Dict$merge = F6(
 	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
@@ -9305,14 +9571,6 @@ var $mdgriffith$elm_codegen$Internal$Compiler$Declaration = function (a) {
 	return {$: 'Declaration', a: a};
 };
 var $mdgriffith$elm_codegen$Internal$Compiler$NotExposed = {$: 'NotExposed'};
-var $elm$core$String$dropLeft = F2(
-	function (n, string) {
-		return (n < 1) ? string : A3(
-			$elm$core$String$slice,
-			n,
-			$elm$core$String$length(string),
-			string);
-	});
 var $elm$core$String$left = F2(
 	function (n, string) {
 		return (n < 1) ? '' : A3($elm$core$String$slice, 0, n, string);
@@ -9993,6 +10251,7 @@ var $mdgriffith$elm_codegen$Elm$renderError = function (err) {
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $mdgriffith$elm_codegen$Internal$Compiler$simplify = function (fullStr) {
 	return A2(
 		$elm$core$String$join,
@@ -15488,15 +15747,6 @@ var $elm$core$String$dropRight = F2(
 	function (n, string) {
 		return (n < 1) ? string : A3($elm$core$String$slice, 0, -n, string);
 	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
 var $author$project$Path$extension = function (str) {
 	var ext = A2($elm$core$String$startsWith, '.', str) ? '' : A2(
 		$elm$core$Maybe$withDefault,
@@ -23962,28 +24212,23 @@ var $author$project$Generate$Docs$generateModules = function (docs) {
 		$mdgriffith$elm_codegen$Elm$file,
 		_List_fromArray(
 			['Docs', 'Modules']),
-		function () {
-			var _v0 = docs.modules;
-			if (!_v0.b) {
-				return _List_fromArray(
-					[
-						A2(
-						$mdgriffith$elm_codegen$Elm$declaration,
-						'modules',
-						$mdgriffith$elm_codegen$Elm$string('No modules found'))
-					]);
-			} else {
-				return A2(
-					$elm$core$List$map,
-					function (mod) {
-						return A2(
-							$mdgriffith$elm_codegen$Elm$declaration,
-							A3($elm$core$String$replace, '.', '_', mod.name),
-							$author$project$Generate$Docs$Module$generate(mod));
-					},
-					docs.modules);
-			}
-		}());
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$expose(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'modules',
+					A2(
+						$mdgriffith$elm_codegen$Elm$withType,
+						$mdgriffith$elm_codegen$Elm$Annotation$list(
+							A2(
+								$mdgriffith$elm_codegen$Elm$Annotation$named,
+								_List_fromArray(
+									['Elm', 'Docs']),
+								'Module')),
+						$mdgriffith$elm_codegen$Elm$list(
+							A2($elm$core$List$map, $author$project$Generate$Docs$Module$generate, docs.modules)))))
+			]));
 };
 var $author$project$Generate$Docs$capitalize = function (str) {
 	var top = A2($elm$core$String$left, 1, str);
@@ -37712,11 +37957,12 @@ var $author$project$Theme$Generate$Ui$generateElmColorPalette = function (theme)
 			_List_Nil,
 			theme.colors));
 };
-var $mdgriffith$elm_codegen$Internal$Compiler$Comment = function (a) {
-	return {$: 'Comment', a: a};
-};
-var $mdgriffith$elm_codegen$Elm$comment = function (content) {
-	return $mdgriffith$elm_codegen$Internal$Compiler$Comment('{- ' + (content + ' -}'));
+var $author$project$Theme$Generate$Ui$capitalize = function (str) {
+	var top = A2($elm$core$String$left, 1, str);
+	var remain = A2($elm$core$String$dropLeft, 1, str);
+	return _Utils_ap(
+		$elm$core$String$toUpper(top),
+		remain);
 };
 var $author$project$Gen$Html$Attributes$class = function (classArg_) {
 	return A2(
@@ -37746,65 +37992,16 @@ var $author$project$Gen$Html$Attributes$class = function (classArg_) {
 				$mdgriffith$elm_codegen$Elm$string(classArg_)
 			]));
 };
-var $author$project$Theme$capitalize = function (str) {
-	var top = A2($elm$core$String$left, 1, str);
-	var remain = A2($elm$core$String$dropLeft, 1, str);
-	return _Utils_ap(
-		$elm$core$String$toUpper(top),
-		remain);
-};
-var $author$project$Theme$decapitalize = function (str) {
-	var top = A2($elm$core$String$left, 1, str);
-	var remain = A2($elm$core$String$dropLeft, 1, str);
-	return _Utils_ap(
-		$elm$core$String$toLower(top),
-		remain);
-};
-var $author$project$Theme$stateToCssClassName = function (state) {
-	switch (state.$) {
-		case 'Hover':
-			return 'hover';
-		case 'Active':
-			return 'active';
-		default:
-			return 'focus';
-	}
-};
-var $author$project$Theme$fullColorToCssClass = F2(
-	function (functionName, fullColorName) {
-		var state = function () {
-			var _v2 = fullColorName.state;
-			if (_v2.$ === 'Just') {
-				var s = _v2.a;
-				return $author$project$Theme$stateToCssClassName(s);
-			} else {
-				return '';
-			}
-		}();
-		var nuance = function () {
-			var _v1 = fullColorName.nuance;
-			if (_v1.$ === 'Just') {
-				var n = _v1.a;
-				return $author$project$Theme$capitalize(n);
-			} else {
-				return '';
-			}
-		}();
-		var tail = function () {
-			var _final = _Utils_ap(state, nuance);
-			return $elm$core$String$isEmpty(_final) ? '' : ('-' + _final);
-		}();
-		var base = function () {
-			var _v0 = fullColorName.alias;
-			if (_v0.$ === 'Just') {
-				var alias = _v0.a;
-				return alias;
-			} else {
-				return fullColorName.base;
-			}
-		}();
-		return functionName + ('-' + ($author$project$Theme$decapitalize(base) + tail));
+var $author$project$Theme$colorDefintionToCssClass = F3(
+	function (theme, propName, colorDef) {
+		return $elm$core$String$isEmpty(colorDef.name) ? (theme.namespace + ('-' + propName)) : (theme.namespace + ('-' + (propName + ('-' + colorDef.name))));
 	});
+var $mdgriffith$elm_codegen$Internal$Compiler$Comment = function (a) {
+	return {$: 'Comment', a: a};
+};
+var $mdgriffith$elm_codegen$Elm$comment = function (content) {
+	return $mdgriffith$elm_codegen$Internal$Compiler$Comment('{- ' + (content + ' -}'));
+};
 var $author$project$Gen$Ui$htmlAttribute = function (htmlAttributeArg_) {
 	return A2(
 		$mdgriffith$elm_codegen$Elm$apply,
@@ -37841,148 +38038,6 @@ var $author$project$Gen$Ui$htmlAttribute = function (htmlAttributeArg_) {
 		_List_fromArray(
 			[htmlAttributeArg_]));
 };
-var $author$project$Theme$Generate$Ui$toColorClassAttribute = F3(
-	function (theme, colorType, fullColorName) {
-		var className = theme.namespace + ('-' + A2($author$project$Theme$fullColorToCssClass, colorType, fullColorName));
-		var _v0 = theme.target;
-		if (_v0.$ === 'HTML') {
-			return $author$project$Gen$Html$Attributes$class(className);
-		} else {
-			return $author$project$Gen$Ui$htmlAttribute(
-				$author$project$Gen$Html$Attributes$class(className));
-		}
-	});
-var $author$project$Theme$stateToString = function (state) {
-	switch (state.$) {
-		case 'Hover':
-			return 'Hover';
-		case 'Active':
-			return 'Active';
-		default:
-			return 'Focus';
-	}
-};
-var $author$project$Theme$toFullColorName = F2(
-	function (functionName, fullColorName) {
-		var variant = function () {
-			var _v3 = fullColorName.variant;
-			if (_v3.$ === 'Just') {
-				var v = _v3.a;
-				return $elm$core$String$fromInt(v);
-			} else {
-				return '';
-			}
-		}();
-		var state = function () {
-			var _v2 = fullColorName.state;
-			if (_v2.$ === 'Just') {
-				var s = _v2.a;
-				return $author$project$Theme$stateToString(s);
-			} else {
-				return '';
-			}
-		}();
-		var nuance = function () {
-			var _v1 = fullColorName.nuance;
-			if (_v1.$ === 'Just') {
-				var n = _v1.a;
-				return $author$project$Theme$capitalize(n);
-			} else {
-				return '';
-			}
-		}();
-		var base = function () {
-			var _v0 = fullColorName.alias;
-			if (_v0.$ === 'Just') {
-				var alias = _v0.a;
-				return alias;
-			} else {
-				return fullColorName.base;
-			}
-		}();
-		return _Utils_ap(
-			functionName,
-			_Utils_ap(
-				$author$project$Theme$capitalize(base),
-				_Utils_ap(state, nuance)));
-	});
-var $author$project$Theme$Generate$Ui$toColorAttr = F3(
-	function (theme, colorType, fullColorName) {
-		return A2(
-			$mdgriffith$elm_codegen$Elm$declaration,
-			A2($author$project$Theme$toFullColorName, colorType, fullColorName),
-			A3($author$project$Theme$Generate$Ui$toColorClassAttribute, theme, colorType, fullColorName));
-	});
-var $author$project$Theme$toFullColorDescription = function (fullColorName) {
-	var variant = function () {
-		var _v2 = fullColorName.variant;
-		if (_v2.$ === 'Just') {
-			var v = _v2.a;
-			return $elm$core$String$fromInt(v);
-		} else {
-			return '';
-		}
-	}();
-	var state = function () {
-		var _v1 = fullColorName.state;
-		if (_v1.$ === 'Just') {
-			var s = _v1.a;
-			return $author$project$Theme$stateToString(s);
-		} else {
-			return '';
-		}
-	}();
-	var nuance = function () {
-		var _v0 = fullColorName.nuance;
-		if (_v0.$ === 'Just') {
-			var n = _v0.a;
-			return n;
-		} else {
-			return '';
-		}
-	}();
-	return _Utils_ap(fullColorName.base, variant);
-};
-var $mdgriffith$elm_codegen$Internal$Compiler$documentation = F2(
-	function (rawDoc, decl) {
-		var doc = $elm$core$String$trim(rawDoc);
-		if ($elm$core$String$isEmpty(doc)) {
-			return decl;
-		} else {
-			switch (decl.$) {
-				case 'Comment':
-					return decl;
-				case 'Block':
-					return decl;
-				case 'ModuleDocs':
-					return decl;
-				case 'Declaration':
-					var details = decl.a;
-					return $mdgriffith$elm_codegen$Internal$Compiler$Declaration(
-						_Utils_update(
-							details,
-							{
-								docs: function () {
-									var _v1 = details.docs;
-									if (_v1.$ === 'Nothing') {
-										return $elm$core$Maybe$Just(doc);
-									} else {
-										var existing = _v1.a;
-										return $elm$core$Maybe$Just(doc + ('\n\n' + existing));
-									}
-								}()
-							}));
-				default:
-					var groupDecls = decl.a;
-					return $mdgriffith$elm_codegen$Internal$Compiler$Group(
-						A2(
-							$elm$core$List$map,
-							$mdgriffith$elm_codegen$Internal$Compiler$documentation(doc),
-							groupDecls));
-			}
-		}
-	});
-var $mdgriffith$elm_codegen$Elm$withDocumentation = $mdgriffith$elm_codegen$Internal$Compiler$documentation;
 var $author$project$Theme$Generate$Ui$generateElmColorTheme = function (theme) {
 	return A2(
 		$mdgriffith$elm_codegen$Elm$file,
@@ -37995,7 +38050,7 @@ var $author$project$Theme$Generate$Ui$generateElmColorTheme = function (theme) {
 			} else {
 				var themes = _v0.a;
 				var toStyles = F2(
-					function (name, themeList) {
+					function (propName, colorDefs) {
 						return $mdgriffith$elm_codegen$Elm$group(
 							A2(
 								$elm$core$List$map,
@@ -38005,51 +38060,30 @@ var $author$project$Theme$Generate$Ui$generateElmColorTheme = function (theme) {
 									$elm$core$Tuple$first,
 									A2(
 										$elm$core$List$concatMap,
-										function (_v1) {
-											var fullColorName = _v1.a;
+										function (colorDef) {
+											var className = A3($author$project$Theme$colorDefintionToCssClass, theme, propName, colorDef);
 											return _List_fromArray(
 												[
-													A2(
-													$elm$core$Tuple$pair,
-													A2($author$project$Theme$toFullColorName, name, fullColorName),
-													A2(
-														$mdgriffith$elm_codegen$Elm$withDocumentation,
-														$author$project$Theme$toFullColorDescription(fullColorName),
-														$mdgriffith$elm_codegen$Elm$expose(
-															A3($author$project$Theme$Generate$Ui$toColorAttr, theme, name, fullColorName)))),
-													function () {
-													var hoverName = _Utils_update(
-														fullColorName,
-														{
-															state: $elm$core$Maybe$Just($author$project$Theme$Hover)
-														});
-													return A2(
-														$elm$core$Tuple$pair,
-														A2($author$project$Theme$toFullColorName, name, hoverName),
+													_Utils_Tuple2(
+													className,
+													$mdgriffith$elm_codegen$Elm$expose(
 														A2(
-															$mdgriffith$elm_codegen$Elm$withDocumentation,
-															$author$project$Theme$toFullColorDescription(hoverName),
-															$mdgriffith$elm_codegen$Elm$expose(
-																A3($author$project$Theme$Generate$Ui$toColorAttr, theme, name, hoverName))));
-												}(),
-													function () {
-													var activeName = _Utils_update(
-														fullColorName,
-														{
-															state: $elm$core$Maybe$Just($author$project$Theme$Active)
-														});
-													return A2(
-														$elm$core$Tuple$pair,
-														A2($author$project$Theme$toFullColorName, name, activeName),
-														A2(
-															$mdgriffith$elm_codegen$Elm$withDocumentation,
-															$author$project$Theme$toFullColorDescription(activeName),
-															$mdgriffith$elm_codegen$Elm$expose(
-																A3($author$project$Theme$Generate$Ui$toColorAttr, theme, name, activeName))));
-												}()
+															$mdgriffith$elm_codegen$Elm$declaration,
+															_Utils_ap(
+																propName,
+																$author$project$Theme$Generate$Ui$capitalize(colorDef.name)),
+															function () {
+																var _v1 = theme.target;
+																if (_v1.$ === 'HTML') {
+																	return $author$project$Gen$Html$Attributes$class(className);
+																} else {
+																	return $author$project$Gen$Ui$htmlAttribute(
+																		$author$project$Gen$Html$Attributes$class(className));
+																}
+															}())))
 												]);
 										},
-										themeList))));
+										colorDefs))));
 					});
 				return _List_fromArray(
 					[
@@ -45015,13 +45049,6 @@ var $author$project$Gen$Ui$call_ = {
 				[widthMinArg_]));
 	}
 };
-var $author$project$Theme$Generate$Ui$capitalize = function (str) {
-	var top = A2($elm$core$String$left, 1, str);
-	var remain = A2($elm$core$String$dropLeft, 1, str);
-	return _Utils_ap(
-		$elm$core$String$toUpper(top),
-		remain);
-};
 var $author$project$Theme$Generate$Ui$classAttr = F2(
 	function (target, name) {
 		if (target.$ === 'HTML') {
@@ -45155,6 +45182,10 @@ var $author$project$Theme$Generate$Ui$getHeaderAttr = function (cls) {
 			}),
 		$elm$core$Maybe$Nothing,
 		A2($elm$core$String$split, '-', cls));
+};
+var $author$project$Theme$nameToString = function (_v0) {
+	var name = _v0.a;
+	return name;
 };
 var $author$project$Theme$Generate$Ui$toHtmlHeaderNode = function (typeface) {
 	var _v0 = $author$project$Theme$nameToString(typeface.name);
@@ -48049,6 +48080,73 @@ var $author$project$Theme$Generate$Ui$borders = function (theme) {
 								])))))
 			]));
 };
+var $author$project$Theme$Generate$Ui$helpers = function (theme) {
+	var themeList = _List_fromArray(
+		[
+			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just('darkmode')
+		]);
+	return $mdgriffith$elm_codegen$Elm$group(
+		_List_fromArray(
+			[
+				$mdgriffith$elm_codegen$Elm$exposeConstructor(
+				A2(
+					$mdgriffith$elm_codegen$Elm$customType,
+					'Mode',
+					A2(
+						$elm$core$List$map,
+						function (maybe) {
+							if (maybe.$ === 'Nothing') {
+								return $mdgriffith$elm_codegen$Elm$variant('Default');
+							} else {
+								var name = maybe.a;
+								return $mdgriffith$elm_codegen$Elm$variant(
+									$author$project$Theme$Generate$Ui$capitalize(name));
+							}
+						},
+						themeList))),
+				$mdgriffith$elm_codegen$Elm$expose(
+				A2(
+					$mdgriffith$elm_codegen$Elm$declaration,
+					'setMode',
+					A2(
+						$mdgriffith$elm_codegen$Elm$fn,
+						A2(
+							$mdgriffith$elm_codegen$Elm$Arg$varWith,
+							'mode',
+							A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'Mode')),
+						function (mode) {
+							return A3(
+								$mdgriffith$elm_codegen$Elm$Case$custom,
+								mode,
+								A2($mdgriffith$elm_codegen$Elm$Annotation$named, _List_Nil, 'Mode'),
+								A2(
+									$elm$core$List$map,
+									function (maybe) {
+										if (maybe.$ === 'Nothing') {
+											return A2(
+												$mdgriffith$elm_codegen$Elm$Case$branch,
+												A2($mdgriffith$elm_codegen$Elm$Arg$customType, 'Default', _Utils_Tuple0),
+												function (_v2) {
+													return $author$project$Gen$Html$Attributes$class(theme.namespace + '-automode');
+												});
+										} else {
+											var modeName = maybe.a;
+											return A2(
+												$mdgriffith$elm_codegen$Elm$Case$branch,
+												A2(
+													$mdgriffith$elm_codegen$Elm$Arg$customType,
+													$author$project$Theme$Generate$Ui$capitalize(modeName),
+													_Utils_Tuple0),
+												function (_v3) {
+													return $author$project$Gen$Html$Attributes$class(theme.namespace + ('-' + modeName));
+												});
+										}
+									},
+									themeList));
+						})))
+			]));
+};
 var $author$project$Gen$Ui$spacing = function (spacingArg_) {
 	return A2(
 		$mdgriffith$elm_codegen$Elm$apply,
@@ -50775,6 +50873,7 @@ var $author$project$Theme$Generate$Ui$generateTheme = function (theme) {
 			['Theme']),
 		_List_fromArray(
 			[
+				$author$project$Theme$Generate$Ui$helpers(theme),
 				$author$project$Theme$Generate$Ui$typography(theme),
 				$author$project$Theme$Generate$Ui$layout(theme),
 				$author$project$Theme$Generate$Ui$spacing(theme),
@@ -50840,42 +50939,44 @@ var $avh4$elm_color$Color$toCssString = function (_v0) {
 				')'
 			]));
 };
-var $author$project$Theme$Color$toCssString = function (colorVal) {
+var $author$project$Theme$Color$toCssStringBase = function (colorVal) {
 	if (colorVal.$ === 'Color') {
-		if (colorVal.a.$ === 'Nothing') {
-			var _v1 = colorVal.a;
-			var clr = colorVal.b;
-			return $avh4$elm_color$Color$toCssString(clr);
-		} else {
-			if (colorVal.a.a.$ === 'Lighten') {
-				var amount = colorVal.a.a.a;
-				var clr = colorVal.b;
-				var colorString = $avh4$elm_color$Color$toCssString(clr);
-				return 'oklch(from ' + (colorString + (' calc(l + ' + ($elm$core$String$fromInt(amount) + '%) c h)')));
-			} else {
-				var amount = colorVal.a.a.a;
-				var clr = colorVal.b;
-				var colorString = $avh4$elm_color$Color$toCssString(clr);
-				return 'oklch(from ' + (colorString + (' ' + ($elm$core$String$fromInt(amount) + '% c h)')));
-			}
-		}
+		var clr = colorVal.b;
+		return $avh4$elm_color$Color$toCssString(clr);
 	} else {
 		var gradient = colorVal.a;
 		return gradient;
 	}
 };
+var $elm$core$Dict$values = function (dict) {
+	return A3(
+		$elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2($elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
 var $author$project$Theme$Generate$Ui$colorVars = function (colors) {
 	return $author$project$Theme$Generate$Stylesheet$root(
-		A2(
-			$elm$core$List$map,
-			function (clr) {
-				var varName = '--' + $author$project$Theme$toColorName(clr);
-				return A2(
-					$author$project$Theme$Generate$Stylesheet$string,
-					varName,
-					$author$project$Theme$Color$toCssString(clr.color));
-			},
-			colors));
+		$elm$core$Dict$values(
+			A3(
+				$elm$core$List$foldl,
+				F2(
+					function (clr, dict) {
+						var varName = '--' + clr.name;
+						return (!A2($elm$core$Dict$member, varName, dict)) ? A3(
+							$elm$core$Dict$insert,
+							varName,
+							A2(
+								$author$project$Theme$Generate$Stylesheet$string,
+								varName,
+								$author$project$Theme$Color$toCssStringBase(clr.color)),
+							dict) : dict;
+					}),
+				$elm$core$Dict$empty,
+				colors)));
 };
 var $author$project$Theme$Generate$Stylesheet$Darkmode = {$: 'Darkmode'};
 var $author$project$Theme$Generate$Stylesheet$darkmode = $author$project$Theme$Generate$Stylesheet$Darkmode;
@@ -50897,54 +50998,6 @@ var $author$project$Theme$Generate$Stylesheet$active = F2(
 				$author$project$Theme$Generate$Stylesheet$Class(name)),
 			rules);
 	});
-var $author$project$Theme$Generate$Ui$roundToNearestSlot = function (value) {
-	var bounded = A2(
-		$elm$core$Basics$max,
-		5,
-		A2($elm$core$Basics$min, 95, value));
-	var _v0 = (bounded / 10) | 0;
-	switch (_v0) {
-		case 0:
-			return 5;
-		case 1:
-			return 10;
-		case 2:
-			return 20;
-		case 3:
-			return 30;
-		case 4:
-			return 40;
-		case 5:
-			return 50;
-		case 6:
-			return 60;
-		case 7:
-			return 70;
-		case 8:
-			return 80;
-		case 9:
-			return 90;
-		case 10:
-			return 95;
-		default:
-			return bounded;
-	}
-};
-var $author$project$Theme$Generate$Ui$brighten = F2(
-	function (amount, fullColorName) {
-		var _v0 = fullColorName.variant;
-		if (_v0.$ === 'Nothing') {
-			return fullColorName;
-		} else {
-			var variant = _v0.a;
-			return _Utils_update(
-				fullColorName,
-				{
-					variant: $elm$core$Maybe$Just(
-						$author$project$Theme$Generate$Ui$roundToNearestSlot(variant + amount))
-				});
-		}
-	});
 var $author$project$Theme$Generate$Stylesheet$class = F2(
 	function (name, rules) {
 		return A2(
@@ -50952,36 +51005,10 @@ var $author$project$Theme$Generate$Stylesheet$class = F2(
 			$author$project$Theme$Generate$Stylesheet$Class(name),
 			rules);
 	});
-var $author$project$Theme$fullColorNameToCssVar = function (fullColorName) {
-	var variant = function () {
-		var _v2 = fullColorName.variant;
-		if (_v2.$ === 'Just') {
-			var v = _v2.a;
-			return $elm$core$String$fromInt(v);
-		} else {
-			return '';
-		}
-	}();
-	var state = function () {
-		var _v1 = fullColorName.state;
-		if (_v1.$ === 'Just') {
-			var s = _v1.a;
-			return $author$project$Theme$stateToString(s);
-		} else {
-			return '';
-		}
-	}();
-	var nuance = function () {
-		var _v0 = fullColorName.nuance;
-		if (_v0.$ === 'Just') {
-			var n = _v0.a;
-			return n;
-		} else {
-			return '';
-		}
-	}();
-	return 'var(--' + ($author$project$Theme$decapitalize(fullColorName.base) + (variant + ')'));
-};
+var $author$project$Theme$colorDefintionToCssClassNoNamespace = F2(
+	function (propName, colorDef) {
+		return $elm$core$String$isEmpty(colorDef.name) ? propName : (propName + ('-' + colorDef.name));
+	});
 var $author$project$Theme$Generate$Stylesheet$Hover = {$: 'Hover'};
 var $author$project$Theme$Generate$Stylesheet$hover = F2(
 	function (name, rules) {
@@ -50993,77 +51020,116 @@ var $author$project$Theme$Generate$Stylesheet$hover = F2(
 				$author$project$Theme$Generate$Stylesheet$Class(name)),
 			rules);
 	});
+var $author$project$Theme$Generate$Stylesheet$NoProp = {$: 'NoProp'};
+var $author$project$Theme$Generate$Stylesheet$none = $author$project$Theme$Generate$Stylesheet$Prop($author$project$Theme$Generate$Stylesheet$NoProp);
 var $author$project$Theme$Generate$Stylesheet$RuleList = function (a) {
 	return {$: 'RuleList', a: a};
 };
 var $author$project$Theme$Generate$Stylesheet$ruleList = $author$project$Theme$Generate$Stylesheet$RuleList;
-var $author$project$Theme$Generate$Ui$generateColorClasses = function (theme) {
-	var genColorClass = F3(
-		function (colorType, propName, colors) {
-			return $author$project$Theme$Generate$Stylesheet$ruleList(
-				A2(
-					$elm$core$List$map,
-					function (_v0) {
-						var fullColorName = _v0.a;
-						var className = A2($author$project$Theme$fullColorToCssClass, colorType, fullColorName);
-						var baseColor = $author$project$Theme$fullColorNameToCssVar(fullColorName);
-						return $author$project$Theme$Generate$Stylesheet$ruleList(
-							_List_fromArray(
-								[
-									A2(
-									$author$project$Theme$Generate$Stylesheet$class,
-									className,
-									_List_fromArray(
-										[
-											A2($author$project$Theme$Generate$Stylesheet$string, propName, baseColor)
-										])),
-									A2(
-									$author$project$Theme$Generate$Stylesheet$hover,
-									A2(
-										$author$project$Theme$fullColorToCssClass,
-										colorType,
-										_Utils_update(
-											fullColorName,
-											{
-												state: $elm$core$Maybe$Just($author$project$Theme$Hover)
-											})),
-									_List_fromArray(
-										[
-											A2(
-											$author$project$Theme$Generate$Stylesheet$string,
-											propName,
-											$author$project$Theme$fullColorNameToCssVar(
-												A2($author$project$Theme$Generate$Ui$brighten, 10, fullColorName)))
-										])),
-									A2(
-									$author$project$Theme$Generate$Stylesheet$active,
-									A2(
-										$author$project$Theme$fullColorToCssClass,
-										colorType,
-										_Utils_update(
-											fullColorName,
-											{
-												state: $elm$core$Maybe$Just($author$project$Theme$Active)
-											})),
-									_List_fromArray(
-										[
-											A2(
-											$author$project$Theme$Generate$Stylesheet$string,
-											propName,
-											$author$project$Theme$fullColorNameToCssVar(
-												A2($author$project$Theme$Generate$Ui$brighten, -10, fullColorName)))
-										]))
-								]));
-					},
-					colors));
-		});
-	return _List_fromArray(
-		[
-			A3(genColorClass, 'text', 'color', theme.text),
-			A3(genColorClass, 'background', 'background-color', theme.background),
-			A3(genColorClass, 'border', 'border-color', theme.border)
-		]);
+var $author$project$Theme$decapitalize = function (str) {
+	var top = A2($elm$core$String$left, 1, str);
+	var remain = A2($elm$core$String$dropLeft, 1, str);
+	return _Utils_ap(
+		$elm$core$String$toLower(top),
+		remain);
 };
+var $author$project$Theme$toColorVar = function (colorInstance) {
+	var _var = 'var(--' + ($author$project$Theme$decapitalize(colorInstance.name) + ')');
+	var _v0 = colorInstance.variant;
+	if (_v0.$ === 'Just') {
+		var variant = _v0.a;
+		return 'oklch(from ' + (_var + (' ' + ($elm$core$String$fromInt(variant) + '% c h)')));
+	} else {
+		return _var;
+	}
+};
+var $author$project$Theme$Generate$Ui$generateColorClasses = F2(
+	function (fullTheme, theme) {
+		var genColorClass = F3(
+			function (colorType, propName, colors) {
+				return $author$project$Theme$Generate$Stylesheet$ruleList(
+					A2(
+						$elm$core$List$map,
+						function (colorDef) {
+							var className = A2($author$project$Theme$colorDefintionToCssClassNoNamespace, colorType, colorDef);
+							return $author$project$Theme$Generate$Stylesheet$ruleList(
+								_List_fromArray(
+									[
+										A2(
+										$author$project$Theme$Generate$Stylesheet$class,
+										className,
+										_List_fromArray(
+											[
+												A2(
+												$author$project$Theme$Generate$Stylesheet$string,
+												propName,
+												$author$project$Theme$toColorVar(colorDef.color))
+											])),
+										function () {
+										var _v0 = colorDef.hover;
+										if (_v0.$ === 'Nothing') {
+											return $author$project$Theme$Generate$Stylesheet$none;
+										} else {
+											var hoverColor = _v0.a;
+											return A2(
+												$author$project$Theme$Generate$Stylesheet$hover,
+												className,
+												_List_fromArray(
+													[
+														A2(
+														$author$project$Theme$Generate$Stylesheet$string,
+														propName,
+														$author$project$Theme$toColorVar(hoverColor))
+													]));
+										}
+									}(),
+										function () {
+										var _v1 = colorDef.active;
+										if (_v1.$ === 'Nothing') {
+											return $author$project$Theme$Generate$Stylesheet$none;
+										} else {
+											var activeColor = _v1.a;
+											return A2(
+												$author$project$Theme$Generate$Stylesheet$active,
+												className,
+												_List_fromArray(
+													[
+														A2(
+														$author$project$Theme$Generate$Stylesheet$string,
+														propName,
+														$author$project$Theme$toColorVar(activeColor))
+													]));
+										}
+									}(),
+										function () {
+										var _v2 = colorDef.focus;
+										if (_v2.$ === 'Nothing') {
+											return $author$project$Theme$Generate$Stylesheet$none;
+										} else {
+											var focusColor = _v2.a;
+											return A2(
+												$author$project$Theme$Generate$Stylesheet$active,
+												className,
+												_List_fromArray(
+													[
+														A2(
+														$author$project$Theme$Generate$Stylesheet$string,
+														propName,
+														$author$project$Theme$toColorVar(focusColor))
+													]));
+										}
+									}()
+									]));
+						},
+						colors));
+			});
+		return _List_fromArray(
+			[
+				A3(genColorClass, 'text', 'color', theme.text),
+				A3(genColorClass, 'background', 'background-color', theme.background),
+				A3(genColorClass, 'border', 'border-color', theme.border)
+			]);
+	});
 var $author$project$Theme$Generate$Stylesheet$Media = function (a) {
 	return {$: 'Media', a: a};
 };
@@ -51078,8 +51144,6 @@ var $author$project$Theme$Generate$Stylesheet$media = F2(
 				$author$project$Theme$Generate$Stylesheet$mediaToString(query)),
 			rules);
 	});
-var $author$project$Theme$Generate$Stylesheet$NoProp = {$: 'NoProp'};
-var $author$project$Theme$Generate$Stylesheet$none = $author$project$Theme$Generate$Stylesheet$Prop($author$project$Theme$Generate$Stylesheet$NoProp);
 var $elm$core$List$partition = F2(
 	function (pred, list) {
 		var step = F2(
@@ -51104,11 +51168,11 @@ var $author$project$Theme$Generate$Ui$colorStyles = function (theme) {
 		return _List_Nil;
 	} else {
 		var themes = _v0.a;
-		var defaultColorRules = $author$project$Theme$Generate$Ui$generateColorClasses(themes._default);
+		var defaultColorRules = A2($author$project$Theme$Generate$Ui$generateColorClasses, theme, themes._default);
 		var _v1 = A2(
 			$elm$core$List$partition,
 			function (t) {
-				return $author$project$Theme$nameToString(t.name) === 'dark';
+				return $author$project$Theme$nameToString(t.name) === 'darkmode';
 			},
 			themes.alternates);
 		var darkModeThemes = _v1.a;
@@ -51116,12 +51180,18 @@ var $author$project$Theme$Generate$Ui$colorStyles = function (theme) {
 		var darkModeColorRules = function () {
 			if (darkModeThemes.b) {
 				var darkTheme = darkModeThemes.a;
-				return $author$project$Theme$Generate$Ui$generateColorClasses(darkTheme.item);
+				return A2($author$project$Theme$Generate$Ui$generateColorClasses, theme, darkTheme.item);
 			} else {
-				return $author$project$Theme$Generate$Ui$generateColorClasses(themes._default);
+				return _List_Nil;
 			}
 		}();
-		var darkModeMediaQuery = $elm$core$List$isEmpty(darkModeColorRules) ? $author$project$Theme$Generate$Stylesheet$none : A2($author$project$Theme$Generate$Stylesheet$media, $author$project$Theme$Generate$Stylesheet$darkmode, darkModeColorRules);
+		var darkModeMediaQuery = $elm$core$List$isEmpty(darkModeColorRules) ? $author$project$Theme$Generate$Stylesheet$none : A2(
+			$author$project$Theme$Generate$Stylesheet$media,
+			$author$project$Theme$Generate$Stylesheet$darkmode,
+			_List_fromArray(
+				[
+					A2($author$project$Theme$Generate$Stylesheet$classAll, 'automode', darkModeColorRules)
+				]));
 		return _List_fromArray(
 			[
 				$author$project$Theme$Generate$Ui$colorVars(theme.colors),
@@ -51135,7 +51205,7 @@ var $author$project$Theme$Generate$Ui$colorStyles = function (theme) {
 						return A2(
 							$author$project$Theme$Generate$Stylesheet$classAll,
 							themeName,
-							$author$project$Theme$Generate$Ui$generateColorClasses(other.item));
+							A2($author$project$Theme$Generate$Ui$generateColorClasses, theme, other.item));
 					},
 					otherThemes)),
 				darkModeMediaQuery
@@ -51159,6 +51229,68 @@ var $author$project$Theme$Generate$Stylesheet$Compiled = F2(
 var $author$project$Theme$Generate$Stylesheet$CompiledMedia = F2(
 	function (a, b) {
 		return {$: 'CompiledMedia', a: a, b: b};
+	});
+var $author$project$Theme$Generate$Stylesheet$Raw = function (a) {
+	return {$: 'Raw', a: a};
+};
+var $author$project$Theme$Generate$Stylesheet$pseudoToString = function (pseudo) {
+	switch (pseudo.$) {
+		case 'Active':
+			return 'active';
+		case 'Focus':
+			return 'focus';
+		default:
+			return 'hover';
+	}
+};
+var $author$project$Theme$Generate$Stylesheet$withNamespace = F2(
+	function (maybeNamespace, name) {
+		if (maybeNamespace.$ === 'Just') {
+			var namespace = maybeNamespace.a;
+			return namespace + ('-' + name);
+		} else {
+			return name;
+		}
+	});
+var $author$project$Theme$Generate$Stylesheet$selectorToString = F2(
+	function (maybeNamespace, selector) {
+		switch (selector.$) {
+			case 'Root':
+				return ':root';
+			case 'Raw':
+				var rawSelector = selector.a;
+				return rawSelector;
+			case 'Class':
+				var name = selector.a;
+				return '.' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
+			case 'ClassAll':
+				var name = selector.a;
+				return '.' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
+			case 'Id':
+				var name = selector.a;
+				return '#' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
+			case 'Pseudo':
+				var pseudo = selector.a;
+				var inner = selector.b;
+				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, inner) + (':' + $author$project$Theme$Generate$Stylesheet$pseudoToString(pseudo));
+			case 'Child':
+				var parent = selector.a;
+				var child = selector.b;
+				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, parent) + (' > ' + A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, child));
+			case 'AllChildren':
+				var parent = selector.a;
+				var child = selector.b;
+				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, parent) + (' ' + A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, child));
+			case 'After':
+				var inner = selector.a;
+				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, inner) + '::after';
+			case 'Before':
+				var inner = selector.a;
+				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, inner) + '::before';
+			default:
+				var query = selector.a;
+				return '@media ' + query;
+		}
 	});
 var $author$project$Theme$Generate$Stylesheet$flatten = F3(
 	function (maybeParentSelector, rules, cursor) {
@@ -51188,15 +51320,22 @@ var $author$project$Theme$Generate$Stylesheet$flattenRule = F3(
 						if (maybeParentSelector.$ === 'Nothing') {
 							return selector;
 						} else {
-							if (maybeParentSelector.a.$ === 'ClassAll') {
-								var cls = maybeParentSelector.a.a;
-								return A2(
-									$author$project$Theme$Generate$Stylesheet$AllChildren,
-									$author$project$Theme$Generate$Stylesheet$Class(cls),
-									selector);
-							} else {
-								var parentSelector = maybeParentSelector.a;
-								return A2($author$project$Theme$Generate$Stylesheet$Child, parentSelector, selector);
+							switch (maybeParentSelector.a.$) {
+								case 'ClassAll':
+									var cls = maybeParentSelector.a.a;
+									return A2(
+										$author$project$Theme$Generate$Stylesheet$AllChildren,
+										$author$project$Theme$Generate$Stylesheet$Class(cls),
+										selector);
+								case 'Raw':
+									var rawSelector = maybeParentSelector.a.a;
+									return $author$project$Theme$Generate$Stylesheet$Raw(
+										_Utils_ap(
+											rawSelector,
+											A2($author$project$Theme$Generate$Stylesheet$selectorToString, $elm$core$Maybe$Nothing, selector)));
+								default:
+									var parentSelector = maybeParentSelector.a;
+									return A2($author$project$Theme$Generate$Stylesheet$Child, parentSelector, selector);
 							}
 						}
 					}();
@@ -51281,62 +51420,6 @@ var $author$project$Theme$Generate$Stylesheet$renderProps = F3(
 					}
 				}
 			}
-		}
-	});
-var $author$project$Theme$Generate$Stylesheet$pseudoToString = function (pseudo) {
-	switch (pseudo.$) {
-		case 'Active':
-			return 'active';
-		case 'Focus':
-			return 'focus';
-		default:
-			return 'hover';
-	}
-};
-var $author$project$Theme$Generate$Stylesheet$withNamespace = F2(
-	function (maybeNamespace, name) {
-		if (maybeNamespace.$ === 'Just') {
-			var namespace = maybeNamespace.a;
-			return namespace + ('-' + name);
-		} else {
-			return name;
-		}
-	});
-var $author$project$Theme$Generate$Stylesheet$selectorToString = F2(
-	function (maybeNamespace, selector) {
-		switch (selector.$) {
-			case 'Root':
-				return ':root';
-			case 'Class':
-				var name = selector.a;
-				return '.' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
-			case 'ClassAll':
-				var name = selector.a;
-				return '.' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
-			case 'Id':
-				var name = selector.a;
-				return '#' + A2($author$project$Theme$Generate$Stylesheet$withNamespace, maybeNamespace, name);
-			case 'Pseudo':
-				var pseudo = selector.a;
-				var inner = selector.b;
-				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, inner) + (':' + $author$project$Theme$Generate$Stylesheet$pseudoToString(pseudo));
-			case 'Child':
-				var parent = selector.a;
-				var child = selector.b;
-				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, parent) + (' > ' + A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, child));
-			case 'AllChildren':
-				var parent = selector.a;
-				var child = selector.b;
-				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, parent) + (' ' + A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, child));
-			case 'After':
-				var inner = selector.a;
-				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, inner) + '::after';
-			case 'Before':
-				var inner = selector.a;
-				return A2($author$project$Theme$Generate$Stylesheet$selectorToString, maybeNamespace, inner) + '::before';
-			default:
-				var query = selector.a;
-				return '@media ' + query;
 		}
 	});
 var $author$project$Theme$Generate$Stylesheet$ruleToString = F4(
@@ -51677,7 +51760,6 @@ var $author$project$Theme$Generate$Ui$generate = function (theme) {
 var $author$project$Theme$Generate$generate = function (theme) {
 	return $author$project$Theme$Generate$Ui$generate(theme);
 };
-var $elm$json$Json$Decode$value = _Json_decodeValue;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$json$Json$Encode$list = F2(
 	function (func, entries) {

@@ -4,12 +4,6 @@ import * as fs from "fs";
 import * as Options from "../../options";
 
 
-export const guides_GettingStarted_md = {
-   moduleName: "guides.GettingStarted",
-   path: "/guides/GettingStarted.md",
-   contents: "# Getting started\n"
-}
-
 export const Readme_md = {
    moduleName: "Readme",
    path: "/Readme.md",
@@ -17,7 +11,6 @@ export const Readme_md = {
 }
 
 export const all = [
-  guides_GettingStarted_md,
   Readme_md
 ]
 
