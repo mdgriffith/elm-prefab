@@ -1,23 +1,27 @@
-import guides_how_to_using_localstorage_md from '../../guides/how-to/using-localstorage.md';
-import guides_plugins_app_resources_md from '../../guides/plugins/app/resources.md';
-import guides_plugins_app_routes_and_pages_md from '../../guides/plugins/app/routes_and_pages.md';
-import guides_plugins_theme_primitives_and_palettes_md from '../../guides/plugins/theme/primitives_and_palettes.md';
-import guides_plugins_app_md from '../../guides/plugins/app.md';
-import guides_plugins_assets_md from '../../guides/plugins/assets.md';
-import guides_plugins_graphql_md from '../../guides/plugins/graphql.md';
-import guides_plugins_theme_md from '../../guides/plugins/theme.md';
+import guides_reference_CLI_md from '../../guides/reference/CLI.md';
+import guides_reference_Glossary_md from '../../guides/reference/Glossary.md';
+import guides_reference_config_md from '../../guides/reference/config.md';
 import guides_why_app_architecture_md from '../../guides/why/app_architecture.md';
 import guides_why_routes_md from '../../guides/why/routes.md';
+import guides_01_Getting_started_md from '../../guides/01_Getting_started.md';
+import guides_Assets_md from '../../guides/Assets.md';
+import guides_GlobalData_md from '../../guides/GlobalData.md';
+import guides_GraphQL_md from '../../guides/GraphQL.md';
+import guides_Pages_md from '../../guides/Pages.md';
+import guides_Project_organization_md from '../../guides/Project_organization.md';
+import guides_Theme_md from '../../guides/Theme.md';
 
 export const guides = {
-  'guides/how-to/using-localstorage.md': guides_how_to_using_localstorage_md,
-  'guides/plugins/app/resources.md': guides_plugins_app_resources_md,
-  'guides/plugins/app/routes_and_pages.md': guides_plugins_app_routes_and_pages_md,
-  'guides/plugins/theme/primitives_and_palettes.md': guides_plugins_theme_primitives_and_palettes_md,
-  'guides/plugins/app.md': guides_plugins_app_md,
-  'guides/plugins/assets.md': guides_plugins_assets_md,
-  'guides/plugins/graphql.md': guides_plugins_graphql_md,
-  'guides/plugins/theme.md': guides_plugins_theme_md,
+  'guides/reference/CLI.md': guides_reference_CLI_md,
+  'guides/reference/Glossary.md': guides_reference_Glossary_md,
+  'guides/reference/config.md': guides_reference_config_md,
   'guides/why/app_architecture.md': guides_why_app_architecture_md,
   'guides/why/routes.md': guides_why_routes_md,
+  'guides/01_Getting_started.md': guides_01_Getting_started_md,
+  'guides/Assets.md': guides_Assets_md,
+  'guides/GlobalData.md': guides_GlobalData_md,
+  'guides/GraphQL.md': guides_GraphQL_md,
+  'guides/Pages.md': guides_Pages_md,
+  'guides/Project_organization.md': guides_Project_organization_md,
+  'guides/Theme.md': guides_Theme_md,
 };
