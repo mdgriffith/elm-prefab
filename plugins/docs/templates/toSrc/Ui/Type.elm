@@ -16,7 +16,7 @@ import Ui.Syntax as Syntax
 
 
 styles =
-    { link = [ Theme.Color.textPrimary, Theme.Color.textPrimaryHover ]
+    { link = [ Theme.Color.textPrimaryInteractive ]
     }
 
 

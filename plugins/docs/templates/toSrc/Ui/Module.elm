@@ -86,8 +86,8 @@ code : List (Html msg) -> Html msg
 code content =
     Html.pre
         [ Attr.style "line-height" lineHeight
-        , Theme.Color.backgroundNeutral
-        , Theme.Color.textNeutral
+        , Theme.Color.backgroundDefault
+        , Theme.Color.textDefault
         , Attr.style "border" "none"
         ]
         [ Html.code [ Attr.style "line-height" lineHeight ] content ]

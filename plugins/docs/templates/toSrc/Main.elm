@@ -5,7 +5,6 @@ module Main exposing (main)
 import App
 import App.Page.Id
 import App.Resources
-import App.View
 import App.View.Id
 import Browser
 import Effect exposing (Effect)
@@ -112,9 +111,9 @@ view resources toAppMsg model regions innerView =
     , body =
         [ stylesheet
         , Html.div
-            [ Theme.Color.backgroundNeutral
-            , Theme.Color.textNeutral
-            , forceTheme (Just Light)
+            [ Theme.Color.backgroundDefault
+            , Theme.Color.textDefault
+            , Theme.setMode Theme.Default
             ]
             [ Theme.row.zero []
                 [ Ui.Nav.view {}
@@ -124,24 +123,6 @@ view resources toAppMsg model regions innerView =
             ]
         ]
     }
-
-
-type Theme
-    = Dark
-    | Light
-
-
-forceTheme : Maybe Theme -> Html.Attribute msg
-forceTheme theme =
-    case theme of
-        Nothing ->
-            Attr.class "automode"
-
-        Just Dark ->
-            Attr.class "ui-darkmode"
-
-        Just Light ->
-            Attr.class "ui-lightmode"
 
 
 viewDetails details =
@@ -166,7 +147,7 @@ viewDetails details =
                 , Attr.style "right" "0"
                 , Attr.style "width" "500px"
                 , Theme.pad.sm
-                , Theme.Color.backgroundNeutral
+                , Theme.Color.backgroundDefault
                 , Attr.style "overflow" "auto"
                 ]
                 [ page.body ]

@@ -18,6 +18,7 @@ import Html.Attributes as Attr
 import Listen exposing (Listen)
 import Ref
 import Theme
+import Theme.Color
 import Ui.Attr
 import Ui.Module
 
@@ -95,10 +96,26 @@ view : App.View.Id.Id -> App.Resources.Resources -> Model -> App.View.View Msg
 view viewId shared model =
     { title = "Reference"
     , body =
+        let
+            attrs =
+                if List.isEmpty model.references then
+                    [ Attr.style "pointer-events" "none"
+                    ]
+
+                else
+                    [ Theme.Color.backgroundDefault
+                    , Attr.style "min-height" "100dvh"
+                    , Attr.style "box-sizing" "border-box"
+                    , Theme.Color.border
+                    , Attr.style "border-left" "1px solid"
+                    ]
+        in
         Theme.column.lg3
-            [ Ui.Attr.pad 48
-            , Attr.style "max-width" (String.fromInt 600 ++ "px")
-            ]
+            ([ Theme.pad.xy.md.lg
+             , Attr.style "max-width" (String.fromInt 600 ++ "px")
+             ]
+                ++ attrs
+            )
             (model.references
                 |> List.foldl
                     (\ref rendered ->
