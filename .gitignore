@@ -16,7 +16,6 @@ dist
 .elm-prefab
 ./index.html
 examples/*/index.html
-plugins/dev
 examples/test
 examples/internal-testing
 playground
