@@ -41,8 +41,8 @@ devDependencies:
     specifier: 0.19.1-5
     version: 0.19.1-5
   elm-codegen:
-    specifier: ^0.6.0
-    version: 0.6.0
+    specifier: ^0.6.1
+    version: 0.6.1
   elm-optimize-level-2:
     specifier: ^0.3.5
     version: 0.3.5
@@ -759,8 +759,8 @@ packages:
       safer-buffer: 2.1.2
     dev: true
 
-  /elm-codegen@0.6.0:
-    resolution: {integrity: sha512-zMe3KBsAwEyZSmMfnO+EBpEkEJzSEQZawTs5pob8LeLDmnl0VARl19VEENLvUI2v7x54mAmP20d1YIFO57CXkA==}
+  /elm-codegen@0.6.1:
+    resolution: {integrity: sha512-mbVmK4fqW+wtYzTZhJSuT42KrQZMRTueYerCvo09sO5v7QdDGw3qeG/rL1vLH0q2GJF44lXhyBo4lv6azSBOQQ==}
     hasBin: true
     dependencies:
       chalk: 4.1.2
